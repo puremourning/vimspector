@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+docker build --no-cache -t puremourning/vimspector:test image/
