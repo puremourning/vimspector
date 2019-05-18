@@ -102,7 +102,7 @@ stages:
         targetPath: $(System.ArtifactStagingDirectory)
     - task: GitHubRelease@0
       inputs:
-        gitHubConnection: "puremourning (1)"
+        gitHubConnection: "puremourning"
         repositoryName: '$(Build.Repository.Name)'
         action: 'create' # Options: create, edit, delete
         target: '$(Build.SourceVersion)' # Required when action == Create || Action == Edit
