@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+set -e
+set -v
+
 OS=$1
 shift
 
@@ -9,20 +12,18 @@ shift
 ROOT=$(pwd)
 PACK=${ROOT}/package/${OS}
 
+mkdir -p ${PACK}
 pushd ${PACK}
   mkdir -p vimspector/opt
   mkdir -p vimspector/start
-  pushd vimspector/start
+  pushd vimspector/opt
     for d in autoload plugin python3 vendor doc; do
       if [[ -d ${ROOT}/$d ]]; then
         cp -r ${ROOT}/$d .
       fi
     done
     mkdir -p gadgets
-    pushd gadgets
-      cp ${ROOT}/gadgets/.gadgets.json .
-      cp -r ${ROOT}/gadgets/${OS} .
-    popd
+    cp -r ${ROOT}/gadgets/${OS} gadgets/
   popd
 popd
 
