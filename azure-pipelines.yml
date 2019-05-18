@@ -4,7 +4,7 @@
 # https://aka.ms/yaml
 
 stages:
-- displayName: Lint
+- stage: Lint
   jobs:
   - job: 'PythonLint'
     displayName: "Python Lint"
@@ -30,7 +30,7 @@ stages:
      - bash: $HOME/.local/bin/vint autoload/ plugin/
        displayName: "Run vint"
 
-- displayName: Build
+- stage: Build
   jobs:
   - job: 'linux'
     pool:
@@ -82,7 +82,7 @@ stages:
         artifactName: 'package-macos'
         targetPath: 'package/macos-$(Build.SourceVersion).tar.gz'
 
-- displayName: "Publish"
+- stage: "Publish"
   dependsOn:
   - "Build"
   - "Lint"
