@@ -51,7 +51,7 @@ stages:
     - bash: ./make_package linux $(Build.SourceVersion)
       displayName: 'Package'
 
-    - task: PublishPipeineArtefacts@0
+    - task: PublishPipelineArtifact@0
       inputs:
         artifactName: 'package-linux'
         targetPath: 'package/linux-$(Build.SourceVersion).tar.gz'
@@ -77,7 +77,7 @@ stages:
     - bash: ./make_package macos $(Build.SourceVersion)
       displayName: 'Package'
 
-    - task: PublishPipeineArtefacts@0
+    - task: PublishPipelineArtifact@0
       inputs:
         artifactName: 'package-macos'
         targetPath: 'package/macos-$(Build.SourceVersion).tar.gz'
