@@ -33,12 +33,12 @@ class DebugAdapterConnection( object ):
     self._logger = logging.getLogger( __name__ )
     utils.SetUpLogging( self._logger )
 
-    self._Write = send_func
     self._SetState( 'READ_HEADER' )
     self._buffer = bytes()
     self._handler = handler
     self._next_message_id = 0
     self._outstanding_requests = {}
+    self._send_func = send_func
 
   def DoRequest( self,
                  handler,
@@ -203,6 +203,12 @@ class DebugAdapterConnection( object ):
     # be a header.
     self._SetState( 'READ_HEADER' )
     self._OnMessageReceived( message )
+
+  def _Write( self, data ):
+    return vim.eval(
+          "{}( {} )".format(
+            self._send_func,
+            json.dumps( data ) ) )
 
 
   def _OnMessageReceived( self, message ):

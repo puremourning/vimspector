@@ -53,7 +53,7 @@ def OpenFileInCurrentWindow( file_name ):
 
 
 def SetUpCommandBuffer( cmd, name ):
-  bufs = vim.bindeval(
+  bufs = vim.eval(
     'vimspector#internal#job#StartCommandWithLog( {}, "{}" )'.format(
       json.dumps( cmd ),
       name ) )

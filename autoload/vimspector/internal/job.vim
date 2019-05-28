@@ -29,7 +29,7 @@ endfunction
 
 function! s:_OnExit( channel, status ) abort
   echom 'Channel exit with status ' . a:status
-  unlet s:job 
+  unlet s:job
   py3 _vimspector_session.OnServerExit( vim.eval( 'a:status' ) )
 endfunction
 
@@ -37,7 +37,7 @@ function! s:_OnClose( channel ) abort
   echom 'Channel closed'
 endfunction
 
-function! s:_Send( msg ) abort
+function! vimspector#internal#job#Send( msg ) abort
   if ! exists( 's:job' )
     echom "Can't send message: Job was not initialised correctly"
     return 0
@@ -61,7 +61,7 @@ endfunction
 function! vimspector#internal#job#StartDebugSession( config ) abort
   if exists( 's:job' )
     echom 'Not starging: Job is already running'
-    return v:none
+    return v:false
   endif
 
   let s:job = job_start( a:config[ 'command' ],
@@ -83,10 +83,10 @@ function! vimspector#internal#job#StartDebugSession( config ) abort
 
   if job_status( s:job ) !=# 'run'
     echom 'Unable to start job, status is: ' . job_status( s:job )
-    return v:none
+    return v:false
   endif
 
-  return funcref( 's:_Send' )
+  return v:true
 endfunction
 
 function! vimspector#internal#job#StopDebugSession() abort
@@ -126,7 +126,7 @@ function! vimspector#internal#job#StartCommandWithLog( cmd, category ) abort
   let l:index = len( s:commands[ a:category ] )
 
   call add( s:commands[ a:category ], job_start(
-        \ a:cmd, 
+        \ a:cmd,
         \ {
         \   'out_io': 'buffer',
         \   'in_io': 'null',
