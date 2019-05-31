@@ -53,10 +53,10 @@ def OpenFileInCurrentWindow( file_name ):
 
 
 def SetUpCommandBuffer( cmd, name ):
-  bufs = vim.eval(
+  bufs = list( map( lambda x: int(x), vim.eval(
     'vimspector#internal#job#StartCommandWithLog( {}, "{}" )'.format(
       json.dumps( cmd ),
-      name ) )
+      name ) ) ) )
 
   if bufs is None:
     raise RuntimeError( "Unable to start job {}: {}".format( cmd, name ) )
@@ -100,7 +100,7 @@ def SetUpHiddenBuffer( buf, name ):
 def SetUpPromptBuffer( buf, name, prompt, callback, hidden=False ):
   # This feature is _super_ new, so only enable when available
   if not int( vim.eval( "exists( '*prompt_setprompt' )" ) ):
-    return SetUpScratchBuffer( buf, name )
+    return SetUpHiddenBuffer( buf, name )
 
   buf.options[ 'buftype' ] = 'prompt'
   buf.options[ 'swapfile' ] = False
@@ -163,8 +163,12 @@ def RestoreCurrentBuffer( window ):
     yield
   finally:
     with RestoreCurrentWindow():
+      print('Restore buffer: ' + str(old_buffer.number)) # XXX: clean before merge
       vim.current.window = window
-      vim.current.buffer = old_buffer
+      try:
+        vim.current.buffer = old_buffer
+      finally:
+        pass
 
 
 @contextlib.contextmanager

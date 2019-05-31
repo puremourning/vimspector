@@ -212,8 +212,9 @@ class CodeView( object ):
       with utils.RestoreCurrentWindow():
         vim.current.window = self._window
         # TODO/FIXME: Do something about closing this when we reset ?
-        vim_cmd =  'term_start( {}, {} )'.format( json.dumps( args ),
-                                                  json.dumps( options ) )
+        vim_cmd =  'vimspector#term#start( {}, {} )'.format(
+            json.dumps( args ),
+            json.dumps( options ) )
 
         self._logger.debug( 'Start terminal: {}'.format( vim_cmd ) )
 
