@@ -142,23 +142,6 @@ GADGETS = {
       },
     }
   },
-  'vscode-mono-debug': {
-    'language': 'csharp',
-    'enabled': False,
-    'download': {
-      'url': 'https://marketplace.visualstudio.com/_apis/public/gallery/'
-             'publishers/ms-vscode/vsextensions/mono-debug/${version}/'
-             'vspackage',
-      'target': 'vscode-mono-debug.tar.gz',
-      'format': 'tar',
-    },
-    'all': {
-      'file_name': 'vscode-mono-debug.vsix',
-      'version': '0.15.8',
-      'checksum':
-          '723eb2b621b99d65a24f215cb64b45f5fe694105613a900a03c859a62a810470',
-    }
-  },
   'vscode-bash-debug': {
     'language': 'bash',
     'download': {
