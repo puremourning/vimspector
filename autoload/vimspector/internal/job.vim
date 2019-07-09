@@ -36,6 +36,7 @@ endfunction
 function! vimspector#internal#job#Send( msg ) abort
   if ! exists( 's:job' )
     echom "Can't send message: Job was not initialised correctly"
+    redraw
     return 0
   endif
 
@@ -46,7 +47,8 @@ endfunction
 function! vimspector#internal#job#StartDebugSession( config ) abort
   if exists( 's:job' )
     echom 'Not starging: Job is already running'
-    return v:false
+    redraw
+    return v:none
   endif
 
   let s:job = vimspector#async#job#start( a:config[ 'command' ],
@@ -60,9 +62,11 @@ function! vimspector#internal#job#StartDebugSession( config ) abort
        "\                    'env': a:config[ 'env' ],
 
   echom 'Started job, id is: ' . s:job
+  redraw
 
   if s:job == -1
     echom 'Unable to start job'
+    redraw
     return v:false
   endif
 
@@ -72,10 +76,12 @@ endfunction
 function! vimspector#internal#job#StopDebugSession() abort
   if !exists( 's:job' )
     echom "Not stopping session: Job doesn't exist"
+    redraw
     return
   endif
 
   echom 'Terminating job'
+  redraw
   call vimspector#async#job#stop( s:job )
   unlet s:job
 endfunction
@@ -111,6 +117,7 @@ function! vimspector#internal#job#StartCommandWithLog( cmd, category ) abort
 
   if l:job < 0
     echom 'Unable to start job for ' . a:cmd
+    redraw
     return v:none
   endif
 

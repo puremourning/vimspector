@@ -23,7 +23,6 @@ except ImportError:
 import argparse
 import contextlib
 import os
-import collections
 import string
 import zipfile
 import shutil
@@ -49,7 +48,7 @@ GADGETS = {
     },
     'do': lambda name, root: InstallCppTools( name, root ),
     'all': {
-      'version': '0.22.1',
+      'version': '0.23.1',
     },
     'linux': {
       'file_name': 'cpptools-linux.vsix',
@@ -58,7 +57,7 @@ GADGETS = {
     'macos': {
       'file_name': 'cpptools-osx.vsix',
       'checksum':
-        'fa9d37d5ea74e86043051cbc37660f9c187be828fbde56d8eb75c48d36a3c13b',
+        '431692395ba243ea20428e083d5df3201a0dbda31a66eab7729da0f377def5fd',
     },
     'windows': {
       'file_name': 'cpptools-win32.vsix',
@@ -84,10 +83,10 @@ GADGETS = {
                '${version}/${file_name}' ),
     },
     'all': {
-      'version': '2019.3.6352',
+      'version': '2019.5.17059',
       'file_name': 'ms-python-release.vsix',
       'checksum':
-        'f7e5552db3783d6b45ba4b84005d7b42a372033ca84c0fce82eb70e7372336c6',
+        'db31c9d835318209f4b26948db8b7c68b45ca4c341f6c17bb8e62dfc32f0b78d',
     },
     'adapters': {
       "vscode-python": {
@@ -107,6 +106,42 @@ GADGETS = {
     },
     'do': lambda name, root: InstallTclProDebug( name, root )
   },
+  'netcoredbg': {
+    'language': 'csharp',
+    'enabled': False,
+    'download': {
+      'url': ( 'https://github.com/Samsung/netcoredbg/releases/download/latest/'
+               '${file_name}' ),
+      'format': 'tar',
+    },
+    'all': {
+      'version': 'master'
+    },
+    'macos': {
+      'file_name': 'netcoredbg-osx-master.tar.gz',
+      'checksum': '',
+    },
+    'linux': {
+      'file_name': 'netcoredbg-linux-master.tar.gz',
+      'checksum': '',
+    },
+    'do': lambda name, root: MakeSymlink( gadget_dir,
+                                          name,
+                                          os.path.join( root, 'netcoredbg' ) ),
+    'adapters': {
+      'netcoredbg': {
+        "name": "netcoredbg",
+        "command": [
+          "${gadgetDir}/netcoredbg/netcoredbg",
+          "--interpreter=vscode"
+        ],
+        "attach": {
+          "pidProperty": "processId",
+          "pidSelect": "ask"
+        },
+      },
+    }
+  },
   'vscode-mono-debug': {
     'language': 'csharp',
     'enabled': False,
@@ -120,7 +155,20 @@ GADGETS = {
     'all': {
       'file_name': 'vscode-mono-debug.vsix',
       'version': '0.15.8',
-      'checksum': '723eb2b621b99d65a24f215cb64b45f5fe694105613a900a03c859a62a810470',
+      'checksum':
+          '723eb2b621b99d65a24f215cb64b45f5fe694105613a900a03c859a62a810470',
+    },
+    'adapters': {
+      'vscode-mono-debug': {
+        "name": "mono-debug",
+        "command": [
+          "mono",
+          "${gadgetDir}/vscode-mono-debug/bin/Release/mono-debug.exe"
+        ],
+        "attach": {
+          "pidSelect": "none"
+        },
+      },
     }
   },
   'vscode-bash-debug': {
@@ -130,12 +178,13 @@ GADGETS = {
                'download/${version}/${file_name}' ),
     },
     'all': {
-      'file_name': 'bash-debug-0.3.3.vsix',
-      'version': 'untagged-3c529a47de44a70c9c76',
+      'file_name': 'bash-debug-0.3.5.vsix',
+      'version': 'v0.3.5',
       'checksum': '',
     }
   }
 }
+
 
 @contextlib.contextmanager
 def CurrentWorkingDir( d ):
@@ -201,7 +250,7 @@ def InstallTclProDebug( name, root ):
 
 
   with CurrentWorkingDir( os.path.join( root, 'lib', 'tclparser' ) ):
-    subprocess.check_call( configure  )
+    subprocess.check_call( configure )
     subprocess.check_call( [ 'make' ] )
 
   MakeSymlink( gadget_dir, name, root )
@@ -275,15 +324,15 @@ def RemoveIfExists( destination ):
 # other than crappy code. Let's do it's job for it.
 class ModePreservingZipFile( zipfile.ZipFile ):
   def extract( self, member, path = None, pwd = None ):
-    if not isinstance(member, zipfile.ZipInfo):
-      member = self.getinfo(member)
+    if not isinstance( member, zipfile.ZipInfo ):
+      member = self.getinfo( member )
 
     if path is None:
       path = os.getcwd()
 
-    ret_val = self._extract_member(member, path, pwd)
+    ret_val = self._extract_member( member, path, pwd )
     attr = member.external_attr >> 16
-    os.chmod(ret_val, attr)
+    os.chmod( ret_val, attr )
     return ret_val
 
 
@@ -325,6 +374,7 @@ def CloneRepoTo( url, ref, destination ):
   subprocess.check_call( [ 'git', 'clone', url, destination ] )
   subprocess.check_call( [ 'git', '-C', destination, 'checkout', ref ] )
 
+
 OS = install.GetOS()
 gadget_dir = install.GetGadgetDir( os.path.dirname( __file__ ), OS )
 
@@ -336,22 +386,34 @@ parser.add_argument( '--all',
                      action = 'store_true',
                      help = 'Enable all completers' )
 
+done_languages = set()
 for name, gadget in GADGETS.items():
+  lang = gadget[ 'language' ]
+  if lang in done_languages:
+    continue
+
+  done_languages.add( lang )
   if not gadget.get( 'enabled', True ):
+    parser.add_argument(
+      '--force-enable-' + lang,
+      action = 'store_true',
+      help = 'Install the unsupported {} debug adapter for {} support'.format(
+        name,
+        lang ) )
     continue
 
   parser.add_argument(
-    '--enable-' + gadget[ 'language' ],
+    '--enable-' + lang,
     action = 'store_true',
     help = 'Install the {} debug adapter for {} support'.format(
       name,
-      gadget[ 'language' ] ) )
+      lang ) )
 
   parser.add_argument(
-    '--disable-' + gadget[ 'language' ],
+    '--disable-' + lang,
     action = 'store_true',
     help = 'Don\t install the {} debug adapter for {} support '
-           '(when supplying --all)'.format( name, gadget[ 'language' ] ) )
+           '(when supplying --all)'.format( name, lang ) )
 
 args = parser.parse_args()
 
@@ -359,13 +421,13 @@ failed = []
 all_adapters = {}
 for name, gadget in GADGETS.items():
   if not gadget.get( 'enabled', True ):
-    continue
-
-  if not args.all and not getattr( args, 'enable_' + gadget[ 'language' ] ):
-    continue
-
-  if getattr( args, 'disable_' + gadget[ 'language' ] ):
-    continue
+    if not getattr( args, 'force_enable_' + gadget[ 'language' ] ):
+      continue
+  else:
+    if not args.all and not getattr( args, 'enable_' + gadget[ 'language' ] ):
+      continue
+    if getattr( args, 'disable_' + gadget[ 'language' ] ):
+      continue
 
   try:
     v = {}
@@ -389,7 +451,7 @@ for name, gadget in GADGETS.items():
       root = os.path.join( destination, 'root' )
       ExtractZipTo( file_path,
                     root,
-                    format = gadget[ 'download' ].get( 'format', 'zip' )  )
+                    format = gadget[ 'download' ].get( 'format', 'zip' ) )
     elif 'repo' in gadget:
       url = string.Template( gadget[ 'repo' ][ 'url' ] ).substitute( v )
       ref = string.Template( gadget[ 'repo' ][ 'ref' ] ).substitute( v )

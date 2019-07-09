@@ -35,18 +35,17 @@ class CodeView( object ):
       'breakpoints': []
     }
 
-    vim.current.window = self._window
+    with utils.LetCurrentWindow( self._window ):
+      vim.command( 'nnoremenu WinBar.Continue :call vimspector#Continue()<CR>' )
+      vim.command( 'nnoremenu WinBar.Next :call vimspector#StepOver()<CR>' )
+      vim.command( 'nnoremenu WinBar.Step :call vimspector#StepInto()<CR>' )
+      vim.command( 'nnoremenu WinBar.Finish :call vimspector#StepOut()<CR>' )
+      vim.command( 'nnoremenu WinBar.Pause :call vimspector#Pause()<CR>' )
+      vim.command( 'nnoremenu WinBar.Stop :call vimspector#Stop()<CR>' )
+      vim.command( 'nnoremenu WinBar.Restart :call vimspector#Restart()<CR>' )
+      vim.command( 'nnoremenu WinBar.Reset :call vimspector#Reset()<CR>' )
 
-    vim.command( 'nnoremenu WinBar.Continue :call vimspector#Continue()<CR>' )
-    vim.command( 'nnoremenu WinBar.Next :call vimspector#StepOver()<CR>' )
-    vim.command( 'nnoremenu WinBar.Step :call vimspector#StepInto()<CR>' )
-    vim.command( 'nnoremenu WinBar.Finish :call vimspector#StepOut()<CR>' )
-    vim.command( 'nnoremenu WinBar.Pause :call vimspector#Pause()<CR>' )
-    vim.command( 'nnoremenu WinBar.Stop :call vimspector#Stop()<CR>' )
-    vim.command( 'nnoremenu WinBar.Restart :call vimspector#Restart()<CR>' )
-    vim.command( 'nnoremenu WinBar.Reset :call vimspector#Reset()<CR>' )
-
-    vim.command( 'sign define vimspectorPC text=-> texthl=Search' )
+      vim.command( 'sign define vimspectorPC text=-> texthl=Search' )
 
 
   def SetCurrentFrame( self, frame ):
@@ -61,7 +60,7 @@ class CodeView( object ):
     if 'path' not in frame[ 'source' ]:
       return False
 
-    vim.current.window = self._window
+    utils.JumpToWindow( self._window )
 
     try:
       utils.OpenFileInCurrentWindow( frame[ 'source' ][ 'path' ] )
@@ -70,7 +69,8 @@ class CodeView( object ):
         frame[ 'source' ][ 'path' ] ) )
       return False
 
-    self._window.cursor = ( frame[ 'line' ], frame[ 'column' ] )
+    # SIC: column is 0-based, line is 1-based in vim. Why? Nobody knows.
+    self._window.cursor = ( frame[ 'line' ], frame[ 'column' ]  - 1 )
 
     self._signs[ 'vimspectorPC' ] = self._next_sign_id
     self._next_sign_id += 1
@@ -209,8 +209,7 @@ class CodeView( object ):
     buffer_number = None
     with utils.TemporaryVimOptions( { 'splitright': True,
                                       'equalalways': False } ):
-      with utils.RestoreCurrentWindow():
-        vim.current.window = self._window
+      with utils.LetCurrentWindow( self._window ):
         # TODO/FIXME: Do something about closing this when we reset ?
         vim_cmd =  'vimspector#term#start( {}, {} )'.format(
             json.dumps( args ),

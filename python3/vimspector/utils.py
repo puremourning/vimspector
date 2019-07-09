@@ -147,11 +147,13 @@ def RestoreCursorPosition():
 
 @contextlib.contextmanager
 def RestoreCurrentWindow():
-  # TODO: Don't trigger autoccommands when shifting windows
+  # TODO: Don't trigger autocommands when shifting windows
+  old_tabpage = vim.current.tabpage
   old_window = vim.current.window
   try:
     yield
   finally:
+    vim.current.tabpage = old_tabpage
     vim.current.window = old_window
 
 
@@ -169,6 +171,18 @@ def RestoreCurrentBuffer( window ):
         vim.current.buffer = old_buffer
       finally:
         pass
+
+
+@contextlib.contextmanager
+def LetCurrentWindow( window ):
+  with RestoreCurrentWindow():
+    JumpToWindow( window )
+    yield
+
+
+def JumpToWindow( window ):
+  vim.current.tabpage = window.tabpage
+  vim.current.window = window
 
 
 @contextlib.contextmanager
@@ -217,6 +231,7 @@ def UserMessage( msg, persist=False ):
   cmd = 'echom' if persist else 'echo'
   for line in msg.split( '\n' ):
     vim.command( "{0} '{1}'".format( cmd, Escape( line ) ) )
+  vim.command( 'redraw' )
 
 
 @contextlib.contextmanager
