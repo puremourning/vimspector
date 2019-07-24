@@ -387,3 +387,10 @@ def DisplayBaloon( is_term, display ):
 
   vim.eval( "balloon_show( {0} )".format(
     json.dumps( display ) ) )
+
+
+def GetBufferFilepath( buf ):
+  if not buf.name:
+    return ''
+
+  return os.path.normpath( buf.name )
