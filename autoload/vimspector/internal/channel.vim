@@ -30,15 +30,11 @@ function! s:_OnServerError( channel, data ) abort
   redraw
 endfunction
 
-function! s:_OnExit( channel, status ) abort
-  echom 'Channel exit with status ' . a:status
-  redraw
-endfunction
-
 function! s:_OnClose( channel ) abort
   echom 'Channel closed'
   redraw
-  " py3 _vimspector_session.OnChannelClosed()
+  unlet s:ch
+  py3 _vimspector_session.OnServerExit( 0 )
 endfunction
 
 function! s:_Send( msg ) abort
@@ -85,9 +81,9 @@ function! vimspector#internal#channel#StopDebugSession() abort
 
   if ch_status( s:ch ) ==# 'open'
     call ch_close( s:ch )
+    call s:_OnClose( s:ch )
+    return
   endif
-
-  unlet s:ch
 endfunction
 
 function! vimspector#internal#channel#Reset() abort
