@@ -42,7 +42,8 @@ stages:
         go get -u github.com/go-delve/delve/cmd/dlv
       displayName: 'Install Delve for Go'
 
-    - bash: python3 install_gadget.py --all
+    # TODO: Use cache to store the download directory
+    - bash: python3 install_gadget.py --all --force-all
       displayName: 'Install gadgets'
 
     - bash: vim --version
@@ -74,7 +75,8 @@ stages:
     - bash: go get -u github.com/go-delve/delve/cmd/dlv
       displayName: 'Install Delve for Go'
 
-    - bash: python3 install_gadget.py --all
+    # TODO: Use cache to store the download directory
+    - bash: python3 install_gadget.py --all --force-all
       displayName: 'Install gadgets'
 
     - bash: vim --version
