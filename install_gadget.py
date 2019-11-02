@@ -260,6 +260,32 @@ GADGETS = {
       },
     },
   },
+  'PowerShellEditorServices': {
+    'language': 'powershell',
+    'enabled': False,
+    'download': {
+      'url': 'https://github.com/PowerShell/PowerShellEditorServices/releases/'
+             'download/v${version}/PowerShellEditorServices.zip',
+      'format': 'zip',
+    },
+    'do': ( lambda name, root:
+              MakeSymlink( gadget_dir,
+                           name,
+                           os.path.join( root, 'PowerShellEditorServices' ) ) ),
+    'all': {
+      'version': '1.13.0',
+      'file_name': 'PowerShellEditorServices.zip',
+      'checksum':
+        'd10bda5c7d36795bb8f860b2d09a637f8f98ee401c60ac4c40a636f8606565b9'
+    },
+    'adapters': {
+      'PowerShell': {
+        'name': 'PowerShell',
+        'type': 'PowerShell',
+        'port': 'ask',
+      },
+    },
+  }
 }
 
 
@@ -453,7 +479,8 @@ class ModePreservingZipFile( zipfile.ZipFile ):
 
     ret_val = self._extract_member( member, path, pwd )
     attr = member.external_attr >> 16
-    os.chmod( ret_val, attr )
+    if attr:
+      os.chmod( ret_val, attr )
     return ret_val
 
 

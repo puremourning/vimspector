@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+PSES_BUNDLE_PATH=$HOME/.vim/bundle/vimspector/gadgets/macos/PowerShellEditorServices
+SESSION_TEMP_PATH=$(pwd)
+
+pwsh -NoProfile \
+     -Command \
+       "$PSES_BUNDLE_PATH/PowerShellEditorServices/Start-EditorServices.ps1 \
+        -BundledModulesPath $PSES_BUNDLE_PATH \
+        -LogPath $SESSION_TEMP_PATH/logs.log \
+        -SessionDetailsPath $SESSION_TEMP_PATH/session.json \
+        -FeatureFlags @() \
+        -AdditionalModules @() \
+        -HostName 'My Client' \
+        -HostProfileId 'myclient' \
+        -HostVersion 1.0.0 \
+        -EnableConsoleRepl \
+        -LogLevel Verbose"

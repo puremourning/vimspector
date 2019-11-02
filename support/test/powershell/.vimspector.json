@@ -1,0 +1,17 @@
+{
+  "configurations": {
+    "launch": {
+      "adapter": "PowerShell",
+      "configuration": {
+        "request": "launch",
+        "Script": "${file}",
+        "NoDebug": false,
+        "StopOnEntry": true,
+        "Args": [],
+        "Cwd": "${workspaceRoot}",
+        "CreateTemporaryIntegratedConsole": true,
+        "Env": {}
+      }
+    }
+  }
+}
