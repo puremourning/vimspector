@@ -23,8 +23,10 @@ import string
 import functools
 
 
-_log_handler = logging.FileHandler( os.path.expanduser( '~/.vimspector.log' ),
-                                    mode = 'w' )
+LOG_FILE = os.path.expanduser( os.path.join( '~', '.vimspector.log') )
+
+_log_handler = logging.FileHandler( LOG_FILE, mode = 'w' )
+
 _log_handler.setFormatter(
     logging.Formatter( '%(asctime)s - %(levelname)s - %(message)s' ) )
 
