@@ -30,7 +30,9 @@ endfunction
 function! s:_OnExit( channel, status ) abort
   echom 'Channel exit with status ' . a:status
   redraw
-  unlet s:job
+  if exists( 's:job' )
+    unlet s:job
+  endif
   py3 _vimspector_session.OnServerExit( vim.eval( 'a:status' ) )
 endfunction
 
@@ -63,6 +65,11 @@ function! vimspector#internal#job#StartDebugSession( config ) abort
 
   echom 'Started job, status is: ' . job_status( s:job )
   redraw
+
+  if !exists( 's:job' )
+    " The job died immediately after starting and we cleaned up
+    return v:false
+  endif
 
   if job_status( s:job ) !=# 'run'
     echom 'Unable to start job, status is: ' . job_status( s:job )
@@ -140,7 +147,7 @@ function! vimspector#internal#job#StartCommandWithLog( cmd, category ) abort
         \ } ) )
 
   if job_status( s:commands[ a:category ][ index ] ) !=# 'run'
-    echom 'Unable to start job for ' . a:cmd
+    echom 'Unable to start job for ' . string( a:cmd )
     redraw
     return v:none
   endif
