@@ -201,9 +201,24 @@ def MakeSymlink( in_folder, link, pointing_to ):
   RemoveIfExists( os.path.join( in_folder, link ) )
 
   in_folder = os.path.abspath( in_folder )
-  pointing_to = os.path.relpath( os.path.abspath( pointing_to ),
-                                 in_folder )
-  os.symlink( pointing_to, os.path.join( in_folder, link ) )
+  pointing_to_relative = os.path.relpath( os.path.abspath( pointing_to ),
+                                          in_folder )
+  link_path = os.path.join( in_folder, link )
+
+  if install.GetOS() == 'windows':
+    # While symlinks do exist on Windows, they require elevated privileges, so
+    # let's use a directory junction which is all we need.
+    link_path = os.path.abspath( link_path )
+    if os.path.isdir( link_path ):
+      os.rmdir( link_path )
+    subprocess.check_call( [ 'cmd.exe',
+                             '/c',
+                             'mklink',
+                             '/J',
+                             link_path,
+                             pointing_to ] )
+  else:
+    os.symlink( pointing_to_relative, link_path )
 
 
 def CloneRepoTo( url, ref, destination ):

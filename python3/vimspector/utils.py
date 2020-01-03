@@ -23,7 +23,7 @@ import string
 import functools
 
 
-LOG_FILE = os.path.expanduser( os.path.join( '~', '.vimspector.log') )
+LOG_FILE = os.path.expanduser( os.path.join( '~', '.vimspector.log' ) )
 
 _log_handler = logging.FileHandler( LOG_FILE, mode = 'w' )
 
@@ -42,7 +42,7 @@ SetUpLogging( _logger )
 
 
 def BufferNumberForFile( file_name ):
-  return int( vim.eval( 'bufnr( "{0}", 1 )'.format( file_name ) ) )
+  return int( vim.eval( "bufnr( '{0}', 1 )".format( Escape( file_name ) ) ) )
 
 
 def BufferForFile( file_name ):
@@ -52,7 +52,7 @@ def BufferForFile( file_name ):
 def OpenFileInCurrentWindow( file_name ):
   buffer_number = BufferNumberForFile( file_name )
   try:
-    vim.command( 'bu {0}'.format( buffer_number ) )
+    vim.current.buffer = vim.buffers[ buffer_number ]
   except vim.error as e:
     if 'E325' not in str( e ):
       raise
