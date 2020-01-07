@@ -15,21 +15,36 @@
 
 from collections import defaultdict
 
+import abc
 import vim
 import os
+import logging
 
 import json
 from vimspector import utils
 
 
+class ServerBreakpointHandler( object ):
+  @abc.abstractmethod
+  def ClearBreakpoints( self ):
+    pass
+
+  @abc.abstractmethod
+  def AddBreakpoints( self, source, message ):
+    pass
+
+
 class ProjectBreakpoints( object ):
   def __init__( self ):
     self._connection = None
+    self._logger = logging.getLogger( __name__ )
+    utils.SetUpLogging( self._logger )
 
     # These are the user-entered breakpoints.
     self._line_breakpoints = defaultdict( list )
     self._func_breakpoints = []
-    self._exceptionBreakpoints = None
+    self._exception_breakpoints = None
+    self._configured_breakpoints = {}
 
     # FIXME: Remove this. Remove breakpoints nonesense from code.py
     self._breakpoints_handler = None
@@ -52,12 +67,14 @@ class ProjectBreakpoints( object ):
 
   def ConnectionClosed( self ):
     self._breakpoints_handler = None
-    self._exceptionBreakpoints = None
     self._server_capabilities = {}
     self._connection = None
+    self.UpdateUI()
 
-    # for each breakpoint:
-    # clear its resolved status
+    # NOTE: we don't reset self._exception_breakpoints because we don't want to
+    # re-ask the user every time for the sane info.
+
+    # FIXME: If the adapter type changes, we should probably forget this ?
 
 
   def ListBreakpoints( self ):
@@ -70,6 +87,7 @@ class ProjectBreakpoints( object ):
     else:
       for file_name, breakpoints in self._line_breakpoints.items():
         for bp in breakpoints:
+          self._SignToLine( file_name, bp )
           qf.append( {
             'filename': file_name,
             'lnum': bp[ 'line' ],
@@ -94,9 +112,15 @@ class ProjectBreakpoints( object ):
 
   def ClearBreakpoints( self ):
     # These are the user-entered breakpoints.
+    for file_name, breakpoints in self._line_breakpoints.items():
+      for bp in breakpoints:
+        self._SignToLine( file_name, bp )
+        if 'sign_id' in bp:
+          vim.command( 'sign unplace {0} group=VimspectorBP'.format(
+            bp[ 'sign_id' ] ) )
+
     self._line_breakpoints = defaultdict( list )
     self._func_breakpoints = []
-    self._exceptionBreakpoints = None
 
     self.UpdateUI()
 
@@ -108,16 +132,27 @@ class ProjectBreakpoints( object ):
       return
 
     found_bp = False
+    action = 'New'
     for index, bp in enumerate( self._line_breakpoints[ file_name ] ):
+      self._SignToLine( file_name, bp )
       if bp[ 'line' ] == line:
         found_bp = True
-        if bp[ 'state' ] == 'ENABLED':
+        if bp[ 'state' ] == 'ENABLED' and not self._connection:
           bp[ 'state' ] = 'DISABLED'
+          action = 'Disable'
         else:
           if 'sign_id' in bp:
             vim.command( 'sign unplace {0} group=VimspectorBP'.format(
               bp[ 'sign_id' ] ) )
           del self._line_breakpoints[ file_name ][ index ]
+          action = 'Delete'
+        break
+
+    self._logger.debug( "Toggle found bp at {}:{} ? {} ({})".format(
+      file_name,
+      line,
+      found_bp,
+      action ) )
 
     if not found_bp:
       self._line_breakpoints[ file_name ].append( {
@@ -156,23 +191,41 @@ class ProjectBreakpoints( object ):
     self._breakpoints_handler = handler
 
 
-  def SendBreakpoints( self ):
-    if not self._breakpoints_handler:
-      def handler( source, msg ):
-        return self._ShowBreakpoints()
-    else:
-      handler = self._breakpoints_handler
+  def SetConfiguredBreakpoints( self, configured_breakpoints ):
+    self._configured_breakpoints = configured_breakpoints
+
+
+  def SendBreakpoints( self, doneHandler = None ):
+    assert self._breakpoints_handler is not None
+
+    # Clear any existing breakpoints prior to sending new ones
+    self._breakpoints_handler.ClearBreakpoints()
+
+    awaiting = 0
+
+    def response_handler( source, msg ):
+      if msg:
+        self._breakpoints_handler.AddBreakpoints( source, msg )
+      nonlocal awaiting
+      awaiting = awaiting - 1
+      if awaiting == 0 and doneHandler:
+        doneHandler()
+
+
+    # TODO: add the _configured_breakpoints to line_breakpoints
+    # TODO: the line numbers might have changed since pressing the F9 key!
 
     for file_name, line_breakpoints in self._line_breakpoints.items():
       breakpoints = []
       for bp in line_breakpoints:
-        if bp[ 'state' ] != 'ENABLED':
-          continue
-
+        self._SignToLine( file_name, bp )
         if 'sign_id' in bp:
           vim.command( 'sign unplace {0} group=VimspectorBP'.format(
             bp[ 'sign_id' ] ) )
           del bp[ 'sign_id' ]
+
+        if bp[ 'state' ] != 'ENABLED':
+          continue
 
         breakpoints.append( { 'line': bp[ 'line' ] } )
 
@@ -181,8 +234,9 @@ class ProjectBreakpoints( object ):
         'path': file_name,
       }
 
+      awaiting = awaiting + 1
       self._connection.DoRequest(
-        lambda msg: handler( source, msg ),
+        lambda msg: response_handler( source, msg ),
         {
           'command': 'setBreakpoints',
           'arguments': {
@@ -193,9 +247,12 @@ class ProjectBreakpoints( object ):
         }
       )
 
+    # TODO: Add the _configured_breakpoints to function breakpoints
+
     if self._server_capabilities.get( 'supportsFunctionBreakpoints' ):
+      awaiting = awaiting + 1
       self._connection.DoRequest(
-        lambda msg: handler( None, msg ),
+        lambda msg: response_handler( None, msg ),
         {
           'command': 'setFunctionBreakpoints',
           'arguments': {
@@ -207,62 +264,77 @@ class ProjectBreakpoints( object ):
         }
       )
 
-    if self._exceptionBreakpoints is None:
-      self._SetUpExceptionBreakpoints()
+    if self._exception_breakpoints is None:
+      self._SetUpExceptionBreakpoints( self._configured_breakpoints )
 
-    if self._exceptionBreakpoints:
+    if self._exception_breakpoints:
+      awaiting = awaiting + 1
       self._connection.DoRequest(
-        None, # There is nothing on the response to this
+        lambda msg: response_handler( None, None ),
         {
           'command': 'setExceptionBreakpoints',
-          'arguments': self._exceptionBreakpoints
+          'arguments': self._exception_breakpoints
         }
       )
 
+    if awaiting == 0 and doneHandler:
+      doneHandler()
 
-  def _SetUpExceptionBreakpoints( self ):
-    exceptionBreakpointFilters = self._server_capabilities.get(
+
+  def _SetUpExceptionBreakpoints( self, configured_breakpoints ):
+    exception_breakpoint_filters = self._server_capabilities.get(
         'exceptionBreakpointFilters',
         [] )
 
-    if exceptionBreakpointFilters or not self._server_capabilities.get(
+    if exception_breakpoint_filters or not self._server_capabilities.get(
       'supportsConfigurationDoneRequest' ):
-      exceptionFilters = []
-      if exceptionBreakpointFilters:
-        for f in exceptionBreakpointFilters:
-          response = utils.AskForInput(
-            "Enable exception filter '{}'? (Y/N)".format( f[ 'label' ] ) )
+      # Note the supportsConfigurationDoneRequest part: prior to there being a
+      # configuration done request, the "exception breakpoints" request was the
+      # indication that configuraiton was done (and its response is used to
+      # trigger requesting threads etc.). See the note in
+      # debug_session.py:_Initialise for more detials
+      exception_filters = []
+      configured_filter_options = configured_breakpoints.get( 'exception', {} )
+      if exception_breakpoint_filters:
+        for f in exception_breakpoint_filters:
+          default_value = 'Y' if f.get( 'default' ) else 'N'
 
-          if response == 'Y':
-            exceptionFilters.append( f[ 'filter' ] )
-          elif not response and f.get( 'default' ):
-            exceptionFilters.append( f[ 'filter' ] )
+          if f[ 'filter' ] in configured_filter_options:
+            result = configured_filter_options[ f[ 'filter' ] ]
 
-      self._exceptionBreakpoints = {
-        'filters': exceptionFilters
+            if isinstance( result, bool ):
+              result = 'Y' if result else 'N'
+
+            if not isinstance( result, str ) or result not in ( 'Y', 'N', '' ):
+              raise ValueError(
+                f"Invalid value for exception breakpoint filter '{f}': "
+                f"'{result}'. Must be boolean, 'Y', 'N' or '' (default)" )
+          else:
+            result = utils.AskForInput(
+              "{}: Break on {} (Y/N/default: {})? ".format( f[ 'filter' ],
+                                                            f[ 'label' ],
+                                                            default_value ),
+              default_value )
+
+          if result == 'Y':
+            exception_filters.append( f[ 'filter' ] )
+          elif not result and f.get( 'default' ):
+            exception_filters.append( f[ 'filter' ] )
+
+      self._exception_breakpoints = {
+        'filters': exception_filters
       }
 
       if self._server_capabilities.get( 'supportsExceptionOptions' ):
-        # FIXME Sigh. The python debug adapter requires this
-        #       key to exist. Even though it is optional.
-        break_mode = utils.SelectFromList( 'When to break on exception?',
-                                           [ 'never',
-                                             'always',
-                                             'unhandled',
-                                             'userHandled' ] )
-
-        if not break_mode:
-          break_mode = 'unhandled'
-
-        path = [ { 'nagate': True, 'names': [ 'DO_NOT_MATCH' ] } ]
-        self._exceptionBreakpoints[ 'exceptionOptions' ] = [ {
-          'path': path,
-          'breakMode': break_mode
-        } ]
+        # TODO: There are more elaborate exception breakpoint options here, but
+        # we don't support them. It doesn't seem like any of the servers really
+        # pay any attention to them anyway.
+        self._exception_breakpoints[ 'exceptionOptions' ] = []
 
   def _ShowBreakpoints( self ):
     for file_name, line_breakpoints in self._line_breakpoints.items():
       for bp in line_breakpoints:
+        self._SignToLine( file_name, bp )
         if 'sign_id' in bp:
           vim.command( 'sign unplace {0} group=VimspectorBP '.format(
             bp[ 'sign_id' ] ) )
@@ -277,3 +349,17 @@ class ProjectBreakpoints( object ):
             'vimspectorBP' if bp[ 'state' ] == 'ENABLED'
                            else 'vimspectorBPDisabled',
             file_name ) )
+
+
+  def _SignToLine( self, file_name, bp ):
+    if 'sign_id' not in bp:
+      return bp[ 'line' ]
+
+    signs = vim.eval( "sign_getplaced( '{}', {} )".format(
+      utils.Escape( file_name ),
+      json.dumps( { 'id': file_name, 'group': 'VimspectorBP', } ) ) )
+
+    if len( signs ) == 1 and len( signs[ 0 ][ 'signs' ] ) == 1:
+      bp[ 'line' ] = int( signs[ 0 ][ 'signs' ][ 0 ][ 'lnum' ] )
+
+    return bp[ 'line' ]

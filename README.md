@@ -3,7 +3,7 @@
 For a tutorial and usage overview, take a look at the
 [Vimspector website][website]
 
-[![Build Status](https://dev.azure.com/puremouron/Vimspector/_apis/build/status/puremourning.vimspector?branchName=master)](https://dev.azure.com/puremouron/Vimspector/_build/latest?definitionId=1&branchName=master)
+[![Build Status](https://dev.azure.com/puremouron/Vimspector/_apis/build/status/puremourning.vimspector?branchName=master)](https://dev.azure.com/puremouron/Vimspector/_build/latest?definitionId=1&branchName=master) [![Gitter](https://badges.gitter.im/vimspector/Lobby.svg)](https://gitter.im/vimspector/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 <!--ts-->
    * [Features and Usage](#features-and-usage)
@@ -32,8 +32,9 @@ For a tutorial and usage overview, take a look at the
       * [Variables and scopes](#variables-and-scopes)
       * [Watches](#watches)
       * [Stack Traces](#stack-traces)
-      * [Program Output:](#program-output)
+      * [Program Output](#program-output)
          * [Console](#console)
+      * [Closing debugger](#closing-debugger)
    * [Debug adapter configuration](#debug-adapter-configuration)
       * [Supported Languages](#supported-languages-1)
       * [Partially supported](#partially-supported)
@@ -86,6 +87,9 @@ on a best-efforts basis:
 
 - Java (see caveats)
 - C# (c-sharp) using dotnet core
+- Go (requires separate installation of [Delve][])
+- Node.js (requires node <12 for installation)
+- Anything running in chrome (i.e. javascript).
 
 ## Languages known not to work
 
@@ -129,7 +133,7 @@ Alternatively, you can clone the repo and select which gadgets are installed:
 
 Vimspector requires:
 
-* Vim version 8.1 with at least patch 1264
+* Vim (*not neovim*) version 8.1 with at least patch 1264
 * One of the following operating systems:
   * Linux
   * macOS Mojave or pater
@@ -143,8 +147,17 @@ Why such a new vim ? Well 2 reasons:
 Why no Windows support? Because it's effort and it's not a priority for the
 author. PRs are welcome.
 
-Which Linux versions? I only test on Ubuntu 18.04 and later and RHEL 6.5 and
-RHEL 7.6.
+Which Linux versions? I only test on Ubuntu 18.04 and later and RHEL 7.
+
+Why not neovim? A few fiddly reasons (not philosophy):
+
+* neovim doesn't implement some features Vimspector relies on
+* neovim's Python API is not compatible with Vim's
+* I don't personally use or test with neovim, and doing so doubles the 
+effort required.
+
+If enough people +1 [this issue](https://github.com/puremourning/vimspector/issues/29),
+I will consider it.
 
 ## Language dependencies
 
@@ -158,6 +171,9 @@ The debug adapters themselves have certain runtime dependencies:
 | Bourne Shell     | Experimental | `--all` or `--enable-bash`   | vscode-bash-debug | Bash v??               |
 | C# (dotnet core) | Experimental | `--force-enable-csharp`      | netcoredbg        | DotNet core            |
 | C# (mono)        | Experimental | `--force-enable-csharp`      | vscode-mono-debug | Mono                   |
+| Go               | Experimental | `--enable-go`                | vscode-go         | Go, [Delve][]          |
+| Node.js          | Experimental | `--force-enable-node`        | vscode-node-debug2 | 6 < Node < 12, Npm    |
+| Javascript       | Experimental | `--force-enable-chrome`      | debugger-for-chrome | Chrome |
 
 For other languages, you'll need some other way to install the gadget.
 
@@ -242,7 +258,7 @@ out how to start it, and configure that in an `adapters` entry in either your
 The simplest way in practice is to install or start Visusal Studio Code and use
 its extension manager to install the relevant extension. You can then configure
 the adapter manually in the `adapters` section of your `.vimspector.json` or in
-a `gagets.json`. 
+a `gadgets.json`. 
 
 PRs are always welcome to add configuration to do this to `install_gadget.py`.
 
@@ -260,13 +276,32 @@ Where os is one of:
 * `linux`
 * `windows` (though note: Windows is not supported)
 
-The format is the same as `.vimspector.json`, but only the `gagets` key is used:
+The format is the same as `.vimspector.json`, but only the `adapters` key is
+used:
 
 Example:
 
 ```json
 {
   "adapters": {
+    "lldb-vscode": {
+      "variables": {
+        "LLVM": {
+          "shell": "brew --prefix llvm"
+        }
+      },
+      "attach": {
+        "pidProperty": "pid",
+        "pidSelect": "ask"
+      },
+      "command": [
+        "${LLVM}/bin/lldb-vscode"
+      ],
+      "env": {
+        "LLDB_LAUNCH_FLAG_LAUNCH_IN_TTY": "YES"
+      },
+      "name": "lldb"
+    },
     "vscode-cpptools": {
       "attach": {
         "pidProperty": "processId", 
@@ -289,6 +324,11 @@ Example:
 ```
 
 The gadget file is automatically written by `install_gadget.py`.
+
+Vimspector will also load any fies matching:
+`</path/to/vimspector>/gadgets/<os>/.gadgets.d/*.json`. These have the same
+format as `.gadgets.json` but are not overwritten when running
+`install_gadget.py`.
 
 # About
 
@@ -443,7 +483,7 @@ new watch expression.
 * In the threads window, use `<CR>` to expand/collapse.
 * Use `<CR>` on a stack frame to jump to it.
 
-## Program Output:
+## Program Output
 
 * In the outputs window use the WinBar to select the output channel.
 * The debugee prints to the stdout channel.
@@ -458,7 +498,14 @@ CLI for the debug adapter. Support for this varies amongt adapters.
 * Commit the request with `<CR>`
 * The request and subsequent result are printed.
 
-NOTE: See also [Watches][#watches] above.
+NOTE: See also [Watches](#watches) above.
+
+## Closing debugger
+
+To close the debugger, use:
+
+* `Reset` button when mouse support is enabled in vim (`set mouse=a`)
+* `call vimspector#Reset()`
 
 # Debug adapter configuration
 
@@ -471,7 +518,43 @@ Current tested with the following debug adapters.
 
 * C++: [vscode-cpptools](https://github.com/Microsoft/vscode-cpptools)
 
-Example `.vimspector.json`
+***NOTE FOR macOS USERS***: Currently VSCode cpptools does *not* work on macOS
+(see this issue: https://github.com/microsoft/vscode-cpptools/issues/3829).
+Therefore it is highly recommended to use `lldb-vscode`, which comes with llvm.
+Here's how:
+
+* Install llvm with HomeBrew: `brew install llvm`
+* Create a file named
+  `/path/to/vimspector/gadgets/macos/.gadgets.d/lldb-vscode.json`:
+
+```json
+
+{
+  "adapters": {
+    "lldb-vscode": {
+      "variables": {
+        "LLVM": {
+          "shell": "brew --prefix llvm"
+        }
+      },
+      "attach": {
+        "pidProperty": "pid",
+        "pidSelect": "ask"
+      },
+      "command": [
+        "${LLVM}/bin/lldb-vscode"
+      ],
+      "env": {
+        "LLDB_LAUNCH_FLAG_LAUNCH_IN_TTY": "YES"
+      },
+      "name": "lldb"
+    }
+  }
+}
+```
+
+Example `.vimspector.json` (works with both `vscode-cpptools` and `lldb-vscode`.
+For `lldb-vscode` replace the name of the adapter with `lldb-vscode`):
 
 ```
 {
@@ -579,6 +662,85 @@ Requires `install_gadget.py --force-enable-c-sharp`.
 }
 ```
 
+* Go 
+
+Requires:
+
+* `install_gadget.py --enable-go`
+* [Delve][delve-install] installed, e.g. `go get -u github.com/go-delve/delve/cmd/dlv`
+* Delve to be in your PATH, or specify the `dlvToolPath` launch option
+
+```json
+{
+  "configurations": {
+    "run": {
+      "adapter": "vscode-go",
+      "configuration": {
+        "request": "launch",
+        "program": "${fileDirname}",
+        "mode": "debug",
+        "dlvToolPath": "$HOME/go/bin/dlv"
+      }
+    }
+  }
+}
+```
+
+* Node.js
+
+Requires:
+
+* `install_gadget.py --force-enable-node`
+* For installation, a Node.js environemt that is < node 12. I believe this is an
+  incompatibility with gulp. Advice, use [nvm][] with `nvm install --lts 10; nvm
+  use --lts 10; ./install_gadget.py --force-enable-node ...`
+* Options described here:
+  https://code.visualstudio.com/docs/nodejs/nodejs-debugging
+* Example: `support/test/node/simple`
+
+```json
+{
+  "configurations": {
+    "run": {
+      "adapter": "vscode-node",
+      "configuration": {
+        "request": "launch",
+        "protocol": "auto",
+        "stopOnEntry": true,
+        "console": "integratedTerminal",
+        "program": "${workspaceRoot}/simple.js",
+        "cwd": "${workspaceRoot}"
+      }
+    }
+  }
+}
+```
+
+* Chrome
+
+This uses the chrome debugger, see
+https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome.
+
+It allows you to debug scripts running inside chrome from within Vim.
+
+* `./install_gadget.py --force-enable-chrome`
+* Example: `support/test/chrome`
+
+```json
+{
+  "configurations": {
+    "launch": {
+      "adapter": "chrome",
+      "configuration": {
+        "request": "launch",
+        "url": "http://localhost:1234/",
+        "webRoot": "${workspaceRoot}/www"
+      }
+    }
+  }
+}
+```
+
 Also the mock debugger, but that isn't actually useful.
 
 ## Partially supported
@@ -610,3 +772,5 @@ Copyright © 2018 Ben Jackson
 [gitter]: https://gitter.im/vimspector/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link
 [java-debug-server]: https://github.com/Microsoft/java-debug
 [website]: https://puremourning.github.io/vimspector-web/
+[delve]: https://github.com/go-delve/delve
+[delve-install]: https://github.com/go-delve/delve/tree/master/Documentation/installation

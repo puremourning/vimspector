@@ -25,6 +25,7 @@ import contextlib
 import os
 import string
 import zipfile
+import gzip
 import shutil
 import subprocess
 import traceback
@@ -32,6 +33,13 @@ import tarfile
 import hashlib
 import sys
 import json
+import functools
+import time
+
+try:
+  from io import BytesIO # for Python 3
+except ImportError:
+  from BytesIO import BytesIO
 
 # Include vimspector source, for utils
 sys.path.insert( 1, os.path.join( os.path.dirname( __file__ ),
@@ -43,21 +51,22 @@ GADGETS = {
   'vscode-cpptools': {
     'language': 'c',
     'download': {
-      'url': ( 'https://github.com/Microsoft/vscode-cpptools/releases/download/'
-               '${version}/${file_name}' ),
+      'url': 'https://github.com/Microsoft/vscode-cpptools/releases/download/'
+             '${version}/${file_name}',
     },
     'do': lambda name, root: InstallCppTools( name, root ),
     'all': {
-      'version': '0.23.1',
+      'version': '0.26.2',
     },
     'linux': {
       'file_name': 'cpptools-linux.vsix',
-      'checksum': None,
+      'checksum':
+        '767aed01f0c0b5eb9e9eff96aba47b576d153d2b2d9fc28e306722ea45a02ff5'
     },
     'macos': {
       'file_name': 'cpptools-osx.vsix',
       'checksum':
-        '431692395ba243ea20428e083d5df3201a0dbda31a66eab7729da0f377def5fd',
+        '6fd52562e1e53287c0e9b94813709c6fab487c16ff3054eda6233d6c0241eb0e',
     },
     'windows': {
       'file_name': 'cpptools-win32.vsix',
@@ -79,14 +88,14 @@ GADGETS = {
   'vscode-python': {
     'language': 'python',
     'download': {
-      'url': ( 'https://github.com/Microsoft/vscode-python/releases/download/'
-               '${version}/${file_name}' ),
+      'url': 'https://github.com/Microsoft/vscode-python/releases/download/'
+             '${version}/${file_name}',
     },
     'all': {
-      'version': '2019.5.17059',
+      'version': '2019.11.50794',
       'file_name': 'ms-python-release.vsix',
       'checksum':
-        'db31c9d835318209f4b26948db8b7c68b45ca4c341f6c17bb8e62dfc32f0b78d',
+        '6a9edf9ecabed14aac424e6007858068204a3638bf3bb4f235bd6035d823acc6',
     },
     'adapters': {
       "vscode-python": {
@@ -102,7 +111,7 @@ GADGETS = {
     'language': 'tcl',
     'repo': {
       'url': 'https://github.com/puremourning/TclProDebug',
-      'ref': 'master',
+      'ref': 'f5c56b7067661ce84e205765060224076569ae0e', # master 26/10/2019
     },
     'do': lambda name, root: InstallTclProDebug( name, root )
   },
@@ -110,8 +119,8 @@ GADGETS = {
     'language': 'csharp',
     'enabled': False,
     'download': {
-      'url': ( 'https://github.com/Samsung/netcoredbg/releases/download/latest/'
-               '${file_name}' ),
+      'url': 'https://github.com/Samsung/netcoredbg/releases/download/latest/'
+             '${file_name}',
       'format': 'tar',
     },
     'all': {
@@ -149,8 +158,8 @@ GADGETS = {
       'url': 'https://marketplace.visualstudio.com/_apis/public/gallery/'
              'publishers/ms-vscode/vsextensions/mono-debug/${version}/'
              'vspackage',
-      'target': 'vscode-mono-debug.tar.gz',
-      'format': 'tar',
+      'target': 'vscode-mono-debug.vsix.gz',
+      'format': 'zip.gz',
     },
     'all': {
       'file_name': 'vscode-mono-debug.vsix',
@@ -174,15 +183,83 @@ GADGETS = {
   'vscode-bash-debug': {
     'language': 'bash',
     'download': {
-      'url': ( 'https://github.com/rogalmic/vscode-bash-debug/releases/'
-               'download/${version}/${file_name}' ),
+      'url': 'https://github.com/rogalmic/vscode-bash-debug/releases/'
+             'download/${version}/${file_name}',
     },
     'all': {
       'file_name': 'bash-debug-0.3.5.vsix',
       'version': 'v0.3.5',
       'checksum': '',
     }
-  }
+  },
+  'vscode-go': {
+    'language': 'go',
+    'download': {
+      'url': 'https://github.com/microsoft/vscode-go/releases/download/'
+             '${version}/${file_name}'
+    },
+    'all': {
+      'version': '0.11.4',
+      'file_name': 'Go-0.11.4.vsix',
+      'checksum':
+        'ff7d7b944da5448974cb3a0086f4a2fd48e2086742d9c013d6964283d416027e'
+    },
+    'adapters': {
+      'vscode-go': {
+        'name': 'delve',
+        'command': [
+          'node',
+          '${gadgetDir}/vscode-go/out/src/debugAdapter/goDebug.js'
+        ],
+      },
+    },
+  },
+  'vscode-node-debug2': {
+    'language': 'node',
+    'enabled': False,
+    'repo': {
+      'url': 'https://github.com/microsoft/vscode-node-debug2',
+      'ref': 'v1.39.1',
+    },
+    'do': lambda name, root: InstallNodeDebug( name, root ),
+    'adapters': {
+      'vscode-node': {
+        'name': 'node2',
+        'type': 'node2',
+        'command': [
+          'node',
+          '${gadgetDir}/vscode-node-debug2/out/src/nodeDebug.js'
+        ]
+      },
+    },
+  },
+  'debugger-for-chrome': {
+    'language': 'chrome',
+    'enabled': False,
+    'download': {
+      'url': 'https://marketplace.visualstudio.com/_apis/public/gallery/'
+             'publishers/msjsdiag/vsextensions/'
+             'debugger-for-chrome/${version}/vspackage',
+      'target': 'msjsdiag.debugger-for-chrome-4.12.0.vsix.gz',
+      'format': 'zip.gz',
+    },
+    'all': {
+      'version': '4.12.0',
+      'file_name': 'msjsdiag.debugger-for-chrome-4.12.0.vsix',
+      'checksum':
+        '0df2fe96d059a002ebb0936b0003e6569e5a5c35260dc3791e1657d27d82ccf5'
+    },
+    'adapters': {
+      'chrome': {
+        'name': 'debugger-for-chrome',
+        'type': 'chrome',
+        'command': [
+          'node',
+          '${gadgetDir}/debugger-for-chrome/out/src/chromeDebug.js'
+        ],
+      },
+    },
+  },
 }
 
 
@@ -207,7 +284,7 @@ def InstallCppTools( name, root ):
 
   # It's hilarious, but the execute bits aren't set in the vsix. So they
   # actually have javascript code which does this. It's just a horrible horrible
-  # hoke that really is not funny.
+  # hack that really is not funny.
   MakeExecutable( os.path.join( extension, 'debugAdapters', 'OpenDebugAD7' ) )
   with open( os.path.join( extension, 'package.json' ) ) as f:
     package = json.load( f )
@@ -256,6 +333,51 @@ def InstallTclProDebug( name, root ):
   MakeSymlink( gadget_dir, name, root )
 
 
+def InstallNodeDebug( name, root ):
+  node_version = subprocess.check_output( [ 'node', '--version' ],
+                                          universal_newlines=True ).strip()
+  print( "Node.js version: {}".format( node_version ) )
+  if list( map( int, node_version[ 1: ].split( '.' ) ) ) >= [ 12, 0, 0 ]:
+    print( "Can't install vscode-debug-node2:" )
+    print( "Sorry, you appear to be running node 12 or later. That's not "
+           "compatible with the build system for this extension, and as far as "
+           "we know, there isn't a pre-built independent package." )
+    print( "My advice is to install nvm, then do:" )
+    print( "  $ nvm install --lts 10" )
+    print( "  $ nvm use --lts 10" )
+    print( "  $ ./install_gadget.py --enable-node ..." )
+    raise RuntimeError( 'Invalid node environent for node debugger' )
+
+  with CurrentWorkingDir( root ):
+    subprocess.check_call( [ 'npm', 'install' ] )
+    subprocess.check_call( [ 'npm', 'run', 'build' ] )
+  MakeSymlink( gadget_dir, name, root )
+
+
+def WithRetry( f ):
+  retries = 5
+  timeout = 1 # seconds
+
+  @functools.wraps( f )
+  def wrapper( *args, **kwargs ):
+    thrown = None
+    for _ in range( retries ):
+      try:
+        return f( *args, **kwargs )
+      except Exception as e:
+        thrown = e
+        print( "Failed - {}, will retry in {} seconds".format( e, timeout ) )
+        time.sleep( timeout )
+    raise thrown
+
+  return wrapper
+
+
+@WithRetry
+def UrlOpen( *args, **kwargs ):
+  return urllib2.urlopen( *args, **kwargs )
+
+
 def DownloadFileTo( url, destination, file_name = None, checksum = None ):
   if not file_name:
     file_name = url.split( '/' )[ -1 ]
@@ -277,12 +399,11 @@ def DownloadFileTo( url, destination, file_name = None, checksum = None ):
     print( "Removing existing {}".format( file_path ) )
     os.remove( file_path )
 
-
   r = urllib2.Request( url, headers = { 'User-Agent': 'Vimspector' } )
 
   print( "Downloading {} to {}/{}".format( url, destination, file_name ) )
 
-  with contextlib.closing( urllib2.urlopen( r ) ) as u:
+  with contextlib.closing( UrlOpen( r ) ) as u:
     with open( file_path, 'wb' ) as f:
       f.write( u.read() )
 
@@ -343,7 +464,13 @@ def ExtractZipTo( file_path, destination, format ):
   if format == 'zip':
     with ModePreservingZipFile( file_path ) as f:
       f.extractall( path = destination )
-    return
+  elif format == 'zip.gz':
+    with gzip.open( file_path, 'rb' ) as f:
+      file_contents = f.read()
+
+    with ModePreservingZipFile( BytesIO( file_contents ) ) as f:
+      f.extractall( path = destination )
+
   elif format == 'tar':
     try:
       with tarfile.open( file_path ) as f:
@@ -373,6 +500,12 @@ def CloneRepoTo( url, ref, destination ):
   RemoveIfExists( destination )
   subprocess.check_call( [ 'git', 'clone', url, destination ] )
   subprocess.check_call( [ 'git', '-C', destination, 'checkout', ref ] )
+  subprocess.check_call( [ 'git', 'submodule', 'sync', '--recursive' ] )
+  subprocess.check_call( [ 'git',
+                           'submodule',
+                           'update',
+                           '--init',
+                           '--recursive' ] )
 
 
 OS = install.GetOS()
@@ -384,7 +517,15 @@ print( 'gadget_dir = ' + gadget_dir )
 parser = argparse.ArgumentParser()
 parser.add_argument( '--all',
                      action = 'store_true',
-                     help = 'Enable all completers' )
+                     help = 'Enable all supported completers' )
+
+parser.add_argument( '--force-all',
+                     action = 'store_true',
+                     help = 'Enable all unsupported completers' )
+
+parser.add_argument( '--no-gadget-config',
+                     action = 'store_true',
+                     help = "Don't write the .gagets.json, just install" )
 
 done_languages = set()
 for name, gadget in GADGETS.items():
@@ -412,16 +553,20 @@ for name, gadget in GADGETS.items():
   parser.add_argument(
     '--disable-' + lang,
     action = 'store_true',
-    help = 'Don\t install the {} debug adapter for {} support '
+    help = "Don't install the {} debug adapter for {} support "
            '(when supplying --all)'.format( name, lang ) )
 
 args = parser.parse_args()
+
+if args.force_all and not args.all:
+  args.all = True
 
 failed = []
 all_adapters = {}
 for name, gadget in GADGETS.items():
   if not gadget.get( 'enabled', True ):
-    if not getattr( args, 'force_enable_' + gadget[ 'language' ] ):
+    if ( not args.force_all
+         and not getattr( args, 'force_enable_' + gadget[ 'language' ] ) ):
       continue
   else:
     if not args.all and not getattr( args, 'enable_' + gadget[ 'language' ] ):
@@ -475,9 +620,18 @@ for name, gadget in GADGETS.items():
     print( "FAILED installing {}: {}".format( name, e ) )
 
 
-with open( install.GetGadgetConfigFile( os.path.dirname( __file__ ) ),
-           'w' ) as f:
-  json.dump( { 'adapters': all_adapters }, f, indent=2, sort_keys=True )
+adapter_config = json.dumps ( { 'adapters': all_adapters },
+                              indent=2,
+                              sort_keys=True )
+
+if args.no_gadget_config:
+  print( "" )
+  print( "Would write the following gadgets: " )
+  print( adapter_config )
+else:
+  with open( install.GetGadgetConfigFile( os.path.dirname( __file__ ) ),
+             'w' ) as f:
+    f.write( adapter_config )
 
 if failed:
   raise RuntimeError( 'Failed to install gadgets: {}'.format(

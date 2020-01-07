@@ -33,6 +33,10 @@ def SetUpLogging( logger ):
     logger.addHandler( _log_handler )
 
 
+_logger = logging.getLogger( __name__ )
+SetUpLogging( _logger )
+
+
 def BufferNumberForFile( file_name ):
   return int( vim.eval( 'bufnr( "{0}", 1 )'.format( file_name ) ) )
 
@@ -64,8 +68,6 @@ def SetUpCommandBuffer( cmd, name ):
     raise RuntimeError( "Unable to get all streams for job {}: {}".format(
       name,
       cmd ) )
-
-  UserMessage( 'Bufs: {}'.format( [ int( b ) for b in bufs ] ), persist = True )
 
   return [ vim.buffers[ b ] for b in bufs ]
 
@@ -209,8 +211,12 @@ def TemporaryVimOption( opt, value ):
     vim.options[ opt ] = old_value
 
 
-def PathToConfigFile( file_name ):
-  p = os.getcwd()
+def PathToConfigFile( file_name, from_directory = None ):
+  if not from_directory:
+    p = os.getcwd()
+  else:
+    p = os.path.abspath( os.path.realpath( from_directory ) )
+
   while True:
     candidate = os.path.join( p, file_name )
     if os.path.exists( candidate ):
@@ -227,6 +233,11 @@ def Escape( msg ):
 
 
 def UserMessage( msg, persist=False ):
+  if persist:
+    _logger.warning( 'User Msg: ' + msg )
+  else:
+    _logger.info( 'User Msg: ' + msg )
+
   vim.command( 'redraw' )
   cmd = 'echom' if persist else 'echo'
   for line in msg.split( '\n' ):
@@ -239,7 +250,7 @@ def InputSave():
   vim.eval( 'inputsave()' )
   try:
     yield
-  except Exception:
+  finally:
     vim.eval( 'inputrestore()' )
 
 
@@ -258,11 +269,16 @@ def SelectFromList( prompt, options ):
       return None
 
 
-def AskForInput( prompt ):
-  # TODO: Handle the ctrl-c and such responses returning empty or something
+def AskForInput( prompt, default_value = None ):
+  if default_value is None:
+    default_option = ''
+  else:
+    default_option = ", '{}'".format( Escape( default_value ) )
+
   with InputSave():
     try:
-      return vim.eval( "input( '{0}' )".format( Escape( prompt ) ) )
+      return vim.eval( "input( '{}' {} )".format( Escape( prompt ),
+                                                  default_option ) )
     except KeyboardInterrupt:
       return ''
 
@@ -283,7 +299,7 @@ def AppendToBuffer( buf, line_or_lines, modified=False ):
   except Exception:
     # There seem to be a lot of Vim bugs that lead to E315, whose help says that
     # this is an internal error. Ignore the error, but write a trace to the log.
-    logging.getLogger( __name__ ).exception(
+    _logger.exception(
       'Internal error while updating buffer %s (%s)', buf.name, buf.number )
   finally:
     if not modified:
@@ -298,15 +314,25 @@ def ClearBuffer( buf ):
   buf[ : ] = None
 
 
+def SetBufferContents( buf, lines, modified=False ):
+  try:
+    if not isinstance( lines, list ):
+      lines = lines.splitlines()
+
+    buf[:] = lines
+  finally:
+    buf.options[ 'modified' ] = modified
+
+
 def IsCurrent( window, buf ):
   return vim.current.window == window and vim.current.window.buffer == buf
 
 
 # TODO: Should we just run the substitution on the whole JSON string instead?
 # That woul dallow expansion in bool and number values, such as ports etc. ?
-def ExpandReferencesInDict( obj, mapping, **kwargs ):
-  def expand_refs_in_string( s ):
-    s = os.path.expanduser( s )
+def ExpandReferencesInDict( obj, mapping, user_choices ):
+  def expand_refs_in_string( orig_s ):
+    s = os.path.expanduser( orig_s )
     s = os.path.expandvars( s )
 
     # Parse any variables passed in in mapping, and ask for any that weren't,
@@ -316,13 +342,21 @@ def ExpandReferencesInDict( obj, mapping, **kwargs ):
       ++bug_catcher
 
       try:
-        s = string.Template( s ).substitute( mapping, **kwargs )
+        s = string.Template( s ).substitute( mapping )
         break
       except KeyError as e:
         # HACK: This is seemingly the only way to get the key. str( e ) returns
         # the key surrounded by '' for unknowable reasons.
         key = e.args[ 0 ]
-        mapping[ key ] = AskForInput( 'Enter value for {}: '.format( key ) )
+        default_value = user_choices.get( key, None )
+        mapping[ key ] = AskForInput( 'Enter value for {}: '.format( key ),
+                                      default_value )
+        user_choices[ key ] = mapping[ key ]
+        _logger.debug( "Value for %s not set in %s (from %s): set to %s",
+                       key,
+                       s,
+                       orig_s,
+                       mapping[ key ] )
       except ValueError as e:
         UserMessage( 'Invalid $ in string {}: {}'.format( s, e ),
                      persist = True )
@@ -332,7 +366,7 @@ def ExpandReferencesInDict( obj, mapping, **kwargs ):
 
   def expand_refs_in_object( obj ):
     if isinstance( obj, dict ):
-      ExpandReferencesInDict( obj, mapping, **kwargs )
+      ExpandReferencesInDict( obj, mapping, user_choices )
     elif isinstance( obj, list ):
       for i, _ in enumerate( obj ):
         # FIXME: We are assuming that it is a list of string, but could be a
@@ -347,33 +381,46 @@ def ExpandReferencesInDict( obj, mapping, **kwargs ):
     obj[ k ] = expand_refs_in_object( obj[ k ] )
 
 
-def ParseVariables( variables ):
+def ParseVariables( variables_list, mapping, user_choices ):
   new_variables = {}
-  for n, v in variables.items():
-    if isinstance( v, dict ):
-      if 'shell' in v:
-        import subprocess
-        import shlex
+  new_mapping = mapping.copy()
 
-        new_v = v.copy()
-        # Bit of a hack. Allows environment variables to be used.
-        ExpandReferencesInDict( new_v, {} )
+  if not isinstance( variables_list, list ):
+    variables_list = [ variables_list ]
 
-        env = os.environ.copy()
-        env.update( new_v.get( 'env' ) or {} )
-        cmd = new_v[ 'shell' ]
-        if not isinstance( cmd, list ):
-          cmd = shlex.split( cmd )
+  for variables in variables_list:
+    new_mapping.update( new_variables )
+    for n, v in variables.items():
+      if isinstance( v, dict ):
+        if 'shell' in v:
+          import subprocess
+          import shlex
 
-        new_variables[ n ] = subprocess.check_output(
-          cmd,
-          cwd = new_v.get( 'cwd' ) or os.getcwd(),
-          env = env ).decode( 'utf-8' ).strip()
+          new_v = v.copy()
+          # Bit of a hack. Allows environment variables to be used.
+          ExpandReferencesInDict( new_v, new_mapping, user_choices )
+
+          env = os.environ.copy()
+          env.update( new_v.get( 'env' ) or {} )
+          cmd = new_v[ 'shell' ]
+          if not isinstance( cmd, list ):
+            cmd = shlex.split( cmd )
+
+          new_variables[ n ] = subprocess.check_output(
+            cmd,
+            cwd = new_v.get( 'cwd' ) or os.getcwd(),
+            env = env ).decode( 'utf-8' ).strip()
+
+          _logger.debug( "Set new_variables[ %s ] to '%s' from %s from %s",
+                         n,
+                         new_variables[ n ],
+                         new_v,
+                         v )
+        else:
+          raise ValueError(
+            "Unsupported variable defn {}: Missing 'shell'".format( n ) )
       else:
-        raise ValueError(
-          "Unsupported variable defn {}: Missing 'shell'".format( n ) )
-    else:
-      new_variables[ n ] = v
+        new_variables[ n ] = v
 
   return new_variables
 
@@ -384,3 +431,16 @@ def DisplayBaloon( is_term, display ):
 
   vim.eval( "balloon_show( {0} )".format(
     json.dumps( display ) ) )
+
+
+def GetBufferFilepath( buf ):
+  if not buf.name:
+    return ''
+
+  return os.path.normpath( buf.name )
+
+
+def ToUnicode( b ):
+  if isinstance( b, bytes ):
+    return b.decode( 'utf-8' )
+  return b

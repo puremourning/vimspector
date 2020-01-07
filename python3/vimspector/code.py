@@ -25,6 +25,10 @@ class CodeView( object ):
   def __init__( self, window ):
     self._window = window
 
+    self._terminal_window = None
+    self._terminal_buffer_number = None
+    self.current_syntax = None
+
     self._logger = logging.getLogger( __name__ )
     utils.SetUpLogging( self._logger )
 
@@ -70,7 +74,15 @@ class CodeView( object ):
       return False
 
     # SIC: column is 0-based, line is 1-based in vim. Why? Nobody knows.
-    self._window.cursor = ( frame[ 'line' ], frame[ 'column' ]  - 1 )
+    try:
+      self._window.cursor = ( frame[ 'line' ], frame[ 'column' ]  - 1 )
+    except vim.error:
+      self._logger.exception( "Unable to jump to %s:%s in %s, maybe the file "
+                              "doesn't exist",
+                              frame[ 'line' ],
+                              frame[ 'column' ],
+                              frame[ 'source' ][ 'path' ] )
+      return False
 
     self._signs[ 'vimspectorPC' ] = self._next_sign_id
     self._next_sign_id += 1
@@ -82,6 +94,9 @@ class CodeView( object ):
                                    frame[ 'line' ],
                                    frame[ 'source' ][ 'path' ] ) )
 
+    self.current_syntax = utils.ToUnicode(
+      vim.current.buffer.options[ 'syntax' ] )
+
     return True
 
   def Clear( self ):
@@ -91,6 +106,7 @@ class CodeView( object ):
       self._signs[ 'vimspectorPC' ] = None
 
     self._UndisplaySigns()
+    self.current_syntax = None
 
   def Reset( self ):
     self.ClearBreakpoints()
@@ -128,23 +144,11 @@ class CodeView( object ):
     # Not found. Assume new
     self.AddBreakpoints( None, [ bp ] )
 
-  def DeleteBreakpoint( self, bp ):
-    if 'id' not in bp:
-      return
-
-    for _, breakpoint_list in self._breakpoints.items():
-      for index, breakpoint in enumerate( breakpoint_list ):
-        if 'id' in breakpoint and breakpoint[ 'id' ] == bp[ 'id' ]:
-          del breakpoint_list[ index ]
-          return
-
-    # Not found. Shrug.
-
   def _UndisplaySigns( self ):
     for sign_id in self._signs[ 'breakpoints' ]:
       vim.command( 'sign unplace {} group=VimspectorCode'.format( sign_id ) )
 
-    self._signs[ 'breakpoints' ].clear()
+    self._signs[ 'breakpoints' ] = []
 
   def ClearBreakpoints( self ):
     self._UndisplaySigns()
@@ -169,7 +173,7 @@ class CodeView( object ):
                             sign_id,
                             breakpoint[ 'line' ],
                             'vimspectorBP' if breakpoint[ 'verified' ]
-                            else 'vimspectorBPDisabled',
+                                           else 'vimspectorBPDisabled',
                             file_name ) )
 
 
@@ -206,10 +210,20 @@ class CodeView( object ):
       'env': env,
     }
 
+    window_for_start = self._window
+    if self._terminal_window is not None:
+      assert self._terminal_buffer_number
+      if ( self._terminal_window.buffer.number == self._terminal_buffer_number
+           and 'finished' in vim.eval( 'term_getstatus( {} )'.format(
+             self._terminal_buffer_number ) ) ):
+        window_for_start = self._terminal_window
+        options[ 'curwin' ] = 1
+
     buffer_number = None
+    terminal_window = None
     with utils.TemporaryVimOptions( { 'splitright': True,
                                       'equalalways': False } ):
-      with utils.LetCurrentWindow( self._window ):
+      with utils.LetCurrentWindow( window_for_start ):
         # TODO/FIXME: Do something about closing this when we reset ?
         vim_cmd =  'vimspector#term#start( {}, {} )'.format(
             json.dumps( args ),
@@ -218,9 +232,13 @@ class CodeView( object ):
         self._logger.debug( 'Start terminal: {}'.format( vim_cmd ) )
 
         buffer_number = int( vim.eval( vim_cmd ) )
+        terminal_window = vim.current.window
 
     if buffer_number is None or buffer_number <= 0:
       # TODO: Do something better like reject the request?
       raise ValueError( "Unable to start terminal" )
+    else:
+      self._terminal_window = terminal_window
+      self._terminal_buffer_number = buffer_number
 
     return buffer_number
