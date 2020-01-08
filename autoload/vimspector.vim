@@ -97,6 +97,8 @@ function! vimspector#AddWatchPrompt( expr ) abort
 endfunction
 
 function! vimspector#EvaluateConsole( expr ) abort
+  " Change to normal mode to avoid prompt in output
+  " Will come back to insertmode in output.py/print_result
   stopinsert
   setlocal nomodified
   py3 _vimspector_session.EvaluateConsole( vim.eval( 'a:expr' ) )

@@ -115,14 +115,17 @@ class OutputView( object ):
     self._ShowOutput( category )
 
   def Evaluate( self, frame, expression ):
+    """Callback of prompt: called when user press Enter in console"""
     if not frame:
       self.Print( 'Console', 'There is no current stack frame' )
       return
 
+    # Get console buffer
     console = self._buffers[ 'Console' ].buf
     utils.AppendToBuffer( console, 'Evaluating: ' + expression )
 
     def print_result( message ):
+      """Callback to print"""
       utils.AppendToBuffer( console,
                             'Evaluated: ' + expression )
 
@@ -132,6 +135,10 @@ class OutputView( object ):
 
       utils.AppendToBuffer( console, '  Result: ' + result )
 
+      # Back to insert mode
+      vim.command('call feedkeys("A", "n")')
+
+    # Evaluate and print
     self._connection.DoRequest( print_result, {
       'command': 'evaluate',
       'arguments': {
