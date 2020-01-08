@@ -152,7 +152,7 @@ class DebugSession( object ):
       return os.path.splitext( p )
 
     self._variables = {
-      'dollar': '$', # HACK. Hote '$$' also works.
+      'dollar': '$',  # HACK. Hote '$$' also works.
       'workspaceRoot': self._workspace_root,
       'workspaceFolder': self._workspace_root,
       'gadgetDir': install.GetGadgetDir( VIMSPECTOR_HOME, install.GetOS() ),
@@ -253,8 +253,8 @@ class DebugSession( object ):
     self._StartWithConfiguration( self._configuration, self._adapter )
 
   def OnChannelData( self, data ):
-    if self._connection:
-      self._connection.OnData( data )
+    if not self._connection: return
+    self._connection.OnData( data )
 
 
   def OnServerStderr( self, data ):
@@ -264,8 +264,8 @@ class DebugSession( object ):
 
 
   def OnRequestTimeout( self, timer_id ):
-    if self._connection:
-      self._connection.OnRequestTimeout( timer_id )
+    if not self._connection: return
+    self._connection.OnRequestTimeout( timer_id )
 
   def OnChannelClosed( self ):
     # TODO: Not calld
@@ -482,6 +482,8 @@ class DebugSession( object ):
       self._logger.info( 'Debug Adapter Started' )
 
   def _StopDebugAdapter( self, callback = None ):
+    if not self._connection: return
+
     def handler( *args ):
       if callback:
         self._logger.debug( "Setting server exit handler before disconnect" )
@@ -500,7 +502,7 @@ class DebugSession( object ):
       'arguments': arguments,
     }, failure_handler = handler, timeout = 5000 )
 
-    # TODO: Use the 'tarminate' request if supportsTerminateRequest set
+    # TODO: Use the 'terminate' request if supportsTerminateRequest set
 
   def _PrepareAttach( self, adapter_config, launch_config ):
 
@@ -765,7 +767,7 @@ class DebugSession( object ):
   def OnRequest_runInTerminal( self, message ):
     params = message[ 'arguments' ]
 
-    if not params.get( 'cwd' ) :
+    if not params.get( 'cwd' ):
       params[ 'cwd' ] = self._workspace_root
       self._logger.debug( 'Defaulting working directory to %s',
                           params[ 'cwd' ] )
