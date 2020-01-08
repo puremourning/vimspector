@@ -77,26 +77,26 @@ def CleanUpCommand( name ):
     name ) )
 
 
-def SetUpScratchBuffer( buf, name ):
-  buf.options[ 'buftype' ] = 'nofile'
-  buf.options[ 'swapfile' ] = False
-  buf.options[ 'modifiable' ] = False
-  buf.options[ 'modified' ] = False
-  buf.options[ 'readonly' ] = True
-  buf.options[ 'buflisted' ] = False
-  buf.options[ 'bufhidden' ] = 'wipe'
+def SetUpBase( buf, name ):
+  """Base configuration: Helper of helpers"""
   buf.name = name
+
+  buf.options[ 'swapfile' ] = False
+  buf.options[ 'modified' ] = False
+  buf.options[ 'buflisted' ] = False
+
+
+def SetUpScratchBuffer( buf, name, hidden = 'wipe' ):
+  SetUpBase( buf, name )
+  buf.options[ 'buftype' ] = 'nofile'
+  buf.options[ 'modifiable' ] = False
+  buf.options[ 'readonly' ] = True
+  buf.options[ 'bufhidden' ] = hidden
 
 
 def SetUpHiddenBuffer( buf, name ):
-  buf.options[ 'buftype' ] = 'nofile'
-  buf.options[ 'swapfile' ] = False
-  buf.options[ 'modifiable' ] = False
-  buf.options[ 'modified' ] = False
-  buf.options[ 'readonly' ] = True
-  buf.options[ 'buflisted' ] = False
-  buf.options[ 'bufhidden' ] = 'hide'
-  buf.name = name
+  """Hide do not wipe"""
+  SetUpScratchBuffer( buf, name, hidden = 'hide' )
 
 
 def SetUpPromptBuffer( buf, name, prompt, callback, hidden=False ):
@@ -104,21 +104,17 @@ def SetUpPromptBuffer( buf, name, prompt, callback, hidden=False ):
   if not int( vim.eval( "exists( '*prompt_setprompt' )" ) ):
     return SetUpScratchBuffer( buf, name )
 
+  SetUpBase( buf, name )
   buf.options[ 'buftype' ] = 'prompt'
-  buf.options[ 'swapfile' ] = False
   buf.options[ 'modifiable' ] = True
-  buf.options[ 'modified' ] = False
   buf.options[ 'readonly' ] = False
-  buf.options[ 'buflisted' ] = False
   buf.options[ 'bufhidden' ] = 'wipe' if not hidden else 'hide'
-  buf.name = name
 
   vim.eval( "prompt_setprompt( {0}, '{1}' )".format( buf.number,
                                                      Escape( prompt ) ) )
   vim.eval( "prompt_setcallback( {0}, function( '{1}' ) )".format(
     buf.number,
     Escape( callback ) ) )
-
 
 
 @contextlib.contextmanager
