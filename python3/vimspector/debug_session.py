@@ -253,7 +253,8 @@ class DebugSession( object ):
     self._StartWithConfiguration( self._configuration, self._adapter )
 
   def OnChannelData( self, data ):
-    if not self._connection: return
+    if not self._connection:
+      return
     self._connection.OnData( data )
 
 
@@ -264,7 +265,8 @@ class DebugSession( object ):
 
 
   def OnRequestTimeout( self, timer_id ):
-    if not self._connection: return
+    if not self._connection:
+      return
     self._connection.OnRequestTimeout( timer_id )
 
   def OnChannelClosed( self ):
@@ -482,7 +484,8 @@ class DebugSession( object ):
       self._logger.info( 'Debug Adapter Started' )
 
   def _StopDebugAdapter( self, callback = None ):
-    if not self._connection: return
+    if not self._connection:
+      return
 
     def handler( *args ):
       if callback:
