@@ -228,7 +228,6 @@ def Escape( msg ):
   return msg.replace( "'", "''" )
 
 
-def UserMessage( msg, persist=False ):
 def UserMessage( msg, persist=False, hi='None'):
   if persist:
     _logger.warning( 'User Msg: ' + msg )
@@ -242,6 +241,12 @@ def UserMessage( msg, persist=False, hi='None'):
     vim.command( "{0} '{1}'".format( cmd, Escape( line ) ) )
   vim.command('echohl None')
   vim.command( 'redraw' )
+
+
+def MessageNoConnection( ):
+  UserMessage( 'Connect to debugging section '
+               'with f5 -> call vimspector#Continue', persist=True )
+  UserMessage( 'Vimspector not connected', persist=True, hi='WarningMsg' )
 
 
 @contextlib.contextmanager
