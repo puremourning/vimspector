@@ -249,6 +249,18 @@ def MessageNoConnection( ):
   UserMessage( 'Vimspector not connected', persist=True, hi='WarningMsg' )
 
 
+def IfConnected( fct ):
+  """Decorator, call fct if self._connected else echo warning
+  The decorated member function must belong to an object with _connection
+  """
+  def wrapper(*args, **kwargs):
+    if not args[0]._connection:
+      MessageNoConnection( )
+      return
+    return fct(*args, **kwargs)
+  return wrapper
+
+
 @contextlib.contextmanager
 def InputSave():
   vim.eval( 'inputsave()' )
