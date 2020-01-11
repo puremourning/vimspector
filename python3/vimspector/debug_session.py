@@ -20,6 +20,7 @@ import os
 import shlex
 import subprocess
 import traceback
+import functools
 import vim
 
 from vimspector import ( breakpoints,
@@ -37,6 +38,19 @@ VIMSPECTOR_HOME = os.path.abspath( os.path.join( os.path.dirname( __file__ ),
 
 # cache of what the user entered for any option we ask them
 USER_CHOICES = {}
+
+
+def IfConnected( fct ):
+  """Decorator, call fct if self._connected else echo warning"""
+  @functools.wraps( fct )
+  def wrapper(self, *args, **kwargs):
+    if not self._connection:
+      utils.UserMessage(
+        'Vimspector not connected, start a debug session first',
+        persist=True, hi='WarningMsg' )
+      return
+    return fct(*args, **kwargs)
+  return wrapper
 
 
 class DebugSession( object ):
@@ -252,7 +266,7 @@ class DebugSession( object ):
 
     self._StartWithConfiguration( self._configuration, self._adapter )
 
-  @utils.IfConnected
+  @IfConnected
   def OnChannelData( self, data ):
     self._connection.OnData( data )
 
@@ -263,7 +277,7 @@ class DebugSession( object ):
       self._outputView.Print( 'server', data )
 
 
-  @utils.IfConnected
+  @IfConnected
   def OnRequestTimeout( self, timer_id ):
     self._connection.OnRequestTimeout( timer_id )
 
@@ -271,7 +285,7 @@ class DebugSession( object ):
     # TODO: Not calld
     self._connection = None
 
-  @utils.IfConnected
+  @IfConnected
   def Stop( self ):
     self._logger.debug( "Stop debug adapter with no callback" )
     self._StopDebugAdapter()
@@ -303,7 +317,7 @@ class DebugSession( object ):
     # make sure that we're displaying signs in any still-open buffers
     self._breakpoints.UpdateUI()
 
-  @utils.IfConnected
+  @IfConnected
   def StepOver( self ):
     if self._stackTraceView.GetCurrentThreadId() is None:
       return
@@ -315,7 +329,7 @@ class DebugSession( object ):
       },
     } )
 
-  @utils.IfConnected
+  @IfConnected
   def StepInto( self ):
     if self._stackTraceView.GetCurrentThreadId() is None:
       return
@@ -327,7 +341,7 @@ class DebugSession( object ):
       },
     } )
 
-  @utils.IfConnected
+  @IfConnected
   def StepOut( self ):
     if self._stackTraceView.GetCurrentThreadId() is None:
       return
@@ -345,7 +359,7 @@ class DebugSession( object ):
     else:
       self.Start()
 
-  @utils.IfConnected
+  @IfConnected
   def Pause( self ):
     self._stackTraceView.Pause()
 
