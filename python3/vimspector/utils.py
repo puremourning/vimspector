@@ -240,8 +240,6 @@ def UserMessage( msg, persist=False, error=False):
     vim.command("echohl WarningMsg") if error else None
     for line in msg.split( '\n' ):
       vim.command( "{0} '{1}'".format( cmd, Escape( line ) ) )
-  except (vim.error, AttributeError):
-    pass
   finally:
     vim.command('echohl None') if error else None
   vim.command( 'redraw' )
