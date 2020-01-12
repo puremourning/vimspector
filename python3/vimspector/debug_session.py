@@ -260,7 +260,7 @@ class DebugSession( object ):
       if not self._connection:
         utils.UserMessage(
           'Vimspector not connected, start a debug session first',
-          persist=True, hi='WarningMsg' )
+          persist=True, error=True )
         return
       return fct(self, *args, **kwargs)
     return wrapper

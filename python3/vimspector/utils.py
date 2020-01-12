@@ -228,18 +228,22 @@ def Escape( msg ):
   return msg.replace( "'", "''" )
 
 
-def UserMessage( msg, persist=False, hi='None'):
+def UserMessage( msg, persist=False, error=False):
   if persist:
     _logger.warning( 'User Msg: ' + msg )
   else:
     _logger.info( 'User Msg: ' + msg )
 
-  vim.command( 'redraw' )
   cmd = 'echom' if persist else 'echo'
-  vim.command("echohl {}".format(hi))
-  for line in msg.split( '\n' ):
-    vim.command( "{0} '{1}'".format( cmd, Escape( line ) ) )
-  vim.command('echohl None')
+  vim.command( 'redraw' )
+  try:
+    vim.command("echohl WarningMsg") if error else None
+    for line in msg.split( '\n' ):
+      vim.command( "{0} '{1}'".format( cmd, Escape( line ) ) )
+  except (vim.error, AttributeError):
+    pass
+  finally:
+    vim.command('echohl None') if error else None
   vim.command( 'redraw' )
 
 
