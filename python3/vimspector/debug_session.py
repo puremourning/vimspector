@@ -262,7 +262,7 @@ class DebugSession( object ):
           'Vimspector not connected, start a debug session first',
           persist=True, hi='WarningMsg' )
         return
-      return fct(*args, **kwargs)
+      return fct(self, *args, **kwargs)
     return wrapper
 
   @IfConnected
