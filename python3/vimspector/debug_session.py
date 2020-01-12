@@ -40,19 +40,6 @@ VIMSPECTOR_HOME = os.path.abspath( os.path.join( os.path.dirname( __file__ ),
 USER_CHOICES = {}
 
 
-def IfConnected( fct ):
-  """Decorator, call fct if self._connected else echo warning"""
-  @functools.wraps( fct )
-  def wrapper(self, *args, **kwargs):
-    if not self._connection:
-      utils.UserMessage(
-        'Vimspector not connected, start a debug session first',
-        persist=True, hi='WarningMsg' )
-      return
-    return fct(*args, **kwargs)
-  return wrapper
-
-
 class DebugSession( object ):
   def __init__( self ):
     self._logger = logging.getLogger( __name__ )
@@ -265,6 +252,18 @@ class DebugSession( object ):
       return self.Start()
 
     self._StartWithConfiguration( self._configuration, self._adapter )
+
+  def IfConnected( fct ):
+    """Decorator, call fct if self._connected else echo warning"""
+    @functools.wraps( fct )
+    def wrapper(self, *args, **kwargs):
+      if not self._connection:
+        utils.UserMessage(
+          'Vimspector not connected, start a debug session first',
+          persist=True, hi='WarningMsg' )
+        return
+      return fct(*args, **kwargs)
+    return wrapper
 
   @IfConnected
   def OnChannelData( self, data ):
