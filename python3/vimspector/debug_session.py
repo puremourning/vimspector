@@ -605,8 +605,10 @@ class DebugSession( object ):
         self._outputView.RunJobWithOutput( 'Remote', cmd )
     else:
       if atttach_config[ 'pidSelect' ] == 'ask':
-        pid = utils.AskForInput( 'Enter PID to attach to: ' )
-        launch_config[ atttach_config[ 'pidProperty' ] ] = pid
+        prop = atttach_config[ 'pidProperty' ]
+        if prop not in launch_config:
+          pid = utils.AskForInput( 'Enter PID to attach to: ' )
+          launch_config[ prop ] = pid
         return
       elif atttach_config[ 'pidSelect' ] == 'none':
         return
