@@ -1,0 +1,24 @@
+{
+  "configurations": {
+    "C++ - Attach Local Process": {
+      "adapter": "vscode-cpptools",
+      "variables": {
+        "PID": {
+          "shell": [ "GetPIDForProcess", "${processName}" ]
+        }
+      },
+      "configuration": {
+        "name": "test",
+        "request": "attach",
+        "program": "${binary}",
+        "processId": "${PID}",
+
+        "type": "cppdbg",
+        "stopAtEntry": true,
+        "setupCommands": [
+          { "text": "source ${initFile}", "ignoreFailures": true }
+        ]
+      }
+    }
+  }
+}
