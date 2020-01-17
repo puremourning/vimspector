@@ -38,3 +38,13 @@ def GetGadgetConfigFile( vimspector_base ):
 def GetGadgetConfigDir( vimspector_base ):
   return os.path.join( GetGadgetDir( vimspector_base, GetOS() ),
                        '.gadgets.d' )
+
+
+def GetConfigDirForFiletype( vimspector_base, filetype ):
+  if not filetype:
+    filetype = 'default'
+
+  return os.path.join( os.path.abspath( vimspector_base ),
+                       'configurations',
+                       GetOS(),
+                       filetype )
