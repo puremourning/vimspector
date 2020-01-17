@@ -171,6 +171,12 @@ class DebugSession( object ):
       # working directory.
       'cwd': os.getcwd(),
     }
+
+    # Pretend that vars passed to the launch command were typed in by the user
+    # (they may have been in theory)
+    USER_CHOICES.update( launch_variables )
+    self._variables.update( launch_variables )
+
     self._variables.update(
       utils.ParseVariables( adapter.get( 'variables', {} ),
                             self._variables,
@@ -180,12 +186,6 @@ class DebugSession( object ):
                             self._variables,
                             USER_CHOICES ) )
 
-    # Pretend that vars passed to the launch command were typed in by the user
-    # (they may have been in theory)
-    # TODO: Is it right that we do this _after_ ParseVariables, rather than
-    # before ?
-    USER_CHOICES.update( launch_variables )
-    self._variables.update( launch_variables )
 
     utils.ExpandReferencesInDict( configuration,
                                   self._variables,
