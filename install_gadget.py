@@ -127,6 +127,35 @@ GADGETS = {
       }
     },
   },
+  'java-language-server': {
+    'language': 'javac',
+    'enabled': False,
+    'download': {
+      'url': 'https://marketplace.visualstudio.com/_apis/public/gallery/'
+             'publishers/georgewfraser/vsextensions/vscode-javac/${version}/'
+             'vspackage',
+      'target': 'georgewfraser.vscode-javac-0.2.31.vsix.gz',
+      'format': 'zip.gz',
+    },
+    'all': {
+      'version': '0.2.31',
+      'file_name': 'georgewfraser.vscode-javac-0.2.31.vsix.gz',
+      'checksum':
+        '',
+    },
+    'adapters': {
+      "vscode-javac": {
+        "name": "vscode-javac",
+        "type": "vscode-javac",
+        "command": [
+          "${gadgetDir}/java-language-server/dist/debug_adapter_mac.sh"
+        ],
+        "attach": {
+          "pidSelect": "none"
+        }
+      }
+    },
+  },
   'tclpro': {
     'language': 'tcl',
     'repo': {

@@ -17,6 +17,16 @@
         "stopOnEntry": true,
         "console": "integratedTerminal"
       }
+    },
+    "Attach with vscode-javac": {
+      "adapter": "vscode-javac",
+      "configuration": {
+        "request": "attach",
+        "port": "${debugPort}",
+        "sourceRoots": [
+          "${workspaceRoot}/src/main/java"
+        ]
+      }
     }
   }
 }
