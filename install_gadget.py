@@ -18,7 +18,8 @@
 import sys
 
 if sys.version_info.major < 3:
-  exit( "Sorry, you need to be running this script with python3 or later" )
+  sys.exit( "You need to run this with python 3. Your version is " +
+            '.'.join( map( str, sys.version_info[ :3 ] ) ) )
 
 from urllib import request
 import argparse
@@ -37,6 +38,8 @@ import functools
 import time
 import ssl
 import io
+import operator
+import glob
 
 # Include vimspector source, for utils
 sys.path.insert( 1, os.path.join( os.path.dirname( __file__ ),
@@ -200,7 +203,8 @@ GADGETS = {
     },
     'macos': {
       'file_name': 'netcoredbg-osx-master.tar.gz',
-      'checksum': '',
+      'checksum':
+        'c1dc6ed58c3f5b0473cfb4985a96552999360ceb9795e42d9c9be64af054f821',
     },
     'linux': {
       'file_name': 'netcoredbg-linux-master.tar.gz',
@@ -345,7 +349,7 @@ GADGETS = {
     'enabled': False,
     'repo': {
       'url': 'https://github.com/microsoft/vscode-node-debug2',
-      'ref': 'v1.39.1',
+      'ref': 'v1.42.0',
     },
     'do': lambda name, root, gadget: InstallNodeDebug( name, root, gadget ),
     'adapters': {
@@ -525,7 +529,7 @@ def DownloadFileTo( url,
                     destination,
                     file_name = None,
                     checksum = None,
-                    sslcheck = True ):
+                    check_certificate = True ):
   if not file_name:
     file_name = url.split( '/' )[ -1 ]
 
@@ -550,7 +554,7 @@ def DownloadFileTo( url,
 
   print( "Downloading {} to {}/{}".format( url, destination, file_name ) )
 
-  if not sslcheck:
+  if not check_certificate:
     context = ssl.create_default_context()
     context.check_hostname = False
     context.verify_mode = ssl.CERT_NONE
@@ -663,13 +667,75 @@ def CloneRepoTo( url, ref, destination ):
                                          '--recursive' ] )
 
 
+def InstallGagdet( name, gadget, failed, all_adapters ):
+  try:
+    v = {}
+    v.update( gadget.get( 'all', {} ) )
+    v.update( gadget.get( OS, {} ) )
+
+    if 'download' in gadget:
+      if 'file_name' not in v:
+        raise RuntimeError( "Unsupported OS {} for gadget {}".format( OS,
+                                                                      name ) )
+
+      destination = os.path.join( gadget_dir, 'download', name, v[ 'version' ] )
+
+      url = string.Template( gadget[ 'download' ][ 'url' ] ).substitute( v )
+
+      file_path = DownloadFileTo(
+        url,
+        destination,
+        file_name = gadget[ 'download' ].get( 'target' ),
+        checksum = v.get( 'checksum' ),
+        check_certificate = not args.no_check_certificate )
+
+      root = os.path.join( destination, 'root' )
+      ExtractZipTo( file_path,
+                    root,
+                    format = gadget[ 'download' ].get( 'format', 'zip' ) )
+    elif 'repo' in gadget:
+      url = string.Template( gadget[ 'repo' ][ 'url' ] ).substitute( v )
+      ref = string.Template( gadget[ 'repo' ][ 'ref' ] ).substitute( v )
+
+      destination = os.path.join( gadget_dir, 'download', name )
+      CloneRepoTo( url, ref, destination )
+      root = destination
+
+    if 'do' in gadget:
+      gadget[ 'do' ]( name, root, v )
+    else:
+      MakeExtensionSymlink( name, root )
+
+    all_adapters.update( gadget.get( 'adapters', {} ) )
+
+    print( "Done installing {}".format( name ) )
+  except Exception as e:
+    traceback.print_exc()
+    failed.append( name )
+    print( "FAILED installing {}: {}".format( name, e ) )
+
+
+vimspector_base = os.path.dirname( __file__ )
 OS = install.GetOS()
-gadget_dir = install.GetGadgetDir( os.path.dirname( __file__ ), OS )
+gadget_dir = install.GetGadgetDir( vimspector_base, OS )
 
 print( 'OS = ' + OS )
 print( 'gadget_dir = ' + gadget_dir )
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(
+  description = 'Install DAP Servers for use with Vimspector.',
+  epilog =
+    """
+    If you're not sure, normally --all is enough to get started.
+
+    Custom server definitions can be defined in JSON files, allowing
+    installation of arbitrary servers packaged in one of the ways that this
+    installer understands.
+
+    The format of the file can be found on the Vimspector reference guide:
+    https://puremourning.github.io/vimspector
+    """
+)
 parser.add_argument( '--all',
                      action = 'store_true',
                      help = 'Enable all supported completers' )
@@ -681,6 +747,15 @@ parser.add_argument( '--force-all',
 parser.add_argument( '--no-gadget-config',
                      action = 'store_true',
                      help = "Don't write the .gagets.json, just install" )
+
+parser.add_argument( '--enable-custom',
+                     dest='custom_gadget_file',
+                     action='append',
+                     nargs='*',
+                     default = [],
+                     help = 'Read custom gadget from supplied file. This '
+                            'can be supplied multiple times and each time '
+                            'multiple files can be passed.' )
 
 done_languages = set()
 for name, gadget in GADGETS.items():
@@ -722,6 +797,18 @@ args = parser.parse_args()
 if args.force_all and not args.all:
   args.all = True
 
+CUSTOM_GADGETS = {}
+custom_files = glob.glob( os.path.join( vimspector_base,
+                                        'gadgets',
+                                        'custom',
+                                        '*.json' ) )
+for custom_file_name in functools.reduce( operator.add,
+                                          args.custom_gadget_file,
+                                          custom_files ):
+  with open( custom_file_name, 'r' ) as custom_file:
+    CUSTOM_GADGETS.update( json.load( custom_file ) )
+
+
 failed = []
 all_adapters = {}
 for name, gadget in GADGETS.items():
@@ -735,53 +822,14 @@ for name, gadget in GADGETS.items():
     if getattr( args, 'disable_' + gadget[ 'language' ] ):
       continue
 
-  try:
-    v = {}
-    v.update( gadget.get( 'all', {} ) )
-    v.update( gadget.get( OS, {} ) )
-
-    if 'download' in gadget:
-      if 'file_name' not in v:
-        raise RuntimeError( "Unsupported OS {} for gadget {}".format( OS,
-                                                                      name ) )
-
-      destination = os.path.join( gadget_dir, 'download', name, v[ 'version' ] )
-
-      url = string.Template( gadget[ 'download' ][ 'url' ] ).substitute( v )
-      verify_cert_off = args.no_check_certificate
-
-      file_path = DownloadFileTo(
-        url,
-        destination,
-        file_name = gadget[ 'download' ].get( 'target' ),
-        checksum = v.get( 'checksum' ),
-        sslcheck = not verify_cert_off )
-      root = os.path.join( destination, 'root' )
-      ExtractZipTo( file_path,
-                    root,
-                    format = gadget[ 'download' ].get( 'format', 'zip' ) )
-    elif 'repo' in gadget:
-      url = string.Template( gadget[ 'repo' ][ 'url' ] ).substitute( v )
-      ref = string.Template( gadget[ 'repo' ][ 'ref' ] ).substitute( v )
-
-      destination = os.path.join( gadget_dir, 'download', name )
-      CloneRepoTo( url, ref, destination )
-      root = destination
-
-    if 'do' in gadget:
-      gadget[ 'do' ]( name, root, v )
-    else:
-      MakeExtensionSymlink( name, root )
-
-    all_adapters.update( gadget.get( 'adapters', {} ) )
+  InstallGagdet( name,
+                 gadget,
+                 failed,
+                 all_adapters )
 
 
-    print( "Done installing {}".format( name ) )
-  except Exception as e:
-    traceback.print_exc()
-    failed.append( name )
-    print( "FAILED installing {}: {}".format( name, e ) )
-
+for name, gadget in CUSTOM_GADGETS.items():
+  InstallGagdet( name, gadget, failed, all_adapters )
 
 adapter_config = json.dumps ( { 'adapters': all_adapters },
                               indent=2,
@@ -792,8 +840,7 @@ if args.no_gadget_config:
   print( "Would write the following gadgets: " )
   print( adapter_config )
 else:
-  with open( install.GetGadgetConfigFile( os.path.dirname( __file__ ) ),
-             'w' ) as f:
+  with open( install.GetGadgetConfigFile( vimspector_base ), 'w' ) as f:
     f.write( adapter_config )
 
 if failed:

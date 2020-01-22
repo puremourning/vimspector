@@ -98,7 +98,7 @@ class DebugSession( object ):
                                                      filetypes ):
       self._logger.debug( f'Reading configurations from: {launch_config_file}' )
       if not launch_config_file or not os.path.exists( launch_config_file ):
-          continue
+        continue
 
       with open( launch_config_file, 'r' ) as f:
         database = json.load( f )
