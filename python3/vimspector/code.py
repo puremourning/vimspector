@@ -75,8 +75,10 @@ class CodeView( object ):
       return False
 
     # SIC: column is 0-based, line is 1-based in vim. Why? Nobody knows.
+    # Note: max() with 0 because some debug adapters (go) return 0 for the
+    # column.
     try:
-      self._window.cursor = ( frame[ 'line' ], frame[ 'column' ]  - 1 )
+      self._window.cursor = ( frame[ 'line' ], max( frame[ 'column' ] - 1, 0 ) )
     except vim.error:
       self._logger.exception( "Unable to jump to %s:%s in %s, maybe the file "
                               "doesn't exist",
