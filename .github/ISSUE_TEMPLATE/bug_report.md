@@ -31,8 +31,12 @@ Please include:
 
 **Environemnt**
 
-NOTE: NeoVim is not supported.
-NOTE: Windows is not supported.
+NOTE: NeoVim is supported only on a best-effort basis. Please check the README
+for limitations of neovim. Don't be offended if I ask you to reproduce issues in
+Vim.
+
+NOTE: Windows is not supported. There is a branch with windows support, which
+you can contribute to, rather than opening an issue.
 
 * Output of `vim --version`
 
