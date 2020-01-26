@@ -10,9 +10,11 @@ For a tutorial and usage overview, take a look at the
       * [Supported debugging features](#supported-debugging-features)
       * [Supported languages:](#supported-languages)
       * [Languages known to work](#languages-known-to-work)
+      * [Languages known not to work](#languages-known-not-to-work)
       * [Other languages](#other-languages)
    * [Installation](#installation)
       * [Dependencies](#dependencies)
+      * [Neovim differences](#neovim-differences)
       * [Language dependencies](#language-dependencies)
       * [Clone the plugin](#clone-the-plugin)
       * [Install some gadgets](#install-some-gadgets)
@@ -38,11 +40,10 @@ For a tutorial and usage overview, take a look at the
    * [Debug adapter configuration](#debug-adapter-configuration)
       * [Supported Languages](#supported-languages-1)
       * [Partially supported](#partially-supported)
-      * [Unsupported](#unsupported)
    * [FAQ](#faq)
    * [License](#license)
 
-<!-- Added by: ben, at: Sun 19 May 2019 19:53:27 BST -->
+<!-- Added by: ben, at: Sun 26 Jan 2020 17:48:34 GMT -->
 
 <!--te-->
 
@@ -149,7 +150,7 @@ author. PRs are welcome.
 
 Which Linux versions? I only test on Ubuntu 18.04 and later and RHEL 7.
 
-### Neovim differences
+## Neovim differences
 
 neovim doesn't implement some features Vimspector relies on:
 
@@ -166,7 +167,7 @@ Workarounds are in place as follows:
 * Prompt Buffers - There are [`:VimspectorEval`](#console)
   and [`:VimspectorWatch`](#watches)
 
-There is no workaroud for the lack of baloons; you'll just have to use
+There is no workaroud for the lack of balloons; you'll just have to use
 `:VimspectorEval` or `:VimspectorWatch`, or switch to Vim.
 
 ## Language dependencies
