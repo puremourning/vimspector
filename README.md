@@ -38,12 +38,17 @@ For a tutorial and usage overview, take a look at the
          * [Console](#console)
       * [Closing debugger](#closing-debugger)
    * [Debug adapter configuration](#debug-adapter-configuration)
-      * [Supported Languages](#supported-languages-1)
-      * [Partially supported](#partially-supported)
+      * [C, C  , Rust, etc.](#c-c-rust-etc)
+      * [Python](#python)
+      * [TCL](#tcl)
+      * [C♯](#c)
+      * [Go](#go)
+      * [JavaScript, TypeScript, etc.](#javascript-typescript-etc)
+      * [Java - partially supported](#java---partially-supported)
    * [FAQ](#faq)
    * [License](#license)
 
-<!-- Added by: ben, at: Sun 26 Jan 2020 17:48:34 GMT -->
+<!-- Added by: ben, at: Sun 26 Jan 2020 21:41:08 GMT -->
 
 <!--te-->
 
@@ -542,12 +547,12 @@ To close the debugger, use:
 
 # Debug adapter configuration
 
-## Supported Languages
-
 For more information on the configuration of `.vimspector.json`, take a look at
 the Getting Started section of the [Vimspector website][website].
 
 Current tested with the following debug adapters.
+
+## C, C++, Rust, etc.
 
 * C++: [vscode-cpptools](https://github.com/Microsoft/vscode-cpptools)
 
@@ -645,6 +650,8 @@ For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
 }
 ```
 
+## Python
+
 * Python: [vscode-python](https://github.com/Microsoft/vscode-python)
 
 ```
@@ -668,9 +675,13 @@ For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
 }
 ```
 
+## TCL
+
 * TCL (TclProDebug)
 
 See [my fork of TclProDebug](https://github.com/puremourning/TclProDebug) for instructions.
+
+## C♯
 
 * C# - dotnet core
 
@@ -719,6 +730,8 @@ Requires `install_gadget.py --force-enable-c-sharp`.
 }
 ```
 
+## Go
+
 * Go 
 
 Requires:
@@ -742,6 +755,8 @@ Requires:
   }
 }
 ```
+
+## JavaScript, TypeScript, etc.
 
 * Node.js
 
@@ -798,9 +813,7 @@ It allows you to debug scripts running inside chrome from within Vim.
 }
 ```
 
-Also the mock debugger, but that isn't actually useful.
-
-## Partially supported
+## Java - partially supported
 
 * Java Debug Server. The [java debug server][java-debug-server] runs as a
   jdt.ls plugin, rather than a standalone debug adapter. This makes a lot
@@ -811,6 +824,11 @@ Also the mock debugger, but that isn't actually useful.
   on which it is listening. See [this issue](https://github.com/puremourning/vimspector/issues/3)
   for more background.
 
+* Java - vscode-javac. This works, but is not as functional as Java Debug
+  Server. Take a look at [this
+  comment](https://github.com/puremourning/vimspector/issues/3#issuecomment-576916076)
+  for instructions.
+
 # FAQ
 
 1. Q: Does it work? A: Yeah, sort of. It's _incredibly_ buggy and unpolished.
@@ -818,6 +836,8 @@ Also the mock debugger, but that isn't actually useful.
    necessarily be easy to work out what to put in the `.vimspector.json`. As you
    can see above, some of the servers aren't really editor agnostic, and require
    very-specific unique handling.
+3. How do i stop it starting a new Terminal.app on macOS? See [this
+   comment](https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322)
 
 # License
 
