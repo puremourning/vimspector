@@ -151,8 +151,23 @@ Which Linux versions? I only test on Ubuntu 18.04 and later and RHEL 7.
 
 ### Neovim differences
 
-neovim doesn't implement some features Vimspector relies on (WinBar and prompt
-buffers), so you have to use `:Vimspector*` commands (see [Usage][#usage]).
+neovim doesn't implement some features Vimspector relies on:
+
+* WinBar - used for the buttons at the top of the code window and for changing
+  the output window's current output.
+* Prompt Buffers - used to send commands in the Console and add Watches
+* Balloons - used to display the values of variables when debugging.
+
+Workarounds are in place as follows:
+
+* WinBar - There are [mappings](#mappings),
+  [`:VimspectorShowOutput`](#program-output) and
+  [`:VimspectorReset`](#closing-debugger)
+* Prompt Buffers - There are [`:VimspectorEval`](#console)
+  and [`:VimspectorWatch`](#watches)
+
+There is no workaroud for the lack of baloons; you'll just have to use
+`:VimspectorEval` or `:VimspectorWatch`, or switch to Vim.
 
 ## Language dependencies
 
