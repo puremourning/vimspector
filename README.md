@@ -551,10 +551,32 @@ Current tested with the following debug adapters.
 
 * C++: [vscode-cpptools](https://github.com/Microsoft/vscode-cpptools)
 
+---
+
 ***NOTE FOR macOS USERS***: Currently VSCode cpptools does *not* work on macOS
-(see this issue: https://github.com/microsoft/vscode-cpptools/issues/3829).
-Therefore it is highly recommended to use `lldb-vscode`, which comes with llvm.
-Here's how:
+out of the box.
+See [this issue]( https://github.com/microsoft/vscode-cpptools/issues/3829)
+for the full details. 
+
+To resolve it:
+
+* Install [my build](https://github.com/puremourning/lldb-mi/releases) of
+  `lldb-mi`. Instructions
+  [here](https://github.com/microsoft/vscode-cpptools/issues/3829#issuecomment-578454043).
+* Add the following to the `configuration` section of your `.vimspector.json`
+  (below):
+
+```
+{
+  "configurations": {
+    "<name>: Launch": {
+      "adapter": "vscode-cpptools",
+      "configuration": {
+        "miDebuggerPath": "/path/to/my/build/of/lldb-mi",
+        ...
+```
+
+An alternative is to to use `lldb-vscode`, which comes with llvm.  Here's how:
 
 * Install llvm with HomeBrew: `brew install llvm`
 * Create a file named
@@ -586,8 +608,10 @@ Here's how:
 }
 ```
 
+---
+
 Example `.vimspector.json` (works with both `vscode-cpptools` and `lldb-vscode`.
-For `lldb-vscode` replace the name of the adapter with `lldb-vscode`):
+For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
 
 ```
 {
