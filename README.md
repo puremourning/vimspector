@@ -829,6 +829,28 @@ It allows you to debug scripts running inside chrome from within Vim.
   comment](https://github.com/puremourning/vimspector/issues/3#issuecomment-576916076)
   for instructions.
 
+# Customisation
+
+There is very limited support for customistaion of the UI. 
+
+## Changing the default signs
+
+Vimsector uses the following signs internally. If they are defined before
+Vimsector uses them, they will not be replaced. So to customise the signs,
+define them in your `vimrc`.
+
+* `vimspectorBP`: A breakpoint.
+* `vimspectorBPDisabled`: A disabled breakpoint
+* `vimspectorPC` The program counter, i.e. current line.
+
+For example, to use some unicode symbols, you could put this in your `vimrc`:
+
+```viml
+sign define vimspectorBP text=🔴 texthl=Normal
+sign define vimspectorBPDisabled text=🔵 texthl=Normal
+sign define vimspectorPC text=🔶 texthl=SpellBad
+```
+
 # FAQ
 
 1. Q: Does it work? A: Yeah, sort of. It's _incredibly_ buggy and unpolished.

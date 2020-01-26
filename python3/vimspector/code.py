@@ -50,7 +50,8 @@ class CodeView( object ):
       vim.command( 'nnoremenu WinBar.Restart :call vimspector#Restart()<CR>' )
       vim.command( 'nnoremenu WinBar.Reset :call vimspector#Reset()<CR>' )
 
-      vim.command( 'sign define vimspectorPC text=-> texthl=Search' )
+      if not utils.SignDefined( 'vimspectorPC' ):
+        vim.command( 'sign define vimspectorPC text=-> texthl=Search' )
 
 
   def SetCurrentFrame( self, frame ):
