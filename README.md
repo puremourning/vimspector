@@ -61,6 +61,10 @@ language that Visual Studio Code supports (but see caveats).
 The [Vimspector website][website] has an overview of the UI, along with basic
 instructions for configuration and setup.
 
+But for now, here's a (rather old) screenshot of Vimsepctor debugging Vim:
+
+![vimspector-vim-screenshot](https://puremourning.github.io/vimspector-web/img/vimspector-overview.png)
+
 ## Supported debugging features
 
 - breakpoints (function, line and exception breakpoints)
