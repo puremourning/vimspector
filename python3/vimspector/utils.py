@@ -20,6 +20,8 @@ import contextlib
 import vim
 import json
 import string
+import functools
+
 
 _log_handler = logging.FileHandler( os.path.expanduser( '~/.vimspector.log' ),
                                     mode = 'w' )
@@ -103,7 +105,7 @@ def SetUpHiddenBuffer( buf, name ):
 
 def SetUpPromptBuffer( buf, name, prompt, callback, hidden=False ):
   # This feature is _super_ new, so only enable when available
-  if not int( vim.eval( "exists( '*prompt_setprompt' )" ) ):
+  if not Exists( '*prompt_setprompt' ):
     return SetUpHiddenBuffer( buf, name )
 
   buf.options[ 'buftype' ] = 'prompt'
@@ -467,3 +469,35 @@ def Call( vimscript_function, *args ):
   call += ')'
   _logger.debug( 'Calling: {}'.format( call ) )
   return vim.eval( call )
+
+
+def SignDefined( name ):
+  if Exists( "*sign_getdefined" ):
+    return int( vim.eval( f"len( sign_getdefined( '{ Escape( name ) }' ) )" ) )
+
+  return False
+
+
+MEMO = {}
+
+
+def memoize( func ):
+  global MEMO
+
+  @functools.wraps( func )
+  def wrapper( *args, **kwargs ):
+    dct = MEMO.setdefault( func, {} )
+    key = ( args, frozenset( kwargs.items() ) )
+    try:
+      return dct[ key ]
+    except KeyError:
+      result = func( *args, **kwargs )
+      dct[ key ] = result
+      return result
+
+  return wrapper
+
+
+@memoize
+def Exists( expr ):
+  return int( vim.eval( f'exists( "{ expr }" )' ) )
