@@ -69,4 +69,4 @@ Vimspector creator.
 
 # Code of conduct
 
-Please see [code of conduct][CODE_OF_CONDUCT.md].
+Please see [code of conduct](CODE_OF_CONDUCT.md).
