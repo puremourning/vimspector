@@ -9,10 +9,14 @@
         "args": [],
         "cwd": "${workspaceRoot}",
         "environment": [],
-        "externalConsole": true,
+        "externalConsole": false,
         "stopAtEntry": true,
         "stopOnEntry": true,
-        "MImode": "${VIMSPECTOR_MIMODE}"
+        "MImode": "${VIMSPECTOR_MIMODE}",
+        "miDebuggerPath": "${VIMSPECTOR_MI_DEBUGGER}",
+        "logging": {
+          "engineLogging": true
+        }
       },
       "breakpoints": {
         "exception": {

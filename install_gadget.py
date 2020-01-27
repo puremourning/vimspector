@@ -118,7 +118,7 @@ GADGETS = {
       'version': '0.23.0',
       'file_name': 'vscode-java-debug-0.23.0.vsix',
       'checksum':
-        '',
+        'f98a35c8dd4f3079ecd9657b04f1edbfea04c364c0fbf7eee1285f942782710b',
     },
     'adapters': {
       "vscode-java": {
@@ -141,7 +141,7 @@ GADGETS = {
       'version': '0.2.31',
       'file_name': 'georgewfraser.vscode-javac-0.2.31.vsix.gz',
       'checksum':
-        '',
+        '5b0248ec1198d3ece9a9c6b9433b30c22e308f0ae6e4c7bd09cd943c454e3e1d',
     },
     'adapters': {
       "vscode-javac": {
@@ -238,7 +238,8 @@ GADGETS = {
     'all': {
       'file_name': 'bash-debug-0.3.6.vsix',
       'version': 'v0.3.6',
-      'checksum': '',
+      'checksum':
+        '502ee5732851fc4f309294fc296a291b1a114008a1fbcb232f3763be2b8d9c1f',
     },
     'do': lambda name, root: InstallBashDebug( name, root ),
     'adapters': {
