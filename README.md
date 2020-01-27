@@ -768,6 +768,7 @@ https://marketplace.visualstudio.com/items?itemName=felixfbecker.php-debug
 
 Requires:
 
+* (optional) Xdebug helper for chrome https://chrome.google.com/webstore/detail/xdebug-helper/eadndfjplgieldjbigjakmdgkmoaaaoc
 * `install_gadget.py --force-enable-php`
 * configured php xdebug extension 
 ```ini
@@ -825,6 +826,7 @@ append `XDEBUG_SESSION_START=xdebug` to your query string
 ```
 curl "http://localhost?XDEBUG_SESSION_START=xdebug"
 ```
+or use the previously mentioned Xdebug Helper extension (which sets a `XDEBUG_SESSION` cookie)
 
 ### Debug cli application
 ```
