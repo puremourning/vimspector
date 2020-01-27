@@ -43,6 +43,7 @@ For a tutorial and usage overview, take a look at the
       * [TCL](#tcl)
       * [C♯](#c)
       * [Go](#go)
+      * [PHP](#php)
       * [JavaScript, TypeScript, etc.](#javascript-typescript-etc)
       * [Java - partially supported](#java---partially-supported)
    * [FAQ](#faq)
@@ -758,6 +759,79 @@ Requires:
     }
   }
 }
+```
+
+## PHP
+
+This uses the php-debug, see
+https://marketplace.visualstudio.com/items?itemName=felixfbecker.php-debug
+
+Requires:
+
+* (optional) Xdebug helper for chrome https://chrome.google.com/webstore/detail/xdebug-helper/eadndfjplgieldjbigjakmdgkmoaaaoc
+* `install_gadget.py --force-enable-php`
+* configured php xdebug extension 
+```ini
+zend_extension=xdebug.so
+xdebug.remote_enable=on
+xdebug.remote_handler=dbgp
+xdebug.remote_host=localhost
+xdebug.remote_port=9000
+```
+replace `localhost` with the ip of your workstation.
+
+lazy alternative
+```ini
+zend_extension=xdebug.so
+xdebug.remote_enable=on
+xdebug.remote_handler=dbgp
+xdebug.remote_connect_back=true
+xdebug.remote_port=9000
+```
+
+* .vimspectory.json
+```json
+{
+  "configurations": {
+    "Listen for XDebug": {
+      "adapter": "vscode-php-debug",
+      "configuration": {
+        "name": "Listen for XDebug",
+        "type": "php",
+        "request": "launch",
+        "port": 9000,
+        "stopOnEntry": false,
+        "pathMappings": {
+          "/var/www/html": "${workspaceRoot}"
+        }
+      }
+    },
+    "Launch currently open script": {
+      "adapter": "vscode-php-debug",
+      "configuration": {
+        "name": "Launch currently open script",
+        "type": "php",
+        "request": "launch",
+        "program": "${file}",
+        "cwd": "${fileDirname}",
+        "port": 9000
+      }
+    }
+  }
+}
+```
+
+### Debug web application
+append `XDEBUG_SESSION_START=xdebug` to your query string
+```
+curl "http://localhost?XDEBUG_SESSION_START=xdebug"
+```
+or use the previously mentioned Xdebug Helper extension (which sets a `XDEBUG_SESSION` cookie)
+
+### Debug cli application
+```
+export XDEBUG_CONFIG="idekey=xdebug"
+php <path to script>
 ```
 
 ## JavaScript, TypeScript, etc.
