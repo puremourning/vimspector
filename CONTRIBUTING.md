@@ -24,6 +24,11 @@ of the following reasons:
 * The issue does not represent a Vimspector bug or feature request
 * etc.
 
+Issue titles are important. It's not usually helpful to write a title like
+`Issue with Vimspector` or `Issue configuring` or even pasting an error message.
+Spend a minute to come up with a consise summary of the problem. This helps with
+management of issues, with triage, and above all with searching.
+
 But above all else, please *please* complete the issue template. I know it is a
 little tedious to get all the various diagnostics, but you *must* provide them,
 *even if you think they are irrelevant*. This is important, because the

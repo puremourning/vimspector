@@ -38,19 +38,34 @@ Vim.
 NOTE: Windows is not supported. There is a branch with windows support, which
 you can contribute to, rather than opening an issue.
 
-* Output of `vim --version`
+* Version of Vimspector: (e.g. output of `git rev-parse HEAD` if cloned or the
+  name of the tarball used to install otherwise)
+
+* Output of `vim --version` or `nvim --version`
 
 ```
 paste here
 ```
 
-* Output of `which vim`:
+* Output of `which vim` or `which nvim`:
 
 ```
 paste here
 ```
 
 * Output of `:py3 pass`:
+
+```
+paste here
+```
+
+* Output of `:py3 import vim`:
+
+```
+paste here
+```
+
+* For neovim: output of `:checkhealth`
 
 ```
 paste here
