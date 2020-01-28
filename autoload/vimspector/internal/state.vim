@@ -27,6 +27,7 @@ function! vimspector#internal#state#Reset() abort
     let prefix='neo'
   endif
     py3 << EOF
+import vim
 from vimspector import debug_session
 _vimspector_session = debug_session.DebugSession( vim.eval( 'prefix' ) )
 EOF
