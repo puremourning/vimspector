@@ -78,7 +78,7 @@ stages:
     steps:
     - bash: |
         brew unlink node@6
-        brew install macvim node@10 tcl-tk
+        brew install macvim node@10 tcl-tk llvm
         brew link --force --overwrite node@10
       displayName: 'Install vim and node'
 
@@ -97,12 +97,22 @@ stages:
     - bash: vim --version
       displayName: 'Print vim version information'
 
+    - bash: |
+        set -ex
+        mkdir -p lldb-mi
+        pushd lldb-mi
+          curl -LO https://github.com/puremourning/lldb-mi/releases/download/1041/lldb-mi-db65c20a3d8e09d9ff2f3748c01cf43ec035a4d8.tar.gz
+          tar zxvf lldb-mi-db65c20a3d8e09d9ff2f3748c01cf43ec035a4d8.tar.gz
+          cp usr/local/bin/lldb-mi /usr/local/bin
+        popd
+      displayName: 'Install lldb-mi'
+
     - bash: ./run_tests
       displayName: 'Run the tests'
       env:
         VIMSPECTOR_MIMODE: lldb
         VIMSPECTOR_TEST_STDOUT: true
-        VIMSPECTOR_MI_DEBUGGER: ""
+        VIMSPECTOR_MI_DEBUGGER: "/usr/local/bin/lldb-mi"
         LLDB_DEBUGSERVER_PATH: "/Library/Developer/CommandLineTools/Library/PrivateFrameworks/LLDB.framework/Resources/debugserver"
 
     - bash: ./make_package macos $(Build.SourceVersion)
