@@ -974,8 +974,10 @@ sign define vimspectorPC text=🔶 texthl=SpellBad
    necessarily be easy to work out what to put in the `.vimspector.json`. As you
    can see above, some of the servers aren't really editor agnostic, and require
    very-specific unique handling.
-3. How do i stop it starting a new Terminal.app on macOS? See [this
+3. How do I stop it starting a new Terminal.app on macOS? See [this
    comment](https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322)
+4. Can I specify answers to the annoying questions about exception breakpoints
+   in my `vimspector.json` ? Yes, see [here][vimspector-ref-exception].
 
 # License
 
@@ -991,3 +993,4 @@ Copyright © 2018 Ben Jackson
 [delve-install]: https://github.com/go-delve/delve/tree/master/Documentation/installation
 [vimspector-ref]: https://puremourning.github.io/vimspector/configuration.html
 [vimspector-ref-var]: https://puremourning.github.io/vimspector/configuration.html#replacements-and-variables
+[vimspector-ref-exception]: https://puremourning.github.io/vimspector/configuration.html#exception-breakpoints

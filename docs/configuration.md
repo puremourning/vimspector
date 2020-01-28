@@ -6,6 +6,23 @@ title: Configuration
 This document defines the supported format for project and adapter configuration
 for Vimspector.
 
+<!--ts-->
+  * [Concepts](#concepts)
+     * [Debug adapter configuration](#debug-adapter-configuration)
+     * [Debug profile configuration](#debug-profile-configuration)
+     * [Replacements and variables](#replacements-and-variables)
+  * [Configuration Format](#configuration-format)
+  * [Files and locations](#files-and-locations)
+  * [Adapter configurations](#adapter-configurations)
+  * [Debug configurations](#debug-configurations)
+     * [Exception breakpionts](#exception-breakpionts)
+  * [Predefined Variables](#predefined-variables)
+  * [Appendix: Editor configuration](#appendix-editor-configuration)
+
+<!-- Added by: ben, at: Tue 28 Jan 2020 08:47:40 GMT -->
+
+<!--te-->
+
 ## Concepts
 
 As Vimspector supports debugging arbitrary projects, you need to tell it a few
@@ -233,6 +250,35 @@ typical example looks like this:
     }
   }
 }
+```
+
+### Exception breakpionts
+
+Debug adapters have arbitrary configuration for exception breakpoints. Normally
+this is presented as a series of question to the user on startnig the debug
+session. The question includes the name of the exception breakpoint option,
+the default and the list of valid responses (usually `Y` or `N`).
+
+You can pre-configure the answers to these questions in the `breakpoints`
+section of the debug configuration. For each question, take the name provided
+and configure the response `exception` mapping in the `breakpoints` mapping.  If
+the configured response is empty string, the debug adapter default will be used.
+
+Referring to the above example, the following tells the debug adapter to use the
+default value for `caught` exceptoins and to break on `uncaught` exception:
+
+```
+{
+  "configurations": {
+    "example-debug-configuration": {
+      "adapter": "example-adapter-name",
+      "breakpoints": {
+        "exception": {
+          "caught": "",
+          "uncaught": "Y"
+        }
+      },
+      ... 
 ```
 
 ## Predefined Variables
