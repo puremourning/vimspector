@@ -29,6 +29,7 @@ For a tutorial and usage overview, take a look at the
       * [Human Mode](#human-mode)
    * [Usage](#usage)
       * [Launch and attach by PID:](#launch-and-attach-by-pid)
+         * [Launch with options](#launch-with-options)
       * [Breakpoints](#breakpoints)
       * [Stepping](#stepping)
       * [Variables and scopes](#variables-and-scopes)
@@ -44,12 +45,16 @@ For a tutorial and usage overview, take a look at the
       * [C♯](#c)
       * [Go](#go)
       * [PHP](#php)
+         * [Debug web application](#debug-web-application)
+         * [Debug cli application](#debug-cli-application)
       * [JavaScript, TypeScript, etc.](#javascript-typescript-etc)
       * [Java - partially supported](#java---partially-supported)
+   * [Customisation](#customisation)
+      * [Changing the default signs](#changing-the-default-signs)
    * [FAQ](#faq)
    * [License](#license)
 
-<!-- Added by: ben, at: Sun 26 Jan 2020 21:41:08 GMT -->
+<!-- Added by: ben, at: Tue 28 Jan 2020 08:46:26 GMT -->
 
 <!--te-->
 
@@ -485,6 +490,36 @@ let g:vimspector_enable_mappings = 'HUMAN'
 * Create `vimspector.json`. See [below](#supported-languages).
 * `:call vimspector#Launch()` and select a configuration.
 
+### Launch with options
+
+To launch a specific debug configuration, or specify [replacement
+variables][vimspector-ref-var] for the launch, you can use:
+
+* `:call vimspector#LaunchWithSettings( dict )`
+
+The argument is a `dict` with the following keys:
+
+* `configuration`: (optional) Name of the debug configuration to launch
+* `<anything else>`: (optional) Name of a variable to set
+
+This allows for some intergration and automation.  For example, if you have a
+configuration named `Run Test` that contains a [replacement
+variable][vimspector-ref-var] named `${Test}` you could write a mapping which
+ultimately executes:
+
+```viml
+vimspector#LaunchWithSettings( #{ configuration: 'Run Test'
+                                \ Test: 'Name of the test' } )
+```
+
+This would start the `Run Test` configuration with `${Test}` set to `'Name of
+the test'` and Vimspector would _not_ prompt the user to enter or confirm these
+things.
+
+See [this issue](https://github.com/puremourning/vimspector/issues/97) for
+another example where it can be used to specify the port to connect the [java
+debugger](#java---partially-supported)
+
 ## Breakpoints
 
 * Use `vimspector#ToggleBreakpoint()` to set/disable/delete a line breakpoint.
@@ -552,8 +587,11 @@ To close the debugger, use:
 
 # Debug adapter configuration
 
-For more information on the configuration of `.vimspector.json`, take a look at
+For an introduction to the configuration of `.vimspector.json`, take a look at
 the Getting Started section of the [Vimspector website][website].
+
+For full explanation, including how to use variables, substitutions and how to
+specify exception breakpoints, see [the docs](vimspector-ref).
 
 Current tested with the following debug adapters.
 
@@ -936,8 +974,10 @@ sign define vimspectorPC text=🔶 texthl=SpellBad
    necessarily be easy to work out what to put in the `.vimspector.json`. As you
    can see above, some of the servers aren't really editor agnostic, and require
    very-specific unique handling.
-3. How do i stop it starting a new Terminal.app on macOS? See [this
+3. How do I stop it starting a new Terminal.app on macOS? See [this
    comment](https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322)
+4. Can I specify answers to the annoying questions about exception breakpoints
+   in my `vimspector.json` ? Yes, see [here][vimspector-ref-exception].
 
 # License
 
@@ -951,3 +991,6 @@ Copyright © 2018 Ben Jackson
 [website]: https://puremourning.github.io/vimspector-web/
 [delve]: https://github.com/go-delve/delve
 [delve-install]: https://github.com/go-delve/delve/tree/master/Documentation/installation
+[vimspector-ref]: https://puremourning.github.io/vimspector/configuration.html
+[vimspector-ref-var]: https://puremourning.github.io/vimspector/configuration.html#replacements-and-variables
+[vimspector-ref-exception]: https://puremourning.github.io/vimspector/configuration.html#exception-breakpoints
