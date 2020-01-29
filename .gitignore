@@ -15,3 +15,4 @@ README.md.toc.*
 .DS_Store
 *.vimspector.log
 support/test/csharp/*.exe*
+.neomake.log
