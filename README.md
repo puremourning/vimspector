@@ -728,7 +728,7 @@ See [my fork of TclProDebug](https://github.com/puremourning/TclProDebug) for in
 
 * C# - dotnet core
 
-Requires `install_gadget.py --force-enable-c-sharp`
+Requires `install_gadget.py --force-enable-csharp`
 
 ```json
 {
@@ -748,7 +748,7 @@ Requires `install_gadget.py --force-enable-c-sharp`
 
 * C# - mono
 
-Requires `install_gadget.py --force-enable-c-sharp`.
+Requires `install_gadget.py --force-enable-csharp`.
 
 ***Known not to work.****
 
