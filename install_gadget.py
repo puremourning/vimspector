@@ -35,6 +35,7 @@ import sys
 import json
 import functools
 import time
+import ssl
 
 try:
   from io import BytesIO # for Python 3
@@ -484,7 +485,7 @@ def UrlOpen( *args, **kwargs ):
   return urllib2.urlopen( *args, **kwargs )
 
 
-def DownloadFileTo( url, destination, file_name = None, checksum = None ):
+def DownloadFileTo( url, destination, file_name = None, checksum = None, sslcheck = True):
   if not file_name:
     file_name = url.split( '/' )[ -1 ]
 
@@ -509,7 +510,15 @@ def DownloadFileTo( url, destination, file_name = None, checksum = None ):
 
   print( "Downloading {} to {}/{}".format( url, destination, file_name ) )
 
-  with contextlib.closing( UrlOpen( r ) ) as u:
+  if not sslcheck:
+    context = ssl.create_default_context()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    kwargs = { "context":  context }
+  else:
+    kwargs = {}
+
+  with contextlib.closing( UrlOpen( r, **kwargs ) ) as u:
     with open( file_path, 'wb' ) as f:
       f.write( u.read() )
 
@@ -662,6 +671,12 @@ for name, gadget in GADGETS.items():
     help = "Don't install the {} debug adapter for {} support "
            '(when supplying --all)'.format( name, lang ) )
 
+parser.add_argument(
+    "--no-check-certificate",
+    action = "store_true",
+    help = "Do not verify SSL certificates for file downloads."
+)
+
 args = parser.parse_args()
 
 if args.force_all and not args.all:
@@ -693,12 +708,14 @@ for name, gadget in GADGETS.items():
       destination = os.path.join( gadget_dir, 'download', name, v[ 'version' ] )
 
       url = string.Template( gadget[ 'download' ][ 'url' ] ).substitute( v )
+      verify_cert_off = args.no_check_certificate
 
       file_path = DownloadFileTo(
         url,
         destination,
         file_name = gadget[ 'download' ].get( 'target' ),
-        checksum = v.get( 'checksum' ) )
+        checksum = v.get( 'checksum' ),
+        sslcheck = not verify_cert_off)
       root = os.path.join( destination, 'root' )
       ExtractZipTo( file_path,
                     root,
