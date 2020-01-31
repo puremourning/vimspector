@@ -83,10 +83,10 @@ GADGETS = {
              '${version}/${file_name}',
     },
     'all': {
-      'version': '2019.11.50794',
+      'version': '2020.1.58038',
       'file_name': 'ms-python-release.vsix',
       'checksum':
-        '6a9edf9ecabed14aac424e6007858068204a3638bf3bb4f235bd6035d823acc6',
+        '',
     },
     'adapters': {
       "vscode-python": {
