@@ -192,7 +192,7 @@ The debug adapters themselves have certain runtime dependencies:
 | Language         | Status       | Switch                       | Adapter           | Dependencies           |
 |------------------|--------------|------------------------------|-------------------|------------------------|
 | C, C++, etc.     | Supported    | `--all` or ` --enable-c`     | vscode-cpptools   | mono-core              |
-| Python           | Supported    | `--all` or `--enable-python` | vscode-python     | Python 2.7 or Python 3 |
+| Python           | Supported    | `--all` or `--enable-python` | vscode-python     | Node 10, Python 2.7 or Python 3 |
 | TCL              | Experimental | `--all` or `--enable-tcl`    | tclpro            | TCL 8.5                |
 | Bourne Shell     | Experimental | `--all` or `--enable-bash`   | vscode-bash-debug | Bash v??               |
 | C# (dotnet core) | Experimental | `--force-enable-csharp`      | netcoredbg        | DotNet core            |
@@ -695,7 +695,14 @@ For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
 
 ## Python
 
+NOTE: Please see the alternative approach below, as this will become the
+standard approach in future.
+
 * Python: [vscode-python](https://github.com/Microsoft/vscode-python)
+* NOTE: You must be running `node` 10. See [this issue](https://github.com/puremourning/vimspector/issues/105)
+
+I recommend installing `nvm` and then `nvm use 10` prior to starting your Vim
+session.
 
 ```
 {
@@ -717,6 +724,43 @@ For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
   }
 }
 ```
+
+### Alternative: Use debugpy directly
+
+If you can't get a node 10 environment set up for whatver reason, then you can
+avoid that issue by using `debugpy` (formerly `ptvsd`) directly.
+
+Here's how:
+
+1. Instal `debugpy`: `pip install debugpy`
+2. Create `/path/to/vimspector/gadgets/<os>/.gadgets.d/debugpy.json`:
+
+```json
+{
+  "adapters": {
+    "debugpy": {
+      "command": [
+        "python",
+        "-m",
+        "debugpy.adapter"
+      ],
+      "name": "debugpy",
+      "configuration": {
+        "python": "python"
+      }
+    }
+  }
+}
+```
+
+Then in theory you should just have to change `"adapter": "vscode-python"` to
+`"adapter": "debugpy"`.
+
+See `support/test/python/simple_python/.vimspector.json` as an example.
+
+NOTE: This will likely become the default in future, and vscode-python will be
+phased out.
+
 
 ## TCL
 
