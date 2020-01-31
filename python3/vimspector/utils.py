@@ -21,6 +21,9 @@ import vim
 import json
 import string
 import functools
+import subprocess
+import shlex
+
 
 
 LOG_FILE = os.path.expanduser( os.path.join( '~', '.vimspector.log' ) )
@@ -346,10 +349,27 @@ def ExpandReferencesInObject( obj, mapping, user_choices ):
   if isinstance( obj, dict ):
     ExpandReferencesInDict( obj, mapping, user_choices )
   elif isinstance( obj, list ):
-    for i, _ in enumerate( obj ):
-      # FIXME: We are assuming that it is a list of string, but could be a
-      # list of list of a list of dict, etc.
-      obj[ i ] = ExpandReferencesInObject( obj[ i ], mapping, user_choices )
+    j_offset = 0
+    obj_copy = list( obj )
+
+    for i, _ in enumerate( obj_copy ):
+      j = i + j_offset
+      if ( isinstance( obj_copy[ i ], str ) and
+           len( obj_copy[ i ] ) > 2 and
+           obj_copy[ i ][ 0:2 ] == '*$' ):
+        # *${something} - expand list in place
+        value = ExpandReferencesInString( obj_copy[ i ][ 1: ],
+                                          mapping,
+                                          user_choices )
+        obj.pop( j )
+        j_offset -= 1
+        for opt_index, opt in enumerate( shlex.split( value ) ):
+          obj.insert( j + opt_index, opt )
+          j_offset += 1
+      else:
+        obj[ j ] = ExpandReferencesInObject( obj_copy[ i ],
+                                             mapping,
+                                             user_choices )
   elif isinstance( obj, str ):
     obj = ExpandReferencesInString( obj, mapping, user_choices )
 
@@ -409,9 +429,6 @@ def ParseVariables( variables_list, mapping, user_choices ):
     for n, v in variables.items():
       if isinstance( v, dict ):
         if 'shell' in v:
-          import subprocess
-          import shlex
-
           new_v = v.copy()
           # Bit of a hack. Allows environment variables to be used.
           ExpandReferencesInDict( new_v, new_mapping, user_choices )
