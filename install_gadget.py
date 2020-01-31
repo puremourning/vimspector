@@ -511,7 +511,10 @@ def DownloadFileTo( url, destination, file_name = None, checksum = None, sslchec
   print( "Downloading {} to {}/{}".format( url, destination, file_name ) )
 
   if not sslcheck:
-    kwargs = {"context":  ssl._create_unverified_context()}
+    context = ssl.create_default_context()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    kwargs = { "context":  context }
   else:
     kwargs = {}
 
@@ -669,10 +672,9 @@ for name, gadget in GADGETS.items():
            '(when supplying --all)'.format( name, lang ) )
 
 parser.add_argument(
-    "--no-ssl",
+    "--no-check-certificate",
     action = "store_true",
-    help = "Switch the gadget download ssl certificate verification"
-    "off (use only in you have a self-signed certificate in your chain)"
+    help = "Do not verify SSL certificates for file downloads."
 )
 
 args = parser.parse_args()
@@ -706,7 +708,7 @@ for name, gadget in GADGETS.items():
       destination = os.path.join( gadget_dir, 'download', name, v[ 'version' ] )
 
       url = string.Template( gadget[ 'download' ][ 'url' ] ).substitute( v )
-      verify_cert_off = getattr(args, "no_ssl")
+      verify_cert_off = args.no_check_certificate
 
       file_path = DownloadFileTo(
         url,
