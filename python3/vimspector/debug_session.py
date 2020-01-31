@@ -171,6 +171,12 @@ class DebugSession( object ):
       # working directory.
       'cwd': os.getcwd(),
     }
+
+    # Pretend that vars passed to the launch command were typed in by the user
+    # (they may have been in theory)
+    USER_CHOICES.update( launch_variables )
+    self._variables.update( launch_variables )
+
     self._variables.update(
       utils.ParseVariables( adapter.get( 'variables', {} ),
                             self._variables,
@@ -180,12 +186,6 @@ class DebugSession( object ):
                             self._variables,
                             USER_CHOICES ) )
 
-    # Pretend that vars passed to the launch command were typed in by the user
-    # (they may have been in theory)
-    # TODO: Is it right that we do this _after_ ParseVariables, rather than
-    # before ?
-    USER_CHOICES.update( launch_variables )
-    self._variables.update( launch_variables )
 
     utils.ExpandReferencesInDict( configuration,
                                   self._variables,
@@ -268,7 +268,6 @@ class DebugSession( object ):
       return fct(self, *args, **kwargs)
     return wrapper
 
-  @IfConnected
   def OnChannelData( self, data ):
     self._connection.OnData( data )
 
@@ -279,7 +278,6 @@ class DebugSession( object ):
       self._outputView.Print( 'server', data )
 
 
-  @IfConnected
   def OnRequestTimeout( self, timer_id ):
     self._connection.OnRequestTimeout( timer_id )
 
@@ -365,20 +363,25 @@ class DebugSession( object ):
   def Pause( self ):
     self._stackTraceView.Pause()
 
+  @IfConnected
   def ExpandVariable( self ):
     self._variablesView.ExpandVariable()
 
+  @IfConnected
   def AddWatch( self, expression ):
     self._variablesView.AddWatch( self._stackTraceView.GetCurrentFrame(),
                                   expression )
 
+  @IfConnected
   def EvaluateConsole( self, expression ):
     self._outputView.Evaluate( self._stackTraceView.GetCurrentFrame(),
                                expression )
 
+  @IfConnected
   def DeleteWatch( self ):
     self._variablesView.DeleteWatch()
 
+  @IfConnected
   def ShowBalloon( self, winnr, expression ):
     """Proxy: ballonexpr -> variables.ShowBallon"""
     frame = self._stackTraceView.GetCurrentFrame()
@@ -397,6 +400,7 @@ class DebugSession( object ):
     # Return variable aware function
     return self._variablesView.ShowBalloon( frame, expression )
 
+  @IfConnected
   def ExpandFrameOrThread( self ):
     self._stackTraceView.ExpandFrameOrThread()
 
@@ -601,8 +605,10 @@ class DebugSession( object ):
         self._outputView.RunJobWithOutput( 'Remote', cmd )
     else:
       if atttach_config[ 'pidSelect' ] == 'ask':
-        pid = utils.AskForInput( 'Enter PID to attach to: ' )
-        launch_config[ atttach_config[ 'pidProperty' ] ] = pid
+        prop = atttach_config[ 'pidProperty' ]
+        if prop not in launch_config:
+          pid = utils.AskForInput( 'Enter PID to attach to: ' )
+          launch_config[ prop ] = pid
         return
       elif atttach_config[ 'pidSelect' ] == 'none':
         return
