@@ -41,6 +41,7 @@ For a tutorial and usage overview, take a look at the
    * [Debug adapter configuration](#debug-adapter-configuration)
       * [C, C  , Rust, etc.](#c-c-rust-etc)
       * [Python](#python)
+         * [Alternative: Use debugpy directly](#alternative-use-debugpy-directly)
       * [TCL](#tcl)
       * [C♯](#c)
       * [Go](#go)
@@ -54,7 +55,7 @@ For a tutorial and usage overview, take a look at the
    * [FAQ](#faq)
    * [License](#license)
 
-<!-- Added by: ben, at: Tue 28 Jan 2020 08:46:26 GMT -->
+<!-- Added by: ben, at: Sat  1 Feb 2020 00:08:19 GMT -->
 
 <!--te-->
 
