@@ -1,4 +1,17 @@
 {
+  "adapters": {
+    "debugpy": {
+      "command": [
+        "python",
+        "-m",
+        "debugpy.adapter"
+      ],
+      "name": "debugpy",
+      "configuration": {
+        "python": "python"
+      }
+    }
+  },
   "configurations": {
     "run": {
       "adapter": "vscode-python",
@@ -24,6 +37,23 @@
         "type": "python",
         "host": "localhost",
         "port": "5678"
+      },
+      "breakpoints": {
+        "exception": {
+          "raised": "N",
+          "uncaught": ""
+        }
+      }
+    },
+    "run - debugpy": {
+      "adapter": "debugpy",
+      "configuration": {
+        "request": "launch",
+        "type": "python",
+        "cwd": "${workspaceRoot}",
+        "program": "${file}",
+        "stopOnEntry": true,
+        "console": "integratedTerminal"
       },
       "breakpoints": {
         "exception": {
