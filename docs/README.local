@@ -1,0 +1,13 @@
+To update/install:
+
+gem install bundler
+bundle install
+
+To run a local server/test the build
+
+bundle exec jekyll serve
+
+To update deps
+
+bundle update
+or bundle update github-pages
