@@ -25,6 +25,27 @@ set cpoptions&vim
 " FIXME: Tidy this map when buffers are closed ?
 let s:buffer_to_id = {}
 
+function! vimspector#internal#neoterm#PrepareEnvironment( env ) abort
+  let old_env = {}
+
+  let new_env = copy( environ() )
+  for key in keys( a:env )
+    if has_key( new_env, key )
+      let old_env[ key ] = new_env[ key ]
+    endif
+    call setenv( key, a:env[ key ] )
+  endfor
+
+  return old_env
+endfunction
+
+function! vimspector#internal#neoterm#ResetEnvironment( env, old_env ) abort
+  for key in keys( a:env )
+    let value = get( a:old_env, key, v:null )
+    call setenv( key, value )
+  endfor
+endfunction
+
 function! vimspector#internal#neoterm#Start( cmd, opts ) abort
   if ! get( a:opts, 'curwin', 0 )
     if get( a:opts, 'vertical', 0 )
@@ -34,8 +55,21 @@ function! vimspector#internal#neoterm#Start( cmd, opts ) abort
     endif
   endif
 
-  " FIXME: 'env' doesn't work
-  let id = termopen( a:cmd, { 'cwd': a:opts[ 'cwd' ] } )
+  " HACK: Neovim's termopen doesn't support env
+
+  let old_env={}
+  try
+    let old_env = vimspector#internal#neoterm#PrepareEnvironment(
+          \ a:opts[ 'env' ] )
+    let id = termopen( a:cmd, {
+          \ 'cwd': a:opts[ 'cwd' ],
+          \ 'env': a:opts[ 'env' ],
+          \ } )
+  finally
+    call vimspector#internal#neoterm#ResetEnvironment( a:opts[ 'env' ],
+                                                     \ old_env )
+  endtry
+
   let bufnr = bufnr()
   let s:buffer_to_id[ bufnr ] = id
   return bufnr

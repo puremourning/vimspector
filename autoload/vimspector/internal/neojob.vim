@@ -44,17 +44,27 @@ function! vimspector#internal#neojob#StartDebugSession( config ) abort
     return v:false
   endif
 
-  let s:job = jobstart( a:config[ 'command' ],
-        \                {
-        \                    'on_stdout': funcref( 's:_OnEvent' ),
-        \                    'on_stderr': funcref( 's:_OnEvent' ),
-        \                    'on_exit': funcref( 's:_OnEvent' ),
-        \                    'cwd': a:config[ 'cwd' ],
-        \                    'env': a:config[ 'env' ],
-        \                }
-        \              )
 
-  " FIXME: env might not work: Missing in neovim 0.4. But in master:
+  " HACK: Workaround for 'env' not being supported.
+
+  let old_env={}
+  try
+    let old_env = vimspector#internal#neoterm#PrepareEnvironment(
+          \ a:config[ 'env' ] )
+    let s:job = jobstart( a:config[ 'command' ],
+          \                {
+          \                    'on_stdout': funcref( 's:_OnEvent' ),
+          \                    'on_stderr': funcref( 's:_OnEvent' ),
+          \                    'on_exit': funcref( 's:_OnEvent' ),
+          \                    'cwd': a:config[ 'cwd' ],
+          \                    'env': a:config[ 'env' ],
+          \                }
+          \              )
+  finally
+    call vimspector#internal#neoterm#ResetEnvironment( a:config[ 'env' ],
+                                                     \ old_env )
+  endtry
+
   return v:true
 endfunction
 
