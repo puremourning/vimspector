@@ -174,7 +174,6 @@ neovim doesn't implement some features Vimspector relies on:
   the output window's current output.
 * Prompt Buffers - used to send commands in the Console and add Watches
 * Balloons - used to display the values of variables when debugging.
-* Environment variables when laucnhing debugee in embedded terminal.
 
 Workarounds are in place as follows:
 
@@ -186,9 +185,6 @@ Workarounds are in place as follows:
 
 There is no workaroud for the lack of balloons; you'll just have to use
 `:VimspectorEval` or `:VimspectorWatch`, or switch to Vim.
-
-The only workaround for the missing environment variables feature is to use
-neovim master (it doesn't work in neovim 0.4).
 
 ## Language dependencies
 
@@ -731,10 +727,6 @@ session.
 ```
 
 ### Alternative: Use debugpy directly
-
-*** NOTE: This solution does not work in NeoVim 0.4 due to missing environment
-variables support when launching a terminal. Do not raise issues about this if
-you are using NeoVim 0.4. ***
 
 If you can't get a node 10 environment set up for whatver reason, then you can
 avoid that issue by using `debugpy` (formerly `ptvsd`) directly.
