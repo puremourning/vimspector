@@ -387,18 +387,9 @@ class VariablesView( object ):
 
 
   def SetSyntax( self, syntax ):
-    if not syntax:
-      syntax = ''
-
-    if self._current_syntax == syntax:
-      return
-
-    self._current_syntax = syntax
-
-    with utils.LetCurrentWindow( self._vars.win ):
-      vim.command( 'set syntax={}'.format( utils.Escape( syntax ) ) )
-
-    with utils.LetCurrentWindow( self._watch.win ):
-      vim.command( 'set syntax={}'.format( utils.Escape( syntax ) ) )
+    self._current_syntax = utils.SetSyntax( self._current_syntax,
+                                            syntax,
+                                            self._vars.win,
+                                            self._watch.win )
 
 # vim: sw=2

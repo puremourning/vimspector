@@ -29,14 +29,20 @@ class StackTraceView( object ):
     self._session = session
     self._connection = connection
 
-    self._currentThread = None
-    self._currentFrame = None
+    self._current_thread = None
+    self._current_frame = None
+    self._current_syntax = ""
 
     self._threads = []
     self._sources = {}
 
     utils.SetUpScratchBuffer( self._buf, 'vimspector.StackTrace' )
+
     vim.current.buffer = self._buf
+    # FIXME: Remove all usage of "Windown" and just use buffers to prevent all
+    # the bugs around the window being closed.
+    self._win = vim.current.window
+
     vim.command( 'nnoremap <buffer> <CR> :call vimspector#GoToFrame()<CR>' )
 
     self._line_to_frame = {}
@@ -53,14 +59,15 @@ class StackTraceView( object ):
 
 
   def GetCurrentThreadId( self ):
-    return self._currentThread
+    return self._current_thread
 
   def GetCurrentFrame( self ):
-    return self._currentFrame
+    return self._current_frame
 
   def Clear( self ):
-    self._currentFrame = None
-    self._currentThread = None
+    self._current_frame = None
+    self._current_thread = None
+    self._current_syntax = ""
     self._threads = []
     self._sources = {}
     with utils.ModifiableScratchBuffer( self._buf ):
@@ -102,10 +109,10 @@ class StackTraceView( object ):
       for thread in message[ 'body' ][ 'threads' ]:
         self._threads.append( thread )
 
-        if infer_current_frame and thread[ 'id' ] == self._currentThread:
+        if infer_current_frame and thread[ 'id' ] == self._current_thread:
           self._LoadStackTrace( thread, True )
-        elif infer_current_frame and self._currentThread is None:
-          self._currentThread = thread[ 'id' ]
+        elif infer_current_frame and self._current_thread is None:
+          self._current_thread = thread[ 'id' ]
           self._LoadStackTrace( thread, True )
 
       self._DrawThreads()
@@ -170,8 +177,8 @@ class StackTraceView( object ):
   def _JumpToFrame( self, frame ):
     def do_jump():
       if 'line' in frame and frame[ 'line' ] > 0:
-        self._currentFrame = frame
-        return self._session.SetCurrentFrame( self._currentFrame )
+        self._current_frame = frame
+        return self._session.SetCurrentFrame( self._current_frame )
       return False
 
     source = frame.get( 'source' ) or {}
@@ -188,32 +195,32 @@ class StackTraceView( object ):
 
   def OnStopped( self, event ):
     if 'threadId' in event:
-      self._currentThread = event[ 'threadId' ]
+      self._current_thread = event[ 'threadId' ]
     elif event.get( 'allThreadsStopped', False ) and self._threads:
-      self._currentThread = self._threads[ 0 ][ 'id' ]
+      self._current_thread = self._threads[ 0 ][ 'id' ]
 
-    if self._currentThread is not None:
+    if self._current_thread is not None:
       for thread in self._threads:
-        if thread[ 'id' ] == self._currentThread:
+        if thread[ 'id' ] == self._current_thread:
           self._LoadStackTrace( thread, True )
           return
 
     self.LoadThreads( True )
 
   def OnThreadEvent( self, event ):
-    if event[ 'reason' ] == 'started' and self._currentThread is None:
-      self._currentThread = event[ 'threadId' ]
+    if event[ 'reason' ] == 'started' and self._current_thread is None:
+      self._current_thread = event[ 'threadId' ]
       self.LoadThreads( True )
 
   def Continue( self ):
-    if self._currentThread is None:
+    if self._current_thread is None:
       utils.UserMessage( 'No current thread', persist = True )
       return
 
     self._session._connection.DoRequest( None, {
       'command': 'continue',
       'arguments': {
-        'threadId': self._currentThread,
+        'threadId': self._current_thread,
       },
     } )
 
@@ -221,14 +228,14 @@ class StackTraceView( object ):
     self.LoadThreads( True )
 
   def Pause( self ):
-    if self._currentThread is None:
+    if self._current_thread is None:
       utils.UserMessage( 'No current thread', persist = True )
       return
 
     self._session._connection.DoRequest( None, {
       'command': 'pause',
       'arguments': {
-        'threadId': self._currentThread,
+        'threadId': self._current_thread,
       },
     } )
 
@@ -294,3 +301,8 @@ class StackTraceView( object ):
           'source': source
         }
       } )
+
+  def SetSyntax( self, syntax ):
+    self._current_syntax = utils.SetSyntax( self._current_syntax,
+                                            syntax,
+                                            self._win )

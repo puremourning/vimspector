@@ -483,6 +483,7 @@ class DebugSession( object ):
 
     if frame:
       self._variablesView.SetSyntax( self._codeView.current_syntax )
+      self._stackTraceView.SetSyntax( self._codeView.current_syntax )
       self._variablesView.LoadScopes( frame )
       self._variablesView.EvaluateWatches()
     else:

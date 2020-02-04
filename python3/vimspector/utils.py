@@ -501,3 +501,17 @@ def memoize( func ):
 @memoize
 def Exists( expr ):
   return int( vim.eval( f'exists( "{ expr }" )' ) )
+
+
+def SetSyntax( current_syntax, syntax, *args ):
+  if not syntax:
+    syntax = ''
+
+  if current_syntax == syntax:
+    return
+
+  for win in args:
+    with LetCurrentWindow( win ):
+      vim.command( 'set syntax={}'.format( Escape( syntax ) ) )
+
+  return syntax
