@@ -77,6 +77,7 @@ class DebugSession( object ):
                        launch_variables )
     self._configuration = None
     self._adapter = None
+    self._supportReconnect = True
 
     current_file = utils.GetBufferFilepath( vim.current.buffer )
 
@@ -246,12 +247,24 @@ class DebugSession( object ):
 
     start()
 
+  def Connect( self, port, configuration ):
+    self._logger.info( 'Connecting to %s using %s', port,
+                       json.dumps( configuration ) )
+    self._supportReconnect = False
+    self._StartWithConfiguration(
+      configuration,
+      { 'port': int( port ) }
+    )
+
   def Restart( self ):
     # TODO: There is a restart message but isn't always supported.
     # FIXME: For some reason this doesn't work when run from the WinBar. It just
     # beeps and doesn't display the config selector. One option is to just not
     # display the selector and restart with the same opitons.
-    if not self._configuration or not self._adapter:
+    if not self._supportReconnect:
+      utils.UserMessage( 'Restart is not supported in current mode.' )
+      return
+    elif not self._configuration or not self._adapter:
       return self.Start()
 
     self._StartWithConfiguration( self._configuration, self._adapter )

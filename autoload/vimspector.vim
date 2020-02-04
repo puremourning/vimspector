@@ -30,6 +30,10 @@ function! vimspector#LaunchWithSettings( settings ) abort
   py3 _vimspector_session.Start( launch_variables = vim.eval( 'a:settings' ) )
 endfunction
 
+function! vimspector#Connect( port, configuration ) abort
+  py3 _vimspector_session.Connect ( port = vim.eval( 'a:port' ), configuration = vim.eval( 'a:configuration' ) )
+endfunction
+
 function! vimspector#Reset() abort
   py3 _vimspector_session.Reset()
 endfunction
