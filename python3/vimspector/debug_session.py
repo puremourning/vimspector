@@ -591,7 +591,8 @@ class DebugSession( object ):
 
     arguments = {}
     if self._server_capabilities.get( 'supportTerminateDebuggee' ):
-      arguments[ 'terminateDebugee' ] = True
+      # If we attached, we should _not_ terminate the debuggee
+      arguments[ 'terminateDebuggee' ] = False
 
     self._connection.DoRequest( handler, {
       'command': 'disconnect',
