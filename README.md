@@ -592,7 +592,7 @@ For an introduction to the configuration of `.vimspector.json`, take a look at
 the Getting Started section of the [Vimspector website][website].
 
 For full explanation, including how to use variables, substitutions and how to
-specify exception breakpoints, see [the docs](vimspector-ref).
+specify exception breakpoints, see [the docs][vimspector-ref].
 
 Current tested with the following debug adapters.
 
