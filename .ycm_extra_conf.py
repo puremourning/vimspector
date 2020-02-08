@@ -38,6 +38,13 @@ def Settings( **kwargs ):
       }
     }
 
+  if kwargs[ 'language' ] == 'python':
+    return {
+      'sys_path': [
+        p.join( PATH_TO_THIS_DIR, 'python3' )
+      ]
+    }
+
   if IgnoreExtraConf:
     raise IgnoreExtraConf()
 
