@@ -275,7 +275,7 @@ function! Test_Insert_Code_Above_Breakpoint()
 
   " CHeck that we break at the right point
   call setpos( '.', [ 0, 1, 1 ] )
-  call vimspector#LaunchWithSettings( { "configuration": "run" } )
+  call vimspector#LaunchWithSettings( { 'configuration': 'run' } )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 26, 1 )
   call vimspector#Reset()
   call vimspector#test#setup#WaitForReset()

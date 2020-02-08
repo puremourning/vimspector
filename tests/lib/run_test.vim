@@ -36,16 +36,18 @@
 let s:single_test_timeout = 60000
 
 " Restrict the runtimepath to the exact minimum needed for testing
-set rtp=$PWD/lib,$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after
+set runtimepath=$PWD/lib,$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after
 if has('packages')
-  let &packpath = &rtp
+  let &packpath = &runtimepath
 endif
 
 call ch_logfile( 'debuglog', 'w' )
 
 " For consistency run all tests with 'nocompatible' set.
 " This also enables use of line continuation.
-set nocp
+" vint: -ProhibitSetNoCompatible
+set nocompatible
+" vint: +ProhibitSetNoCompatible
 
 " Use utf-8 by default, instead of whatever the system default happens to be.
 " Individual tests can overrule this at the top of the file.
@@ -93,7 +95,7 @@ func RunTheTest(test)
   " directory after executing the test.
   let save_cwd = getcwd()
 
-  if exists("*SetUp_" . a:test)
+  if exists('*SetUp_' . a:test)
     try
       exe 'call SetUp_' . a:test
     catch
@@ -109,7 +111,7 @@ func RunTheTest(test)
     endtry
   endif
 
-  if exists("*SetUp")
+  if exists('*SetUp')
     try
       call SetUp()
     catch
@@ -136,9 +138,14 @@ func RunTheTest(test)
     let test_filesafe = substitute( a:test, '[)(,:]', '_', 'g' )
     let s:testid_filesafe = g:testpath . '_' . test_filesafe
 
-    au VimLeavePre * call EarlyExit(s:test)
+    augroup EarlyExit
+      au!
+      au VimLeavePre * call EarlyExit(s:test)
+    augroup END
+
     exe 'call ' . a:test
-    au! VimLeavePre
+
+    au! EarlyExit
   catch /^\cskipped/
     call add(s:messages, '    Skipped')
     call add(s:skipped,
@@ -164,7 +171,7 @@ func RunTheTest(test)
   " reset to avoid trouble with anything else.
   set noinsertmode
 
-  if exists("*TearDown")
+  if exists('*TearDown')
     try
       call TearDown()
     catch
@@ -179,7 +186,7 @@ func RunTheTest(test)
     endtry
   endif
 
-  if exists("*TearDown_" . a:test)
+  if exists('*TearDown_' . a:test)
     try
       exe 'call TearDown_' . a:test
     catch
@@ -252,10 +259,9 @@ func FinishTesting()
     if filereadable( 'test.log' )
       let l = readfile( 'test.log' )
     endif
-    call writefile( l->extend( [ '', 'From ' . g:testpath . ':' ] )
-                  \  ->extend( s:errors ),
-                  \ 'test.log',
-                  \ 's' )
+    call extend( l, [ '', 'From ' . g:testpath . ':' ] )
+    call extend( l, s:errors )
+    call writefile( l, 'test.log', 's' )
   endif
 
   if s:done == 0
@@ -280,10 +286,9 @@ func FinishTesting()
   if filereadable( 'messages' )
     let l = readfile( 'messages' )
   endif
-  call writefile( l->extend( [ '', 'From ' . g:testpath . ':' ] )
-                \  ->extend( s:messages ),
-                \ 'messages',
-                \ 's' )
+  call extend( l, [ '', 'From ' . g:testpath . ':' ] )
+  call extend( l, s:messages )
+  call writefile( l, 'messages', 's' )
 
   if s:fail > 0
     cquit!

@@ -210,4 +210,4 @@ class OutputView( object ):
                    '*' if tab_buffer.flag else '' ) )
 
   def GetCategories( self ):
-    return [ category for category in self._buffers.keys() ]
+    return list( self._buffers.keys() )
