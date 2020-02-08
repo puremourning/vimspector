@@ -72,6 +72,29 @@ For more infomration on the test framework, see
 [this article](https://vimways.org/2019/a-test-to-attest-to/), authored by the
 Vimspector creator.
 
+### Code Style
+
+The code style of the Python code is "YCM" style, because that's how I like it.
+[`flake8`][] is used to check for certain errors and code style.
+
+The code style of the Vimscript is largely the same, and it is linted by
+[`vint`][].
+
+To run them:
+
+* (optional) Create and activate a virtual env:
+  `python3 -m venv venv ; source venv/bin/activate`
+* Install the development dependencies: `pip install -r dev_requirements.txt`
+* Run `flake8`: `flake8 python3/ *.py`
+* Run `vint`: `vint autoload/ plugin/ tests/`
+
+They're also run by CI, so please check for lint failures. The canonical
+definition of the command to run is the command run in CI, i.e. in
+`azure-pipelines.yml`.
+
 # Code of conduct
 
 Please see [code of conduct](CODE_OF_CONDUCT.md).
+
+[vint]: https://github.com/Vimjas/vint
+[flake8]: https://flake8.pycqa.org/en/latest/

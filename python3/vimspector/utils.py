@@ -232,7 +232,7 @@ def Escape( msg ):
   return msg.replace( "'", "''" )
 
 
-def UserMessage( msg, persist=False, error=False):
+def UserMessage( msg, persist=False, error=False ):
   if persist:
     _logger.warning( 'User Msg: ' + msg )
   else:
@@ -242,11 +242,11 @@ def UserMessage( msg, persist=False, error=False):
   vim.command( 'redraw' )
   try:
     if error:
-      vim.command("echohl WarningMsg")
+      vim.command( "echohl WarningMsg" )
     for line in msg.split( '\n' ):
       vim.command( "{0} '{1}'".format( cmd, Escape( line ) ) )
   finally:
-    vim.command('echohl None') if error else None
+    vim.command( 'echohl None' ) if error else None
   vim.command( 'redraw' )
 
 
@@ -324,7 +324,7 @@ def SetBufferContents( buf, lines, modified=False ):
     if not isinstance( lines, list ):
       lines = lines.splitlines()
 
-    buf[:] = lines
+    buf[ : ] = lines
   finally:
     buf.options[ 'modified' ] = modified
 
@@ -347,7 +347,7 @@ def ExpandReferencesInObject( obj, mapping, user_choices ):
   return obj
 
 
-def ExpandReferencesInString( orig_s, mapping, user_choices):
+def ExpandReferencesInString( orig_s, mapping, user_choices ):
   s = os.path.expanduser( orig_s )
   s = os.path.expandvars( s )
 

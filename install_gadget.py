@@ -759,7 +759,7 @@ for name, gadget in GADGETS.items():
         destination,
         file_name = gadget[ 'download' ].get( 'target' ),
         checksum = v.get( 'checksum' ),
-        sslcheck = not verify_cert_off)
+        sslcheck = not verify_cert_off )
       root = os.path.join( destination, 'root' )
       ExtractZipTo( file_path,
                     root,

@@ -28,7 +28,7 @@ function! Test_Python_Simple()
   call setpos( '.', [ 0, 1, 1 ] )
 
   " Here we go. Start Debugging
-  call vimspector#LaunchWithSettings( { "configuration": "run" } )
+  call vimspector#LaunchWithSettings( { 'configuration': 'run' } )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 6, 1 )
 
   " Step

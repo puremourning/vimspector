@@ -37,8 +37,8 @@ endfunc
 func RunCommand(cmd)
   let job = 0
   if has('job')
-    let job = job_start(a:cmd, {"stoponexit": "hup"})
-    call job_setoptions(job, {"stoponexit": "kill"})
+    let job = job_start(a:cmd, {'stoponexit': 'hup'})
+    call job_setoptions(job, {'stoponexit': 'kill'})
   elseif has('win32')
     exe 'silent !start cmd /c start "test_channel" ' . a:cmd
   else
@@ -53,7 +53,7 @@ func GetPort()
   " with 200 it sometimes failed
   for i in range(400)
     try
-      let l = readfile("Xportnr")
+      let l = readfile('Xportnr')
     catch
     endtry
     if len(l) >= 1
@@ -61,7 +61,7 @@ func GetPort()
     endif
     sleep 10m
   endfor
-  call delete("Xportnr")
+  call delete('Xportnr')
 
   if len(l) == 0
     " Can't make the connection, give up.
@@ -74,14 +74,14 @@ endfunc
 " Always kills the server before returning.
 func RunServer(cmd, testfunc, args)
   " The Python program writes the port number in Xportnr.
-  call delete("Xportnr")
+  call delete('Xportnr')
 
   if len(a:args) == 1
     let arg = ' ' . a:args[0]
   else
     let arg = ''
   endif
-  let pycmd = s:python . " " . a:cmd . arg
+  let pycmd = s:python . ' ' . a:cmd . arg
 
   try
     let g:currentJob = RunCommand(pycmd)
@@ -108,10 +108,10 @@ func s:kill_server(cmd)
       unlet g:currentJob
     endif
   elseif has('win32')
-    let cmd = substitute(a:cmd, ".py", '', '')
+    let cmd = substitute(a:cmd, '.py', '', '')
     call system('taskkill /IM ' . s:python . ' /T /F /FI "WINDOWTITLE eq ' . cmd . '"')
   else
-    call system("pkill -f " . a:cmd)
+    call system('pkill -f ' . a:cmd)
   endif
 endfunc
 
@@ -253,7 +253,7 @@ func GetVimCommand(...)
   " "vimcmd" file, including environment options.
   " Other Makefiles just write the executable in the first line, so fall back
   " to that if there is no second line or it is empty.
-  if len(lines) > 1 && lines[1] != ''
+  if len(lines) > 1 && lines[1] !=# ''
     let cmd = lines[1]
   else
     let cmd = lines[0]
@@ -267,7 +267,7 @@ func GetVimCommand(...)
   let cmd = substitute(cmd, 'VIMRUNTIME=.*VIMRUNTIME;', '', '')
 
   " If using valgrind, make sure every run uses a different log file.
-  if cmd =~ 'valgrind.*--log-file='
+  if cmd =~# 'valgrind.*--log-file='
     let cmd = substitute(cmd, '--log-file=\(^\s*\)', '--log-file=\1.' . g:valgrind_cnt, '')
     let g:valgrind_cnt += 1
   endif
@@ -308,7 +308,7 @@ func RunVimPiped(before, after, arguments, pipecmd)
     let args .= ' -S Xafter.vim'
   endif
 
-  exe "silent !" . a:pipecmd . cmd . args . ' ' . a:arguments
+  exe 'silent !' . a:pipecmd . cmd . args . ' ' . a:arguments
 
   if len(a:before) > 0
     call delete('Xbefore.vim')
@@ -320,7 +320,7 @@ func RunVimPiped(before, after, arguments, pipecmd)
 endfunc
 
 func CanRunGui()
-  return has('gui') && ($DISPLAY != "" || has('gui_running'))
+  return has('gui') && ($DISPLAY !=# '' || has('gui_running'))
 endfunc
 
 func WorkingClipboard()
@@ -328,7 +328,7 @@ func WorkingClipboard()
     return 0
   endif
   if has('x11')
-    return $DISPLAY != ""
+    return $DISPLAY !=# ''
   endif
   return 1
 endfunc

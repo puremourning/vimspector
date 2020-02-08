@@ -28,7 +28,7 @@ function! Test_Step_With_Different_Tabpage()
   call assert_equal( 1, col( '.' ), 'Current column' )
 
   " Switch to the other tab
-  normal gt
+  normal! gt
 
   call assert_notequal( vimspector_tabnr, tabpagenr() )
 
