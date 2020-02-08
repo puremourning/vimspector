@@ -75,10 +75,10 @@ Vimspector creator.
 ### Code Style
 
 The code style of the Python code is "YCM" style, because that's how I like it.
-[`flake8`][] is used to check for certain errors and code style.
+[flake8][] is used to check for certain errors and code style.
 
 The code style of the Vimscript is largely the same, and it is linted by
-[`vint`][].
+[vint][].
 
 To run them:
 
