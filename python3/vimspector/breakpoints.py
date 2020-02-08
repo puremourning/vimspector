@@ -217,6 +217,11 @@ class ProjectBreakpoints( object ):
       response_received()
 
 
+    # NOTE: Must do this _first_ otherwise we might send requests and get
+    # replies before we finished sending all the requests.
+    if self._exception_breakpoints is None:
+      self._SetUpExceptionBreakpoints( self._configured_breakpoints )
+
 
     # TODO: add the _configured_breakpoints to line_breakpoints
     # TODO: the line numbers might have changed since pressing the F9 key!
@@ -271,9 +276,6 @@ class ProjectBreakpoints( object ):
         },
         failure_handler = lambda *_: response_received()
       )
-
-    if self._exception_breakpoints is None:
-      self._SetUpExceptionBreakpoints( self._configured_breakpoints )
 
     if self._exception_breakpoints:
       awaiting = awaiting + 1

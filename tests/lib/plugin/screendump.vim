@@ -28,7 +28,7 @@ endif
 func RunVimInTerminal(arguments, options)
   " If Vim doesn't exit a swap file remains, causing other tests to fail.
   " Remove it here.
-  call delete(".swp")
+  call delete('.swp')
 
   if exists('$COLORFGBG')
     " Clear $COLORFGBG to avoid 'background' being set to "dark", which will
@@ -61,7 +61,7 @@ func RunVimInTerminal(arguments, options)
 	\ 'term_rows': rows,
 	\ 'term_cols': cols,
 	\ })
-  if &termwinsize == ''
+  if &termwinsize ==# ''
     " in the GUI we may end up with a different size, try to set it.
     if term_getsize(buf) != [rows, cols]
       call term_setsize(buf, rows, cols)
@@ -80,7 +80,7 @@ func RunVimInTerminal(arguments, options)
     call WaitFor({-> len(term_getline(buf, rows)) >= cols - 1 || len(term_getline(buf, rows - statusoff)) >= cols - 1})
   catch /timed out after/
     let lines = map(range(1, rows), {key, val -> term_getline(buf, val)})
-    call assert_report('RunVimInTerminal() failed, screen contents: ' . join(lines, "<NL>"))
+    call assert_report('RunVimInTerminal() failed, screen contents: ' . join(lines, '<NL>'))
   endtry
 
   return buf
@@ -88,7 +88,7 @@ endfunc
 
 " Stop a Vim running in terminal buffer "buf".
 func StopVimInTerminal(buf)
-  call assert_equal("running", term_getstatus(a:buf))
+  call assert_equal('running', term_getstatus(a:buf))
 
   " CTRL-O : works both in Normal mode and Insert mode to start a command line.
   " In Command-line it's inserted, the CTRL-U removes it again.

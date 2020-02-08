@@ -41,7 +41,7 @@ For a tutorial and usage overview, take a look at the
    * [Debug adapter configuration](#debug-adapter-configuration)
       * [C, C  , Rust, etc.](#c-c-rust-etc)
       * [Python](#python)
-         * [Alternative: Use debugpy directly](#alternative-use-debugpy-directly)
+         * [Legacy: vscode-python](#legacy-vscode-python)
       * [TCL](#tcl)
       * [C♯](#c)
       * [Go](#go)
@@ -55,7 +55,7 @@ For a tutorial and usage overview, take a look at the
    * [FAQ](#faq)
    * [License](#license)
 
-<!-- Added by: ben, at: Sat  1 Feb 2020 00:08:19 GMT -->
+<!-- Added by: ben, at: Sat  8 Feb 2020 21:12:02 GMT -->
 
 <!--te-->
 
@@ -188,19 +188,26 @@ There is no workaroud for the lack of balloons; you'll just have to use
 
 ## Language dependencies
 
-The debug adapters themselves have certain runtime dependencies:
+The debug adapters themselves have certain runtime dependencies. They are
+categorised as follows:
 
-| Language         | Status       | Switch                       | Adapter           | Dependencies           |
-|------------------|--------------|------------------------------|-------------------|------------------------|
-| C, C++, etc.     | Supported    | `--all` or ` --enable-c`     | vscode-cpptools   | mono-core              |
-| Python           | Supported    | `--all` or `--enable-python` | vscode-python     | Node 10, Python 2.7 or Python 3 |
-| TCL              | Experimental | `--all` or `--enable-tcl`    | tclpro            | TCL 8.5                |
-| Bourne Shell     | Experimental | `--all` or `--enable-bash`   | vscode-bash-debug | Bash v??               |
-| C# (dotnet core) | Experimental | `--force-enable-csharp`      | netcoredbg        | DotNet core            |
-| C# (mono)        | Experimental | `--force-enable-csharp`      | vscode-mono-debug | Mono                   |
-| Go               | Experimental | `--enable-go`                | vscode-go         | Go, [Delve][]          |
-| Node.js          | Experimental | `--force-enable-node`        | vscode-node-debug2 | 6 < Node < 12, Npm    |
-| Javascript       | Experimental | `--force-enable-chrome`      | debugger-for-chrome | Chrome |
+* `Tested` : Fully supported, Vimspector regression tests cover them
+* `Supported` : Fully supported, frequently used and manually tested
+* `Experimental`: Working, but not frequently used and rarely tested
+* `Legacy`: No longer supported, please migrate your config
+
+| Language         | Status       | Switch                         | Adapter             | Dependencies                    |
+|------------------|--------------|--------------------------------|---------------------|---------------------------------|
+| C, C++, etc.     | Tested       | `--all` or `--enable-c`        | vscode-cpptools     | mono-core                       |
+| Python           | Tested       | `--all` or `--enable-python`   | debugpy             | Python 2.7 or Python 3          |
+| Go               | Tested       | `--enable-go`                  | vscode-go           | Go, [Delve][]                   |
+| TCL              | Supported    | `--all` or `--enable-tcl`      | tclpro              | TCL 8.5                         |
+| Bourne Shell     | Supported    | `--all` or `--enable-bash`     | vscode-bash-debug   | Bash v??                        |
+| Node.js          | Supported    | `--force-enable-node`          | vscode-node-debug2  | 6 < Node < 12, Npm              |
+| Javascript       | Supported    | `--force-enable-chrome`        | debugger-for-chrome | Chrome                          |
+| C# (dotnet core) | Experimental | `--force-enable-csharp`        | netcoredbg          | DotNet core                     |
+| C# (mono)        | Experimental | `--force-enable-csharp`        | vscode-mono-debug   | Mono                            |
+| Python.legacy    | Legacy       | `--force-enable-python.legacy` | vscode-python       | Node 10, Python 2.7 or Python 3 |
 
 For other languages, you'll need some other way to install the gadget.
 
@@ -696,16 +703,43 @@ For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
 
 ## Python
 
-NOTE: Please see the alternative approach below, as this will become the
-standard approach in future.
+* Python: [debugpy][]
+* Requires `install_gadget.py --enable-python`, this requires a working compiler
+to build a C python extension for performance.
 
-* Python: [vscode-python](https://github.com/Microsoft/vscode-python)
+**Migrating from `vscode-python`**: change `"adapter": "vscode-python"` to
+`"adapter": "debugpy"`.
+
+```json
+{
+  "configurations": {
+    "<name>: Launch": {
+      "adapter": "debugpy",
+      "configuration": {
+        "name": "<name>: Launch",
+        "type": "python",
+        "request": "launch",
+        "cwd": "<working directory>",
+        "python": "/path/to/python/interpreter/to/use",
+        "stopOnEntry": true,
+        "console": "externalTerminal",
+        "debugOptions": [],
+        "program": "<path to main python file>",
+      }
+    }
+    ...
+  }
+}
+```
+
+### Legacy: vscode-python
+
+* No longer installed by default - please pass `--force-enable-python.legacy` if
+  you just want to continue using your working setup.
+* [vscode-python](https://github.com/Microsoft/vscode-python)
 * NOTE: You must be running `node` 10. See [this issue](https://github.com/puremourning/vimspector/issues/105)
 
-I recommend installing `nvm` and then `nvm use 10` prior to starting your Vim
-session.
-
-```
+```json
 {
   "configurations": {
     "<name>: Launch": {
@@ -725,43 +759,6 @@ session.
   }
 }
 ```
-
-### Alternative: Use debugpy directly
-
-If you can't get a node 10 environment set up for whatver reason, then you can
-avoid that issue by using `debugpy` (formerly `ptvsd`) directly.
-
-Here's how:
-
-1. Instal `debugpy`: `pip install debugpy`
-2. Create `/path/to/vimspector/gadgets/<os>/.gadgets.d/debugpy.json`:
-
-```json
-{
-  "adapters": {
-    "debugpy": {
-      "command": [
-        "python",
-        "-m",
-        "debugpy.adapter"
-      ],
-      "name": "debugpy",
-      "configuration": {
-        "python": "python"
-      }
-    }
-  }
-}
-```
-
-Then in theory you should just have to change `"adapter": "vscode-python"` to
-`"adapter": "debugpy"`.
-
-See `support/test/python/simple_python/.vimspector.json` as an example.
-
-NOTE: This will likely become the default in future, and vscode-python will be
-phased out.
-
 
 ## TCL
 
@@ -1039,3 +1036,4 @@ Copyright © 2018 Ben Jackson
 [vimspector-ref]: https://puremourning.github.io/vimspector/configuration.html
 [vimspector-ref-var]: https://puremourning.github.io/vimspector/configuration.html#replacements-and-variables
 [vimspector-ref-exception]: https://puremourning.github.io/vimspector/configuration.html#exception-breakpoints
+[debugpy]: https://github.com/microsoft/debugpy

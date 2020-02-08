@@ -112,7 +112,7 @@ class DebugSession( object ):
     else:
       configuration_name = utils.SelectFromList(
         'Which launch configuration?',
-        sorted( list( configurations.keys() ) ) )
+        sorted( configurations.keys() ) )
 
     if not configuration_name or configuration_name not in configurations:
       return
@@ -259,13 +259,13 @@ class DebugSession( object ):
   def IfConnected( fct ):
     """Decorator, call fct if self._connected else echo warning"""
     @functools.wraps( fct )
-    def wrapper(self, *args, **kwargs):
+    def wrapper( self, *args, **kwargs ):
       if not self._connection:
         utils.UserMessage(
           'Vimspector not connected, start a debug session first',
           persist=True, error=True )
         return
-      return fct(self, *args, **kwargs)
+      return fct( self, *args, **kwargs )
     return wrapper
 
   def OnChannelData( self, data ):

@@ -15,7 +15,7 @@ stages:
      - bash: pip3 install -r dev_requirements.txt
        displayName: "Install requirements"
 
-     - bash: $HOME/.local/bin/flake8 python3/
+     - bash: '$HOME/.local/bin/flake8 python3/ *.py'
        displayName: "Run flake8"
 
   - job: 'Vimscript'
@@ -27,7 +27,7 @@ stages:
      - bash: pip3 install -r dev_requirements.txt
        displayName: "Install requirements"
 
-     - bash: $HOME/.local/bin/vint autoload/ plugin/
+     - bash: $HOME/.local/bin/vint autoload/ plugin/ tests/
        displayName: "Run vint"
 
   - job: 'linux'
@@ -78,7 +78,11 @@ stages:
     steps:
     - bash: |
         brew unlink node@6
-        brew install macvim node@10 tcl-tk llvm
+        brew update
+        for p in macvim node@10 tcl-tk llvm; do
+          brew install $p
+          brew outdated $p || brew install $p
+        done
         brew link --force --overwrite node@10
       displayName: 'Install vim and node'
 
@@ -98,11 +102,13 @@ stages:
       displayName: 'Print vim version information'
 
     - bash: |
+        VERSION=66e8ed9af1812ca0bb6cfcc7023a35742e1bd323
+        BUILD=1092
         set -ex
         mkdir -p lldb-mi
         pushd lldb-mi
-          curl -LO https://github.com/puremourning/lldb-mi/releases/download/1041/lldb-mi-db65c20a3d8e09d9ff2f3748c01cf43ec035a4d8.tar.gz
-          tar zxvf lldb-mi-db65c20a3d8e09d9ff2f3748c01cf43ec035a4d8.tar.gz
+          curl -LO https://github.com/puremourning/lldb-mi/releases/download/${BUILD}/lldb-mi-${VERSION}.tar.gz
+          tar zxvf lldb-mi-${VERSION}.tar.gz
           cp usr/local/bin/lldb-mi /usr/local/bin
         popd
       displayName: 'Install lldb-mi'
