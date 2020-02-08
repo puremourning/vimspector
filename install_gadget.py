@@ -55,7 +55,7 @@ GADGETS = {
       'url': 'https://github.com/Microsoft/vscode-cpptools/releases/download/'
              '${version}/${file_name}',
     },
-    'do': lambda name, root: InstallCppTools( name, root ),
+    'do': lambda name, root, gadget: InstallCppTools( name, root, gadget ),
     'all': {
       'version': '0.26.3',
     },
@@ -87,7 +87,8 @@ GADGETS = {
     },
   },
   'vscode-python': {
-    'language': 'python',
+    'language': 'python.legacy',
+    'enabled': False,
     'download': {
       'url': 'https://github.com/Microsoft/vscode-python/releases/download/'
              '${version}/${file_name}',
@@ -105,6 +106,31 @@ GADGETS = {
           "node",
           "${gadgetDir}/vscode-python/out/client/debugger/debugAdapter/main.js",
         ],
+      }
+    },
+  },
+  'debugpy': {
+    'language': 'python',
+    'download': {
+      'url': 'https://github.com/microsoft/debugpy/archive/${file_name}'
+    },
+    'all': {
+      'version': '1.0.0b1',
+      'file_name': 'v1.0.0b1.zip',
+      'checksum':
+        'eb26ac276213bcf26aaeadd7c3c284f7a20f43b63331822831a783dea558e60e'
+    },
+    'do': lambda name, root, gadget: InstallDebugpy( name, root, gadget ),
+    'adapters': {
+      'debugpy': {
+        "command": [
+          "python3",
+          "${gadgetDir}/debugpy/build/lib/debugpy/adapter"
+        ],
+        "name": "debugpy",
+        "configuration": {
+          "python": sys.executable
+        }
       }
     },
   },
@@ -163,7 +189,7 @@ GADGETS = {
       'url': 'https://github.com/puremourning/TclProDebug',
       'ref': 'f5c56b7067661ce84e205765060224076569ae0e', # master 26/10/2019
     },
-    'do': lambda name, root: InstallTclProDebug( name, root )
+    'do': lambda name, root, gadget: InstallTclProDebug( name, root, gadget )
   },
   'netcoredbg': {
     'language': 'csharp',
@@ -184,9 +210,10 @@ GADGETS = {
       'file_name': 'netcoredbg-linux-master.tar.gz',
       'checksum': '',
     },
-    'do': lambda name, root: MakeSymlink( gadget_dir,
-                                          name,
-                                          os.path.join( root, 'netcoredbg' ) ),
+    'do': lambda name, root, gadget: MakeSymlink(
+      gadget_dir,
+      name,
+      os.path.join( root, 'netcoredbg' ) ),
     'adapters': {
       'netcoredbg': {
         "name": "netcoredbg",
@@ -242,7 +269,7 @@ GADGETS = {
       'checksum':
         '502ee5732851fc4f309294fc296a291b1a114008a1fbcb232f3763be2b8d9c1f',
     },
-    'do': lambda name, root: InstallBashDebug( name, root ),
+    'do': lambda name, root, gadget: InstallBashDebug( name, root, gadget ),
     'adapters': {
       "vscode-bash": {
         "name": "bashdb",
@@ -297,8 +324,9 @@ GADGETS = {
     'language': 'php',
     'enabled': False,
     'download': {
-      'url': 'https://github.com/felixfbecker/vscode-php-debug/releases/download/'
-             '${version}/${file_name}',
+      'url':
+        'https://github.com/felixfbecker/vscode-php-debug/releases/download/'
+        '${version}/${file_name}',
     },
     'all': {
       'version': 'v1.13.0',
@@ -323,7 +351,7 @@ GADGETS = {
       'url': 'https://github.com/microsoft/vscode-node-debug2',
       'ref': 'v1.39.1',
     },
-    'do': lambda name, root: InstallNodeDebug( name, root ),
+    'do': lambda name, root, gadget: InstallNodeDebug( name, root, gadget ),
     'adapters': {
       'vscode-node': {
         'name': 'node2',
@@ -381,7 +409,7 @@ def MakeExecutable( file_path ):
   os.chmod( file_path, 0o755 )
 
 
-def InstallCppTools( name, root ):
+def InstallCppTools( name, root, gadget ):
   extension = os.path.join( root, 'extension' )
 
   # It's hilarious, but the execute bits aren't set in the vsix. So they
@@ -400,12 +428,24 @@ def InstallCppTools( name, root ):
   MakeExtensionSymlink( name, root )
 
 
-def InstallBashDebug( name, root ):
+def InstallBashDebug( name, root, gadget ):
   MakeExecutable( os.path.join( root, 'extension', 'bashdb_dir', 'bashdb' ) )
   MakeExtensionSymlink( name, root )
 
 
-def InstallTclProDebug( name, root ):
+def InstallDebugpy( name, root, gadget ):
+  wd = os.getcwd()
+  root = os.path.join( root, 'debugpy-{}'.format( gadget[ 'version' ] ) )
+  os.chdir( root )
+  try:
+    subprocess.check_call( [ sys.executable, 'setup.py', 'build' ] )
+  finally:
+    os.chdir( wd )
+
+  MakeSymlink( gadget_dir, name, root )
+
+
+def InstallTclProDebug( name, root, gadget ):
   configure = [ './configure' ]
 
   if OS == 'macos':
@@ -440,7 +480,7 @@ def InstallTclProDebug( name, root ):
   MakeSymlink( gadget_dir, name, root )
 
 
-def InstallNodeDebug( name, root ):
+def InstallNodeDebug( name, root, gadget ):
   node_version = subprocess.check_output( [ 'node', '--version' ],
                                           universal_newlines=True ).strip()
   print( "Node.js version: {}".format( node_version ) )
@@ -485,7 +525,11 @@ def UrlOpen( *args, **kwargs ):
   return urllib2.urlopen( *args, **kwargs )
 
 
-def DownloadFileTo( url, destination, file_name = None, checksum = None, sslcheck = True):
+def DownloadFileTo( url,
+                    destination,
+                    file_name = None,
+                    checksum = None,
+                    sslcheck = True):
   if not file_name:
     file_name = url.split( '/' )[ -1 ]
 
@@ -729,7 +773,7 @@ for name, gadget in GADGETS.items():
       root = destination
 
     if 'do' in gadget:
-      gadget[ 'do' ]( name, root )
+      gadget[ 'do' ]( name, root, v )
     else:
       MakeExtensionSymlink( name, root )
 

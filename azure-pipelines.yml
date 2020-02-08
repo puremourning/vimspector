@@ -15,7 +15,7 @@ stages:
      - bash: pip3 install -r dev_requirements.txt
        displayName: "Install requirements"
 
-     - bash: $HOME/.local/bin/flake8 python3/
+     - bash: '$HOME/.local/bin/flake8 python3/ *.py'
        displayName: "Run flake8"
 
   - job: 'Vimscript'

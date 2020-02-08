@@ -1,19 +1,6 @@
 {
-  "adapters": {
-    "debugpy": {
-      "command": [
-        "python",
-        "-m",
-        "debugpy.adapter"
-      ],
-      "name": "debugpy",
-      "configuration": {
-        "python": "python"
-      }
-    }
-  },
   "configurations": {
-    "run": {
+    "run legacy vscode-python": {
       "adapter": "vscode-python",
       "configuration": {
         "request": "launch",
@@ -45,14 +32,14 @@
         }
       }
     },
-    "run - debugpy": {
+    "run": {
       "adapter": "debugpy",
       "configuration": {
         "request": "launch",
         "type": "python",
         "cwd": "${workspaceRoot}",
         "program": "${file}",
-        "stopOnEntry": true,
+        "stopOnEntry": false,
         "console": "integratedTerminal"
       },
       "breakpoints": {
