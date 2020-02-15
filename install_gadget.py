@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # vimspector - A multi-language debugging system for Vim
 # Copyright 2019 Ben Jackson
@@ -15,11 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-try:
-  import urllib.request as urllib2
-except ImportError:
-  import urllib2
+import sys
 
+if sys.version_info.major < 3:
+  exit( "Sorry, you need to be running this script with python3 or later" )
+
+from urllib import request
 import argparse
 import contextlib
 import os
@@ -31,16 +32,11 @@ import subprocess
 import traceback
 import tarfile
 import hashlib
-import sys
 import json
 import functools
 import time
 import ssl
-
-try:
-  from io import BytesIO # for Python 3
-except ImportError:
-  from BytesIO import BytesIO
+import io
 
 # Include vimspector source, for utils
 sys.path.insert( 1, os.path.join( os.path.dirname( __file__ ),
@@ -522,7 +518,7 @@ def WithRetry( f ):
 
 @WithRetry
 def UrlOpen( *args, **kwargs ):
-  return urllib2.urlopen( *args, **kwargs )
+  return request.urlopen( *args, **kwargs )
 
 
 def DownloadFileTo( url,
@@ -550,7 +546,7 @@ def DownloadFileTo( url,
     print( "Removing existing {}".format( file_path ) )
     os.remove( file_path )
 
-  r = urllib2.Request( url, headers = { 'User-Agent': 'Vimspector' } )
+  r = request.Request( url, headers = { 'User-Agent': 'Vimspector' } )
 
   print( "Downloading {} to {}/{}".format( url, destination, file_name ) )
 
@@ -627,7 +623,7 @@ def ExtractZipTo( file_path, destination, format ):
     with gzip.open( file_path, 'rb' ) as f:
       file_contents = f.read()
 
-    with ModePreservingZipFile( BytesIO( file_contents ) ) as f:
+    with ModePreservingZipFile( io.BytesIO( file_contents ) ) as f:
       f.extractall( path = destination )
 
   elif format == 'tar':
