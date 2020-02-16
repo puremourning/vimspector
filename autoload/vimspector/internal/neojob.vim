@@ -30,7 +30,9 @@ function! s:_OnEvent( chan_id, data, event ) abort
   elseif a:event ==# 'exit'
     echom 'Channel exit with status ' . a:data
     redraw
-    unlet s:job
+    if exists( 's:job' )
+      unlet s:job
+    endif
     " This causes terminal spam in neovim due to
     " https://github.com/neovim/neovim/issues/11725
     py3 _vimspector_session.OnServerExit( vim.eval( 'a:data' ) )
