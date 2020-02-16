@@ -515,3 +515,8 @@ def SetSyntax( current_syntax, syntax, *args ):
       vim.command( 'set syntax={}'.format( Escape( syntax ) ) )
 
   return syntax
+
+
+def GetBufferFiletypes( buf ):
+  ft = ToUnicode( vim.eval( f"getbufvar( {buf.number}, '&ft' )" ) )
+  return ft.split( '.' )

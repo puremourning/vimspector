@@ -16,3 +16,4 @@ README.md.toc.*
 *.vimspector.log
 support/test/csharp/*.exe*
 .neomake.log
+configurations/

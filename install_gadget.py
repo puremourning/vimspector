@@ -18,31 +18,24 @@
 import sys
 
 if sys.version_info.major < 3:
-  exit( "Sorry, you need to be running this script with python3 or later" )
+  sys.exit( "You need to run this with python 3. Your version is " +
+            '.'.join( map( str, sys.version_info[ :3 ] ) ) )
 
-from urllib import request
 import argparse
-import contextlib
 import os
 import string
-import zipfile
-import gzip
-import shutil
 import subprocess
 import traceback
-import tarfile
-import hashlib
 import json
 import functools
-import time
-import ssl
-import io
+import operator
+import glob
 
 # Include vimspector source, for utils
 sys.path.insert( 1, os.path.join( os.path.dirname( __file__ ),
                                   'python3' ) )
 
-from vimspector import install
+from vimspector import install, installer
 
 GADGETS = {
   'vscode-cpptools': {
@@ -200,13 +193,14 @@ GADGETS = {
     },
     'macos': {
       'file_name': 'netcoredbg-osx-master.tar.gz',
-      'checksum': '',
+      'checksum':
+        'c1dc6ed58c3f5b0473cfb4985a96552999360ceb9795e42d9c9be64af054f821',
     },
     'linux': {
       'file_name': 'netcoredbg-linux-master.tar.gz',
       'checksum': '',
     },
-    'do': lambda name, root, gadget: MakeSymlink(
+    'do': lambda name, root, gadget: installer.MakeSymlink(
       gadget_dir,
       name,
       os.path.join( root, 'netcoredbg' ) ),
@@ -345,7 +339,7 @@ GADGETS = {
     'enabled': False,
     'repo': {
       'url': 'https://github.com/microsoft/vscode-node-debug2',
-      'ref': 'v1.39.1',
+      'ref': 'v1.42.0',
     },
     'do': lambda name, root, gadget: InstallNodeDebug( name, root, gadget ),
     'adapters': {
@@ -389,29 +383,15 @@ GADGETS = {
 }
 
 
-@contextlib.contextmanager
-def CurrentWorkingDir( d ):
-  cur_d = os.getcwd()
-  try:
-    os.chdir( d )
-    yield
-  finally:
-    os.chdir( cur_d )
-
-
-def MakeExecutable( file_path ):
-  # TODO: import stat and use them by _just_ adding the X bit.
-  print( 'Making executable: {}'.format( file_path ) )
-  os.chmod( file_path, 0o755 )
-
-
 def InstallCppTools( name, root, gadget ):
   extension = os.path.join( root, 'extension' )
 
   # It's hilarious, but the execute bits aren't set in the vsix. So they
   # actually have javascript code which does this. It's just a horrible horrible
   # hack that really is not funny.
-  MakeExecutable( os.path.join( extension, 'debugAdapters', 'OpenDebugAD7' ) )
+  installer.MakeExecutable( os.path.join( extension,
+                                          'debugAdapters',
+                                          'OpenDebugAD7' ) )
   with open( os.path.join( extension, 'package.json' ) ) as f:
     package = json.load( f )
     runtime_dependencies = package[ 'runtimeDependencies' ]
@@ -419,14 +399,17 @@ def InstallCppTools( name, root, gadget ):
       for binary in dependency.get( 'binaries' ):
         file_path = os.path.abspath( os.path.join( extension, binary ) )
         if os.path.exists( file_path ):
-          MakeExecutable( os.path.join( extension, binary ) )
+          installer.MakeExecutable( os.path.join( extension, binary ) )
 
-  MakeExtensionSymlink( name, root )
+  installer.MakeExtensionSymlink( vimspector_base, name, root )
 
 
 def InstallBashDebug( name, root, gadget ):
-  MakeExecutable( os.path.join( root, 'extension', 'bashdb_dir', 'bashdb' ) )
-  MakeExtensionSymlink( name, root )
+  installer.MakeExecutable( os.path.join( root,
+                                          'extension',
+                                          'bashdb_dir',
+                                          'bashdb' ) )
+  installer.MakeExtensionSymlink( vimspector_base, name, root )
 
 
 def InstallDebugpy( name, root, gadget ):
@@ -438,7 +421,7 @@ def InstallDebugpy( name, root, gadget ):
   finally:
     os.chdir( wd )
 
-  MakeSymlink( gadget_dir, name, root )
+  installer.MakeSymlink( gadget_dir, name, root )
 
 
 def InstallTclProDebug( name, root, gadget ):
@@ -469,11 +452,11 @@ def InstallTclProDebug( name, root, gadget ):
         break
 
 
-  with CurrentWorkingDir( os.path.join( root, 'lib', 'tclparser' ) ):
+  with installer.CurrentWorkingDir( os.path.join( root, 'lib', 'tclparser' ) ):
     subprocess.check_call( configure )
     subprocess.check_call( [ 'make' ] )
 
-  MakeSymlink( gadget_dir, name, root )
+  installer.MakeSymlink( gadget_dir, name, root )
 
 
 def InstallNodeDebug( name, root, gadget ):
@@ -491,185 +474,82 @@ def InstallNodeDebug( name, root, gadget ):
     print( "  $ ./install_gadget.py --enable-node ..." )
     raise RuntimeError( 'Invalid node environent for node debugger' )
 
-  with CurrentWorkingDir( root ):
+  with installer.CurrentWorkingDir( root ):
     subprocess.check_call( [ 'npm', 'install' ] )
     subprocess.check_call( [ 'npm', 'run', 'build' ] )
-  MakeSymlink( gadget_dir, name, root )
+  installer.MakeSymlink( gadget_dir, name, root )
 
 
-def WithRetry( f ):
-  retries = 5
-  timeout = 1 # seconds
+def InstallGagdet( name, gadget, failed, all_adapters ):
+  try:
+    v = {}
+    v.update( gadget.get( 'all', {} ) )
+    v.update( gadget.get( OS, {} ) )
 
-  @functools.wraps( f )
-  def wrapper( *args, **kwargs ):
-    thrown = None
-    for _ in range( retries ):
-      try:
-        return f( *args, **kwargs )
-      except Exception as e:
-        thrown = e
-        print( "Failed - {}, will retry in {} seconds".format( e, timeout ) )
-        time.sleep( timeout )
-    raise thrown
+    if 'download' in gadget:
+      if 'file_name' not in v:
+        raise RuntimeError( "Unsupported OS {} for gadget {}".format( OS,
+                                                                      name ) )
 
-  return wrapper
+      destination = os.path.join( gadget_dir, 'download', name, v[ 'version' ] )
 
+      url = string.Template( gadget[ 'download' ][ 'url' ] ).substitute( v )
 
-@WithRetry
-def UrlOpen( *args, **kwargs ):
-  return request.urlopen( *args, **kwargs )
+      file_path = installer.DownloadFileTo(
+        url,
+        destination,
+        file_name = gadget[ 'download' ].get( 'target' ),
+        checksum = v.get( 'checksum' ),
+        check_certificate = not args.no_check_certificate )
 
+      root = os.path.join( destination, 'root' )
+      installer.ExtractZipTo(
+        file_path,
+        root,
+        format = gadget[ 'download' ].get( 'format', 'zip' ) )
+    elif 'repo' in gadget:
+      url = string.Template( gadget[ 'repo' ][ 'url' ] ).substitute( v )
+      ref = string.Template( gadget[ 'repo' ][ 'ref' ] ).substitute( v )
 
-def DownloadFileTo( url,
-                    destination,
-                    file_name = None,
-                    checksum = None,
-                    sslcheck = True ):
-  if not file_name:
-    file_name = url.split( '/' )[ -1 ]
+      destination = os.path.join( gadget_dir, 'download', name )
+      installer.CloneRepoTo( url, ref, destination )
+      root = destination
 
-  file_path = os.path.abspath( os.path.join( destination, file_name ) )
-
-  if not os.path.isdir( destination ):
-    os.makedirs( destination )
-
-  if os.path.exists( file_path ):
-    if checksum:
-      if ValidateCheckSumSHA256( file_path, checksum ):
-        print( "Checksum matches for {}, using it".format( file_path ) )
-        return file_path
-      else:
-        print( "Checksum doesn't match for {}, removing it".format(
-          file_path ) )
-
-    print( "Removing existing {}".format( file_path ) )
-    os.remove( file_path )
-
-  r = request.Request( url, headers = { 'User-Agent': 'Vimspector' } )
-
-  print( "Downloading {} to {}/{}".format( url, destination, file_name ) )
-
-  if not sslcheck:
-    context = ssl.create_default_context()
-    context.check_hostname = False
-    context.verify_mode = ssl.CERT_NONE
-    kwargs = { "context":  context }
-  else:
-    kwargs = {}
-
-  with contextlib.closing( UrlOpen( r, **kwargs ) ) as u:
-    with open( file_path, 'wb' ) as f:
-      f.write( u.read() )
-
-  if checksum:
-    if not ValidateCheckSumSHA256( file_path, checksum ):
-      raise RuntimeError(
-        'Checksum for {} ({}) does not match expected {}'.format(
-          file_path,
-          GetChecksumSHA254( file_path ),
-          checksum ) )
-  else:
-    print( "Checksum for {}: {}".format( file_path,
-                                         GetChecksumSHA254( file_path ) ) )
-
-  return file_path
-
-
-def GetChecksumSHA254( file_path ):
-  with open( file_path, 'rb' ) as existing_file:
-    return hashlib.sha256( existing_file.read() ).hexdigest()
-
-
-def ValidateCheckSumSHA256( file_path, checksum ):
-  existing_sha256 = GetChecksumSHA254( file_path )
-  return existing_sha256 == checksum
-
-
-def RemoveIfExists( destination ):
-  if os.path.exists( destination ) or os.path.islink( destination ):
-    if os.path.islink( destination ):
-      print( "Removing file {}".format( destination ) )
-      os.remove( destination )
+    if 'do' in gadget:
+      gadget[ 'do' ]( name, root, v )
     else:
-      print( "Removing dir {}".format( destination ) )
-      shutil.rmtree( destination )
+      installer.MakeExtensionSymlink( vimspector_base, name, root )
+
+    all_adapters.update( gadget.get( 'adapters', {} ) )
+
+    print( "Done installing {}".format( name ) )
+  except Exception as e:
+    traceback.print_exc()
+    failed.append( name )
+    print( "FAILED installing {}: {}".format( name, e ) )
 
 
-# Python's ZipFile module strips execute bits from files, for no good reason
-# other than crappy code. Let's do it's job for it.
-class ModePreservingZipFile( zipfile.ZipFile ):
-  def extract( self, member, path = None, pwd = None ):
-    if not isinstance( member, zipfile.ZipInfo ):
-      member = self.getinfo( member )
-
-    if path is None:
-      path = os.getcwd()
-
-    ret_val = self._extract_member( member, path, pwd )
-    attr = member.external_attr >> 16
-    os.chmod( ret_val, attr )
-    return ret_val
-
-
-def ExtractZipTo( file_path, destination, format ):
-  print( "Extracting {} to {}".format( file_path, destination ) )
-  RemoveIfExists( destination )
-
-  if format == 'zip':
-    with ModePreservingZipFile( file_path ) as f:
-      f.extractall( path = destination )
-  elif format == 'zip.gz':
-    with gzip.open( file_path, 'rb' ) as f:
-      file_contents = f.read()
-
-    with ModePreservingZipFile( io.BytesIO( file_contents ) ) as f:
-      f.extractall( path = destination )
-
-  elif format == 'tar':
-    try:
-      with tarfile.open( file_path ) as f:
-        f.extractall( path = destination )
-    except Exception:
-      # There seems to a bug in python's tarfile that means it can't read some
-      # windows-generated tar files
-      os.makedirs( destination )
-      with CurrentWorkingDir( destination ):
-        subprocess.check_call( [ 'tar', 'zxvf', file_path ] )
-
-
-def MakeExtensionSymlink( name, root ):
-  MakeSymlink( gadget_dir, name, os.path.join( root, 'extension' ) ),
-
-
-def MakeSymlink( in_folder, link, pointing_to ):
-  RemoveIfExists( os.path.join( in_folder, link ) )
-
-  in_folder = os.path.abspath( in_folder )
-  pointing_to = os.path.relpath( os.path.abspath( pointing_to ),
-                                 in_folder )
-  os.symlink( pointing_to, os.path.join( in_folder, link ) )
-
-
-def CloneRepoTo( url, ref, destination ):
-  RemoveIfExists( destination )
-  git_in_repo = [ 'git', '-C', destination ]
-  subprocess.check_call( [ 'git', 'clone', url, destination ] )
-  subprocess.check_call( git_in_repo + [ 'checkout', ref ] )
-  subprocess.check_call( git_in_repo + [ 'submodule', 'sync', '--recursive' ] )
-  subprocess.check_call( git_in_repo + [ 'submodule',
-                                         'update',
-                                         '--init',
-                                         '--recursive' ] )
-
-
+vimspector_base = os.path.dirname( __file__ )
 OS = install.GetOS()
-gadget_dir = install.GetGadgetDir( os.path.dirname( __file__ ), OS )
+gadget_dir = install.GetGadgetDir( vimspector_base, OS )
 
 print( 'OS = ' + OS )
 print( 'gadget_dir = ' + gadget_dir )
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(
+  description = 'Install DAP Servers for use with Vimspector.',
+  epilog =
+    """
+    If you're not sure, normally --all is enough to get started.
+
+    Custom server definitions can be defined in JSON files, allowing
+    installation of arbitrary servers packaged in one of the ways that this
+    installer understands.
+
+    The format of the file can be found on the Vimspector reference guide:
+    https://puremourning.github.io/vimspector
+    """
+)
 parser.add_argument( '--all',
                      action = 'store_true',
                      help = 'Enable all supported completers' )
@@ -681,6 +561,15 @@ parser.add_argument( '--force-all',
 parser.add_argument( '--no-gadget-config',
                      action = 'store_true',
                      help = "Don't write the .gagets.json, just install" )
+
+parser.add_argument( '--enable-custom',
+                     dest='custom_gadget_file',
+                     action='append',
+                     nargs='*',
+                     default = [],
+                     help = 'Read custom gadget from supplied file. This '
+                            'can be supplied multiple times and each time '
+                            'multiple files can be passed.' )
 
 done_languages = set()
 for name, gadget in GADGETS.items():
@@ -722,6 +611,18 @@ args = parser.parse_args()
 if args.force_all and not args.all:
   args.all = True
 
+CUSTOM_GADGETS = {}
+custom_files = glob.glob( os.path.join( vimspector_base,
+                                        'gadgets',
+                                        'custom',
+                                        '*.json' ) )
+for custom_file_name in functools.reduce( operator.add,
+                                          args.custom_gadget_file,
+                                          custom_files ):
+  with open( custom_file_name, 'r' ) as custom_file:
+    CUSTOM_GADGETS.update( json.load( custom_file ) )
+
+
 failed = []
 all_adapters = {}
 for name, gadget in GADGETS.items():
@@ -735,53 +636,14 @@ for name, gadget in GADGETS.items():
     if getattr( args, 'disable_' + gadget[ 'language' ] ):
       continue
 
-  try:
-    v = {}
-    v.update( gadget.get( 'all', {} ) )
-    v.update( gadget.get( OS, {} ) )
-
-    if 'download' in gadget:
-      if 'file_name' not in v:
-        raise RuntimeError( "Unsupported OS {} for gadget {}".format( OS,
-                                                                      name ) )
-
-      destination = os.path.join( gadget_dir, 'download', name, v[ 'version' ] )
-
-      url = string.Template( gadget[ 'download' ][ 'url' ] ).substitute( v )
-      verify_cert_off = args.no_check_certificate
-
-      file_path = DownloadFileTo(
-        url,
-        destination,
-        file_name = gadget[ 'download' ].get( 'target' ),
-        checksum = v.get( 'checksum' ),
-        sslcheck = not verify_cert_off )
-      root = os.path.join( destination, 'root' )
-      ExtractZipTo( file_path,
-                    root,
-                    format = gadget[ 'download' ].get( 'format', 'zip' ) )
-    elif 'repo' in gadget:
-      url = string.Template( gadget[ 'repo' ][ 'url' ] ).substitute( v )
-      ref = string.Template( gadget[ 'repo' ][ 'ref' ] ).substitute( v )
-
-      destination = os.path.join( gadget_dir, 'download', name )
-      CloneRepoTo( url, ref, destination )
-      root = destination
-
-    if 'do' in gadget:
-      gadget[ 'do' ]( name, root, v )
-    else:
-      MakeExtensionSymlink( name, root )
-
-    all_adapters.update( gadget.get( 'adapters', {} ) )
+  InstallGagdet( name,
+                 gadget,
+                 failed,
+                 all_adapters )
 
 
-    print( "Done installing {}".format( name ) )
-  except Exception as e:
-    traceback.print_exc()
-    failed.append( name )
-    print( "FAILED installing {}: {}".format( name, e ) )
-
+for name, gadget in CUSTOM_GADGETS.items():
+  InstallGagdet( name, gadget, failed, all_adapters )
 
 adapter_config = json.dumps ( { 'adapters': all_adapters },
                               indent=2,
@@ -792,8 +654,7 @@ if args.no_gadget_config:
   print( "Would write the following gadgets: " )
   print( adapter_config )
 else:
-  with open( install.GetGadgetConfigFile( os.path.dirname( __file__ ) ),
-             'w' ) as f:
+  with open( install.GetGadgetConfigFile( vimspector_base ), 'w' ) as f:
     f.write( adapter_config )
 
 if failed:

@@ -72,38 +72,49 @@ class DebugSession( object ):
     self._on_init_complete_handlers = []
     self._server_capabilities = {}
 
-  def Start( self, launch_variables = {} ):
+  def Start( self, launch_variables = None ):
+    # We mutate launch_variables, so don't mutate the default argument.
+    # https://docs.python-guide.org/writing/gotchas/#mutable-default-arguments
+    if launch_variables is None:
+      launch_variables = {}
+
     self._logger.info( "User requested start debug session with %s",
                        launch_variables )
     self._configuration = None
     self._adapter = None
 
     current_file = utils.GetBufferFilepath( vim.current.buffer )
-
-    launch_config_file = utils.PathToConfigFile(
-      '.vimspector.json',
-      os.path.dirname( current_file ) )
-
-    if not launch_config_file:
-      utils.UserMessage( 'Unable to find .vimspector.json. You need to tell '
-                         'vimspector how to launch your application.' )
-      return
-
-    with open( launch_config_file, 'r' ) as f:
-      database = json.load( f )
-
-    configurations = database.get( 'configurations' )
+    filetypes = utils.GetBufferFiletypes( vim.current.buffer )
+    configurations = {}
     adapters = {}
 
     glob.glob( install.GetGadgetDir( VIMSPECTOR_HOME, install.GetOS() ) )
     for gadget_config_file in PathsToAllGadgetConfigs( VIMSPECTOR_HOME,
                                                        current_file ):
       self._logger.debug( f'Reading gadget config: {gadget_config_file}' )
-      if gadget_config_file and os.path.exists( gadget_config_file ):
-        with open( gadget_config_file, 'r' ) as f:
-          adapters.update( json.load( f ).get( 'adapters' ) or {} )
+      if not gadget_config_file or not os.path.exists( gadget_config_file ):
+        continue
 
-    adapters.update( database.get( 'adapters' ) or {} )
+      with open( gadget_config_file, 'r' ) as f:
+        adapters.update( json.load( f ).get( 'adapters' ) or {} )
+
+    for launch_config_file in PathsToAllConfigFiles( VIMSPECTOR_HOME,
+                                                     current_file,
+                                                     filetypes ):
+      self._logger.debug( f'Reading configurations from: {launch_config_file}' )
+      if not launch_config_file or not os.path.exists( launch_config_file ):
+        continue
+
+      with open( launch_config_file, 'r' ) as f:
+        database = json.load( f )
+        adapters.update( database.get( 'adapters' ) or {} )
+        configurations.update( database.get( 'configurations' or {} ) )
+
+    if not configurations:
+      utils.UserMessage( 'Unable to find any debug configurations. '
+                         'You need to tell vimspector how to launch your '
+                         'application.' )
+      return
 
     if 'configuration' in launch_variables:
       configuration_name = launch_variables.pop( 'configuration' )
@@ -117,7 +128,10 @@ class DebugSession( object ):
     if not configuration_name or configuration_name not in configurations:
       return
 
-    self._workspace_root = os.path.dirname( launch_config_file )
+    if launch_config_file:
+      self._workspace_root = os.path.dirname( launch_config_file )
+    else:
+      self._workspace_root = os.path.dirname( current_file )
 
     configuration = configurations[ configuration_name ]
     adapter = configuration.get( 'adapter' )
@@ -935,4 +949,19 @@ def PathsToAllGadgetConfigs( vimspector_base, current_file ):
     yield p
 
   yield utils.PathToConfigFile( '.gadgets.json',
+                                os.path.dirname( current_file ) )
+
+
+def PathsToAllConfigFiles( vimspector_base, current_file, filetypes ):
+  for ft in filetypes:
+    for p in sorted( glob.glob(
+      os.path.join( install.GetConfigDirForFiletype( vimspector_base, ft ),
+                    '*.json' ) ) ):
+      yield p
+
+  for ft in filetypes:
+    yield utils.PathToConfigFile( f'.vimspector.{ft}.json',
+                                  os.path.dirname( current_file ) )
+
+  yield utils.PathToConfigFile( '.vimspector.json',
                                 os.path.dirname( current_file ) )
