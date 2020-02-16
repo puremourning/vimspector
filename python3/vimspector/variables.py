@@ -65,6 +65,9 @@ class VariablesView( object ):
                              'Expression: ',
                              'vimspector#AddWatchPrompt' )
 
+    utils.SetUpUIWindow( self._vars.win )
+    utils.SetUpUIWindow( self._watch.win )
+
     has_balloon      = int( vim.eval( "has( 'balloon_eval' )" ) )
     has_balloon_term = int( vim.eval( "has( 'balloon_eval_term' )" ) )
 

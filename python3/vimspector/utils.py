@@ -126,6 +126,13 @@ def SetUpPromptBuffer( buf, name, prompt, callback, hidden=False ):
     Escape( callback ) ) )
 
 
+def SetUpUIWindow( win ):
+  win.options[ 'wrap' ] = False
+  win.options[ 'number' ] = False
+  win.options[ 'signcolumn' ] = 'no'
+  win.options[ 'spell' ] = False
+  win.options[ 'list' ] = False
+
 
 @contextlib.contextmanager
 def ModifiableScratchBuffer( buf ):
