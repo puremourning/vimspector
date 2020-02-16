@@ -879,7 +879,11 @@ class DebugSession( object ):
                        status )
     self.Clear()
 
-    self._connection.Reset()
+    if self._connection is not None:
+      # Can be None if the server dies _before_ StartDebugSession vim function
+      # returns
+      self._connection.Reset()
+
     self._stackTraceView.ConnectionClosed()
     self._variablesView.ConnectionClosed()
     self._outputView.ConnectionClosed()

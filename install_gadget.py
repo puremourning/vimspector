@@ -113,7 +113,7 @@ GADGETS = {
     'adapters': {
       'debugpy': {
         "command": [
-          "python3",
+          sys.executable,
           "${gadgetDir}/debugpy/build/lib/debugpy/adapter"
         ],
         "name": "debugpy",

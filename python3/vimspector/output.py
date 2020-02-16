@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from vimspector import utils
+from vimspector import utils, install
 
 import vim
 import json
@@ -49,10 +49,7 @@ class OutputView( object ):
     for b in set( BUFFER_MAP.values() ):
       self._CreateBuffer( b )
 
-    self._CreateBuffer(
-      'Vimspector',
-      file_name = vim.eval( 'expand( "~/.vimspector.log" )' ) )
-
+    self._CreateBuffer( 'Vimspector', file_name = utils.LOG_FILE )
     self._ShowOutput( 'Console' )
 
   def Print( self, categroy, text ):
@@ -161,6 +158,10 @@ class OutputView( object ):
 
         if file_name is not None:
           assert cmd is None
+          if install.GetOS() == "windows":
+            # FIXME: Can't display fiels in windows (yet?)
+            return
+
           cmd = [ 'tail', '-F', '-n', '+1', '--', file_name ]
 
         if cmd is not None:

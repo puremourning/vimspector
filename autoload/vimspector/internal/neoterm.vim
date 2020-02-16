@@ -28,10 +28,9 @@ let s:buffer_to_id = {}
 function! vimspector#internal#neoterm#PrepareEnvironment( env ) abort
   let old_env = {}
 
-  let new_env = copy( environ() )
   for key in keys( a:env )
-    if has_key( new_env, key )
-      let old_env[ key ] = new_env[ key ]
+    if exists( '$' . key )
+      let old_env[ key ] = getenv( key )
     endif
     call setenv( key, a:env[ key ] )
   endfor

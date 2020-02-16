@@ -153,7 +153,8 @@ Vimspector requires:
 * Vim version 8.1 with at least patch 1264, or Neovim 0.4.3
 * One of the following operating systems:
   * Linux
-  * macOS Mojave or pater
+  * macOS Mojave or later
+  * Windows (experimental)
 
 Why such a new vim ? Well 2 reasons:
 
@@ -161,8 +162,9 @@ Why such a new vim ? Well 2 reasons:
 2. Because there are Vim bugs that vimspector triggers that will frustrate you
    if you hit them.
 
-Why no Windows support? Because it's effort and it's not a priority for the
-author. PRs are welcome.
+Why Windows support experimental? Because it's effort and it's not a priority
+for the author. PRs are welcome to fix bugs. Windows will not be regularly
+tested.
 
 Which Linux versions? I only test on Ubuntu 18.04 and later and RHEL 7.
 
@@ -185,6 +187,12 @@ Workarounds are in place as follows:
 
 There is no workaroud for the lack of balloons; you'll just have to use
 `:VimspectorEval` or `:VimspectorWatch`, or switch to Vim.
+
+## Windows differences
+
+The following features are not implemented for Windows:
+
+* Tailing the vimspector log in the Output Window.
 
 ## Language dependencies
 
