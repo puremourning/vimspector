@@ -63,17 +63,17 @@ function! vimspector#internal#job#StartDebugSession( config ) abort
         \                }
         \              )
 
-  echom 'Started job, status is: ' . job_status( s:job )
-  redraw
-
   if !exists( 's:job' )
     " The job died immediately after starting and we cleaned up
     return v:false
   endif
 
-  if job_status( s:job ) !=# 'run'
-    echom 'Unable to start job, status is: ' . job_status( s:job )
-    redraw
+  let status = job_status( s:job )
+
+  echom 'Started job, status is: ' . status
+  redraw
+
+  if status !=# 'run'
     return v:false
   endif
 
