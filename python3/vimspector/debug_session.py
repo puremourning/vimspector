@@ -445,11 +445,15 @@ class DebugSession( object ):
 
 
   def _SetUpUI( self ):
+    original_window = vim.current.window
+
     vim.command( 'tabnew' )
     self._uiTab = vim.current.tabpage
 
     # Code window
-    self._codeView = code.CodeView( vim.current.window, self._api_prefix )
+    self._codeView = code.CodeView( vim.current.window,
+                                    original_window,
+                                    self._api_prefix )
 
     # Call stack
     with utils.TemporaryVimOptions( { 'splitright':  False,
