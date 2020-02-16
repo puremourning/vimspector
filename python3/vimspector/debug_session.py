@@ -72,7 +72,12 @@ class DebugSession( object ):
     self._on_init_complete_handlers = []
     self._server_capabilities = {}
 
-  def Start( self, launch_variables = {} ):
+  def Start( self, launch_variables = None ):
+    # We mutate launch_variables, so don't mutate the default argument.
+    # https://docs.python-guide.org/writing/gotchas/#mutable-default-arguments
+    if launch_variables is None:
+      launch_variables = {}
+
     self._logger.info( "User requested start debug session with %s",
                        launch_variables )
     self._configuration = None
