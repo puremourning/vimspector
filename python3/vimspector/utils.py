@@ -23,7 +23,7 @@ import string
 import functools
 
 
-LOG_FILE = os.path.expanduser( os.path.join( '~', '.vimspector.log') )
+LOG_FILE = os.path.expanduser( os.path.join( '~', '.vimspector.log' ) )
 
 _log_handler = logging.FileHandler( LOG_FILE, mode = 'w' )
 

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from vimspector import utils,install
+from vimspector import utils, install
 
 import vim
 import json
