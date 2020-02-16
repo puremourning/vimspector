@@ -128,7 +128,10 @@ class DebugSession( object ):
     if not configuration_name or configuration_name not in configurations:
       return
 
-    self._workspace_root = os.path.dirname( launch_config_file )
+    if launch_config_file:
+      self._workspace_root = os.path.dirname( launch_config_file )
+    else:
+      self._workspace_root = os.path.dirname( current_file )
 
     configuration = configurations[ configuration_name ]
     adapter = configuration.get( 'adapter' )
