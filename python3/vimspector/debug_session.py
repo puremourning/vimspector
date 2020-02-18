@@ -844,6 +844,10 @@ class DebugSession( object ):
       self._stackTraceView.LoadThreads( True )
 
 
+  def OnEvent_loadedSource( self, msg ):
+    pass
+
+
   def OnEvent_capabilities( self, msg ):
     self._server_capabilities.update(
       ( msg.get( 'body' ) or {} ).get( 'capabilities' ) or {} )
