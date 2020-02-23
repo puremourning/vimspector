@@ -283,7 +283,8 @@ class StackTraceView( object ):
       def consume_source( msg ):
         self._sources[ source_reference ] = source
 
-        buf_name = os.path.join( '_vimspector_tmp', source[ 'name' ] )
+        buf_name = os.path.join( '_vimspector_tmp',
+                                 source.get( 'path', source[ 'name' ] ) )
 
         self._logger.debug( "Received source %s: %s", buf_name, msg )
 
