@@ -136,7 +136,17 @@ class DebugSession( object ):
     configuration = configurations[ configuration_name ]
     adapter = configuration.get( 'adapter' )
     if isinstance( adapter, str ):
-      adapter = adapters.get( adapter )
+      adapter_dict = adapters.get( adapter )
+
+      if adapter_dict is None:
+        utils.UserMessage( f"The specified adapter '{adapter}' is not "
+                           "available. Did you forget to run "
+                           "'install_gadget.py'?",
+                           persist = True,
+                           error = True )
+        return
+
+      adapter = adapter_dict
 
     # TODO: Do we want some form of persistence ? e.g. self._staticVariables,
     # set from an api call like SetLaunchParam( 'var', 'value' ), perhaps also a
