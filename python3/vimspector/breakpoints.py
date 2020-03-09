@@ -123,6 +123,7 @@ class ProjectBreakpoints( object ):
 
     self._line_breakpoints = defaultdict( list )
     self._func_breakpoints = []
+    self._exception_breakpoints = None
 
     self.UpdateUI()
 

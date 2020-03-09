@@ -48,6 +48,17 @@
           "uncaught": ""
         }
       }
+    },
+    "run - exception question": {
+      "adapter": "debugpy",
+      "configuration": {
+        "request": "launch",
+        "type": "python",
+        "cwd": "${workspaceRoot}",
+        "program": "${file}",
+        "stopOnEntry": false,
+        "console": "integratedTerminal"
+      }
     }
   }
 }
