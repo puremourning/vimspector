@@ -31,7 +31,18 @@ if [ -z "$VIMSPECTOR_MIMODE" ]; then
   fi
 fi
 
-echo "Testing with VIMSPECTOR_MIMODE=$VIMSPECTOR_MIMODE"
+if [ -z "${VIMSPECTOR_MI_DEBUGGER}" ]; then
+  if which lldb-mi >/dev/null 2>&1; then
+    export VIMSPECTOR_MI_DEBUGGER=lldb-mi
+  else
+    echo "Couldn't guess VIMSPECTOR_MI_DEBUGGER. Need lldb-mi in path"
+    exit 1
+  fi
+fi
+
+echo "Testing with:"
+echo " * VIMSPECTOR_MIMODE=$VIMSPECTOR_MIMODE"
+echo " * VIMSPECTOR_MI_DEBUGGER=${VIMSPECTOR_MI_DEBUGGER}"
 
 echo "%SETUP - Building test programs..."
 set -e
