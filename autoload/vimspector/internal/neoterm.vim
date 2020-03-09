@@ -48,9 +48,9 @@ endfunction
 function! vimspector#internal#neoterm#Start( cmd, opts ) abort
   if ! get( a:opts, 'curwin', 0 )
     if get( a:opts, 'vertical', 0 )
-      vsplit
+      vnew
     else
-      split
+      new
     endif
   endif
 
