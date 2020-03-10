@@ -120,7 +120,8 @@ class DebugSession( object ):
 
     if 'configuration' in launch_variables:
       configuration_name = launch_variables.pop( 'configuration' )
-    elif len( configurations ) == 1:
+    elif ( len( configurations ) == 1 and
+           next( iter( configurations.values() ) ).get( "autoselect", True ) ):
       configuration_name = next( iter( configurations.keys() ) )
     else:
       configuration_name = utils.SelectFromList(
