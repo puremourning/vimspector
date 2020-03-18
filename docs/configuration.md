@@ -47,7 +47,7 @@ Along with optional additional configuration for things like:
 
 The adapter to use for a particular debug session can be specified inline within
 the _debug configuration_, but more usually the debug adapter is defined
-separately and just referenced from the _debug configuration_. 
+separately and just referenced from the _debug configuration_.
 
 The adapter configuration includes things like:
 
@@ -65,7 +65,7 @@ of the following, for a given source tree:
 * Locally Python test and break exception
 * Remotely attach to a c++ process
 * Locally launch a bash script
-* Attach to a JVM listening on a port 
+* Attach to a JVM listening on a port
 
 Each of these represents a different use case and a different _debug
 configuration_. As mentioned above, a _debug configuration_ is essentially:
@@ -153,6 +153,47 @@ the following variable substitutions:
   the shell command. Note these variables can be supplied by both the debug and
   adapter configurations and can be either static strings or shell commands.
 
+### The splat operator
+
+Often we want to create a single `.vimspector.json` entry which encompasses many
+use cases, as it is tedious to write every use case/start up option in JSON.
+This is why we have the replacement variables after all.
+
+Frequently debug adapters request command arguments as a JSON array, for
+example:
+
+```json
+    "args": [ "one", "two three", "four" ],
+```
+
+To help with this sort of case, vimspector supports a 'splat' operator for
+replacement variables apperaing within lists. The syntax is: `"*${var}`, which
+means roughly "splice the contents of `${var}` into the list at this position".
+`${var}` is parsed like a shell command (using python's `shlex` parser) and each
+word is added as a list item.
+
+For example:
+
+```json
+   "args": [ "*${CommandLineArgs}" ]
+```
+
+This would:
+
+* Ask the user to provide the variable `CommandLineArgs`. Let's say they entered
+  `one "two three" four`
+* Split `CommandLineArgs` like shell arguments: `one`, `two three` and `four`
+* Set `args` in the settings dict to: `[ "one", "two three", "four" ]`
+
+You can also combine with static values:
+
+```json
+   "args": [ "First", "*${CommandLineArgs}", "Last" ]
+```
+
+This would yield the intuitive result:
+`[ "First",  "one", "two three", "four", "Last" ]`
+
 ## Configuration Format
 
 All Vimspector configuration is defined in a JSON object. The complete
@@ -172,7 +213,7 @@ embedded within `<debug configuration>`, though this is not recommended usage.
 ## Files and locations
 
 The above configuration object is constructed from a number of configuration
-files, by merging objects i specified order.
+files, by merging objects in a specified order.
 
 In a minimal sense, the only file required is a `.vimspector.json` file in the
 root of your project which defines the [full configuration object][schema], but
@@ -185,6 +226,8 @@ abbreviations:
 * `<vimspector home>` means the path to the Vimspector installation (such as
   `$HOME/.vim/pack/vimspector/start/vimspector`)
 * `<OS>` is either `macos` or `linux` depending on the host operating system.
+* `<filetype>` is the Vim fileytype. Where multiple filetypes are in effect,
+  typically all filetypes are checked.
 
 ## Adapter configurations
 
@@ -199,7 +242,7 @@ definition.
   These files are user-supplied and override the above.
 * The first such `.gadgets.json` file found in all parent directories of the
   file open in Vim.
-* The `.vimspector.json` (see below)
+* The `.vimspector.json` and any filetype-specific configurations (see below)
 
 In all cases, the required format is:
 
@@ -225,14 +268,33 @@ The specification for the gadget object is defined in the [gadget schema][].
 
 ## Debug configurations
 
-The debug configurations are read from `.vimspector.json`. The file is found
-(like `.gadgets.json` above) by recursively searching up the directory hierarchy
-from the directory of the file open in Vim. The first file found is read and no
-further searching is done.
+There are two locations for debug configurations for a project:
 
-Only a single `.vimspector.json` is read.
+* `<vimspector home>/configurations/<OS>/<filetype>/*.json`
+* `.vimspector.json` in the project source
 
-Debug configurations are re-read at the start of each debug session.
+Typically, the debug configurations are read from `.vimspector.json`. The file
+is found (like `.gadgets.json` above) by recursively searching up the directory
+hierarchy from the directory of the file open in Vim. The first file found is
+read and no further searching is done.
+
+Only a single `.vimspector.json` is read. If one is found, the location of this
+file is used for `${workspaceRoot}` and other workspace-relative paths.
+
+In addition, users can create filetype-specific configurations in the vimspector
+installation directory. This can be useful where the parameters for the debug
+session for a particular filetype are always known in advance, or can always be
+entered by the user. This allows for debugging to "just work" without any
+modification to the project source (no need to add a `.vimspector.json`). In
+this case, the `${workspaceRoot}` and workspace-relative paths are interpreted
+relative to the file open in Vim. This isn't ideal, but there is no other
+obvious way to default this variable.
+
+As with gadgets, any debug configurations appearing within `.vimspector.json`
+override any that appear in the common configuration dir.
+
+Debug configurations are re-read at the start of each debug session, so
+modifications are picked up without any restarts of Vim.
 
 The specification for the gadget object is defined in the [schema][], but a
 typical example looks like this:
@@ -278,7 +340,7 @@ default value for `caught` exceptoins and to break on `uncaught` exception:
           "uncaught": "Y"
         }
       },
-      ... 
+      ...
 ```
 
 ## Predefined Variables
@@ -317,7 +379,7 @@ Internet:
 {
   "json": {
     "schemas": [
-      { 
+      {
         "fileMatch": [ ".vimspector.json" ],
         "url": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json"
       },
