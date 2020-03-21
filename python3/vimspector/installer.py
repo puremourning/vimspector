@@ -28,6 +28,7 @@ import ssl
 import subprocess
 import functools
 import os
+import sys
 
 from vimspector import install
 
@@ -220,7 +221,6 @@ def MakeSymlink( in_folder, link, pointing_to ):
   else:
     os.symlink( pointing_to_relative, link_path )
 
-
 def CloneRepoTo( url, ref, destination ):
   RemoveIfExists( destination )
   git_in_repo = [ 'git', '-C', destination ]
@@ -231,3 +231,17 @@ def CloneRepoTo( url, ref, destination ):
                                          'update',
                                          '--init',
                                          '--recursive' ] )
+
+
+def AbortIfSUperUser( force_sudo ):
+  # TODO: We should probably check the effective uid too
+  is_su = False
+  if 'SUDO_COMMAND' in os.environ:
+    is_su = True
+
+  if is_su:
+    if force_sudo:
+      print( "*** RUNNING AS SUPER USER DUE TO force_sudo! "
+             "    All bets are off. ***" )
+    else:
+      sys.exit( "This script should *not* be run as super user. Aborting." )

@@ -537,6 +537,7 @@ print( 'OS = ' + OS )
 print( 'gadget_dir = ' + gadget_dir )
 
 parser = argparse.ArgumentParser(
+  formatter_class = argparse.RawDescriptionHelpFormatter,
   description = 'Install DAP Servers for use with Vimspector.',
   epilog =
     """
@@ -548,6 +549,12 @@ parser = argparse.ArgumentParser(
 
     The format of the file can be found on the Vimspector reference guide:
     https://puremourning.github.io/vimspector
+
+    NOTE: This script should usually _not_ be run under `sudo` or as root. It
+    downloads and extracts things only to directories under its own path. No
+    system files or folders are chnaged by this script. If you really want to
+    run under sudo, pass --sudo, but this is _almost certainly_ the wrong thing
+    to do.
     """
 )
 parser.add_argument( '--all',
@@ -570,6 +577,11 @@ parser.add_argument( '--enable-custom',
                      help = 'Read custom gadget from supplied file. This '
                             'can be supplied multiple times and each time '
                             'multiple files can be passed.' )
+
+parser.add_argument( '--sudo',
+                     action='store_true',
+                     help = "If you're really really really sure you want to "
+                            "run this as root via sudo, pass this flag." )
 
 done_languages = set()
 for name, gadget in GADGETS.items():
@@ -607,6 +619,8 @@ parser.add_argument(
 )
 
 args = parser.parse_args()
+
+installer.AbortIfSUperUser( args.sudo )
 
 if args.force_all and not args.all:
   args.all = True
