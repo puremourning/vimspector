@@ -31,6 +31,7 @@ from vimspector import ( breakpoints,
                          stack_trace,
                          utils,
                          variables )
+from vimspector.vendor.json_minify import minify
 
 VIMSPECTOR_HOME = os.path.abspath( os.path.join( os.path.dirname( __file__ ),
                                                  '..',
@@ -96,7 +97,8 @@ class DebugSession( object ):
         continue
 
       with open( gadget_config_file, 'r' ) as f:
-        adapters.update( json.load( f ).get( 'adapters' ) or {} )
+        a =  json.loads( minify( f.read() ) ).get( 'adapters' ) or {}
+        adapters.update( a )
 
     for launch_config_file in PathsToAllConfigFiles( VIMSPECTOR_HOME,
                                                      current_file,
@@ -106,7 +108,7 @@ class DebugSession( object ):
         continue
 
       with open( launch_config_file, 'r' ) as f:
-        database = json.load( f )
+        database = json.loads( minify( f.read() ) )
         adapters.update( database.get( 'adapters' ) or {} )
         configurations.update( database.get( 'configurations' or {} ) )
 
