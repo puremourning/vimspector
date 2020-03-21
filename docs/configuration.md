@@ -110,14 +110,15 @@ But for now, consider the following example snippet:
 {
   "configurations": {
     "example-debug-configuration": {
+      // This is a single-line comment  explaining the purpose
       "adapter": "example-adapter-name",
       "variables": {
-        "SecretToken": {
+        "SecretToken": { // Variables should start with upper-case letters
           "shell" : [ "cat", "${HOME}/.secret_token" ]
         }
       },
       "configuration": {
-        "request": "launch",
+        "request": "launch" /* or it could be "attach" */,
         "program": [
           "${fileBasenameNoExtension}",
           "-c", "configuration_file.cfg",
@@ -363,6 +364,25 @@ The following variables are provided:
 * `${fileDirname}` - the current opened file's dirname
 * `${fileExtname}` - the current opened file's extension
 * `${cwd}` - the current working directory of the active window on launch
+
+## Appendix: Configuration file format
+
+The configuration files are text files which must be UTF-8 encoded. They
+contain a single JSON object, along with optional comments.
+
+Comments are "c-style", i.e.:
+
+* `// single line comment ...`
+* `/* inline comment */`
+
+There is much debate about whether JSON files should contain comments. I have
+added them because they are useful in the context of configuration files.
+Unforutnately this may mean your editor doesn't like them (they are strictly
+invalid JSON) so it's up to you if you use them.
+
+Technically, Vimspector uses [JSON
+minify](https://github.com/getify/JSON.minify) to strip comments before parsing
+the JSON.
 
 ## Appendix: Editor configuration
 

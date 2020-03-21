@@ -221,6 +221,7 @@ def MakeSymlink( in_folder, link, pointing_to ):
   else:
     os.symlink( pointing_to_relative, link_path )
 
+
 def CloneRepoTo( url, ref, destination ):
   RemoveIfExists( destination )
   git_in_repo = [ 'git', '-C', destination ]

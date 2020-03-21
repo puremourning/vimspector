@@ -36,6 +36,7 @@ sys.path.insert( 1, os.path.join( os.path.dirname( __file__ ),
                                   'python3' ) )
 
 from vimspector import install, installer
+from vimspector.vendor.json_minify import minify
 
 GADGETS = {
   'vscode-cpptools': {
@@ -634,7 +635,7 @@ for custom_file_name in functools.reduce( operator.add,
                                           args.custom_gadget_file,
                                           custom_files ):
   with open( custom_file_name, 'r' ) as custom_file:
-    CUSTOM_GADGETS.update( json.load( custom_file ) )
+    CUSTOM_GADGETS.update( json.loads( minify( custom_file.read() ) ) )
 
 
 failed = []
