@@ -23,19 +23,20 @@ fi
 if [ -z "$VIMSPECTOR_MIMODE" ]; then
   if which lldb >/dev/null 2>&1; then
     export VIMSPECTOR_MIMODE=lldb
+
+    if [ -z "${VIMSPECTOR_MI_DEBUGGER}" ]; then
+      if which lldb-mi >/dev/null 2>&1; then
+        export VIMSPECTOR_MI_DEBUGGER=lldb-mi
+      else
+        echo "Couldn't guess VIMSPECTOR_MI_DEBUGGER. Need lldb-mi in path"
+        exit 1
+      fi
+    fi
   elif which gdb >/dev/null 2>&1; then
     export VIMSPECTOR_MIMODE=gdb
+    export VIMSPECTOR_MI_DEBUGGER=gdb
   else
     echo "Couldn't guess VIMSPECTOR_MIMODE. Need lldb or gdb in path"
-    exit 1
-  fi
-fi
-
-if [ -z "${VIMSPECTOR_MI_DEBUGGER}" ]; then
-  if which lldb-mi >/dev/null 2>&1; then
-    export VIMSPECTOR_MI_DEBUGGER=lldb-mi
-  else
-    echo "Couldn't guess VIMSPECTOR_MI_DEBUGGER. Need lldb-mi in path"
     exit 1
   fi
 fi

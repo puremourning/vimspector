@@ -63,7 +63,7 @@ stages:
       env:
         VIMSPECTOR_MIMODE: gdb
         VIMSPECTOR_TEST_STDOUT: true
-        VIMSPECTOR_MI_DEBUGGER: ""
+        VIMSPECTOR_MI_DEBUGGER: gdb
 
     - bash: ./make_package linux $(Build.SourceVersion)
       displayName: 'Package'

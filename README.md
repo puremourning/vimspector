@@ -609,6 +609,11 @@ the Getting Started section of the [Vimspector website][website].
 For full explanation, including how to use variables, substitutions and how to
 specify exception breakpoints, see [the docs][vimspector-ref].
 
+The JSON configuration file allows C-style comments:
+
+* `// comment to end of line ...`
+* `/* inline comment ... */`
+
 Current tested with the following debug adapters.
 
 ## C, C++, Rust, etc.
