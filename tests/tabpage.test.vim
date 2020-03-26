@@ -10,7 +10,7 @@ function! Test_Step_With_Different_Tabpage()
   lcd testdata/cpp/simple
   edit simple.cpp
 
-  " Add the breakpoing
+  " Add the breakpoint
   " TODO refactor FeedKeys
   15
   call assert_equal( 15, line( '.' ) )
@@ -47,6 +47,7 @@ function! Test_Step_With_Different_Tabpage()
   call vimspector#Reset()
   call vimspector#ClearBreakpoints()
 
+  call WaitForAssert( {-> assert_notequal( vimspector_tabnr, tabpagenr() ) } )
   lcd -
   %bwipeout!
 endfunction

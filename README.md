@@ -150,7 +150,7 @@ Alternatively, you can clone the repo and select which gadgets are installed:
 
 Vimspector requires:
 
-* Vim version 8.1 with at least patch 1264, or Neovim 0.4.3
+* At least Vim version 8.2, or Neovim 0.4.3 (experimental)
 * One of the following operating systems:
   * Linux
   * macOS Mojave or later
@@ -161,6 +161,12 @@ Why such a new vim ? Well 2 reasons:
 1. Because vimspector uses a lot of new Vim features 
 2. Because there are Vim bugs that vimspector triggers that will frustrate you
    if you hit them.
+
+Why is neovim experimental? Because the author doesn't use neovim regularly, and
+there are no regression tests for vimspector in neovim, so it's likely to break
+frequently.  Issue reports are handled on best-efforts basis, and PRs are
+welcome to fix bugs. See also the next section descibing differences for neovim
+vs vim.
 
 Why Windows support experimental? Because it's effort and it's not a priority
 for the author. PRs are welcome to fix bugs. Windows will not be regularly

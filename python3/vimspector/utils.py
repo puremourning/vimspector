@@ -546,3 +546,20 @@ def SetSyntax( current_syntax, syntax, *args ):
 def GetBufferFiletypes( buf ):
   ft = ToUnicode( vim.eval( f"getbufvar( {buf.number}, '&ft' )" ) )
   return ft.split( '.' )
+
+
+def DisplaySplash( api_prefix, splash, text ):
+  if splash:
+    return Call( f'vimspector#internal#{api_prefix}popup#UpdateSplash',
+                 splash,
+                 text )
+  else:
+    return Call( f'vimspector#internal#{api_prefix}popup#DisplaySplash',
+                 text )
+
+
+def HideSplash( api_prefix, splash ):
+  if splash:
+    Call( f'vimspector#internal#{api_prefix}popup#HideSplash', splash )
+
+  return None
