@@ -19,7 +19,6 @@ import logging
 import os
 import shlex
 import subprocess
-import traceback
 import functools
 import vim
 
@@ -60,6 +59,7 @@ class DebugSession( object ):
     self._variablesView = None
     self._outputView = None
     self._breakpoints = breakpoints.ProjectBreakpoints()
+    self._splash_screen = None
 
     self._run_on_server_exit = None
 
@@ -322,9 +322,12 @@ class DebugSession( object ):
   def _Reset( self ):
     self._logger.info( "Debugging complete." )
     if self._uiTab:
-      self._logger.debug( "Clearing down UI with stack_trace: %s",
-                          traceback.format_stack() )
+      self._logger.debug( "Clearing down UI" )
       vim.current.tabpage = self._uiTab
+
+      self._splash_screen = utils.HideSplash( self._api_prefix,
+                                              self._splash_screen )
+
       self._stackTraceView.Reset()
       self._variablesView.Reset()
       self._outputView.Reset()
@@ -432,6 +435,7 @@ class DebugSession( object ):
   def GetOutputBuffers( self ):
     return self._outputView.GetCategories()
 
+  @IfConnected
   def GetCompletionsSync( self, text_line, column_in_bytes ):
     if not self._server_capabilities.get( 'supportsCompletionsRequest' ):
       return []
@@ -516,6 +520,11 @@ class DebugSession( object ):
     return True
 
   def _StartDebugAdapter( self ):
+    self._splash_screen = utils.DisplaySplash(
+      self._api_prefix,
+      self._splash_screen,
+      "Starting debug adapter..." )
+
     if self._connection:
       utils.UserMessage( 'The connection is already created. Please try again',
                          persist = True )
@@ -553,6 +562,9 @@ class DebugSession( object ):
                      "  g:_vimspector_adapter_spec "
                      ")".format( self._connection_type ) ):
       self._logger.error( "Unable to start debug server" )
+      self._splash_screen = utils.DisplaySplash( self._api_prefix,
+                                                 self._splash_screen,
+                                                 "Unable to start adapter" )
     else:
       self._connection = debug_adapter_connection.DebugAdapterConnection(
         self,
@@ -563,6 +575,11 @@ class DebugSession( object ):
     self._logger.info( 'Debug Adapter Started' )
 
   def _StopDebugAdapter( self, callback = None ):
+    self._splash_screen = utils.DisplaySplash(
+      self._api_prefix,
+      self._splash_screen,
+      "Shutting down debug adapter..." )
+
     def handler( *args ):
       if callback:
         self._logger.debug( "Setting server exit handler before disconnect" )
@@ -699,6 +716,11 @@ class DebugSession( object ):
     return [ command ]
 
   def _Initialise( self ):
+    self._splash_screen = utils.DisplaySplash(
+      self._api_prefix,
+      self._splash_screen,
+      "Initializing debug adapter..." )
+
     # For a good explaination as to why this sequence is the way it is, see
     # https://github.com/microsoft/vscode/issues/4902#issuecomment-368583522
     #
@@ -753,8 +775,18 @@ class DebugSession( object ):
       launch_config.get( 'request', 'launch' ) )
 
     if request == "attach":
+      self._splash_screen = utils.DisplaySplash(
+        self._api_prefix,
+        self._splash_screen,
+        "Attaching to debugee..." )
+
       self._PrepareAttach( adapter_config, launch_config )
     elif request == "launch":
+      self._splash_screen = utils.DisplaySplash(
+        self._api_prefix,
+        self._splash_screen,
+        "Launching debugee..." )
+
       # FIXME: This cmdLine hack is not fun.
       self._PrepareLaunch( self._configuration.get( 'remote-cmdLine', [] ),
                            adapter_config,
@@ -800,6 +832,9 @@ class DebugSession( object ):
     # leader rather than the process. The workaround is to manually SIGTRAP the
     # PID.
     #
+    self._splash_screen = utils.HideSplash( self._api_prefix,
+                                            self._splash_screen )
+
     if self._launch_complete and self._init_complete:
       for h in self._on_init_complete_handlers:
         h()
