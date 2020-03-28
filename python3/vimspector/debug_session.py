@@ -457,7 +457,7 @@ class DebugSession( object ):
 
 
   def _SetUpUI( self ):
-    vim.command( 'tabedit %' )
+    vim.command( 'tab split' )
     self._uiTab = vim.current.tabpage
 
     # Code window
