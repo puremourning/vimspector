@@ -150,10 +150,6 @@ class DebugSession( object ):
 
       adapter = adapter_dict
 
-    # TODO: Do we want some form of persistence ? e.g. self._staticVariables,
-    # set from an api call like SetLaunchParam( 'var', 'value' ), perhaps also a
-    # way to load .vimspector.local.json which just sets variables
-    #
     # Additional vars as defined by VSCode:
     #
     # ${workspaceFolder} - the path of the folder opened in VS Code
@@ -461,14 +457,11 @@ class DebugSession( object ):
 
 
   def _SetUpUI( self ):
-    original_window = vim.current.window
-
-    vim.command( 'tabnew' )
+    vim.command( 'tabedit %' )
     self._uiTab = vim.current.tabpage
 
     # Code window
     self._codeView = code.CodeView( vim.current.window,
-                                    original_window,
                                     self._api_prefix )
 
     # Call stack

@@ -22,7 +22,7 @@ from vimspector import utils
 
 
 class CodeView( object ):
-  def __init__( self, window, original_window, api_prefix ):
+  def __init__( self, window, api_prefix ):
     self._window = window
     self._api_prefix = api_prefix
 
@@ -42,7 +42,6 @@ class CodeView( object ):
 
 
     with utils.LetCurrentWindow( self._window ):
-      vim.current.buffer = original_window.buffer
       vim.command( 'nnoremenu WinBar.Continue :call vimspector#Continue()<CR>' )
       vim.command( 'nnoremenu WinBar.Next :call vimspector#StepOver()<CR>' )
       vim.command( 'nnoremenu WinBar.Step :call vimspector#StepInto()<CR>' )
