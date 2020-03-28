@@ -150,7 +150,9 @@ Alternatively, you can clone the repo and select which gadgets are installed:
 
 Vimspector requires:
 
-* At least Vim version 8.2, or Neovim 0.4.3 (experimental)
+* One of:
+  * Vim 8.2 compiled with Python 3.6 or later
+  * Neovim 0.4.3 with Python 3.6 or later (experimental)
 * One of the following operating systems:
   * Linux
   * macOS Mojave or later
