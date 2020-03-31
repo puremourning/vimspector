@@ -10,6 +10,13 @@ forms, such as:
 
 At all times the [code of conduct](#code-of-conduct) applies.
 
+## Diagnostics
+
+Whenever reporting any type of fault, or difficulty in making the plugin
+work, please always include _all_ of the diagnostics requested in the
+[issue template][issue-template]. Please do not be offended if your request
+is ignored if it does not include the requested diagnostics.
+
 ## Issues
 
 The GitHub issue tracker is for *bug reports* and *features requests* for the
@@ -19,7 +26,7 @@ general discussion, general support or for any other purpose.
 Please do not be offended if your Issue or comment is closed or hidden, for any
 of the following reasons:
 
-* The issue template was not completed
+* The [issue template][issue-template] was not completed
 * The issue or comment is off-topic
 * The issue does not represent a Vimspector bug or feature request
 * etc.
@@ -98,3 +105,4 @@ Please see [code of conduct](CODE_OF_CONDUCT.md).
 
 [vint]: https://github.com/Vimjas/vint
 [flake8]: https://flake8.pycqa.org/en/latest/
+[issue-template]: https://github.com/puremourning/vimspector/blob/master/.github/ISSUE_TEMPLATE/bug_report.md
