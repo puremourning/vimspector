@@ -120,7 +120,8 @@ class DebugSession( object ):
 
     if 'configuration' in launch_variables:
       configuration_name = launch_variables.pop( 'configuration' )
-    elif len( configurations ) == 1:
+    elif ( len( configurations ) == 1 and
+           next( iter( configurations.values() ) ).get( "autoselect", True ) ):
       configuration_name = next( iter( configurations.keys() ) )
     else:
       configuration_name = utils.SelectFromList(
@@ -591,7 +592,8 @@ class DebugSession( object ):
 
     arguments = {}
     if self._server_capabilities.get( 'supportTerminateDebuggee' ):
-      arguments[ 'terminateDebugee' ] = True
+      # If we attached, we should _not_ terminate the debuggee
+      arguments[ 'terminateDebuggee' ] = False
 
     self._connection.DoRequest( handler, {
       'command': 'disconnect',
@@ -841,6 +843,10 @@ class DebugSession( object ):
       self._on_init_complete_handlers = []
 
       self._stackTraceView.LoadThreads( True )
+
+
+  def OnEvent_loadedSource( self, msg ):
+    pass
 
 
   def OnEvent_capabilities( self, msg ):
