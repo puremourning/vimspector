@@ -47,17 +47,17 @@ GADGETS = {
     },
     'do': lambda name, root, gadget: InstallCppTools( name, root, gadget ),
     'all': {
-      'version': '0.26.3',
+      'version': '0.27.0',
     },
     'linux': {
       'file_name': 'cpptools-linux.vsix',
       'checksum':
-        'd660367fbedd6acaffcc233c1d41ef280ff79aeba81846b86bf9bd97b4887379'
+        '3695202e1e75a03de18049323b66d868165123f26151f8c974a480eaf0205435'
     },
     'macos': {
       'file_name': 'cpptools-osx.vsix',
       'checksum':
-        'ca0793dd1dfd70757491da80cf04b2b15631048b572de2ebe3864f9eed96dff9',
+        'cb061e3acd7559a539e5586f8d3f535101c4ec4e8a48195856d1d39380b5cf3c',
     },
     'windows': {
       'file_name': 'cpptools-win32.vsix',
