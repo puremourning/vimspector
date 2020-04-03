@@ -63,7 +63,6 @@ stages:
       env:
         VIMSPECTOR_MIMODE: gdb
         VIMSPECTOR_TEST_STDOUT: true
-        VIMSPECTOR_MI_DEBUGGER: gdb
 
     - bash: ./make_package linux $(Build.SourceVersion)
       displayName: 'Package'
@@ -102,25 +101,11 @@ stages:
     - bash: vim --version
       displayName: 'Print vim version information'
 
-    - bash: |
-        VERSION=66e8ed9af1812ca0bb6cfcc7023a35742e1bd323
-        BUILD=1092
-        set -ex
-        mkdir -p lldb-mi
-        pushd lldb-mi
-          curl -LO https://github.com/puremourning/lldb-mi/releases/download/${BUILD}/lldb-mi-${VERSION}.tar.gz
-          tar zxvf lldb-mi-${VERSION}.tar.gz
-          cp usr/local/bin/lldb-mi /usr/local/bin
-        popd
-      displayName: 'Install lldb-mi'
-
     - bash: ./run_tests
       displayName: 'Run the tests'
       env:
         VIMSPECTOR_MIMODE: lldb
         VIMSPECTOR_TEST_STDOUT: true
-        VIMSPECTOR_MI_DEBUGGER: "/usr/local/bin/lldb-mi"
-        LLDB_DEBUGSERVER_PATH: "/Library/Developer/CommandLineTools/Library/PrivateFrameworks/LLDB.framework/Resources/debugserver"
 
     - bash: ./make_package macos $(Build.SourceVersion)
       displayName: 'Package'
