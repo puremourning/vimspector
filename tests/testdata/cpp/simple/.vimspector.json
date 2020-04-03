@@ -13,7 +13,6 @@
         "stopAtEntry": true,
         "stopOnEntry": true,
         "MImode": "${VIMSPECTOR_MIMODE}",
-        "miDebuggerPath": "${VIMSPECTOR_MI_DEBUGGER}",
         "logging": {
           "engineLogging": true
         }

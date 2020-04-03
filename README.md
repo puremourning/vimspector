@@ -628,64 +628,6 @@ Current tested with the following debug adapters.
 
 * C++: [vscode-cpptools](https://github.com/Microsoft/vscode-cpptools)
 
----
-
-***NOTE FOR macOS USERS***: Currently VSCode cpptools does *not* work on macOS
-out of the box.
-See [this issue]( https://github.com/microsoft/vscode-cpptools/issues/3829)
-for the full details. 
-
-To resolve it:
-
-* Install [my build](https://github.com/puremourning/lldb-mi/releases) of
-  `lldb-mi`. Instructions
-  [here](https://github.com/microsoft/vscode-cpptools/issues/3829#issuecomment-578454043).
-* Add the following to the `configuration` section of your `.vimspector.json`
-  (below):
-
-```
-{
-  "configurations": {
-    "<name>: Launch": {
-      "adapter": "vscode-cpptools",
-      "configuration": {
-        "miDebuggerPath": "/path/to/my/build/of/lldb-mi",
-        ...
-```
-
-An alternative is to to use `lldb-vscode`, which comes with llvm.  Here's how:
-
-* Install llvm with HomeBrew: `brew install llvm`
-* Create a file named
-  `/path/to/vimspector/gadgets/macos/.gadgets.d/lldb-vscode.json`:
-
-```json
-
-{
-  "adapters": {
-    "lldb-vscode": {
-      "variables": {
-        "LLVM": {
-          "shell": "brew --prefix llvm"
-        }
-      },
-      "attach": {
-        "pidProperty": "pid",
-        "pidSelect": "ask"
-      },
-      "command": [
-        "${LLVM}/bin/lldb-vscode"
-      ],
-      "env": {
-        "LLDB_LAUNCH_FLAG_LAUNCH_IN_TTY": "YES"
-      },
-      "name": "lldb"
-    }
-  }
-}
-```
-
----
 
 Example `.vimspector.json` (works with both `vscode-cpptools` and `lldb-vscode`.
 For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
@@ -718,6 +660,38 @@ For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
       }
     }
     ...
+  }
+}
+```
+
+An alternative is to to use `lldb-vscode`, which comes with llvm.  Here's how:
+
+* Install llvm with HomeBrew: `brew install llvm`
+* Create a file named
+  `/path/to/vimspector/gadgets/macos/.gadgets.d/lldb-vscode.json`:
+
+```json
+
+{
+  "adapters": {
+    "lldb-vscode": {
+      "variables": {
+        "LLVM": {
+          "shell": "brew --prefix llvm"
+        }
+      },
+      "attach": {
+        "pidProperty": "pid",
+        "pidSelect": "ask"
+      },
+      "command": [
+        "${LLVM}/bin/lldb-vscode"
+      ],
+      "env": {
+        "LLDB_LAUNCH_FLAG_LAUNCH_IN_TTY": "YES"
+      },
+      "name": "lldb"
+    }
   }
 }
 ```
