@@ -1,0 +1,289 @@
+{
+  "$id": "https://puremourning.github.io/vimspector/schema/debugpy.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "oneOf": [
+    {
+      "properties": {
+        "request": {
+          "const": "launch"
+        },
+        "module": {
+          "type": "string",
+          "description": "Name of the module to be debugged.",
+          "default": ""
+        },
+        "program": {
+          "type": "string",
+          "description": "Absolute path to the program.",
+          "default": "${file}"
+        },
+        "pythonPath": {
+          "type": "string",
+          "description": "Path (fully qualified) to python executable. Defaults to the value in settings.json",
+          "default": "${config:python.pythonPath}"
+        },
+        "args": {
+          "type": "array",
+          "description": "Command line arguments passed to the program",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "stopOnEntry": {
+          "type": "boolean",
+          "description": "Automatically stop after launch.",
+          "default": false
+        },
+        "showReturnValue": {
+          "type": "boolean",
+          "description": "Show return value of functions when stepping.",
+          "default": true
+        },
+        "console": {
+          "enum": [
+            "internalConsole",
+            "integratedTerminal",
+            "externalTerminal"
+          ],
+          "description": "Where to launch the debug target: internal console, integrated terminal, or external terminal.",
+          "default": "integratedTerminal"
+        },
+        "cwd": {
+          "type": "string",
+          "description": "Absolute path to the working directory of the program being debugged. Default is the root directory of the file (leave empty).",
+          "default": "${workspaceFolder}"
+        },
+        "env": {
+          "type": "object",
+          "description": "Environment variables defined as a key value pair. Property ends up being the Environment Variable and the value of the property ends up being the value of the Env Variable.",
+          "default": {},
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "envFile": {
+          "type": "string",
+          "description": "Absolute path to a file containing environment variable definitions.",
+          "default": "${workspaceFolder}/.env"
+        },
+        "port": {
+          "type": "number",
+          "description": "Debug port (default is 0, resulting in the use of a dynamic port).",
+          "default": 0
+        },
+        "host": {
+          "type": "string",
+          "description": "IP address of the of the local debug server (default is localhost).",
+          "default": "localhost"
+        },
+        "pathMappings": {
+          "type": "array",
+          "label": "Path mappings.",
+          "items": {
+            "type": "object",
+            "label": "Path mapping",
+            "required": [
+              "localRoot",
+              "remoteRoot"
+            ],
+            "properties": {
+              "localRoot": {
+                "type": "string",
+                "label": "Local source root.",
+                "default": "${workspaceFolder}"
+              },
+              "remoteRoot": {
+                "type": "string",
+                "label": "Remote source root.",
+                "default": ""
+              }
+            }
+          },
+          "default": []
+        },
+        "logToFile": {
+          "type": "boolean",
+          "description": "Enable logging of debugger events to a log file.",
+          "default": false
+        },
+        "redirectOutput": {
+          "type": "boolean",
+          "description": "Redirect output.",
+          "default": true
+        },
+        "justMyCode": {
+          "type": "boolean",
+          "description": "Debug only user-written code.",
+          "default": true
+        },
+        "gevent": {
+          "type": "boolean",
+          "description": "Enable debugging of gevent monkey-patched code.",
+          "default": false
+        },
+        "django": {
+          "type": "boolean",
+          "description": "Django debugging.",
+          "default": false
+        },
+        "jinja": {
+          "enum": [
+            true,
+            false,
+            null
+          ],
+          "description": "Jinja template debugging (e.g. Flask).",
+          "default": null
+        },
+        "sudo": {
+          "type": "boolean",
+          "description": "Running debug program under elevated permissions (on Unix).",
+          "default": false
+        },
+        "pyramid": {
+          "type": "boolean",
+          "description": "Whether debugging Pyramid applications",
+          "default": false
+        },
+        "subProcess": {
+          "type": "boolean",
+          "description": "Whether to enable Sub Process debugging",
+          "default": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "request": {
+          "const": "attach"
+        },
+        "connect": {
+          "type": "object",
+          "label": "Attach by connecting to debugpy over a socket.",
+          "properties": {
+            "port": {
+              "type": "number",
+              "description": "Port to connect to."
+            },
+            "host": {
+              "type": "string",
+              "description": "Hostname or IP address to connect to.",
+              "default": "127.0.0.1"
+            }
+          },
+          "required": [
+            "port"
+          ]
+        },
+        "listen": {
+          "type": "object",
+          "label": "Attach by listening for incoming socket connection from debugpy",
+          "properties": {
+            "port": {
+              "type": "number",
+              "description": "Port to listen on."
+            },
+            "host": {
+              "type": "string",
+              "description": "Hostname or IP address of the interface to listen on.",
+              "default": "127.0.0.1"
+            }
+          },
+          "required": [
+            "port"
+          ]
+        },
+        "port": {
+          "type": "number",
+          "description": "Port to connect to."
+        },
+        "host": {
+          "type": "string",
+          "description": "Hostname or IP address to connect to.",
+          "default": "127.0.0.1"
+        },
+        "pathMappings": {
+          "type": "array",
+          "label": "Path mappings.",
+          "items": {
+            "type": "object",
+            "label": "Path mapping",
+            "required": [
+              "localRoot",
+              "remoteRoot"
+            ],
+            "properties": {
+              "localRoot": {
+                "type": "string",
+                "label": "Local source root.",
+                "default": "${workspaceFolder}"
+              },
+              "remoteRoot": {
+                "type": "string",
+                "label": "Remote source root.",
+                "default": ""
+              }
+            }
+          },
+          "default": []
+        },
+        "logToFile": {
+          "type": "boolean",
+          "description": "Enable logging of debugger events to a log file.",
+          "default": false
+        },
+        "redirectOutput": {
+          "type": "boolean",
+          "description": "Redirect output.",
+          "default": true
+        },
+        "justMyCode": {
+          "type": "boolean",
+          "description": "Debug only user-written code.",
+          "default": true
+        },
+        "django": {
+          "type": "boolean",
+          "description": "Django debugging.",
+          "default": false
+        },
+        "jinja": {
+          "enum": [
+            true,
+            false,
+            null
+          ],
+          "description": "Jinja template debugging (e.g. Flask).",
+          "default": null
+        },
+        "subProcess": {
+          "type": "boolean",
+          "description": "Whether to enable Sub Process debugging",
+          "default": false
+        },
+        "showReturnValue": {
+          "type": "boolean",
+          "description": "Show return value of functions when stepping.",
+          "default": true
+        },
+        "processId": {
+          "anyOf": [
+            {
+              "enum": [
+                "${command:pickProcess}"
+              ],
+              "description": "Use process picker to select a process to attach, or Process ID as integer.",
+              "default": "${command:pickProcess}"
+            },
+            {
+              "type": "integer",
+              "description": "ID of the local process to attach to."
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -16,6 +16,8 @@ standard.
   configuration defnition (`.vimspector.json`).
 * [`gadgets.schema.json`](gadgets.schema.json) - contains the specification for
   gadget-only objects (`.gadgets.json`).
+* [`debugpy.schema.json`](debugpy.schema.json) - contains the specification for
+  debugpy attributes.
 
 [json-schema]: http://json-schema.org
 [draft-7]: https://json-schema.org/specification-links.html#draft-7

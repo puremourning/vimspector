@@ -214,9 +214,6 @@
                     "enum": [ "launch", "attach" ],
                     "description": "Type of session - launch process or attach to process"
                   }
-                },
-                "additionalProperties": {
-                  "description": "Additional properties are passed to the debug adapter in the 'launch' or 'attach' request and are specific to the debug adapter."
                 }
               },
               "breakpoints": {
@@ -247,7 +244,25 @@
                   }
                 }
               }
-            }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "adapter": {
+                      "const": "debugpy"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "configuration": {
+                      "$ref": "https://puremourning.github.io/vimspector/schema/debugpy.schema.json"
+                    }
+                  }
+                }
+              }
+            ]
           }
         ]
       }
