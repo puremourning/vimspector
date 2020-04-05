@@ -67,6 +67,8 @@ stages:
     - bash: ./make_package linux $(Build.SourceVersion)
       displayName: 'Package'
 
+    # TODO: test the tarball
+
     - task: PublishPipelineArtifact@0
       inputs:
         artifactName: 'package-linux'
@@ -109,6 +111,8 @@ stages:
 
     - bash: ./make_package macos $(Build.SourceVersion)
       displayName: 'Package'
+
+    # TODO: test the tarball
 
     - task: PublishPipelineArtifact@0
       inputs:
