@@ -255,12 +255,6 @@ packadd! vimspector
 
 See support/doc/example_vimrc.vim.
 
-Also, if you want to try out vimspector without changing your vim config, run:
-
-```
-vim -Nu /path/to/vimspector/tests/vimrc --cmd "let g:vimspector_enable_mappings='HUMAN'"
-```
-
 ## Install some gadgets
 
 There are a couple of ways of doing this, but ***using `install_gadget.py` is
@@ -379,6 +373,30 @@ Vimspector will also load any fies matching:
 `</path/to/vimspector>/gadgets/<os>/.gadgets.d/*.json`. These have the same
 format as `.gadgets.json` but are not overwritten when running
 `install_gadget.py`.
+
+## Trying it out
+
+If you just want to try out vimspector without changing your vim config, there
+are example projects for a number of languages in `support/test`, including:
+
+* Python (`support/test/python/simple_python`)
+* Go (`support/test/go/hello_world`)
+* Nodejs (`support/test/node/simple`)
+* Chrome (`support/test/chrome/`)
+* etc.
+
+To test one of these out, cd to the directory and run:
+
+```
+vim -Nu /path/to/vimspector/tests/vimrc --cmd "let g:vimspector_enable_mappings='HUMAN'"
+```
+
+Then press `<F5>`.
+
+There's also a C++ project in `tests/testdata/cpp/simple/` with a `Makefile`
+which can be used to check everything is working. This is used by the regression
+tests in CI so should always work, and is a good way to check if the problem is
+your configuration rather than a bug.
 
 # About
 
