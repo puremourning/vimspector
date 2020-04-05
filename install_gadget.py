@@ -105,10 +105,10 @@ GADGETS = {
       'url': 'https://github.com/microsoft/debugpy/archive/${file_name}'
     },
     'all': {
-      'version': '1.0.0b1',
-      'file_name': 'v1.0.0b1.zip',
+      'version': '1.0.0b5',
+      'file_name': 'v1.0.0b5.zip',
       'checksum':
-        'eb26ac276213bcf26aaeadd7c3c284f7a20f43b63331822831a783dea558e60e'
+        '410bcf14c4e8b0f40c326c61d7d5c4326e285e22c9ec5e6b6b501957911a8a10'
     },
     'do': lambda name, root, gadget: InstallDebugpy( name, root, gadget ),
     'adapters': {
