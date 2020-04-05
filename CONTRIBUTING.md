@@ -10,6 +10,22 @@ forms, such as:
 
 At all times the [code of conduct](#code-of-conduct) applies.
 
+## Troubleshooting
+
+It's not completely trivial to configure Vimspector and there is a fairly large
+amount of documentation. I know full well that documentation isn't everything,
+so the first step in troubleshooting is to try a sample project that's known to
+work, to check if the problem is your project configuration rather than an
+actual bug.
+
+Therefore before raising an issue for a supported language, please check with
+the sample projects in `support/test/<language>` and `tests/testdata/` to see if
+the problem is with your project settings, rather than with vimspector. 
+
+Information on these is in [the README](README.md#trying-it-out).
+
+If in doubt, ask on Gitter.
+
 ## Diagnostics
 
 Whenever reporting any type of fault, or difficulty in making the plugin
