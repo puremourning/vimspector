@@ -255,10 +255,10 @@ GADGETS = {
              'download/${version}/${file_name}',
     },
     'all': {
-      'file_name': 'bash-debug-0.3.6.vsix',
-      'version': 'v0.3.6',
+      'file_name': 'bash-debug-0.3.7.vsix',
+      'version': 'v0.3.7',
       'checksum':
-        '502ee5732851fc4f309294fc296a291b1a114008a1fbcb232f3763be2b8d9c1f',
+        'b73e5b4604375df8658fb5a72c645c355785a289aa785a986e508342c014bb4',
     },
     'do': lambda name, root, gadget: InstallBashDebug( name, root, gadget ),
     'adapters': {
