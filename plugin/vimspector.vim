@@ -43,6 +43,11 @@ nnoremap <Plug>VimspectorRestart        :<c-u>call vimspector#Restart()<CR>
 nnoremap <Plug>VimspectorPause          :<c-u>call vimspector#Pause()<CR>
 nnoremap <Plug>VimspectorToggleBreakpoint
       \ :<c-u>call vimspector#ToggleBreakpoint()<CR>
+nnoremap <Plug>VimspectorToggleConditionalBreakpoint
+      \ :<c-u>call vimspector#ToggleBreakpoint(
+                    \ { 'condition': input( 'Enter condition: ' ),
+                    \   'hitCondition': input( 'Enter hit condition: ' ) }
+                    \ )<CR>
 nnoremap <Plug>VimspectorAddFunctionBreakpoint
       \ :<c-u>call vimspector#AddFunctionBreakpoint( expand( '<cexpr>' ) )<CR>
 nnoremap <Plug>VimspectorStepOver       :<c-u>call vimspector#StepOver()<CR>
@@ -65,6 +70,7 @@ elseif s:mappings ==# 'HUMAN'
   nmap <F4>         <Plug>VimspectorRestart
   nmap <F6>         <Plug>VimspectorPause
   nmap <F9>         <Plug>VimspectorToggleBreakpoint
+  nmap <leader><F9> <Plug>VimspectorToggleConditionalBreakpoint
   nmap <F8>         <Plug>VimspectorAddFunctionBreakpoint
   nmap <F10>        <Plug>VimspectorStepOver
   nmap <F11>        <Plug>VimspectorStepInto

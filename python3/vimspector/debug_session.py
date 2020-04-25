@@ -982,8 +982,8 @@ class DebugSession( object ):
   def ListBreakpoints( self ):
     return self._breakpoints.ListBreakpoints()
 
-  def ToggleBreakpoint( self ):
-    return self._breakpoints.ToggleBreakpoint()
+  def ToggleBreakpoint( self, options ):
+    return self._breakpoints.ToggleBreakpoint( options )
 
   def ClearBreakpoints( self ):
     if self._connection:
@@ -991,8 +991,8 @@ class DebugSession( object ):
 
     return self._breakpoints.ClearBreakpoints()
 
-  def AddFunctionBreakpoint( self, function ):
-    return self._breakpoints.AddFunctionBreakpoint( function )
+  def AddFunctionBreakpoint( self, function, options ):
+    return self._breakpoints.AddFunctionBreakpoint( function, options )
 
 
 def PathsToAllGadgetConfigs( vimspector_base, current_file ):
