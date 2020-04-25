@@ -74,17 +74,20 @@ But for now, here's a (rather old) screenshot of Vimsepctor debugging Vim:
 
 ## Supported debugging features
 
+- flexible configuration syntax that can be checked in to source control
 - breakpoints (function, line and exception breakpoints)
+- conditional breakpoints (function, line)
 - step in/out/over/up, stop, restart
 - launch and attach
 - remote launch, remote attach
 - locals and globals display
 - watch expressions
-- call stack and navigation
+- call stack display and navigation
 - variable value display hover
 - interactive debug console
 - launch debugee within Vim's embedded terminal
 - logging/stdout display
+- simple stable API for custom tooling (e.g. integrate with language server)
 
 ## Supported languages:
 
@@ -427,14 +430,6 @@ than welcome.
 
 The backlog can be [viewed on Trello](https://trello.com/b/yvAKK0rD/vimspector).
 
-In order to use it you have to currently:
-
-- Write a mostly undocumented configuration file that contains essentially
-  undocumented parameters.
-- Accept that it isn't complete yet
-- Work around some frustrating bugs in Vim
-- Ignore probably many bugs in vimspector!
-
 ### Experimental
 
 The plugin is currently _experimental_. That means that any part of it
@@ -443,8 +438,9 @@ can (and probably will) change, including things like:
 - breaking changes to the configuration
 - keys, layout, functionatlity of the UI
 
-If a large number of people start using it then I will do my best to
-minimise this, or at least announce on Gitter.
+However, I commit to only doing this in the most extreme cases and to annouce
+such changes on Gitter well in advance. There's nothing more annoying than stuff
+just breaking on you. I get that.
 
 # Mappings
 
@@ -464,7 +460,7 @@ features to set your own mappings. To that end, Vimspector defines the following
 * `<Plug>VimspectorStepInto`
 * `<Plug>VimspectorStepOut`
 
-These map 1-1 with the API functions below.
+These map roughly 1-1 with the API functions below.
 
 For example, if you want `<F5>` to start/continue debugging, add this to some
 appropriate place, such as your `vimrc` (hint: run `:e $MYVIMRC`).
