@@ -97,8 +97,18 @@ function! vimspector#GoToFrame() abort
   py3 _vimspector_session.ExpandFrameOrThread()
 endfunction
 
-function! vimspector#AddWatch( expr ) abort
-  py3 _vimspector_session.AddWatch( vim.eval( 'a:expr' ) )
+function! vimspector#AddWatch( ... ) abort
+  if a:0 == 0
+    let expr = input( 'Enter watch expression: ' )
+  else
+    let expr = a:1
+  endif
+
+  if expr ==# ''
+    return
+  endif
+
+  py3 _vimspector_session.AddWatch( vim.eval( 'expr' ) )
 endfunction
 
 function! vimspector#AddWatchPrompt( expr ) abort
