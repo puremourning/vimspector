@@ -37,22 +37,29 @@ let g:loaded_vimpector = 1
 
 let s:mappings = get( g:, 'vimspector_enable_mappings', '' )
 
-nnoremap <Plug>VimspectorContinue       :<c-u>call vimspector#Continue()<CR>
-nnoremap <Plug>VimspectorStop           :<c-u>call vimspector#Stop()<CR>
-nnoremap <Plug>VimspectorRestart        :<c-u>call vimspector#Restart()<CR>
-nnoremap <Plug>VimspectorPause          :<c-u>call vimspector#Pause()<CR>
-nnoremap <Plug>VimspectorToggleBreakpoint
+nnoremap <silent> <Plug>VimspectorContinue
+      \ :<c-u>call vimspector#Continue()<CR>
+nnoremap <silent> <Plug>VimspectorStop
+      \ :<c-u>call vimspector#Stop()<CR>
+nnoremap <silent> <Plug>VimspectorRestart
+      \ :<c-u>call vimspector#Restart()<CR>
+nnoremap <silent> <Plug>VimspectorPause
+      \ :<c-u>call vimspector#Pause()<CR>
+nnoremap <silent> <Plug>VimspectorToggleBreakpoint
       \ :<c-u>call vimspector#ToggleBreakpoint()<CR>
-nnoremap <Plug>VimspectorToggleConditionalBreakpoint
+nnoremap <silent> <Plug>VimspectorToggleConditionalBreakpoint
       \ :<c-u>call vimspector#ToggleBreakpoint(
                     \ { 'condition': input( 'Enter condition expression: ' ),
                     \   'hitCondition': input( 'Enter hit count expression: ' ) }
                     \ )<CR>
-nnoremap <Plug>VimspectorAddFunctionBreakpoint
+nnoremap <silent> <Plug>VimspectorAddFunctionBreakpoint
       \ :<c-u>call vimspector#AddFunctionBreakpoint( expand( '<cexpr>' ) )<CR>
-nnoremap <Plug>VimspectorStepOver       :<c-u>call vimspector#StepOver()<CR>
-nnoremap <Plug>VimspectorStepInto       :<c-u>call vimspector#StepInto()<CR>
-nnoremap <Plug>VimspectorStepOut        :<c-u>call vimspector#StepOut()<CR>
+nnoremap <silent> <Plug>VimspectorStepOver
+      \ :<c-u>call vimspector#StepOver()<CR>
+nnoremap <silent> <Plug>VimspectorStepInto
+      \ :<c-u>call vimspector#StepInto()<CR>
+nnoremap <silent> <Plug>VimspectorStepOut
+      \ :<c-u>call vimspector#StepOut()<CR>
 
 if s:mappings ==# 'VISUAL_STUDIO'
   nmap <F5>         <Plug>VimspectorContinue
