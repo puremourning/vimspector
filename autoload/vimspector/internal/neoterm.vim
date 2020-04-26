@@ -60,6 +60,7 @@ function! vimspector#internal#neoterm#Start( cmd, opts ) abort
   try
     let old_env = vimspector#internal#neoterm#PrepareEnvironment(
           \ a:opts[ 'env' ] )
+    setlocal nomodified
     let id = termopen( a:cmd, {
           \ 'cwd': a:opts[ 'cwd' ],
           \ 'env': a:opts[ 'env' ],
