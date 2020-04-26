@@ -12,14 +12,6 @@ fi
 RUN_VIM="vim --clean --not-a-term"
 RUN_TEST="${RUN_VIM} -S lib/run_test.vim"
 
-NODE_VERSION_MAJ=$(node --version \
-                  | awk 'BEGIN { FS="." } { print substr( $1, 2 ) }')
-if [ ${NODE_VERSION_MAJ} -gt "10" ]; then
-  echo "ERROR: Tests must be run against node 10 or earlier because python." >&2
-  echo "You have $(node --version)" >&2
-  exit 1
-fi
-
 if [ -z "$VIMSPECTOR_MIMODE" ]; then
   if which lldb >/dev/null 2>&1; then
     export VIMSPECTOR_MIMODE=lldb

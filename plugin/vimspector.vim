@@ -45,8 +45,8 @@ nnoremap <Plug>VimspectorToggleBreakpoint
       \ :<c-u>call vimspector#ToggleBreakpoint()<CR>
 nnoremap <Plug>VimspectorToggleConditionalBreakpoint
       \ :<c-u>call vimspector#ToggleBreakpoint(
-                    \ { 'condition': input( 'Enter condition: ' ),
-                    \   'hitCondition': input( 'Enter hit condition: ' ) }
+                    \ { 'condition': input( 'Enter condition expression: ' ),
+                    \   'hitCondition': input( 'Enter hit count expression: ' ) }
                     \ )<CR>
 nnoremap <Plug>VimspectorAddFunctionBreakpoint
       \ :<c-u>call vimspector#AddFunctionBreakpoint( expand( '<cexpr>' ) )<CR>
