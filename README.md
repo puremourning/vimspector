@@ -517,7 +517,7 @@ let g:vimspector_enable_mappings = 'HUMAN'
 | `F4`         | Restart debugging with the same configuration.            | `vimspector#Restart()`                                       |
 | `F6`         | Pause debugee.                                            | `vimspector#Pause()`                                         |
 | `F9`         | Toggle line breakpoint on the current line.               | `vimspector#ToggleBreakpoint()`                              |
-| `<leader>F9` | Toggle conditional line breakpoint on the current line.   | `vimspector#ToggleBreakpoint( {condition, hit condition } )` |
+| `<leader>F9` | Toggle conditional line breakpoint on the current line.   | `vimspector#ToggleBreakpoint( { trigger expr, hit count expr } )` |
 | `F8`         | Add a function breakpoint for the expression under cursor | `vimspector#AddFunctionBreakpoint( '<cexpr>' )`              |
 | `F10`        | Step Over                                                 | `vimspector#StepOver()`                                      |
 | `F11`        | Step Into                                                 | `vimspector#StepInto()`                                      |
@@ -529,6 +529,8 @@ let g:vimspector_enable_mappings = 'HUMAN'
 
 * Create `vimspector.json`. See [below](#supported-languages).
 * `:call vimspector#Launch()` and select a configuration.
+
+![debug session](https://puremourning.github.io/vimspector-web/img/vimspector-overview.png)
 
 ### Launch with options
 
@@ -562,15 +564,34 @@ debugger](#java---partially-supported)
 
 ## Breakpoints
 
-* Use `vimspector#ToggleBreakpoint([ { 'condition': '<condition>' } ])`
+* Use `vimspector#ToggleBreakpoint([ { 'condition': '<condition expr>' } ])`
   to set/disable/delete a line breakpoint, with optional condition.
-* Use `vimspector#AddFunctionBreakpoint( '<name>' [, { 'condition': '<condition>' } ] )`
+* Use `vimspector#AddFunctionBreakpoint( '<name>' [, { 'condition': '<condition expr>' } ] )`
   to add a function breakpoint with optional condition.
+
+Both of these functions take a single optional argument which is a dictionary of
+options. The dictionary can have the following keys:
+
+* `condition`: An optional expression evaluated to deterimie if the breakpoint
+  should fire. Not supported by all debug adapters. For example, to break when
+  `abc` is `10`, enter something like `abc == 10`, depending on the language.
+* `hitCondition`: An optional expression evaluated to determine a number of
+  times the breakpoint should be ignored. Should (probablty?) not be used in
+  combination with `condition`. Not supported by all debug adapters. For
+  example, to break on the 3rd time hitting this line, enter `3`.
+
+In both cases, the expression is evaluated by the debugger, so should be in
+whatever dialect the debugger understands when evaluating expressions.
+
+When using the `<leader><F9>` mapping, the user is prompted to enter these
+expressions in a command line (with history).
 
 ## Stepping
 
-* Step in/out, finish, continue, pause etc. using the WinBar.
+* Step in/out, finish, continue, pause etc. using the WinBar, or mappings.
 * If you really want to, the API is `vimspector#StepInto()` etc.
+
+![code window](https://puremourning.github.io/vimspector-web/img/vimspector-code-window.png)
 
 ## Variables and scopes
 
@@ -578,6 +599,8 @@ debugger](#java---partially-supported)
 * Use `<CR>` to expand/collapse (+, -).
 * When changing the stack frame the locals window updates.
 * While paused, hover to see values
+
+![locals window](https://puremourning.github.io/vimspector-web/img/vimspector-locals-window.png)
 
 ## Watches
 
@@ -591,10 +614,14 @@ to add a new watch expression.
 * Expand result with `<CR>`.
 * Delete with `<DEL>`.
 
+![watch window](https://puremourning.github.io/vimspector-web/img/vimspector-watch-window.png)
+
 ## Stack Traces
 
 * In the threads window, use `<CR>` to expand/collapse.
 * Use `<CR>` on a stack frame to jump to it.
+
+![stack trace](https://puremourning.github.io/vimspector-web/img/vimspector-callstack-window.png)
 
 ## Program Output
 
@@ -603,6 +630,8 @@ to add a new watch expression.
   completion to see the categories.
 * The debugee prints to the stdout channel.
 * Other channels may be useful for debugging.
+
+![output window](https://puremourning.github.io/vimspector-web/img/vimspector-output-window.png)
 
 ### Console
 

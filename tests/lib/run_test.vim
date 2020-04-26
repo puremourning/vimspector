@@ -32,11 +32,12 @@
 "   call ch_log( ",,,message..." )
 " Then view it in 'debuglog'
 
-" Let a test take up to 1 minute
+" Let a test take up to 1 minute, unless debugging
 let s:single_test_timeout = 60000
 
 " Restrict the runtimepath to the exact minimum needed for testing
-set runtimepath=$PWD/lib,$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after
+let &rtp = getcwd() . '/lib'
+set runtimepath+=$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after
 if has('packages')
   let &packpath = &runtimepath
 endif
@@ -70,6 +71,10 @@ func s:TestFailed()
 endfunc
 
 func! Abort( timer_id )
+  if exists( '&debugfunc' ) && &debugfunc != ''
+    return
+  endif
+
   call assert_report( 'Test timed out!!!' )
   qa!
 endfunc
@@ -152,6 +157,26 @@ func RunTheTest(test)
           \ 'SKIPPED ' . a:test
           \ . ': '
           \ . substitute(v:exception, '^\S*\s\+', '',  ''))
+  catch /^\cxfail/
+    if len( v:errors ) == 0
+      call add(v:errors,
+            \ 'Expected failure but no error in ' . a:test
+            \ . ': '
+            \ . v:exception
+            \ . ' @ '
+            \ . g:testpath
+            \ . ':'
+            \ . v:throwpoint)
+
+      call s:TestFailed()
+    else
+      let v:errors = []
+      call add(s:messages, '    XFAIL' )
+      call add(s:skipped,
+            \ 'XFAIL ' . a:test
+            \ . ': '
+            \ . substitute(v:exception, '^\S*\s\+', '',  ''))
+    endif
   catch
     call add(v:errors,
           \ 'Caught exception in ' . a:test

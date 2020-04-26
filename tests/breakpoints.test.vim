@@ -295,3 +295,158 @@ function! Test_Insert_Code_Above_Breakpoint()
   call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 26 )
 
 endfunction
+
+function! SetUp_Test_Conditional_Line_Breakpoint()
+  let g:vimspector_enable_mappings = 'HUMAN'
+endfunction
+
+function! Test_Conditional_Line_Breakpoint()
+  lcd testdata/cpp/simple
+  edit simple.cpp
+  call setpos( '.', [ 0, 16, 1 ] )
+
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 16, 1 )
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 16 )
+
+  " Add the conditional breakpoint
+  call feedkeys( "\\\<F9>argc==0\<CR>\<CR>", 'xt' )
+  call vimspector#test#signs#AssertSignGroupSingletonAtLine( 'VimspectorBP',
+                                                           \ 16,
+                                                           \ 'vimspectorBPCond' )
+
+  " Disable the breakpoint
+  call feedkeys( "\<F9>", 'xt' )
+  call vimspector#test#signs#AssertSignGroupSingletonAtLine(
+        \ 'VimspectorBP',
+        \ 16,
+        \ 'vimspectorBPDisabled' )
+
+  " Delete the breakpoint
+  call feedkeys( "\<F9>", 'xt' )
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 16 )
+
+  " Add breakpoint using API:
+  "  - on line 16 condition which doesn't match
+  "  - then an unconditional one on line 9, unconditional
+  "  - then on line 17, condition which matches
+  call vimspector#ToggleBreakpoint( { 'condition': 'argc == 0' } )
+  call vimspector#test#signs#AssertSignGroupSingletonAtLine(
+        \ 'VimspectorBP',
+        \ 16,
+        \ 'vimspectorBPCond' )
+  call setpos( '.', [ 0, 9, 1 ] )
+  call vimspector#ToggleBreakpoint()
+  call vimspector#test#signs#AssertSignGroupSingletonAtLine(
+        \ 'VimspectorBP',
+        \ 9,
+        \ 'vimspectorBP' )
+
+  call setpos( '.', [ 0, 17, 1 ] )
+  call vimspector#ToggleBreakpoint( { 'condition': 'argc == 1' } )
+  call vimspector#test#signs#AssertSignGroupSingletonAtLine(
+        \ 'VimspectorBP',
+        \ 17,
+        \ 'vimspectorBPCond' )
+
+  call setpos( '.', [ 0, 1, 1 ] )
+
+  " Start debugging
+  call vimspector#Continue()
+  " break on main
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
+
+  " Ignore non-matching on line 16, break on line 9
+  call vimspector#Continue()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 9, 1 )
+
+  " Condition matches on line 17
+  call vimspector#Continue()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 17, 1 )
+
+  call vimspector#test#setup#Reset()
+
+  lcd -
+  %bwipeout!
+endfunction
+
+function! SetUp_Test_Conditional_Line_Breakpoint_Hit()
+  let g:vimspector_enable_mappings = 'HUMAN'
+endfunction
+
+function! Test_Conditional_Line_Breakpoint_Hit()
+  let fn = '../support/test/python/simple_python/main.py'
+  exe 'edit' fn
+  call setpos( '.', [ 0, 14, 1 ] )
+
+  " Add the conditional breakpoint (3 times)
+  call feedkeys( "\\\<F9>\<CR>3\<CR>", 'xt' )
+  call vimspector#test#signs#AssertSignGroupSingletonAtLine(
+        \ 'VimspectorBP',
+        \ 14,
+        \ 'vimspectorBPCond' )
+
+  call vimspector#LaunchWithSettings( { 'configuration': 'run' } )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 14, 1 )
+
+  " difficult to check if we really did run 3 times, so just use the watch
+  " window (also, tests the watch window!)
+  call vimspector#AddWatch( 'i' )
+  call WaitForAssert( {->
+        \       assert_equal( [ '  - Result: 2' ],
+        \                     getbufline( 'vimspector.Watches', '$' ) )
+        \ } )
+
+
+  call vimspector#test#setup#Reset()
+  %bwipeout!
+endfunction
+
+function! Test_Function_Breakpoint()
+  lcd testdata/cpp/simple
+  edit simple.cpp
+  call vimspector#AddFunctionBreakpoint( 'foo' )
+  call vimspector#Launch()
+  " break on main
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
+  call vimspector#Continue()
+  " break on func
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 9, 1 )
+  call vimspector#test#setup#Reset()
+  %bwipeout!
+endfunction
+
+function! Test_Function_Breakpoint_Condition()
+  lcd testdata/cpp/simple
+  edit simple.cpp
+  call vimspector#AddFunctionBreakpoint( 'foo', { 'condition': '1' } )
+  call vimspector#Launch()
+  " break on main
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
+  call vimspector#Continue()
+  " break on func
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 9, 1 )
+  call vimspector#test#setup#Reset()
+  %bwipeout!
+endfunction
+
+" Can't find an adapter that supports conditional function breakpoints which are
+" probably pretty niche anyway
+"
+" function! Test_Function_Breakpoint_Condition_False()
+"   lcd testdata/cpp/simple
+"   edit simple.cpp
+"
+"   call vimspector#AddFunctionBreakpoint( 'foo', { 'condition': '0' } )
+"   call setpos( '.', [ 0, 17, 1 ] )
+"   call vimspector#ToggleBreakpoint()
+"   call vimspector#Launch()
+"   " break on main
+"   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
+"   call vimspector#Continue()
+"
+"   " doesn't break in func, break on line 17
+"   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 17, 1 )
+"   call vimspector#test#setup#Reset()
+"   %bwipeout!
+"   throw "xfail cpptools doesn't seem to honour conditions on function bps"
+" endfunction

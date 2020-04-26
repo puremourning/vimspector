@@ -313,7 +313,7 @@ class VariablesView( object ):
     if result_str is None:
       result_str = 'null'
 
-    line =  '{0}{1} Result: {2} '.format( ' ' * indent, icon, result_str )
+    line =  '{0}{1} Result: {2}'.format( ' ' * indent, icon, result_str )
     line = utils.AppendToBuffer( self._watch.win.buffer, line.split( '\n' ) )
     self._watch.lines[ line ] = result
 
