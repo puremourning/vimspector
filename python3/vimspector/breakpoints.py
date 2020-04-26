@@ -55,6 +55,9 @@ class ProjectBreakpoints( object ):
     if not utils.SignDefined( 'vimspectorBP' ):
       vim.command( 'sign define vimspectorBP text==> texthl=Error' )
 
+    if not utils.SignDefined( 'vimspectorBPCond' ):
+      vim.command( 'sign define vimspectorBPCond text=?> texthl=Error' )
+
     if not utils.SignDefined( 'vimspectorBPDisabled' ):
       vim.command( 'sign define vimspectorBPDisabled text=!> texthl=Warning' )
 
@@ -96,8 +99,9 @@ class ProjectBreakpoints( object ):
             'col': 1,
             'type': 'L',
             'valid': 1 if bp[ 'state' ] == 'ENABLED' else 0,
-            'text': "Line breakpoint - {}".format(
-              bp[ 'state' ] )
+            'text': "Line breakpoint - {}: {}".format(
+              bp[ 'state' ],
+              json.dumps( bp[ 'options' ] ) )
           } )
       # I think this shows that the qf list is not right for this.
       for bp in self._func_breakpoints:
@@ -107,7 +111,8 @@ class ProjectBreakpoints( object ):
           'col': 1,
           'type': 'F',
           'valid': 1,
-          'text': "Function breakpoint: {}".format( bp[ 'function' ] ),
+          'text': "Function breakpoint: {}: {}".format( bp[ 'function' ],
+                                                        bp[ 'options' ] ),
         } )
 
     vim.eval( 'setqflist( {} )'.format( json.dumps( qf ) ) )
@@ -127,7 +132,7 @@ class ProjectBreakpoints( object ):
 
     self.UpdateUI()
 
-  def ToggleBreakpoint( self ):
+  def ToggleBreakpoint( self, options ):
     line, column = vim.current.window.cursor
     file_name = vim.current.buffer.name
 
@@ -161,9 +166,10 @@ class ProjectBreakpoints( object ):
       self._line_breakpoints[ file_name ].append( {
         'state': 'ENABLED',
         'line': line,
+        'options': options,
         # 'sign_id': <filled in when placed>,
         #
-        # Used by other breakpoint types:
+        # Used by other breakpoint types (specified in options):
         # 'condition': ...,
         # 'hitCondition': ...,
         # 'logMessage': ...
@@ -171,10 +177,14 @@ class ProjectBreakpoints( object ):
 
     self.UpdateUI()
 
-  def AddFunctionBreakpoint( self, function ):
+  def AddFunctionBreakpoint( self, function, options ):
     self._func_breakpoints.append( {
-        'state': 'ENABLED',
-        'function': function,
+      'state': 'ENABLED',
+      'function': function,
+      'options': options,
+      # Specified in options:
+      # 'condition': ...,
+      # 'hitCondition': ...,
     } )
 
     # TODO: We don't really have aanything to update here, but if we're going to
@@ -239,7 +249,10 @@ class ProjectBreakpoints( object ):
         if bp[ 'state' ] != 'ENABLED':
           continue
 
-        breakpoints.append( { 'line': bp[ 'line' ] } )
+        dap_bp = {}
+        dap_bp.update( bp[ 'options' ] )
+        dap_bp.update( { 'line': bp[ 'line' ] } )
+        breakpoints.append( dap_bp )
 
       source = {
         'name': os.path.basename( file_name ),
@@ -264,15 +277,21 @@ class ProjectBreakpoints( object ):
 
     if self._server_capabilities.get( 'supportsFunctionBreakpoints' ):
       awaiting = awaiting + 1
+      breakpoints = []
+      for bp in self._func_breakpoints:
+        if bp[ 'state' ] != 'ENABLED':
+          continue
+        dap_bp = {}
+        dap_bp.update( bp[ 'options' ] )
+        dap_bp.update( { 'name': bp[ 'function' ] } )
+        breakpoints.append( dap_bp )
+
       self._connection.DoRequest(
         lambda msg: response_handler( None, msg ),
         {
           'command': 'setFunctionBreakpoints',
           'arguments': {
-            'breakpoints': [
-              { 'name': bp[ 'function' ] }
-              for bp in self._func_breakpoints if bp[ 'state' ] == 'ENABLED'
-            ],
+            'breakpoints': breakpoints,
           }
         },
         failure_handler = lambda *_: response_received()
@@ -354,12 +373,15 @@ class ProjectBreakpoints( object ):
           bp[ 'sign_id' ] = self._next_sign_id
           self._next_sign_id += 1
 
+        sign = ( 'vimspectorBPDisabled' if bp[ 'state' ] != 'ENABLED'
+                 else 'vimspectorBPCond' if 'condition' in bp[ 'options' ]
+                 else 'vimspectorBP' )
+
         vim.command(
           'sign place {0} group=VimspectorBP line={1} name={2} file={3}'.format(
             bp[ 'sign_id' ] ,
             bp[ 'line' ],
-            'vimspectorBP' if bp[ 'state' ] == 'ENABLED'
-                           else 'vimspectorBPDisabled',
+            sign,
             file_name ) )
 
 

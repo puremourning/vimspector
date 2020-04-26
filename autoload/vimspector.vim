@@ -42,12 +42,23 @@ function! vimspector#ClearBreakpoints() abort
   py3 _vimspector_session.ClearBreakpoints()
 endfunction
 
-function! vimspector#ToggleBreakpoint() abort
-  py3 _vimspector_session.ToggleBreakpoint()
+function! vimspector#ToggleBreakpoint( ... ) abort
+  if a:0 == 0
+    let options = {}
+  else
+    let options = a:1
+  endif
+  py3 _vimspector_session.ToggleBreakpoint( vim.eval( 'options' ) )
 endfunction
 
-function! vimspector#AddFunctionBreakpoint( function ) abort
-  py3 _vimspector_session.AddFunctionBreakpoint( vim.eval( 'a:function' ) )
+function! vimspector#AddFunctionBreakpoint( function, ... ) abort
+  if a:0 == 0
+    let options = {}
+  else
+    let options = a:1
+  endif
+  py3 _vimspector_session.AddFunctionBreakpoint( vim.eval( 'a:function' ),
+                                               \ vim.eval( 'options' ) )
 endfunction
 
 function! vimspector#StepOver() abort
