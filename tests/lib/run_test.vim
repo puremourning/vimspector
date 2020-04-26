@@ -36,7 +36,7 @@
 let s:single_test_timeout = 60000
 
 " Restrict the runtimepath to the exact minimum needed for testing
-let &rtp = getcwd() . '/lib'
+let &runtimepath = getcwd() . '/lib'
 set runtimepath+=$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after
 if has('packages')
   let &packpath = &runtimepath
@@ -71,7 +71,7 @@ func s:TestFailed()
 endfunc
 
 func! Abort( timer_id )
-  if exists( '&debugfunc' ) && &debugfunc != ''
+  if exists( '&debugfunc' ) && &debugfunc !=# ''
     return
   endif
 

@@ -1,0 +1,21 @@
+{
+  "configurations": {
+    "Run test": {
+      "adapter": "vim-debug-adapter",
+      "configuration": {
+        "request": "launch",
+        "cwd": "${workspaceRoot}",
+        "env": {
+          "VIMSPECTOR_MIMODE": "lldb"
+        },
+        "args": [
+          "--clean",
+          "--not-a-term",
+          "-S", "lib/run_test.vim",
+          "${file}",
+          "${TestFunction}"
+        ]
+      }
+    }
+  }
+}
