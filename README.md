@@ -59,10 +59,54 @@ For a tutorial and usage overview, take a look at the
 
 <!--te-->
 
+# Motivation
+
+A message from the author about the motivation for this plugin:
+
+> Many development environments have a built-in debugger. I spend an inordinate
+> amount of my time in Vim. I do all my development in Vim and I have even
+> customised my workflows for building code, running tests etc.
+>
+> For many years I have observed myself, friends and colleagues have been
+> writing `printf`, `puts`, `print`, etc.  debugging statements in all sorts of
+> files simply because there is no _easy_ way to run a debugger for _whatever_
+> language we happen to be developing in.
+>
+> I truly believe that interactive, graphical debugging environments are the
+> best way to understand and reason about both unfamiliar and familiar code, and
+> that the lack of ready, simple access to a debugger is a huge hidden
+> productivity hole for many.
+>
+> Don't get me wrong, I know there are literally millions of developers out
+> there that are more than competent at developing without a graphical debugger,
+> but I maintain that if they had the ability to _just press a key_ and jump
+> into the debugger, it would be faster and more enjoyable that just cerebral
+> code comprehension.
+>
+> I created Vimsepctor because I find changing tools frustrating. `gdb` for c++,
+> `pdb` for python, etc. Each has its own syntax. Each its own lexicon. Each its
+> own foibles. 
+>
+> I designed the configuration system in such a way that the configuration can
+> be committed to source control so that it _just works_ for any of your
+> colleagues, friends, collaborators or complete strangers.
+>
+> I made remote debugging a first-class feature because that's a primary use
+> case for me in my job.
+>
+> With Vimspector I can _just hit `<F5>`_ in all of the languages I develop in
+> and debug locally or remotely using the exact same workflow, mappings and UI.
+> I have integrated this with my Vim in such a way that I can hit a button and
+> _run the test under the cursor in Vimspector_.  This kind of integration has
+> massively improved my workflow and productivity.  It's even made the process
+> of learning a new codebase... fun.
+>
+> \- Ben Jackson, Creator.
+
 # Features and Usage
 
 The plugin is a capable Vim graphical debugger for multiple languages.
-It's mostly tested for c++ and python, but in theory supports any 
+It's mostly tested for c++, python and TCL, but in theory supports any
 language that Visual Studio Code supports (but see caveats).
 
 The [Vimspector website][website] has an overview of the UI, along with basic
@@ -137,7 +181,7 @@ pre-packaged. To use a release tarball:
 
 ```
 $ mkdir -p $HOME/.vim/pack
-$ curl -L <url> | tar -C $HOME/.vim/pack zxvf - 
+$ curl -L <url> | tar -C $HOME/.vim/pack zxvf -
 ```
 
 3. Configure your project's debug profiles (create `.vimspector.json`)
@@ -163,7 +207,7 @@ Vimspector requires:
 
 Why such a new vim ? Well 2 reasons:
 
-1. Because vimspector uses a lot of new Vim features 
+1. Because vimspector uses a lot of new Vim features
 2. Because there are Vim bugs that vimspector triggers that will frustrate you
    if you hit them.
 
@@ -305,7 +349,7 @@ out how to start it, and configure that in an `adapters` entry in either your
 The simplest way in practice is to install or start Visusal Studio Code and use
 its extension manager to install the relevant extension. You can then configure
 the adapter manually in the `adapters` section of your `.vimspector.json` or in
-a `gadgets.json`. 
+a `gadgets.json`.
 
 PRs are always welcome to add configuration to do this to `install_gadget.py`.
 
@@ -351,19 +395,19 @@ Example:
     },
     "vscode-cpptools": {
       "attach": {
-        "pidProperty": "processId", 
+        "pidProperty": "processId",
         "pidSelect": "ask"
-      }, 
+      },
       "command": [
         "${gadgetDir}/vscode-cpptools/debugAdapters/OpenDebugAD7"
-      ], 
+      ],
       "name": "cppdbg"
-    }, 
+    },
     "vscode-python": {
       "command": [
-        "node", 
+        "node",
         "${gadgetDir}/vscode-python/out/client/debugger/debugAdapter/main.js"
-      ], 
+      ],
       "name": "vscode-python"
     }
   }
@@ -639,7 +683,7 @@ The console window is a prompt buffer, where that's available, and can be used
 as an interactive CLI for the debug adapter. Support for this varies amongt
 adapters.
 
-* Enter insert mode to enter a command to evaluate. 
+* Enter insert mode to enter a command to evaluate.
 * Alternatively, `:VimspectorEval <expression>`. Completion is available with
   some debug adapters.
 * Commit the request with `<CR>`
@@ -858,7 +902,7 @@ Requires `install_gadget.py --force-enable-csharp`.
 
 ## Go
 
-* Go 
+* Go
 
 Requires:
 
@@ -891,7 +935,7 @@ Requires:
 
 * (optional) Xdebug helper for chrome https://chrome.google.com/webstore/detail/xdebug-helper/eadndfjplgieldjbigjakmdgkmoaaaoc
 * `install_gadget.py --force-enable-php`
-* configured php xdebug extension 
+* configured php xdebug extension
 ```ini
 zend_extension=xdebug.so
 xdebug.remote_enable=on
@@ -1016,7 +1060,7 @@ It allows you to debug scripts running inside chrome from within Vim.
 
 * Java Debug Server. The [java debug server][java-debug-server] runs as a
   jdt.ls plugin, rather than a standalone debug adapter. This makes a lot
-  of sense if you already happen to be running the language server. 
+  of sense if you already happen to be running the language server.
   Vimspector is not in the business of running language servers. So, rather
   than doing so, vimspector simply allows you to start the java debug server
   manually (however you might do so) and you can tell vimspector the port
@@ -1030,7 +1074,7 @@ It allows you to debug scripts running inside chrome from within Vim.
 
 # Customisation
 
-There is very limited support for customistaion of the UI. 
+There is very limited support for customistaion of the UI.
 
 ## Changing the default signs
 
