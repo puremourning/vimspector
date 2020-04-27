@@ -59,6 +59,13 @@ class VariablesView( object ):
       vim.command(
         'nnoremap <buffer> <DEL> :call vimspector#DeleteWatch()<CR>' )
 
+      vim.command( 'nnoremenu 1.1 WinBar.New '
+                   ':call vimspector#AddWatch()<CR>' )
+      vim.command( 'nnoremenu 1.2 WinBar.Expand/Collapse '
+                   ':call vimspector#ExpandVariable()<CR>' )
+      vim.command( 'nnoremenu 1.3 WinBar.Delete '
+                   ':call vimspector#DeleteWatch()<CR>' )
+
     utils.SetUpScratchBuffer( self._vars.win.buffer, 'vimspector.Variables' )
     utils.SetUpPromptBuffer( self._watch.win.buffer,
                              'vimspector.Watches',
@@ -165,12 +172,18 @@ class VariablesView( object ):
 
     current_line = vim.current.window.cursor[ 0 ]
 
+    best_index = -1
     for index, watch in enumerate( self._watches ):
-      if '_line' in watch and watch[ '_line' ] == current_line:
-        del self._watches[ index ]
-        utils.UserMessage( 'Deleted' )
-        self._DrawWatches()
-        return
+      if ( '_line' in watch
+           and watch[ '_line' ] <= current_line
+           and watch[ '_line' ] > best_index ):
+        best_index = index
+
+    if best_index >= 0:
+      del self._watches[ best_index ]
+      utils.UserMessage( 'Deleted' )
+      self._DrawWatches()
+      return
 
     utils.UserMessage( 'No watch found' )
 
