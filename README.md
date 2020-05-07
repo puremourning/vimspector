@@ -6,6 +6,7 @@ For a tutorial and usage overview, take a look at the
 [![Build Status](https://dev.azure.com/puremouron/Vimspector/_apis/build/status/puremourning.vimspector?branchName=master)](https://dev.azure.com/puremouron/Vimspector/_build/latest?definitionId=1&branchName=master) [![Gitter](https://badges.gitter.im/vimspector/Lobby.svg)](https://gitter.im/vimspector/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 <!--ts-->
+   * [Motivation](#motivation)
    * [Features and Usage](#features-and-usage)
       * [Supported debugging features](#supported-debugging-features)
       * [Supported languages:](#supported-languages)
@@ -15,11 +16,13 @@ For a tutorial and usage overview, take a look at the
    * [Installation](#installation)
       * [Dependencies](#dependencies)
       * [Neovim differences](#neovim-differences)
+      * [Windows differences](#windows-differences)
       * [Language dependencies](#language-dependencies)
       * [Clone the plugin](#clone-the-plugin)
       * [Install some gadgets](#install-some-gadgets)
       * [Manual gadget installation](#manual-gadget-installation)
          * [The gadget directory](#the-gadget-directory)
+      * [Trying it out](#trying-it-out)
    * [About](#about)
       * [Background](#background)
       * [Status](#status)
@@ -49,13 +52,16 @@ For a tutorial and usage overview, take a look at the
          * [Debug web application](#debug-web-application)
          * [Debug cli application](#debug-cli-application)
       * [JavaScript, TypeScript, etc.](#javascript-typescript-etc)
-      * [Java - partially supported](#java---partially-supported)
+      * [Java](#java)
+         * [Usage with YouCompleteMe](#usage-with-youcompleteme)
+         * [Other LSP clients](#other-lsp-clients)
+      * [Other servers](#other-servers)
    * [Customisation](#customisation)
       * [Changing the default signs](#changing-the-default-signs)
    * [FAQ](#faq)
    * [License](#license)
 
-<!-- Added by: ben, at: Sat  8 Feb 2020 21:12:02 GMT -->
+<!-- Added by: ben, at: Thu  7 May 2020 22:30:21 BST -->
 
 <!--te-->
 
@@ -1129,6 +1135,9 @@ nnoremap <silent> <buffer> <Leader><F5> :call <SID>StartDebugging()<CR>
 ```
 
 You can then use `<Leader><F5>` to start debugging rather than just `<F5>`.
+
+For the launch arguments, see the
+[vscode document](https://code.visualstudio.com/docs/java/java-debugging).
 
 ### Other LSP clients
 
