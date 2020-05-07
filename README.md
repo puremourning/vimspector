@@ -1090,7 +1090,7 @@ use it with Vimspector.
       "configuration": {
         "request": "attach",
         "hostName": "${host}",
-        "port": "${port},
+        "port": "${port}",
         "sourcePaths": [
           "${workspaceRoot}/src/main/java",
           "${workspaceRoot}/src/test/java",
