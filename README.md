@@ -83,7 +83,7 @@ A message from the author about the motivation for this plugin:
 > into the debugger, it would be faster and more enjoyable that just cerebral
 > code comprehension.
 >
-> I created Vimsepctor because I find changing tools frustrating. `gdb` for c++,
+> I created Vimspector because I find changing tools frustrating. `gdb` for c++,
 > `pdb` for python, etc. Each has its own syntax. Each its own lexicon. Each its
 > own foibles. 
 >
