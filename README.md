@@ -142,6 +142,7 @@ with little effort, and are supported as first-class languages.
 - Python 2 and Python 3
 - TCL
 - Bash scripts
+- Java
 
 ## Languages known to work
 
@@ -149,7 +150,6 @@ The following languages are used frequently by the author, but require some sort
 of hackery that makes it challenging to support generally. These languages are
 on a best-efforts basis:
 
-- Java (see caveats)
 - C# (c-sharp) using dotnet core
 - Go (requires separate installation of [Delve][])
 - Node.js (requires node <12 for installation)
@@ -259,18 +259,19 @@ categorised as follows:
 * `Experimental`: Working, but not frequently used and rarely tested
 * `Legacy`: No longer supported, please migrate your config
 
-| Language         | Status       | Switch                         | Adapter             | Dependencies                    |
-|------------------|--------------|--------------------------------|---------------------|---------------------------------|
-| C, C++, etc.     | Tested       | `--all` or `--enable-c`        | vscode-cpptools     | mono-core                       |
-| Python           | Tested       | `--all` or `--enable-python`   | debugpy             | Python 2.7 or Python 3          |
-| Go               | Tested       | `--enable-go`                  | vscode-go           | Go, [Delve][]                   |
-| TCL              | Supported    | `--all` or `--enable-tcl`      | tclpro              | TCL 8.5                         |
-| Bourne Shell     | Supported    | `--all` or `--enable-bash`     | vscode-bash-debug   | Bash v??                        |
-| Node.js          | Supported    | `--force-enable-node`          | vscode-node-debug2  | 6 < Node < 12, Npm              |
-| Javascript       | Supported    | `--force-enable-chrome`        | debugger-for-chrome | Chrome                          |
-| C# (dotnet core) | Experimental | `--force-enable-csharp`        | netcoredbg          | DotNet core                     |
-| C# (mono)        | Experimental | `--force-enable-csharp`        | vscode-mono-debug   | Mono                            |
-| Python.legacy    | Legacy       | `--force-enable-python.legacy` | vscode-python       | Node 10, Python 2.7 or Python 3 |
+| Language         | Status       | Switch                         | Adapter             | Dependencies                               |
+|------------------|--------------|--------------------------------|---------------------|--------------------------------------------|
+| C, C++, etc.     | Tested       | `--all` or `--enable-c`        | vscode-cpptools     | mono-core                                  |
+| Python           | Tested       | `--all` or `--enable-python`   | debugpy             | Python 2.7 or Python 3                     |
+| Go               | Tested       | `--enable-go`                  | vscode-go           | Go, [Delve][]                              |
+| TCL              | Supported    | `--all` or `--enable-tcl`      | tclpro              | TCL 8.5                                    |
+| Bourne Shell     | Supported    | `--all` or `--enable-bash`     | vscode-bash-debug   | Bash v??                                   |
+| Node.js          | Supported    | `--force-enable-node`          | vscode-node-debug2  | 6 < Node < 12, Npm                         |
+| Javascript       | Supported    | `--force-enable-chrome`        | debugger-for-chrome | Chrome                                     |
+| Java             | Supported    | `--force-enable-java  `        | vscode-java-debug   | Compatible LSP plugin (see [later](#java)) |
+| C# (dotnet core) | Experimental | `--force-enable-csharp`        | netcoredbg          | DotNet core                                |
+| C# (mono)        | Experimental | `--force-enable-csharp`        | vscode-mono-debug   | Mono                                       |
+| Python.legacy    | Legacy       | `--force-enable-python.legacy` | vscode-python       | Node 10, Python 2.7 or Python 3            |
 
 For other languages, you'll need some other way to install the gadget.
 
@@ -1056,16 +1057,85 @@ It allows you to debug scripts running inside chrome from within Vim.
 }
 ```
 
-## Java - partially supported
+## Java
 
-* Java Debug Server. The [java debug server][java-debug-server] runs as a
-  jdt.ls plugin, rather than a standalone debug adapter. This makes a lot
-  of sense if you already happen to be running the language server.
-  Vimspector is not in the business of running language servers. So, rather
-  than doing so, vimspector simply allows you to start the java debug server
-  manually (however you might do so) and you can tell vimspector the port
-  on which it is listening. See [this issue](https://github.com/puremourning/vimspector/issues/3)
-  for more background.
+Vimsepctor works well with the [java debug server][java-debug-server], which
+runs as a jdt.ls (Java Language Server) plugin, rather than a standalone
+debug adapter.
+
+Vimspector is not in the business of running language servers, only debug
+adapters, so this means that you need a compatible Language Server Protocol
+editor plugin to use Java. I recommend [YouCompleteMe][], which has full support
+for jdt.ls, and most importantly a trivial way to load the debug adapter and to
+use it with Vimspector.
+
+### Usage with YouCompleteMe
+
+* Set up [YCM for java][YcmJava].
+* Get Vimspector to download the java debug plugin:
+   `install_gadget.py --force-enable-java <other options...>`
+* Configure Vimspector for your project using the `vscode-java` adapter, e.g.:
+
+```json
+{
+  "configurations": {
+    "Java Attach": {
+      "adapter": "vscode-java",
+      "configuration": {
+        "request": "attach",
+        "hostName": "${host}",
+        "port": "${port},
+        "sourcePaths": [
+          "${workspaceRoot}/src/main/java",
+          "${workspaceRoot}/src/test/java",
+        ]
+      }
+    }
+  }
+}
+```
+
+* Tell YCM to load the debugger plugin and create a mapping, such as
+  `<leader><F5>` to start the debug server and launch vimspector, e.g. in
+  `~/.vim/ftplugin/java.vim`:
+
+```viml
+" Tell YCM where to find the plugin. Add to any existing values.
+let g:ycm_java_jdtls_extension_path = [
+  \ '</path/to/Vimspector/gadgets/<os>'
+  \ ]
+
+let s:jdt_ls_debugger_port = 0
+function! s:StartDebugging()
+  if s:jdt_ls_debugger_port <= 0
+    " Get the DAP port
+    let s:jdt_ls_debugger_port = youcompleteme#GetCommandResponse(
+      \ 'ExecuteCommand',
+      \ 'vscode.java.startDebugSession' )
+
+    if s:jdt_ls_debugger_port == ''
+       echom "Unable to get DAP port - is JDT.LS initialized?"
+       let s:jdt_ls_debugger_port = 0
+       return
+     endif
+  endif
+
+  " Start debugging with the DAP port
+  call vimspector#LaunchWithSettings( { 'DAPPort': s:jdt_ls_debugger_port } )
+endfunction
+
+nnoremap <silent> <buffer> <Leader><F5> :call <SID>StartDebugging()<CR>
+
+```
+
+You can then use `<Leader><F5>` to start debugging rather than just `<F5>`.
+
+### Other LSP clients
+
+See [this issue](https://github.com/puremourning/vimspector/issues/3) for more
+background.
+
+## Other servers
 
 * Java - vscode-javac. This works, but is not as functional as Java Debug
   Server. Take a look at [this
@@ -1122,3 +1192,4 @@ Copyright © 2018 Ben Jackson
 [vimspector-ref-var]: https://puremourning.github.io/vimspector/configuration.html#replacements-and-variables
 [vimspector-ref-exception]: https://puremourning.github.io/vimspector/configuration.html#exception-breakpoints
 [debugpy]: https://github.com/microsoft/debugpy
+[YouCompleteMe]: https://github.com/ycm-core/YouCompleteMe#java-semantic-completion

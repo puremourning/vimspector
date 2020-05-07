@@ -140,7 +140,7 @@ GADGETS = {
     'adapters': {
       "vscode-java": {
         "name": "vscode-java",
-        "port": "ask",
+        "port": "${DAPPort}",
       }
     },
   },

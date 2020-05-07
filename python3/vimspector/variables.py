@@ -373,7 +373,8 @@ class VariablesView( object ):
 
     def handler( message ):
       # TODO: this result count be expandable, but we have no way to allow the
-      # user to interact with the balloon to expand it.
+      # user to interact with the balloon to expand it, unless we use a popup
+      # instead, but even then we don't really want to trap the cursor.
       body = message[ 'body' ]
       result = body[ 'result' ]
       if result is None:
