@@ -72,6 +72,7 @@ function! Test_Signs_Placed_Using_API_Are_Shown()
   call vimspector#test#signs#AssertSignGroupEmpty( 'VimspectorBP' )
   call vimspector#test#signs#AssertSignGroupEmpty( 'VimspectorCode' )
 
+  call vimspector#test#setup#Reset()
   %bwipeout!
 endfunction
 
@@ -244,6 +245,7 @@ function Test_DisableBreakpointWhileDebugging()
   call vimspector#test#signs#AssertSignGroupEmpty( 'VimspectorCode' )
 
   lcd -
+  call vimspector#test#setup#Reset()
   %bwipeout!
 endfunction
 

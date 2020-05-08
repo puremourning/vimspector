@@ -17,11 +17,14 @@ function! vimspector#test#setup#ClearDown() abort
 endfunction
 
 function! vimspector#test#setup#WaitForReset() abort
+  call WaitForAssert( {-> assert_equal( 1, len( gettabinfo() ) ) } )
   call WaitForAssert( {->
-        \ assert_true( pyxeval( '_vimspector_session._connection is None' ) )
+        \ assert_true( pyxeval( '_vimspector_session is None or ' .
+        \                       '_vimspector_session._connection is None' ) )
         \ } )
   call WaitForAssert( {->
-        \ assert_true( pyxeval( '_vimspector_session._uiTab is None' ) )
+        \ assert_true( pyxeval( '_vimspector_session is None or ' .
+        \                       '_vimspector_session._uiTab is None' ) )
         \ }, 10000 )
 
   call vimspector#test#signs#AssertSignGroupEmpty( 'VimspectorCode' )
@@ -37,5 +40,7 @@ function! vimspector#test#setup#Reset() abort
   if exists( '*vimspector#internal#state#Reset' )
     call vimspector#internal#state#Reset()
   endif
+
+  call popup_clear()
 endfunction
 
