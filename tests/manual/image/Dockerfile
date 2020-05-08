@@ -16,5 +16,6 @@ WORKDIR /home/dev
 
 ENV HOME /home/dev
 ENV PYTHON_CONFIGURE_OPTS --enable-shared
+ENV VIMSPECTOR_MIMODE gdb
 
 ADD --chown=dev:dev .vim/ /home/dev/.vim/

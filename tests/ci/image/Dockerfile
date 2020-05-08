@@ -27,7 +27,7 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
 ## cleanup of files from setup
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-ARG VIM_VERSION=v8.2.0460
+ARG VIM_VERSION=v8.2.0716
 
 ENV CONF_ARGS "--with-features=huge \
                --enable-python3interp \
