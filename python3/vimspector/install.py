@@ -26,6 +26,18 @@ def GetOS():
     return 'linux'
 
 
+def mkdirs( p ):
+  try:
+    os.makedirs( p )
+  except FileExistsError:
+    pass
+
+
+def MakeInstallDirs( vimspector_base ):
+  mkdirs( GetGadgetConfigDir( vimspector_base ) )
+  mkdirs( GetConfigDirForFiletype( vimspector_base, '_all' ) )
+
+
 def GetGadgetDir( vimspector_base, OS ):
   return os.path.join( os.path.abspath( vimspector_base ), 'gadgets', OS )
 

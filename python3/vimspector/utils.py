@@ -563,3 +563,12 @@ def HideSplash( api_prefix, splash ):
     Call( f'vimspector#internal#{api_prefix}popup#HideSplash', splash )
 
   return None
+
+
+def GetVimspectorBase():
+  try:
+    return vim.vars[ 'vimspector_base_dir' ].decode( 'utf-8' )
+  except KeyError:
+    return os.path.abspath( os.path.join( os.path.dirname( __file__ ),
+                                          '..',
+                                          '..' ) )

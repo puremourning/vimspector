@@ -32,9 +32,8 @@ from vimspector import ( breakpoints,
                          variables )
 from vimspector.vendor.json_minify import minify
 
-VIMSPECTOR_HOME = os.path.abspath( os.path.join( os.path.dirname( __file__ ),
-                                                 '..',
-                                                 '..' ) )
+# We cache this once, and don't allow it to change (FIXME?)
+VIMSPECTOR_HOME = utils.GetVimspectorBase()
 
 # cache of what the user entered for any option we ask them
 USER_CHOICES = {}
@@ -1007,7 +1006,7 @@ def PathsToAllGadgetConfigs( vimspector_base, current_file ):
 
 
 def PathsToAllConfigFiles( vimspector_base, current_file, filetypes ):
-  for ft in filetypes:
+  for ft in filetypes + [ '_all' ]:
     for p in sorted( glob.glob(
       os.path.join( install.GetConfigDirForFiletype( vimspector_base, ft ),
                     '*.json' ) ) ):

@@ -85,7 +85,12 @@ There are 2 ways:
    follow the instructions for running tets directly.
 1. Directly: Run `./install_gadget.py --all` and then `./run_tests`. Note that
    this depends on your runtime environment and might not match CI. I recommend
-   running the tests in the docker container.
+   running the tests in the docker container. If you have your own custom
+   gadgets and/or custom configurations (in `vimspector/configurations` and/or
+   `vimspector/gadget`, then consider using `./run_tests --install --basedir
+   /tmp/vimspector_test` (then delete `/tmp/vimspector_test`). This will install
+   the gadgets to that dir and use it for the gadget dir/config dir so that your
+   custom configuration won't interfere with the tess.
 
 When tests fail, they dump a load of logs to a directory for each failed tests.
 Usually the most useful output is `messages`, which tells you what actually
