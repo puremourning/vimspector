@@ -1175,7 +1175,7 @@ sign define vimspectorPC text=🔶 texthl=SpellBad
 
 # FAQ
 
-1. Q: Does it work? A: Yeah, sort of. It's _incredibly_ buggy and unpolished.
+1. Q: Does it work? A: Yeah. It's a bit unpolished.
 2. Q: Does it work with _this_ language? A: Probably, but it won't
    necessarily be easy to work out what to put in the `.vimspector.json`. As you
    can see above, some of the servers aren't really editor agnostic, and require
@@ -1184,6 +1184,8 @@ sign define vimspectorPC text=🔶 texthl=SpellBad
    comment](https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322)
 4. Can I specify answers to the annoying questions about exception breakpoints
    in my `vimspector.json` ? Yes, see [here][vimspector-ref-exception].
+5. Do I have to specify the file to execute in `.vimspector.json`, or could it be the current vim file? 
+   You don't need to. You can specify $file for the current active file. See [here][vimspector-ref-var] for complete list of replacements in the configuration file.
 
 # License
 
