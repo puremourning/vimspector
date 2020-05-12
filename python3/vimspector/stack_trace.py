@@ -118,10 +118,14 @@ class StackTraceView( object ):
 
       self._DrawThreads()
 
+    def failure_handler( reason, msg ):
+      # Make sure we request them again if the request fails
+      self._requesting_threads = False
+
     self._requesting_threads = True
     self._connection.DoRequest( consume_threads, {
       'command': 'threads',
-    } )
+    }, failure_handler )
 
   def _DrawThreads( self ):
     self._line_to_frame.clear()
