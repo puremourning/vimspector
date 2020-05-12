@@ -452,3 +452,77 @@ endfunction
 "   %bwipeout!
 "   throw "xfail cpptools doesn't seem to honour conditions on function bps"
 " endfunction
+
+function! s:CheckQuickFixEntries( entries )
+  let qf = getqflist()
+  let i = 0
+  for entry in a:entries
+    if i >= len( qf )
+      call assert_report( "Expected more quickfix entries" )
+    endif
+    for key in keys( entry )
+      call assert_equal( entry[ key ],
+                       \ qf[ i ][ key ],
+                       \ key . ' in ' . string( qf[ i ] )
+                       \ . ' expected ' . entry[ key ]  )
+    endfor
+    let i = i+1
+  endfor
+endfunction
+
+function! Test_ListBreakpoints()
+  lcd testdata/cpp/simple
+  edit simple.cpp
+  call setpos( '.', [ 0, 15, 1 ] )
+
+  call vimspector#ListBreakpoints()
+  wincmd p
+  cclose
+  call s:CheckQuickFixEntries( [] )
+
+  call vimspector#ToggleBreakpoint()
+  call assert_equal( [], getqflist() )
+
+  call vimspector#ListBreakpoints()
+  call s:CheckQuickFixEntries( [
+        \ { 'lnum': 15, 'col': 1, 'bufnr': bufnr( 'simple.cpp', 0 ) }
+        \ ] )
+
+  " Cursor jumps to the quickfix window
+  call assert_equal( 'quickfix', &buftype )
+  cclose
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
+
+  call vimspector#Launch()
+  " break on main
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
+
+  call vimspector#ListBreakpoints()
+  call s:CheckQuickFixEntries( [
+        \ { 'lnum': 15, 'col': 1, 'bufnr': bufnr( 'simple.cpp', 0 ) }
+        \ ] )
+  call assert_equal( 'quickfix', &buftype )
+  wincmd p
+  cclose
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
+
+  " Add a breakpoint that moves (from line 5 to line 9)
+  call cursor( [ 5, 1 ] )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 5, 1 )
+  call vimspector#ToggleBreakpoint()
+
+  function! Check()
+    call vimspector#ListBreakpoints()
+    wincmd p
+    return assert_equal( 2, len( getqflist() ) )
+  endfunction
+  call WaitForAssert( function( 'Check' ) )
+
+  call s:CheckQuickFixEntries( [
+        \ { 'lnum': 15, 'col': 1, 'bufnr': bufnr( 'simple.cpp', 0 ) },
+        \ { 'lnum': 9, 'col': 1, 'bufnr': bufnr( 'simple.cpp', 0 ) },
+        \ ] )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction

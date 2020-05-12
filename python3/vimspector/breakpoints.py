@@ -82,7 +82,7 @@ class ProjectBreakpoints( object ):
     # FIXME: If the adapter type changes, we should probably forget this ?
 
 
-  def ListBreakpoints( self ):
+  def BreakpointsAsQuickFix( self ):
     # FIXME: Handling of breakpoints is a mess, split between _codeView and this
     # object. This makes no sense and should be centralised so that we don't
     # have this duplication and bug factory.
@@ -115,7 +115,8 @@ class ProjectBreakpoints( object ):
                                                         bp[ 'options' ] ),
         } )
 
-    vim.eval( 'setqflist( {} )'.format( json.dumps( qf ) ) )
+    return qf
+
 
   def ClearBreakpoints( self ):
     # These are the user-entered breakpoints.
