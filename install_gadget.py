@@ -530,12 +530,10 @@ def InstallGagdet( name, gadget, failed, all_adapters ):
     print( "FAILED installing {}: {}".format( name, e ) )
 
 
-vimspector_base = os.path.dirname( __file__ )
-OS = install.GetOS()
-gadget_dir = install.GetGadgetDir( vimspector_base, OS )
+# ------------------------------------------------------------------------------
+# Entry point
+# ------------------------------------------------------------------------------
 
-print( 'OS = ' + OS )
-print( 'gadget_dir = ' + gadget_dir )
 
 parser = argparse.ArgumentParser(
   formatter_class = argparse.RawDescriptionHelpFormatter,
@@ -565,6 +563,14 @@ parser.add_argument( '--all',
 parser.add_argument( '--force-all',
                      action = 'store_true',
                      help = 'Enable all unsupported completers' )
+
+parser.add_argument( '--basedir',
+                     action = 'store',
+                     help = 'Advanced option. '
+                            'Base directory under which to keep gadgets, '
+                            'configurations, etc.. Default: vimspector '
+                            'installation dir. Useful for developers or '
+                            'multi-user installations' )
 
 parser.add_argument( '--no-gadget-config',
                      action = 'store_true',
@@ -623,6 +629,18 @@ args = parser.parse_args()
 
 installer.AbortIfSUperUser( args.sudo )
 
+vimspector_base = os.path.dirname( __file__ )
+if args.basedir:
+  vimspector_base = os.path.abspath( args.basedir )
+
+install.MakeInstallDirs( vimspector_base )
+
+OS = install.GetOS()
+gadget_dir = install.GetGadgetDir( vimspector_base, OS )
+
+print( 'OS = ' + OS )
+print( 'gadget_dir = ' + gadget_dir )
+
 if args.force_all and not args.all:
   args.all = True
 
@@ -675,3 +693,9 @@ else:
 if failed:
   raise RuntimeError( 'Failed to install gadgets: {}'.format(
     ','.join( failed ) ) )
+
+if args.basedir:
+  print( "" )
+  print( "***NOTE***: You set --basedir to " + args.basedir +
+         ". Therefore you _must_ ensure this is in your vimrc:\n"
+         "let g:vimspector_base_dir='" + vimspector_base + "'" )
