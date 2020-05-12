@@ -44,10 +44,7 @@ function! Test_Step_With_Different_Tabpage()
   call assert_equal( 'simple.cpp', bufname( '%' ), 'Current buffer' )
   call assert_equal( 1, col( '.' ), 'Current column' )
 
-  call vimspector#Reset()
-  call vimspector#ClearBreakpoints()
-
-  call WaitForAssert( {-> assert_notequal( vimspector_tabnr, tabpagenr() ) } )
+  call vimspector#test#setup#Reset()
   lcd -
   %bwipeout!
 endfunction
