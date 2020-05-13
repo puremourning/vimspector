@@ -140,13 +140,34 @@ def ValidateCheckSumSHA256( file_path, checksum ):
 
 
 def RemoveIfExists( destination ):
-  if os.path.exists( destination ) or os.path.islink( destination ):
-    if os.path.islink( destination ):
-      print( "Removing file {}".format( destination ) )
-      os.remove( destination )
-    else:
-      print( "Removing dir {}".format( destination ) )
+  if os.path.islink( destination ):
+    print( "Removing file {}".format( destination ) )
+    os.remove( destination )
+    return
+
+  N = 1
+
+
+  def BackupDir():
+    return "{}.{}".format( destination, N )
+
+  while os.path.isdir( BackupDir() ):
+    print( "Removing old dir {}".format( BackupDir() ) )
+    try:
+      shutil.rmtree( BackupDir() )
+      print ( "OK, removed it" )
+      break
+    except OSError:
+      print ( "FAILED" )
+      N = N + 1
+
+  if os.path.exists( destination ):
+    print( "Removing dir {}".format( destination ) )
+    try:
       shutil.rmtree( destination )
+    except OSError:
+      print( "FAILED, moving {} to dir {}".format( destination, BackupDir() ) )
+      os.rename( destination, BackupDir() )
 
 
 # Python's ZipFile module strips execute bits from files, for no good reason
