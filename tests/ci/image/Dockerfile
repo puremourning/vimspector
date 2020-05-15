@@ -7,6 +7,7 @@ RUN apt-get update && \
   apt-get -y dist-upgrade && \
   apt-get -y install python3-dev \
                      python3-pip \
+                     python3-venv \
                      ca-cacert \
                      locales \
                      language-pack-en \

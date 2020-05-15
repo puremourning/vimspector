@@ -39,7 +39,7 @@ function! vimspector#internal#channel#StartDebugSession( config ) abort
     return v:false
   endif
 
-  let l:addr = 'localhost:' . a:config[ 'port' ]
+  let l:addr = get( a:config, 'host', 'localhost' ) . ':' . a:config[ 'port' ]
 
   echo 'Connecting to ' . l:addr . '... (waiting fo up to 10 seconds)'
   let s:ch = ch_open( l:addr,

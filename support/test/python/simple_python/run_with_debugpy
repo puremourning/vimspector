@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+PYTHON=python3
+
+if [ -n "$1" ]; then
+  PYTHON=$1
+fi
+
+pushd $(dirname $0)
+  if [ -d env ]; then
+    rm -rf env
+  fi
+
+  $PYTHON -m venv env
+  . env/bin/activate
+  python -m pip install -r requirements.txt
+  echo "*** Launching ***"
+  python -m debugpy --wait-for-client --listen 0.0.0.0:5678 main.py
+popd
+

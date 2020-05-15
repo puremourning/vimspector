@@ -365,6 +365,251 @@ The following variables are provided:
 * `${fileExtname}` - the current opened file's extension
 * `${cwd}` - the current working directory of the active window on launch
 
+## Remote Debugging Support
+
+Vimspector has in-built support for exectuting remote debuggers (such as
+`gdbserver`, `debugpy`, `llvm-server` etc.). This is useful for environments
+where the development is done on one host and the runtime is
+some other host, account, container, etc.
+
+In order for it to work, you have to set up passwordless SSH between the local
+and remote machines/accounts. Then just tell Vimsector how to remotely launch
+and/or attach to the app.
+
+This is presented as examples with commentary, as it's a fairly advanced/niche
+case. If you're not already familiar with remote debugging tools (such as
+gdbserver) or not familar with ssh or such, you might need to independently
+research that.
+
+Vimspector's tools are intended to automate your existing process for setting
+this up rather than to offer batteries-included approach. Ultimately, all
+vimspector is going to do is run your commands over SSH and co-ordinate with the
+adapter.
+
+### Python (debugpy) Example
+
+Here is some examples using the vimspector built-in
+remote support (using SSH) to remotely launch and attach a python application
+and connect to it using debugpy.
+
+The usage pattern is to hit `<F5>`, enter `host` (the host where your app runs),
+`account` (the account it runs under), and `port` (a port that will be opened on
+the remote host). Vimspector then orchestrates the various tools to set you up.
+
+```json
+
+{
+  "adapters": {
+    "python-remote": {
+      "port": "${port}",
+      "host": "${host}",
+      "launch": {
+        "remote": {
+          "host": "${host}",       // Remote host to ssh to (mandatory)
+          "account": "${account}", // User to connect as (optional)
+
+          // Optional.... Manual additional arguments for ssh
+          // "ssh": {
+          //   "args": [ "-o", "StrictHostKeyChecking=no" ]
+          // },
+
+          // Command to launch the debugee and attach the debugger; 
+          // %CMD% replaced with the remote-cmdLine configured in the launch
+          // configuration. (mandatory)
+          "launchCommmand": [
+            "python", "-m", "debugpy", "--listen 0.0.0.0:${port}",
+            "%CMD%"
+          ]
+          
+          // Optional alternative to launchCommmand (if you need to run multiple
+          // commands)
+          // "launchCommmands":  [
+          //   [ /* first command */ ],
+          //   [ /* second command */ ]
+          // ]
+
+        }
+      },
+      "attach": {
+        "remote": {
+          "host": "${host}",       // Remote host to ssh to (mandatory)
+          "account": "${account}", // User to connect as (optional)
+
+          // Optional.... Manual additional arguments for ssh
+          // "ssh": {
+          //   "args": [ "-o", "StrictHostKeyChecking=no" ]
+          // },
+
+          // Command to get the PID of the process to attach  (mandatory)
+          "pidCommand": [
+            //
+            // Remember taht you can use ${var} to ask for input. I use this to
+            // call a custom command to returm the PID for a named service, so
+            // here's an examle:
+            //
+            "/path/to/secret/script/GetPIDForService", "${ServiceName}"
+          ],
+
+          // Command to attach the debugger; %PID% replaced with output of
+          // pidCommand above (mandatory)
+          "attachCommand": [
+            "python", "-m", "debugpy", "--listen 0.0.0.0:${port}",
+            "--pid", "%PID%"
+          ]
+          
+          // Optional alternative to attachCommand (if you need to run multiple
+          // commands)
+          // "attachCommands":  [
+          //   [ /* first command */ ],
+          //   [ /* second command */ ]
+          // ],
+
+          // Optional.... useful with buggy gdbservers to kill -TRAP %PID%
+          // "initCompleteCommand": [
+          //   /* optional command to run after initialized */
+          // ]
+
+          // Optional.... Manual additional arguments for ssh
+          // "ssh": {
+          //   "args": [ "-o", "StrictHostKeyChecking=no" ]
+          // },
+        }
+      }
+    }
+  },
+  "configurations": {
+    "remote-launch": {
+      "adapter": "python-remote",
+
+      "remote-request": "launch",
+      "remote-cmdLine": [
+        "${RemoteRoot}/${fileBasename}", "*${args}"
+      ],
+
+      "configuration": {
+        "request": "attach",
+        "pathMappings": [
+          {
+            "localRoot": "${workspaceRoot}",
+            "remoteRoot": "${RemoteRoot}"
+          }
+        ]
+      }
+    },
+    "remote-attach": {
+      "variables": {
+        // Just an example of how to specify a variable manually rather than
+        // vimspector asking for input from the user
+        "ServiceName": "${fileBasenameNoExtention}"
+      },
+
+      "adapter": "python-remote",
+      "remote-request": "attach",
+
+      "configuration": {
+        "request": "attach",
+        "pathMappings": [
+          {
+            "localRoot": "${workspaceRoot}",
+            "remoteRoot": "${RemoteRoot}"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+### C-family (gdbserver) Example
+
+This example uses vimspector to remotely luanch or attach to a binary using
+`gdbserver` and then instructs vscode-cpptools to attach to that `gdbserver`.
+
+The appraoch is very similar to the above for python, just that we use gdbserver
+and have to tell cpptools a few more options.
+
+```json
+{
+  "adapters": {
+    "cpptools-remote": {
+      "command": [
+        "${gadgetDir}/vscode-cpptools/debugAdapters/OpenDebugAD7"
+      ],
+      "name": "cppdbg",
+      "configuration": {
+        "type": "cppdbg"
+      },
+      "launch": {
+        "remote": {
+          "host": "${host}",
+          "account": "${account}",
+          "launchCommmand": [ 
+            "gdbserver",
+            "--once",
+            "--no-startup-with-shell",
+            "--disable-randomisation",
+            "0.0.0.0:${port}",
+            "%CMD%"
+        }
+      },
+      "attach": {
+        "remote": {
+          "host": "${host}",
+          "account": "${account}",
+          "pidCommand": [
+            "/path/to/secret/script/GetPIDForService", "${ServiceName}"
+          ],
+          "attachCommand": [ 
+            "gdbserver",
+            "--once",
+            "--attach",
+            "0.0.0.0:${port}",
+            "%PID%"
+          ],
+          //
+          // If your application is started by a wrapper script, then you might
+          // need the followin. GDB can't pause an application because it only
+          // sends the signal to the process group leader. Or something.
+          // Basically, if you find that everything just hangs and the
+          // application never attaches, try using the following to manually
+          // force the trap signal.
+          //
+          "initCompleteCommand": [
+            "kill",
+            "-TRAP",
+            "%PID%"
+          ]
+        }
+      }
+    }
+  },
+  "configurations": {
+    "remote launch": {
+      "adapter": "cpptools-remote",
+      "remote-cmdLine": [ "/path/to/the/remote/executable", "args..." ],
+      "remote-request": "launch",
+      "configuration": {
+        "request": "attach", // yes, attach!
+        
+        "program": "/path/to/the/local/executable",
+        "MIMode": "gdb",
+        "miDebuggerAddress": "${host}:${port}"
+      }
+    },
+    "remote attach": {
+      "adapter": "cpptools-remote",
+      "remote-request": "attach",
+      "configuration": {
+        "request": "attach",
+        
+        "program": "/path/to/the/local/executable",
+        "MIMode": "gdb",
+        "miDebuggerAddress": "${host}:${port}"
+    }
+  }
+}
+```
+
 ## Appendix: Configuration file format
 
 The configuration files are text files which must be UTF-8 encoded. They
