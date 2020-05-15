@@ -668,6 +668,14 @@ if args.update_gadget_config:
 else:
   all_adapters = {}
 
+# Include "built-in" adapter for multi-session mode
+all_adapters.update( {
+  'multi-session': {
+    'port': '${port}',
+    'host': '${host}'
+  },
+} )
+
 for name, gadget in GADGETS.items():
   if not gadget.get( 'enabled', True ):
     if ( not args.force_all

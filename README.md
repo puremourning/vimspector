@@ -793,11 +793,25 @@ An alternative is to to use `lldb-vscode`, which comes with llvm.  Here's how:
 }
 ```
 
+### Remote debugging
+
+The cpptools documentation describes how to attach cpptools to gdbserver using
+`miDebuggerAddress`. Note that when doing this you should use the
+`"request": "attach"`.
+
+### Remote launch and attach
+
+If you're feeling fancy, checkout the [reference guide][remote-debugging] for
+an example of getting Vimspector to remotely launch and attach.
+
 ## Python
 
 * Python: [debugpy][]
-* Requires `install_gadget.py --enable-python`, this requires a working compiler
-to build a C python extension for performance.
+* Requires `install_gadget.py --enable-python`, ideally requires a working
+  compiler and the python development headers/libs to build a C python extension
+  for performance.
+* Full options: https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
+
 
 **Migrating from `vscode-python`**: change `"adapter": "vscode-python"` to
 `"adapter": "debugpy"`.
@@ -816,13 +830,57 @@ to build a C python extension for performance.
         "stopOnEntry": true,
         "console": "externalTerminal",
         "debugOptions": [],
-        "program": "<path to main python file>",
+        "program": "<path to main python file>"
       }
     }
     ...
   }
 }
 ```
+
+### Remote Debugging
+
+In order to use remote debugging with debugpy, you have to connect Vimspector
+directly to the application that is being debugged. This is easy, but it's a
+little different from how we normally configure things. Specifically, you need
+to:
+
+
+* Start your application with debugpy, specifying the `--listen` argument. See
+  [the debugpy
+  documentation](https://github.com/microsoft/debugpy#debugpy-cli-usage) for
+  details.
+* use the built-in "multi-session" adapter. This just asks for the host/port to
+  connect to. For example:
+
+```json
+{
+  "configurations": {
+    "Python Attach": {
+      "adapter": "multi-session",
+      "configuration": {
+        "request": "attach",
+        "pathMappings": [
+          // mappings here (optional)
+        ]
+      }
+    }
+  }
+}
+```
+
+See [deatils of the launch
+configuration](https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings)
+for explanation of things like `pathMappings`.
+
+Additional documenation, including how to do this when the remote machine can
+only be contacted via SSH [are provided by
+debugpy](https://github.com/microsoft/debugpy/wiki/Debugging-over-SSH).
+
+### Remote launch and attach
+
+If you're feeling fancy, checkout the [reference guide][remote-debugging] for
+an example of getting Vimspector to remotely launch and attach.
 
 ### Legacy: vscode-python
 
@@ -884,7 +942,7 @@ Requires `install_gadget.py --force-enable-csharp`
 
 Requires `install_gadget.py --force-enable-csharp`.
 
-***Known not to work.****
+***Known not to work.***
 
 ```json
 {
@@ -1093,7 +1151,7 @@ use it with Vimspector.
         "port": "${port}",
         "sourcePaths": [
           "${workspaceRoot}/src/main/java",
-          "${workspaceRoot}/src/test/java",
+          "${workspaceRoot}/src/test/java"
         ]
       }
     }
@@ -1151,6 +1209,7 @@ background.
   comment](https://github.com/puremourning/vimspector/issues/3#issuecomment-576916076)
   for instructions.
 
+
 # Customisation
 
 There is very limited support for customistaion of the UI.
@@ -1186,6 +1245,15 @@ sign define vimspectorPC text=🔶 texthl=SpellBad
    in my `.vimspector.json` ? Yes, see [here][vimspector-ref-exception].
 5. Do I have to specify the file to execute in `.vimspector.json`, or could it be the current vim file? 
    You don't need to. You can specify $file for the current active file. See [here][vimspector-ref-var] for complete list of replacements in the configuration file.
+6. You allow comments in `.vimspector.json`, but Vim highlights these as errors,
+   do you know how to make this not-an-error? Yes, put this in
+   `~/.vim/after/syntax/json.vim`:
+
+```viml
+syn region jsonComment start="/\*" end="\*/"
+hi link jsonCommentError Comment
+hi link jsonComment Comment
+```
 
 # License
 
@@ -1204,3 +1272,4 @@ Copyright © 2018 Ben Jackson
 [vimspector-ref-exception]: https://puremourning.github.io/vimspector/configuration.html#exception-breakpoints
 [debugpy]: https://github.com/microsoft/debugpy
 [YouCompleteMe]: https://github.com/ycm-core/YouCompleteMe#java-semantic-completion
+[remote-debugging]: https://puremourning.github.io/vimspector/configuration.html#remote-debugging-support

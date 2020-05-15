@@ -39,7 +39,7 @@ function! vimspector#internal#neochannel#StartDebugSession( config ) abort
     return v:false
   endif
 
-  let addr = 'localhost:' . a:config[ 'port' ]
+  let l:addr = get( a:config, 'host', 'localhost' ) . ':' . a:config[ 'port' ]
 
   let s:ch = sockconnect( 'tcp', addr, { 'on_data': funcref( 's:_OnEvent' ) } )
   if s:ch <= 0
