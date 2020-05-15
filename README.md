@@ -578,7 +578,7 @@ let g:vimspector_enable_mappings = 'HUMAN'
 
 ## Launch and attach by PID:
 
-* Create `vimspector.json`. See [below](#supported-languages).
+* Create `.vimspector.json`. See [below](#supported-languages).
 * `:call vimspector#Launch()` and select a configuration.
 
 ![debug session](https://puremourning.github.io/vimspector-web/img/vimspector-overview.png)
@@ -1183,7 +1183,7 @@ sign define vimspectorPC text=🔶 texthl=SpellBad
 3. How do I stop it starting a new Terminal.app on macOS? See [this
    comment](https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322)
 4. Can I specify answers to the annoying questions about exception breakpoints
-   in my `vimspector.json` ? Yes, see [here][vimspector-ref-exception].
+   in my `.vimspector.json` ? Yes, see [here][vimspector-ref-exception].
 5. Do I have to specify the file to execute in `.vimspector.json`, or could it be the current vim file? 
    You don't need to. You can specify $file for the current active file. See [here][vimspector-ref-var] for complete list of replacements in the configuration file.
 
