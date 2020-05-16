@@ -73,6 +73,12 @@ GADGETS = {
           "pidProperty": "processId",
           "pidSelect": "ask"
         },
+        "configuration": {
+          "type": "cppdbg",
+          "args": [],
+          "cwd": "${workspaceRoot}",
+          "environment": [],
+        }
       },
     },
   },
