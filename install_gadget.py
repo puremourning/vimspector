@@ -73,6 +73,10 @@ GADGETS = {
           "pidProperty": "processId",
           "pidSelect": "ask"
         },
+        "configutation": {
+          "type": "cppdbg",
+          "args": [],
+        }
       },
     },
   },
