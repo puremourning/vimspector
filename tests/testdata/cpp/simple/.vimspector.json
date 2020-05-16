@@ -3,12 +3,8 @@
     "cpptools-run": {
       "adapter": "vscode-cpptools",
       "configuration": {
-        "type": "cppdbg",
         "request": "launch",
         "program": "${workspaceRoot}/${fileBasenameNoExtension}",
-        "args": [],
-        "cwd": "${workspaceRoot}",
-        "environment": [],
         "externalConsole": false,
         "stopAtEntry": true,
         "stopOnEntry": true,
