@@ -73,6 +73,12 @@ GADGETS = {
           "pidProperty": "processId",
           "pidSelect": "ask"
         },
+        "configuration": {
+          "type": "cppdbg",
+          "args": [],
+          "cwd": "${workspaceRoot}",
+          "environment": [],
+        }
       },
     },
   },
@@ -576,6 +582,11 @@ parser.add_argument( '--no-gadget-config',
                      action = 'store_true',
                      help = "Don't write the .gagets.json, just install" )
 
+parser.add_argument( '--update-gadget-config',
+                     action = 'store_true',
+                     help =
+                       "Update the gadget config rather than overwrite it" )
+
 parser.add_argument( '--enable-custom',
                      dest='custom_gadget_file',
                      action='append',
@@ -657,7 +668,20 @@ for custom_file_name in functools.reduce( operator.add,
 
 
 failed = []
-all_adapters = {}
+if args.update_gadget_config:
+  with open( install.GetGadgetConfigFile( vimspector_base ), 'r' ) as f:
+    all_adapters = json.load( f ).get( 'adapters', {} )
+else:
+  all_adapters = {}
+
+# Include "built-in" adapter for multi-session mode
+all_adapters.update( {
+  'multi-session': {
+    'port': '${port}',
+    'host': '${host}'
+  },
+} )
+
 for name, gadget in GADGETS.items():
   if not gadget.get( 'enabled', True ):
     if ( not args.force_all

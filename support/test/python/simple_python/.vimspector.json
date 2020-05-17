@@ -2,7 +2,7 @@
   "configurations": {
     // This is a comment.
     "run legacy vscode-python": {
-      "adapter": "vscode-python" /* coment goes here too */,
+      "adapter": "vscode-python", /* coment goes here too */
       "configuration": {
         "request": "launch",
         "type": "python",
@@ -19,12 +19,9 @@
       }
     },
     "attach": {
-      "adapter": "debugpy",
+      "adapter": "multi-session",
       "configuration": {
-        "request": "attach",
-        "type": "python",
-        "host": "localhost",
-        "port": "5678"
+        "request": "attach"
       },
       "breakpoints": {
         "exception": {
