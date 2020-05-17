@@ -78,8 +78,19 @@
       "properties": {
         "remote": {
           "type": "object",
-          "required": [ "host" ],
-          "description": "Configures how Vimspector will marshal remote debugging requests. When remote debugging, Vimspector will ssh to 'account'@'host' and run 'pidCommand', 'attachCommands', 'runCommands', etc. based on the 'remote-command' option in the debug configuration. If 'remote-command' is 'launch', it runs 'runCommand(s)', otherwise (it's 'attach') vimspector runs 'pidCommand', followed by 'attachCommand(s)'.Then it starts up the debug adapter with the debug configuration as normal. Usually this is configured with an 'attach' request (whether we remotely 'launched' or not). Once the initialization exchange is complete, Vimspector runs the optional 'initCompleteCommand' which can be used to force the application to break, e.g. by sending it SIGINT. This is required on some platforms which have buggy gdbservers (for example)",
+          "oneOf": [
+            {
+              "required": [
+                "host"
+              ]
+            },
+            {
+              "required": [
+                "container"
+              ]
+            }
+          ],
+          "description": "Configures how Vimspector will marshal remote debugging requests. When remote debugging, Vimspector will either ssh to 'account'@'host' or docker exec -it to 'container' and run 'pidCommand', 'attachCommands', 'runCommands', etc. based on the 'remote-command' option in the debug configuration. If 'remote-command' is 'launch', it runs 'runCommand(s)', otherwise (it's 'attach') vimspector runs 'pidCommand', followed by 'attachCommand(s)'.Then it starts up the debug adapter with the debug configuration as normal. Usually this is configured with an 'attach' request (whether we remotely 'launched' or not). Once the initialization exchange is complete, Vimspector runs the optional 'initCompleteCommand' which can be used to force the application to break, e.g. by sending it SIGINT. This is required on some platforms which have buggy gdbservers (for example)",
           "properties": {
             "account": {
               "type": "string",
@@ -87,7 +98,11 @@
             },
             "host": {
               "type": "string",
-              "description": "Name of the remote host to connect to (via passwordless SSH). "
+              "description": "Name of the remote host to connect to (via passwordless SSH)."
+            },
+            "container": {
+              "type": "string",
+              "description": "Name or container id of the docker run container to connect to (via docker exec -it)."
             },
             "pidCommand": {
               "type": "array",
