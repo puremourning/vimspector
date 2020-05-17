@@ -394,7 +394,9 @@ and connect to it using debugpy.
 
 The usage pattern is to hit `<F5>`, enter `host` (the host where your app runs),
 `account` (the account it runs under), and `port` (a port that will be opened on
-the remote host). Vimspector then orchestrates the various tools to set you up.
+the remote host). Vimspector also supports exec'ing into Docker run containers
+with `container` (the container name or id your app is running in).
+Vimspector then orchestrates the various tools to set you up.
 
 ```json
 
@@ -403,9 +405,10 @@ the remote host). Vimspector then orchestrates the various tools to set you up.
     "python-remote": {
       "port": "${port}",
       "host": "${host}",
+      "container": "${container}",
       "launch": {
         "remote": {
-          "host": "${host}",       // Remote host to ssh to (mandatory)
+          "host": "${host}",       // Remote host to ssh to (mandatory if not using container)
           "account": "${account}", // User to connect as (optional)
 
           // Optional.... Manual additional arguments for ssh
@@ -432,14 +435,7 @@ the remote host). Vimspector then orchestrates the various tools to set you up.
       },
       "attach": {
         "remote": {
-          "host": "${host}",       // Remote host to ssh to (mandatory)
-          "account": "${account}", // User to connect as (optional)
-
-          // Optional.... Manual additional arguments for ssh
-          // "ssh": {
-          //   "args": [ "-o", "StrictHostKeyChecking=no" ]
-          // },
-
+          "container": "${container}"
           // Command to get the PID of the process to attach  (mandatory)
           "pidCommand": [
             //
