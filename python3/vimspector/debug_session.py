@@ -613,10 +613,10 @@ class DebugSession( object ):
       # e.g. expand variables when we use them, not all at once. This would
       # remove the whole %PID% hack.
       remote = atttach_config[ 'remote' ]
-      attach_cmd = self._GetAttachCommand( remote )
+      remote_exec_cmd = self._GetRemoteExecCommand( remote )
 
       # FIXME: Why does this not use self._GetCommands ?
-      pid_cmd = attach_cmd + remote[ 'pidCommand' ]
+      pid_cmd = remote_exec_cmd + remote[ 'pidCommand' ]
 
       self._logger.debug( 'Getting PID: %s', pid_cmd )
       pid = subprocess.check_output( pid_cmd ).decode( 'utf-8' ).strip()
@@ -628,7 +628,7 @@ class DebugSession( object ):
         return
 
       if 'initCompleteCommand' in remote:
-        initcmd = attach_cmd + remote[ 'initCompleteCommand' ][ : ]
+        initcmd = remote_exec_cmd + remote[ 'initCompleteCommand' ][ : ]
         for index, item in enumerate( initcmd ):
           initcmd[ index ] = item.replace( '%PID%', pid )
 
@@ -638,7 +638,7 @@ class DebugSession( object ):
       commands = self._GetCommands( remote, 'attach' )
 
       for command in commands:
-        cmd = attach_cmd + command[ : ]
+        cmd = remote_exec_cmd + command[ : ]
 
         for index, item in enumerate( cmd ):
           cmd[ index ] = item.replace( '%PID%', pid )
@@ -665,11 +665,11 @@ class DebugSession( object ):
 
     if 'remote' in run_config:
       remote = run_config[ 'remote' ]
-      attach_cmd = self._GetAttachCommand( remote )
+      remote_exec_cmd = self._GetRemoteExecCommand( remote )
       commands = self._GetCommands( remote, 'run' )
 
       for index, command in enumerate( commands ):
-        cmd = attach_cmd + command[ : ]
+        cmd = remote_exec_cmd + command[ : ]
         full_cmd = []
         for item in cmd:
           if isinstance( command_line, list ):
@@ -695,16 +695,26 @@ class DebugSession( object ):
     return ssh
 
   def _GetDockerCommand( self, remote ):
-    docker = [ 'docker exec -it' ] + remote.get( 'docker', {} ).get( 'args', [] )
+    args = remote.get( 'docker', {} ).get( 'args', [] )
+    docker = [ 'docker exec -it' ] + args
     if 'container' not in remote:
-        raise ValueError( "Invalid container; must be string" )
+        raise ValueError( 'Invalid container; must be string' )
     docker.append( remote[ 'container' ] )
     return docker
 
-  def _GetAttachCommand( self, remote ):
-      if any( remote.get( 'ssh' ), remote.get( 'account' ), remote.get( 'host' ) ):
+  def _GetRemoteExecCommand( self, remote ):
+      is_ssh_cmd = any(
+        remote.get( 'ssh' ),
+        remote.get( 'account' ),
+        remote.get( 'host' ),
+      )
+      is_docker_cmd = any(
+        remote.get( 'docker' ),
+        remote.get( 'container' ),
+      )
+      if is_ssh_cmd:
           return self._GetSSHCommand( remote )
-      elif any( remote.get( 'docker' ), remote.get( 'container' ) ):
+      elif is_docker_cmd:
           return self._GetDockerCommand( remote )
       raise ValueError( 'Could not determine attach command' )
 
