@@ -696,27 +696,27 @@ class DebugSession( object ):
 
   def _GetDockerCommand( self, remote ):
     if 'container' not in remote:
-        raise ValueError( 'Invalid container; must be string' )
+      raise ValueError( 'Invalid container; must be string' )
 
     docker = [ 'docker exec' ]
     docker.append( remote[ 'container' ] )
     return docker
 
   def _GetRemoteExecCommand( self, remote ):
-      is_ssh_cmd = any(
-        remote.get( 'ssh' ),
-        remote.get( 'account' ),
-        remote.get( 'host' ),
-      )
-      is_docker_cmd = any(
-        remote.get( 'docker' ),
-        remote.get( 'container' ),
-      )
-      if is_ssh_cmd:
-          return self._GetSSHCommand( remote )
-      elif is_docker_cmd:
-          return self._GetDockerCommand( remote )
-      raise ValueError( 'Could not determine remote exec command' )
+    is_ssh_cmd = any(
+      remote.get( 'ssh' ),
+      remote.get( 'account' ),
+      remote.get( 'host' ),
+    )
+    is_docker_cmd = any(
+      remote.get( 'docker' ),
+      remote.get( 'container' ),
+    )
+    if is_ssh_cmd:
+      return self._GetSSHCommand( remote )
+    elif is_docker_cmd:
+      return self._GetDockerCommand( remote )
+    raise ValueError( 'Could not determine remote exec command' )
 
 
   def _GetCommands( self, remote, pfx ):
