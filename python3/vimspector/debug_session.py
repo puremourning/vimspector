@@ -695,10 +695,10 @@ class DebugSession( object ):
     return ssh
 
   def _GetDockerCommand( self, remote ):
-    args = remote.get( 'docker', {} ).get( 'args', [] )
-    docker = [ 'docker exec -it' ] + args
     if 'container' not in remote:
         raise ValueError( 'Invalid container; must be string' )
+
+    docker = [ 'docker exec' ]
     docker.append( remote[ 'container' ] )
     return docker
 
@@ -716,7 +716,7 @@ class DebugSession( object ):
           return self._GetSSHCommand( remote )
       elif is_docker_cmd:
           return self._GetDockerCommand( remote )
-      raise ValueError( 'Could not determine attach command' )
+      raise ValueError( 'Could not determine remote exec command' )
 
 
   def _GetCommands( self, remote, pfx ):
