@@ -458,7 +458,7 @@ function! s:CheckQuickFixEntries( entries )
   let i = 0
   for entry in a:entries
     if i >= len( qf )
-      call assert_report( "Expected more quickfix entries" )
+      call assert_report( 'Expected more quickfix entries' )
     endif
     for key in keys( entry )
       call assert_equal( entry[ key ],
