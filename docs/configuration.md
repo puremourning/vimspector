@@ -383,8 +383,8 @@ research that.
 
 Vimspector's tools are intended to automate your existing process for setting
 this up rather than to offer batteries-included approach. Ultimately, all
-vimspector is going to do is run your commands over SSH and co-ordinate with the
-adapter.
+vimspector is going to do is run your commands over SSH, or docker, and 
+co-ordinate with the adapter.
 
 ### Python (debugpy) Example
 
@@ -405,7 +405,6 @@ Vimspector then orchestrates the various tools to set you up.
     "python-remote": {
       "port": "${port}",
       "host": "${host}",
-      "container": "${container}",
       "launch": {
         "remote": {
           "host": "${host}",       // Remote host to ssh to (mandatory if not using container)
@@ -435,7 +434,8 @@ Vimspector then orchestrates the various tools to set you up.
       },
       "attach": {
         "remote": {
-          "container": "${container}"
+          "host": "${host}", // Remote host to ssh to (mandatory if not using container)
+          "account": "${account}", // User to connect as (optional)
           // Command to get the PID of the process to attach  (mandatory)
           "pidCommand": [
             //
@@ -518,7 +518,7 @@ Vimspector then orchestrates the various tools to set you up.
 
 ### C-family (gdbserver) Example
 
-This example uses vimspector to remotely luanch or attach to a binary using
+This example uses vimspector to remotely launch or attach to a binary using
 `gdbserver` and then instructs vscode-cpptools to attach to that `gdbserver`.
 
 The appraoch is very similar to the above for python, just that we use gdbserver
@@ -601,6 +601,117 @@ and have to tell cpptools a few more options.
         "program": "/path/to/the/local/executable",
         "MIMode": "gdb",
         "miDebuggerAddress": "${host}:${port}"
+    }
+  }
+}
+```
+
+### Docker Example
+
+This example uses vimspector to remotely launch or attach to a docker container
+port.
+
+``` json
+{
+  "adapters": {
+    "python-remote": {
+      "port": "${port}",
+      "launch": {
+        "remote": {
+          "container": "${container}", // Docker container id or name to exec into to.
+
+          // Command to launch the debugee and attach the debugger; 
+          // %CMD% replaced with the remote-cmdLine configured in the launch
+          // configuration. (mandatory)
+          "launchCommmand": [
+            "python", "-m", "debugpy", "--listen 0.0.0.0:${port}",
+            "%CMD%"
+          ]
+          
+          // Optional alternative to launchCommmand (if you need to run multiple
+          // commands)
+          // "launchCommmands":  [
+          //   [ /* first command */ ],
+          //   [ /* second command */ ]
+          // ]
+
+        }
+      },
+      "attach": {
+        "remote": {
+          "container": "${container}", // Docker container id or name to exec into.
+          // Command to get the PID of the process to attach  (mandatory)
+          // This command gets appended to "docker exec ${container}"
+          "pidCommand": [
+            //
+            // Remember taht you can use ${var} to ask for input. I use this to
+            // call a custom command to returm the PID for a named service, so
+            // here's an examle:
+            //
+            "sh", "-c", "pgrep", "-f ${filename}"
+          ],
+
+          // Command to attach the debugger; %PID% replaced with output of
+          // pidCommand above (mandatory)
+          "attachCommand": [
+            "sh", "-c", "python", "-m", "debugpy", "--listen 0.0.0.0:${port}",
+            "--pid", "%PID%"
+          ]
+          
+          // Optional alternative to attachCommand (if you need to run multiple
+          // commands)
+          // "attachCommands":  [
+          //   [ /* first command */ ],
+          //   [ /* second command */ ]
+          // ],
+
+          // Optional.... useful with buggy gdbservers to kill -TRAP %PID%
+          // "initCompleteCommand": [
+          //   /* optional command to run after initialized */
+          // ]
+
+        }
+      }
+    }
+  },
+  "configurations": {
+    "remote-launch": {
+      "adapter": "python-remote",
+
+      "remote-request": "launch",
+      "remote-cmdLine": [
+        "${RemoteRoot}/${fileBasename}", "*${args}"
+      ],
+
+      "configuration": {
+        "request": "attach",
+        "pathMappings": [
+          {
+            "localRoot": "${workspaceRoot}",
+            "remoteRoot": "${RemoteRoot}"
+          }
+        ]
+      }
+    },
+    "remote-attach": {
+      "variables": {
+        // Just an example of how to specify a variable manually rather than
+        // vimspector asking for input from the user
+        "FileName": "${fileName}"
+      },
+
+      "adapter": "python-remote",
+      "remote-request": "attach",
+
+      "configuration": {
+        "request": "attach",
+        "pathMappings": [
+          {
+            "localRoot": "${workspaceRoot}",
+            "remoteRoot": "${RemoteRoot}"
+          }
+        ]
+      }
     }
   }
 }
