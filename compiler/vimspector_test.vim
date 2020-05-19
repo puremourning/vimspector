@@ -13,12 +13,14 @@
 " See the License for the specific language governing permissions and
 " limitations under the License.
 
+scriptencoding utf-8
+
 " Compiler plugin to help running vimspector tests
 
-if exists("current_compiler")
+if exists('current_compiler')
   finish
 endif
-let current_compiler = "vimspector_test"
+let current_compiler = 'vimspector_test'
 
 setlocal errorformat=
         \Found\ errors\ in\ %f:%.%#:
@@ -80,7 +82,7 @@ function! s:RunTestUnderCursor()
   let l:test_func_name = s:GetCurrentFunction()
 
   if l:test_func_name ==# ''
-    echo "No test method found"
+    echo 'No test method found'
     return
   endif
 
@@ -90,7 +92,9 @@ function! s:RunTestUnderCursor()
   let l:cwd = getcwd()
   execute 'lcd ' . s:root_dir
   try
-    execute s:make_cmd . ' ' . get( b:, 'test_args', '' ) . ' ' . l:test_arg
+    execute s:make_cmd . ' '
+          \ . get( g:, 'vimspector_test_args', '' ) . ' '
+          \ . l:test_arg
   finally
     execute 'lcd ' . l:cwd
   endtry
@@ -101,7 +105,9 @@ function! s:RunTest()
   let l:cwd = getcwd()
   execute 'lcd ' . s:root_dir
   try
-    execute s:make_cmd . ' ' . get( b:, 'test_args', '' ) . ' %:p:t'
+    execute s:make_cmd . ' '
+          \ . get( g:, 'vimspector_test_args', '' )
+          \ . ' %:p:t'
   finally
     execute 'lcd ' . l:cwd
   endtry
@@ -112,7 +118,8 @@ function! s:RunAllTests()
   let l:cwd = getcwd()
   execute 'lcd ' . s:root_dir
   try
-    execute s:make_cmd . ' ' . get( b:, 'test_args', '' )
+    execute s:make_cmd . ' '
+          \ . get( g:, 'vimspector_test_args', '' )
   finally
     execute 'lcd ' . l:cwd
   endtry

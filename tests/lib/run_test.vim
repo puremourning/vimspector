@@ -46,13 +46,16 @@ call ch_logfile( 'debuglog', 'w' )
 
 " For consistency run all tests with 'nocompatible' set.
 " This also enables use of line continuation.
+" vint: Workaround for https://github.com/Vimjas/vint/issues/363
 " vint: -ProhibitSetNoCompatible
 set nocompatible
 " vint: +ProhibitSetNoCompatible
 
 " Use utf-8 by default, instead of whatever the system default happens to be.
 " Individual tests can overrule this at the top of the file.
+" vint: -ProhibitEncodingOptionAfterScriptEncoding
 set encoding=utf-8
+" vint: +ProhibitEncodingOptionAfterScriptEncoding
 
 " Avoid stopping at the "hit enter" prompt
 set nomore

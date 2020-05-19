@@ -979,7 +979,13 @@ class DebugSession( object ):
     self._stackTraceView.OnStopped( event )
 
   def ListBreakpoints( self ):
-    return self._breakpoints.ListBreakpoints()
+    if self._connection:
+      qf = self._codeView.BreakpointsAsQuickFix()
+    else:
+      qf = self._breakpoints.BreakpointsAsQuickFix()
+
+    vim.eval( 'setqflist( {} )'.format( json.dumps( qf ) ) )
+    vim.command( 'copen' )
 
   def ToggleBreakpoint( self, options ):
     return self._breakpoints.ToggleBreakpoint( options )
