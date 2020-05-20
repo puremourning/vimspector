@@ -700,7 +700,9 @@ class DebugSession( object ):
     return docker
 
   def _GetRemoteExecCommand( self, remote ):
-    is_ssh_cmd = any( key in remote for key in [ 'ssh','host', 'account' ] )
+    is_ssh_cmd = any( key in remote for key in [ 'ssh',
+                                                 'host',
+                                                 'account', ] )
     is_docker_cmd = 'container' in remote
 
     if is_ssh_cmd:
