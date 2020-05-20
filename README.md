@@ -228,6 +228,9 @@ for the author. PRs are welcome to fix bugs. Windows will not be regularly
 tested.
 
 Which Linux versions? I only test on Ubuntu 18.04 and later and RHEL 7.
+Vim have to be build with 'terminal' feature. Otherwise Vimspector can't start 
+and "Unknown function: term_start" error is reported. E.g. when Gentoo Linux is 
+used, Vim have to be built with 'terminal' USE flag.
 
 ## Neovim differences
 
