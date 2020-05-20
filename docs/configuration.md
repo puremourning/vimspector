@@ -419,7 +419,7 @@ Vimspector then orchestrates the various tools to set you up.
           // %CMD% replaced with the remote-cmdLine configured in the launch
           // configuration. (mandatory)
           "launchCommmand": [
-            "python", "-m", "debugpy", "--listen 0.0.0.0:${port}",
+            "python", "-m", "debugpy", "--listen", "0.0.0.0:${port}",
             "%CMD%"
           ]
           
@@ -449,7 +449,7 @@ Vimspector then orchestrates the various tools to set you up.
           // Command to attach the debugger; %PID% replaced with output of
           // pidCommand above (mandatory)
           "attachCommand": [
-            "python", "-m", "debugpy", "--listen 0.0.0.0:${port}",
+            "python", "-m", "debugpy", "--listen", "0.0.0.0:${port}",
             "--pid", "%PID%"
           ]
           
@@ -624,7 +624,7 @@ port.
           // %CMD% replaced with the remote-cmdLine configured in the launch
           // configuration. (mandatory)
           "launchCommmand": [
-            "python", "-m", "debugpy", "--listen 0.0.0.0:${port}",
+            "python", "-m", "debugpy", "--listen", "0.0.0.0:${port}",
             "%CMD%"
           ]
           
@@ -648,13 +648,13 @@ port.
             // call a custom command to returm the PID for a named service, so
             // here's an examle:
             //
-            "sh", "-c", "pgrep", "-f ${filename}"
+            "sh", "-c", "pgrep", "-f", "${filename}"
           ],
 
           // Command to attach the debugger; %PID% replaced with output of
           // pidCommand above (mandatory)
           "attachCommand": [
-            "sh", "-c", "python", "-m", "debugpy", "--listen 0.0.0.0:${port}",
+            "sh", "-c", "python", "-m", "debugpy", "--listen", "0.0.0.0:${port}",
             "--pid", "%PID%"
           ]
           
