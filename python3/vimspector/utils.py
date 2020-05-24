@@ -566,9 +566,12 @@ def HideSplash( api_prefix, splash ):
 
 
 def GetVimspectorBase():
-  try:
-    return vim.vars[ 'vimspector_base_dir' ].decode( 'utf-8' )
-  except KeyError:
+  base = vim.vars.get( 'vimspector_base_dir' )
+  if base is None:
     return os.path.abspath( os.path.join( os.path.dirname( __file__ ),
                                           '..',
                                           '..' ) )
+  elif isinstance( base, bytes ):
+    return base.decode( 'utf-8' )
+  else:
+    return base
