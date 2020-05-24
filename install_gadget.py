@@ -125,7 +125,11 @@ GADGETS = {
         ],
         "name": "debugpy",
         "configuration": {
-          "python": sys.executable
+          "python": sys.executable,
+          # Don't debug into subprocesses, as this leads to problems (vimspector
+          # doesn't support the custom messages)
+          # https://github.com/puremourning/vimspector/issues/141
+          "subProcess": False,
         }
       }
     },
