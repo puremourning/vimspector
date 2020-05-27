@@ -163,9 +163,11 @@ def InstallGagdet( name, gadget, failed, all_adapters ):
           install.GetOS(),
           name ) )
 
-      destination = os.path.join( _GetGadgetDir(),
-                                  'download',
-                                  name, v[ 'version' ] )
+      destination = os.path.join(
+        install.GetGadgetDir( options.vimspector_base ),
+        'download',
+        name,
+        v[ 'version' ] )
 
       url = string.Template( gadget[ 'download' ][ 'url' ] ).substitute( v )
 
@@ -185,7 +187,10 @@ def InstallGagdet( name, gadget, failed, all_adapters ):
       url = string.Template( gadget[ 'repo' ][ 'url' ] ).substitute( v )
       ref = string.Template( gadget[ 'repo' ][ 'ref' ] ).substitute( v )
 
-      destination = os.path.join( _GetGadgetDir(), 'download', name )
+      destination = os.path.join(
+        install.GetGadgetDir( options.vimspector_base ),
+        'download',
+        name )
       CloneRepoTo( url, ref, destination )
       root = destination
 
@@ -385,17 +390,13 @@ def ExtractZipTo( file_path, destination, format ):
         subprocess.check_call( [ 'tar', 'zxvf', file_path ] )
 
 
-def _GetGadgetDir():
-  return install.GetGadgetDir( options.vimspector_base, install.GetOS() )
-
-
 def MakeExtensionSymlink( name, root ):
   MakeSymlink( name, os.path.join( root, 'extension' ) ),
 
 
 def MakeSymlink( link, pointing_to, in_folder = None ):
   if not in_folder:
-    in_folder = _GetGadgetDir()
+    in_folder = install.GetGadgetDir( options.vimspector_base )
 
   RemoveIfExists( os.path.join( in_folder, link ) )
 

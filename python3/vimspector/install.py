@@ -38,18 +38,16 @@ def MakeInstallDirs( vimspector_base ):
   mkdirs( GetConfigDirForFiletype( vimspector_base, '_all' ) )
 
 
-def GetGadgetDir( vimspector_base, OS ):
-  return os.path.join( os.path.abspath( vimspector_base ), 'gadgets', OS )
+def GetGadgetDir( vimspector_base ):
+  return os.path.join( os.path.abspath( vimspector_base ), 'gadgets', GetOS() )
 
 
 def GetGadgetConfigFile( vimspector_base ):
-  return os.path.join( GetGadgetDir( vimspector_base, GetOS() ),
-                       '.gadgets.json' )
+  return os.path.join( GetGadgetDir( vimspector_base ), '.gadgets.json' )
 
 
 def GetGadgetConfigDir( vimspector_base ):
-  return os.path.join( GetGadgetDir( vimspector_base, GetOS() ),
-                       '.gadgets.d' )
+  return os.path.join( GetGadgetDir( vimspector_base ), '.gadgets.d' )
 
 
 def GetConfigDirForFiletype( vimspector_base, filetype ):

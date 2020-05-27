@@ -23,8 +23,7 @@ from vimspector import install, utils
 def SetUpDebugpy( wait=False, port=5678 ):
   sys.path.insert(
     1,
-    os.path.join( install.GetGadgetDir( utils.GetVimspectorBase(),
-                                        install.GetOS() ),
+    os.path.join( install.GetGadgetDir( utils.GetVimspectorBase() ),
                   'debugpy',
                   'build',
                   'lib' ) )

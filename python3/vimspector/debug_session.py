@@ -51,8 +51,7 @@ class DebugSession( object ):
     self._logger.info( "API is: {}".format( api_prefix ) )
     self._logger.info( 'VIMSPECTOR_HOME = %s', VIMSPECTOR_HOME )
     self._logger.info( 'gadgetDir = %s',
-                       install.GetGadgetDir( VIMSPECTOR_HOME,
-                                             install.GetOS() ) )
+                       install.GetGadgetDir( VIMSPECTOR_HOME ) )
 
     self._uiTab = None
     self._stackTraceView = None
@@ -91,7 +90,7 @@ class DebugSession( object ):
     configurations = {}
     adapters = {}
 
-    glob.glob( install.GetGadgetDir( VIMSPECTOR_HOME, install.GetOS() ) )
+    glob.glob( install.GetGadgetDir( VIMSPECTOR_HOME ) )
     for gadget_config_file in PathsToAllGadgetConfigs( VIMSPECTOR_HOME,
                                                        current_file ):
       self._logger.debug( f'Reading gadget config: {gadget_config_file}' )
@@ -192,7 +191,7 @@ class DebugSession( object ):
       'dollar': '$', # HACK. Hote '$$' also works.
       'workspaceRoot': self._workspace_root,
       'workspaceFolder': self._workspace_root,
-      'gadgetDir': install.GetGadgetDir( VIMSPECTOR_HOME, install.GetOS() ),
+      'gadgetDir': install.GetGadgetDir( VIMSPECTOR_HOME ),
       'file': current_file,
     }
 
