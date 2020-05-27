@@ -211,6 +211,38 @@ def InstallGagdet( name, gadget, failed, all_adapters ):
     print( "FAILED installing {}: {}".format( name, e ) )
 
 
+def ReadAdapters( read_existing = True ):
+  if read_existing:
+    with open( install.GetGadgetConfigFile( options.vimspector_base ),
+               'r' ) as f:
+      all_adapters = json.load( f ).get( 'adapters', {} )
+  else:
+    all_adapters = {}
+
+  # Include "built-in" adapter for multi-session mode
+  all_adapters.update( {
+    'multi-session': {
+      'port': '${port}',
+      'host': '${host}'
+    },
+  } )
+
+  return all_adapters
+
+
+def WriteAdapters( all_adapters, to_file=None ):
+  adapter_config = json.dumps ( { 'adapters': all_adapters },
+                                indent=2,
+                                sort_keys=True )
+
+  if to_file:
+    to_file.write( adapter_config )
+  else:
+    with open( install.GetGadgetConfigFile( options.vimspector_base ),
+               'w' ) as f:
+      f.write( adapter_config )
+
+
 @contextlib.contextmanager
 def CurrentWorkingDir( d ):
   cur_d = os.getcwd()

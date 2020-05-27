@@ -163,19 +163,8 @@ for custom_file_name in functools.reduce( operator.add,
 
 
 failed = []
-if args.update_gadget_config:
-  with open( install.GetGadgetConfigFile( vimspector_base ), 'r' ) as f:
-    all_adapters = json.load( f ).get( 'adapters', {} )
-else:
-  all_adapters = {}
-
-# Include "built-in" adapter for multi-session mode
-all_adapters.update( {
-  'multi-session': {
-    'port': '${port}',
-    'host': '${host}'
-  },
-} )
+all_adapters = installer.ReadAdapters(
+  read_existing = args.update_gadget_config )
 
 for name, gadget in gadgets.GADGETS.items():
   if not gadget.get( 'enabled', True ):
@@ -197,17 +186,12 @@ for name, gadget in gadgets.GADGETS.items():
 for name, gadget in CUSTOM_GADGETS.items():
   installer.InstallGagdet( name, gadget, failed, all_adapters )
 
-adapter_config = json.dumps ( { 'adapters': all_adapters },
-                              indent=2,
-                              sort_keys=True )
-
 if args.no_gadget_config:
   print( "" )
   print( "Would write the following gadgets: " )
-  print( adapter_config )
+  installer.WriteAdapters( all_adapters, to_file = sys.stdout )
 else:
-  with open( install.GetGadgetConfigFile( vimspector_base ), 'w' ) as f:
-    f.write( adapter_config )
+  installer.WriteAdapters( all_adapters )
 
 if failed:
   raise RuntimeError( 'Failed to install gadgets: {}'.format(
