@@ -45,12 +45,9 @@ stages:
 
     - task: CacheBeta@0
       inputs:
-        key: v1 | gadgets | $(Agent.OS) | install_gadget.py
+        key: v2 | gadgets | $(Agent.OS) | python3/vimspector/installer.py
         path: gadgets/linux/download
       displayName: Cache gadgets
-
-    - bash: python3 install_gadget.py --all
-      displayName: 'Install gadgets - python3'
 
     - bash: vim --version
       displayName: 'Print vim version information'
@@ -58,7 +55,7 @@ stages:
     - bash: |
         eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
         export GOPATH=$HOME/go
-        ./run_tests --report messages --quiet
+        ./run_tests --install --report messages --quiet
       displayName: 'Run the tests'
       env:
         VIMSPECTOR_MIMODE: gdb
@@ -92,17 +89,14 @@ stages:
 
     - task: CacheBeta@0
       inputs:
-        key: v1 | gadgets | $(Agent.OS) | install_gadget.py
+        key: v2 | gadgets | $(Agent.OS) | python3/vimspector/installer.py
         path: gadgets/macos/download
       displayName: Cache gadgets
-
-    - bash: python3 install_gadget.py --all
-      displayName: 'Install gadgets - python3'
 
     - bash: vim --version
       displayName: 'Print vim version information'
 
-    - bash: ./run_tests --report messages --quiet
+    - bash: ./run_tests --install --report messages --quiet
       displayName: 'Run the tests'
       env:
         VIMSPECTOR_MIMODE: lldb
