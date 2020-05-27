@@ -16,21 +16,194 @@
 # limitations under the License.
 
 from urllib import request
-import io
 import contextlib
-import zipfile
-import gzip
-import shutil
-import tarfile
-import hashlib
-import time
-import ssl
-import subprocess
 import functools
+import gzip
+import hashlib
+import io
 import os
+import shutil
+import ssl
+import string
+import subprocess
 import sys
+import tarfile
+import time
+import traceback
+import zipfile
+import json
 
 from vimspector import install
+
+class Options:
+  vimspector_base = None
+  no_check_certificate = False
+
+
+options = Options()
+
+
+def Configure( **kwargs ):
+  for k, v in kwargs.items():
+    setattr( options, k, v )
+
+
+def InstallGeneric( name, root, gadget ):
+  extension = os.path.join( root, 'extension' )
+  for f in gadget.get( 'make_executable', [] ):
+    MakeExecutable( os.path.join( extension, f ) )
+
+  MakeExtensionSymlink( name, root )
+
+
+def InstallCppTools( name, root, gadget ):
+  extension = os.path.join( root, 'extension' )
+
+  # It's hilarious, but the execute bits aren't set in the vsix. So they
+  # actually have javascript code which does this. It's just a horrible horrible
+  # hack that really is not funny.
+  MakeExecutable( os.path.join( extension, 'debugAdapters', 'OpenDebugAD7' ) )
+  with open( os.path.join( extension, 'package.json' ) ) as f:
+    package = json.load( f )
+    runtime_dependencies = package[ 'runtimeDependencies' ]
+    for dependency in runtime_dependencies:
+      for binary in dependency.get( 'binaries' ):
+        file_path = os.path.abspath( os.path.join( extension, binary ) )
+        if os.path.exists( file_path ):
+          MakeExecutable( os.path.join( extension, binary ) )
+
+  MakeExtensionSymlink( name, root )
+
+
+def InstallBashDebug( name, root, gadget ):
+  MakeExecutable( os.path.join( root,
+                                          'extension',
+                                          'bashdb_dir',
+                                          'bashdb' ) )
+  MakeExtensionSymlink( name, root )
+
+
+def InstallDebugpy( name, root, gadget ):
+  wd = os.getcwd()
+  root = os.path.join( root, 'debugpy-{}'.format( gadget[ 'version' ] ) )
+  os.chdir( root )
+  try:
+    subprocess.check_call( [ sys.executable, 'setup.py', 'build' ] )
+  finally:
+    os.chdir( wd )
+
+  MakeSymlink( name, root )
+
+
+def InstallTclProDebug( name, root, gadget ):
+  configure = [ './configure' ]
+
+  if install.GetOS() == 'macos':
+    # Apple removed the headers from system frameworks because they are
+    # determined to make life difficult. And the TCL configure scripts are super
+    # old so don't know about this. So we do their job for them and try and find
+    # a tclConfig.sh.
+    #
+    # NOTE however that in Apple's infinite wisdom, installing the "headers" in
+    # the other location is actually broken because the paths in the
+    # tclConfig.sh are pointing at the _old_ location. You actually do have to
+    # run the package installation which puts the headers back in order to work.
+    # This is why the below list is does not contain stuff from
+    # /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform
+    #  '/Applications/Xcode.app/Contents/Developer/Platforms'
+    #    '/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System'
+    #    '/Library/Frameworks/Tcl.framework',
+    #  '/Applications/Xcode.app/Contents/Developer/Platforms'
+    #    '/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System'
+    #    '/Library/Frameworks/Tcl.framework/Versions'
+    #    '/Current',
+    for p in [ '/usr/local/opt/tcl-tk/lib' ]:
+      if os.path.exists( os.path.join( p, 'tclConfig.sh' ) ):
+        configure.append( '--with-tcl=' + p )
+        break
+
+
+  with CurrentWorkingDir( os.path.join( root, 'lib', 'tclparser' ) ):
+    subprocess.check_call( configure )
+    subprocess.check_call( [ 'make' ] )
+
+  MakeSymlink( name, root )
+
+
+def InstallNodeDebug( name, root, gadget ):
+  node_version = subprocess.check_output( [ 'node', '--version' ],
+                                          universal_newlines=True ).strip()
+  print( "Node.js version: {}".format( node_version ) )
+  if list( map( int, node_version[ 1: ].split( '.' ) ) ) >= [ 12, 0, 0 ]:
+    print( "Can't install vscode-debug-node2:" )
+    print( "Sorry, you appear to be running node 12 or later. That's not "
+           "compatible with the build system for this extension, and as far as "
+           "we know, there isn't a pre-built independent package." )
+    print( "My advice is to install nvm, then do:" )
+    print( "  $ nvm install --lts 10" )
+    print( "  $ nvm use --lts 10" )
+    print( "  $ ./install_gadget.py --enable-node ..." )
+    raise RuntimeError( 'Invalid node environent for node debugger' )
+
+  with CurrentWorkingDir( root ):
+    subprocess.check_call( [ 'npm', 'install' ] )
+    subprocess.check_call( [ 'npm', 'run', 'build' ] )
+  MakeSymlink( name, root )
+
+
+def InstallGagdet( name, gadget, failed, all_adapters ):
+  try:
+    v = {}
+    v.update( gadget.get( 'all', {} ) )
+    v.update( gadget.get( install.GetOS(), {} ) )
+
+    if 'download' in gadget:
+      if 'file_name' not in v:
+        raise RuntimeError( "Unsupported OS {} for gadget {}".format(
+          install.GetOS(),
+          name ) )
+
+      destination = os.path.join( _GetGadgetDir(),
+                                  'download',
+                                  name, v[ 'version' ] )
+
+      url = string.Template( gadget[ 'download' ][ 'url' ] ).substitute( v )
+
+      file_path = DownloadFileTo(
+        url,
+        destination,
+        file_name = gadget[ 'download' ].get( 'target' ),
+        checksum = v.get( 'checksum' ),
+        check_certificate = not options.no_check_certificate )
+
+      root = os.path.join( destination, 'root' )
+      ExtractZipTo(
+        file_path,
+        root,
+        format = gadget[ 'download' ].get( 'format', 'zip' ) )
+    elif 'repo' in gadget:
+      url = string.Template( gadget[ 'repo' ][ 'url' ] ).substitute( v )
+      ref = string.Template( gadget[ 'repo' ][ 'ref' ] ).substitute( v )
+
+      destination = os.path.join( _GetGadgetDir(), 'download', name )
+      CloneRepoTo( url, ref, destination )
+      root = destination
+
+    if 'do' in gadget:
+      gadget[ 'do' ]( name, root, v )
+    else:
+      InstallGeneric( name, root, v )
+
+    # Allow per-OS adapter overrides. v already did that for us...
+    all_adapters.update( v.get( 'adapters', {} ) )
+    # Add any other "all" adapters
+    all_adapters.update( gadget.get( 'adapters', {} ) )
+
+    print( "Done installing {}".format( name ) )
+  except Exception as e:
+    traceback.print_exc()
+    failed.append( name )
+    print( "FAILED installing {}: {}".format( name, e ) )
 
 
 @contextlib.contextmanager
@@ -212,14 +385,18 @@ def ExtractZipTo( file_path, destination, format ):
         subprocess.check_call( [ 'tar', 'zxvf', file_path ] )
 
 
-def MakeExtensionSymlink( vimspector_base, name, root ):
-  MakeSymlink( install.GetGadgetDir( vimspector_base,
-                                     install.GetOS() ),
-               name,
-               os.path.join( root, 'extension' ) ),
+def _GetGadgetDir():
+  return install.GetGadgetDir( options.vimspector_base, install.GetOS() )
 
 
-def MakeSymlink( in_folder, link, pointing_to ):
+def MakeExtensionSymlink( name, root ):
+  MakeSymlink( name, os.path.join( root, 'extension' ) ),
+
+
+def MakeSymlink( link, pointing_to, in_folder = None ):
+  if not in_folder:
+    in_folder = _GetGadgetDir()
+
   RemoveIfExists( os.path.join( in_folder, link ) )
 
   in_folder = os.path.abspath( in_folder )
