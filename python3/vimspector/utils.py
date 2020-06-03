@@ -174,8 +174,8 @@ def RestoreCurrentWindow():
     try:
       vim.current.tabpage = old_tabpage
       vim.current.window = old_window
-    except:
-      pass
+    except Exception as e:
+      print(e)
 
 
 @contextlib.contextmanager
