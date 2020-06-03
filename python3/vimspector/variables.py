@@ -257,14 +257,19 @@ class VariablesView( object ):
 
   def _DrawVariables( self, view,  variables, indent ):
     for variable in variables:
+      if variable is None:
+        continue
+      type_ = variable.get( 'type', '' )
+      if type_ != '':
+        type_ = '({})'.format(type_)
       line = utils.AppendToBuffer(
         view.win.buffer,
-        '{indent}{icon} {name} ({type_}): {value}'.format(
+        '{indent}{icon} {name}{type_}: {value}'.format(
           indent = ' ' * indent,
           icon = '+' if ( variable.get( 'variablesReference', 0 ) > 0 and
                           '_variables' not in variable ) else '-',
           name = variable[ 'name' ],
-          type_ = variable.get( 'type', '<unknown type>' ),
+          type_ = type_,
           value = variable.get( 'value', '<unknown value>' ) ).split( '\n' ) )
       view.lines[ line ] = variable
 
