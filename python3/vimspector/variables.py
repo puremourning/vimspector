@@ -261,7 +261,7 @@ class VariablesView( object ):
         continue
       type_ = variable.get( 'type', '' )
       if type_ != '':
-        type_ = '({})'.format(type_)
+        type_ = '({})'.format( type_ )
       line = utils.AppendToBuffer(
         view.win.buffer,
         '{indent}{icon} {name}{type_}: {value}'.format(
