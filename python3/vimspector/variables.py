@@ -222,7 +222,7 @@ class VariablesView( object ):
     self._DrawWatches()
 
   def ExpandVariable( self ):
-    if vim.current.window == self._vars.win:
+    if vim.current.buffer == self._vars.win.buffer:
       view = self._vars
     elif vim.current.window == self._watch.win:
       view = self._watch
