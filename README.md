@@ -42,7 +42,7 @@ For a tutorial and usage overview, take a look at the
          * [Console](#console)
       * [Closing debugger](#closing-debugger)
    * [Debug adapter configuration](#debug-adapter-configuration)
-      * [C, C  , Rust, etc.](#c-c-rust-etc)
+      * [C, C++, Rust, etc.](#c-c-rust-etc)
       * [Python](#python)
          * [Legacy: vscode-python](#legacy-vscode-python)
       * [TCL](#tcl)
