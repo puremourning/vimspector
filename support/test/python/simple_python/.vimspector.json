@@ -14,7 +14,8 @@
       "breakpoints": {
         "exception": {
           "raised": "N",
-          "uncaught": ""
+          "uncaught": "",
+          "userUnhandled": ""
         }
       }
     },
@@ -26,7 +27,8 @@
       "breakpoints": {
         "exception": {
           "raised": "N",
-          "uncaught": ""
+          "uncaught": "",
+          "userUnhandled": ""
         }
       }
     },
@@ -43,7 +45,8 @@
       "breakpoints": {
         "exception": {
           "raised": "N",
-          "uncaught": ""
+          "uncaught": "",
+          "userUnhandled": ""
         }
       }
     },
@@ -60,7 +63,8 @@
       "breakpoints": {
         "exception": {
           "raised": "N",
-          "uncaught": ""
+          "uncaught": "",
+          "userUnhandled": ""
         }
       }
     },
