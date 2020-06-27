@@ -48,11 +48,29 @@ GADGETS = {
     'do': lambda name, root, gadget: InstallCppTools( name, root, gadget ),
     'all': {
       'version': '0.27.0',
+      "adapters": {
+        "vscode-cpptools": {
+          "name": "cppdbg",
+          "command": [
+            "${gadgetDir}/vscode-cpptools/debugAdapters/OpenDebugAD7"
+          ],
+          "attach": {
+            "pidProperty": "processId",
+            "pidSelect": "ask"
+          },
+          "configuration": {
+            "type": "cppdbg",
+            "args": [],
+            "cwd": "${workspaceRoot}",
+            "environment": [],
+          }
+        },
+      },
     },
     'linux': {
       'file_name': 'cpptools-linux.vsix',
       'checksum':
-        '3695202e1e75a03de18049323b66d868165123f26151f8c974a480eaf0205435'
+        '3695202e1e75a03de18049323b66d868165123f26151f8c974a480eaf0205435',
     },
     'macos': {
       'file_name': 'cpptools-osx.vsix',
@@ -61,24 +79,27 @@ GADGETS = {
     },
     'windows': {
       'file_name': 'cpptools-win32.vsix',
-      'checksum': None,
-    },
-    "adapters": {
-      "vscode-cpptools": {
-        "name": "cppdbg",
-        "command": [
-          "${gadgetDir}/vscode-cpptools/debugAdapters/OpenDebugAD7"
-        ],
-        "attach": {
-          "pidProperty": "processId",
-          "pidSelect": "ask"
+      'checksum':
+        'aa294368ed16d48c59e49c8000e146eae5a19ad07b654efed5db8ec93b24229e',
+      "adapters": {
+        "vscode-cpptools": {
+          "name": "cppdbg",
+          "command": [
+            "${gadgetDir}/vscode-cpptools/debugAdapters/bin/OpenDebugAD7.exe"
+          ],
+          "attach": {
+            "pidProperty": "processId",
+            "pidSelect": "ask"
+          },
+          "configuration": {
+            "type": "cppdbg",
+            "args": [],
+            "cwd": "${workspaceRoot}",
+            "environment": [],
+            "MIMode": "gdb",
+            "MIDebuggerPath": "gdb.exe"
+          }
         },
-        "configuration": {
-          "type": "cppdbg",
-          "args": [],
-          "cwd": "${workspaceRoot}",
-          "environment": [],
-        }
       },
     },
   },
@@ -531,6 +552,9 @@ def InstallGagdet( name, gadget, failed, all_adapters ):
     else:
       installer.MakeExtensionSymlink( vimspector_base, name, root )
 
+    # Allow per-OS adapter overrides. v already did that for us...
+    all_adapters.update( v.get( 'adapters', {} ) )
+    # Add any other "all" adapters
     all_adapters.update( gadget.get( 'adapters', {} ) )
 
     print( "Done installing {}".format( name ) )

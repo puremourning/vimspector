@@ -729,31 +729,29 @@ Current tested with the following debug adapters.
 Example `.vimspector.json` (works with both `vscode-cpptools` and `lldb-vscode`.
 For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
 
+* vscode-cpptools Linux/MacOS:
+
 ```
 {
   "configurations": {
-    "<name>: Launch": {
+    "Launch": {
       "adapter": "vscode-cpptools",
       "configuration": {
-        "name": "<name>",
-        "type": "cppdbg",
         "request": "launch",
         "program": "<path to binary>",
         "args": [ ... ],
         "cwd": "<working directory>",
         "environment": [ ... ],
         "externalConsole": true,
-        "MIMode": "lldb"
+        "MIMode": "<lldb or gdb>"
       }
     },
-    "<name>: Attach": {
+    "Attach": {
       "adapter": "vscode-cpptools",
       "configuration": {
-        "name": "<name>: Attach",
-        "type": "cppdbg",
         "request": "attach",
         "program": "<path to binary>",
-        "MIMode": "lldb"
+        "MIMode": "<lldb or gdb>"
       }
     }
     ...
@@ -761,14 +759,36 @@ For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
 }
 ```
 
+* vscode-cpptools Windows
+
+***NOTE FOR WINDOWS USERS:*** You need to install `gdb.exe`. I recommend using
+`scoop install gdb`. Vimspector cannot use the visual studio debugger due to
+licensing.
+
+```
+{
+  "configurations": {
+    "Launch": {
+      "adapter": "vscode-cpptools",
+      "configuration": {
+        "request": "launch",
+        "program": "<path to binary>",
+        "stopAtEntry": true
+      }
+    }
+  }
+}
+```
+
+* lldb-vscode (MacOS)
+
 An alternative is to to use `lldb-vscode`, which comes with llvm.  Here's how:
 
-* Install llvm with HomeBrew: `brew install llvm`
+* Install llvm (e.g. with HomeBrew: `brew install llvm`)
 * Create a file named
   `/path/to/vimspector/gadgets/macos/.gadgets.d/lldb-vscode.json`:
 
 ```json
-
 {
   "adapters": {
     "lldb-vscode": {
