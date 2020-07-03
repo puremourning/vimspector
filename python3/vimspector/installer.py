@@ -15,6 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# TODO: Chnage `print` to some other mechanism that can be displayed in a vim
+# buffer?
+
 from urllib import request
 import contextlib
 import functools
@@ -33,7 +36,8 @@ import traceback
 import zipfile
 import json
 
-from vimspector import install
+from vimspector import install, gadgets
+
 
 class Options:
   vimspector_base = None
@@ -46,6 +50,33 @@ options = Options()
 def Configure( **kwargs ):
   for k, v in kwargs.items():
     setattr( options, k, v )
+
+
+def Install( languages, force ):
+  all_enabled = 'all' in languages
+  force_all = all_enabled and force
+
+  install.MakeInstallDirs( options.vimspector_base )
+  all_adapters = ReadAdapters()
+  failed = []
+
+  for name, gadget in gadgets.GADGETS.items():
+    if not gadget.get( 'enabled', True ):
+      if ( not force_all
+           and not ( force and gadget[ 'language' ] in languages ) ):
+        continue
+    else:
+      if not all_enabled and not gadget[ 'language' ] in languages:
+        continue
+
+    InstallGagdet( name,
+                   gadget,
+                   failed,
+                   all_adapters )
+
+  WriteAdapters( all_adapters )
+
+  return failed
 
 
 def InstallGeneric( name, root, gadget ):

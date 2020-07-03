@@ -97,6 +97,11 @@ command! -bar
       \ VimspectorReset
       \ call vimspector#Reset()
 
+" Installer commands
+command! -bar -nargs=* -complete=custom,vimspector#CompleteInstall
+      \ VimspectorInstall
+      \ call vimspector#Install( <f-args> )
+
 " Dummy autocommands so that we can call this whenever
 augroup VimspectorUserAutoCmds
   au!

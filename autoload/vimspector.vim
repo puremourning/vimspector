@@ -150,6 +150,52 @@ function! vimspector#CompleteExpr( ArgLead, CmdLine, CursorPos ) abort
              \ "\n" )
 endfunction
 
+function! vimspector#Install( ... ) abort
+  if a:0 < 1
+    return
+  endif
+
+  let gadgets = a:000
+  let force = a:1 ==# '--force'
+  if force
+    let gadgets = a:000[ 1: ]
+  endif
+
+  py3 << EOF
+from vimspector import installer as vimspector_installer
+from vimspector import utils as vimspector_utils
+vimspector_installer.Configure(
+  vimspector_base = vimspector_utils.GetVimspectorBase() )
+vimspector_installer.Install( vim.eval( 'gadgets'), vim.eval( 'force' ) )
+EOF
+endfunction
+
+function! vimspector#CompleteInstall( ArgLead, CmdLine, CursorPos ) abort
+  let words = split( a:CmdLine )
+  let done_options = v:false
+  for word in words
+    if ! word =~# '^--'
+      let done_options = v:true
+      break
+    endif
+  endfor
+
+  let options = []
+
+  if !done_options
+    call extend( options, [ '--force' ] )
+  endif
+
+  py3 from vimspector import installer as vimspector_installer
+  call extend( options, [ 'all' ] )
+  call extend(
+    \ options,
+    \ py3eval(
+    \   '[ g[ "language" ] for g in vimspector_installer.GADGETS.values() ]' ) )
+
+  return join( options, "\n" )
+endfunction
+
 " Boilerplate {{{
 let &cpoptions=s:save_cpo
 unlet s:save_cpo
