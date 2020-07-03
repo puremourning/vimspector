@@ -267,7 +267,7 @@ class DebugAdapterConnection( object ):
         if request.failure_handler:
           request.failure_handler( reason, message )
         elif 'OnFailure' in dir( self._handler ):
-          self._handler.OnFailure( reason, message )
+          self._handler.OnFailure( reason, request.msg, message )
         else:
           utils.UserMessage( 'Request failed: {0}'.format( reason ) )
     elif message[ 'type' ] == 'event':
