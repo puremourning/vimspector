@@ -1,0 +1,35 @@
+{
+  "$schema": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json",
+  "configurations": {
+    "Run - CodeLLDB": {
+      "adapter": {
+        "variables": {
+          "CodeLLDB": "$HOME/.vscode/extensions/vadimcn.vscode-lldb-1.5.3",
+          "build": {
+            "shell": [ "cargo", "build" ],
+            "cwd": "${workspaceRoot}"
+          }
+        },
+        "command": [
+          "${CodeLLDB}/adapter/codelldb",
+          "--port", "${port}"
+        ],
+        "port": "${port}",
+        "configuration": {
+          "type": "lldb",
+          "name": "lldb",
+          "cargo": {}
+        }
+      },
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/target/debug/vimspector_test",
+        "args": [],
+        "cwd": "${workspaceRoot}",
+        "env": {},
+        "terminal": "integrated",
+        "stopOnEntry": true
+      }
+    }
+  }
+}
