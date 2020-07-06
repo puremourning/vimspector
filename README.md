@@ -6,7 +6,6 @@ For a tutorial and usage overview, take a look at the
 [![Build Status](https://dev.azure.com/puremouron/Vimspector/_apis/build/status/puremourning.vimspector?branchName=master)](https://dev.azure.com/puremouron/Vimspector/_build/latest?definitionId=1&branchName=master) [![Gitter](https://badges.gitter.im/vimspector/Lobby.svg)](https://gitter.im/vimspector/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 <!--ts-->
-   * [Motivation](#motivation)
    * [Features and Usage](#features-and-usage)
       * [Supported debugging features](#supported-debugging-features)
       * [Supported languages:](#supported-languages)
@@ -42,8 +41,12 @@ For a tutorial and usage overview, take a look at the
          * [Console](#console)
       * [Closing debugger](#closing-debugger)
    * [Debug adapter configuration](#debug-adapter-configuration)
-      * [C, C++, Rust, etc.](#c-c-rust-etc)
+      * [C, C  , Rust, etc.](#c-c-rust-etc)
+         * [Remote debugging](#remote-debugging)
+         * [Remote launch and attach](#remote-launch-and-attach)
       * [Python](#python)
+         * [Remote Debugging](#remote-debugging-1)
+         * [Remote launch and attach](#remote-launch-and-attach-1)
          * [Legacy: vscode-python](#legacy-vscode-python)
       * [TCL](#tcl)
       * [C♯](#c)
@@ -55,59 +58,17 @@ For a tutorial and usage overview, take a look at the
       * [Java](#java)
          * [Usage with YouCompleteMe](#usage-with-youcompleteme)
          * [Other LSP clients](#other-lsp-clients)
+      * [Rust](#rust)
       * [Other servers](#other-servers)
    * [Customisation](#customisation)
       * [Changing the default signs](#changing-the-default-signs)
    * [FAQ](#faq)
+   * [Motivation](#motivation)
    * [License](#license)
 
-<!-- Added by: ben, at: Thu  7 May 2020 22:30:21 BST -->
+<!-- Added by: ben, at: Mon  6 Jul 2020 11:30:01 BST -->
 
 <!--te-->
-
-# Motivation
-
-A message from the author about the motivation for this plugin:
-
-> Many development environments have a built-in debugger. I spend an inordinate
-> amount of my time in Vim. I do all my development in Vim and I have even
-> customised my workflows for building code, running tests etc.
->
-> For many years I have observed myself, friends and colleagues have been
-> writing `printf`, `puts`, `print`, etc.  debugging statements in all sorts of
-> files simply because there is no _easy_ way to run a debugger for _whatever_
-> language we happen to be developing in.
->
-> I truly believe that interactive, graphical debugging environments are the
-> best way to understand and reason about both unfamiliar and familiar code, and
-> that the lack of ready, simple access to a debugger is a huge hidden
-> productivity hole for many.
->
-> Don't get me wrong, I know there are literally millions of developers out
-> there that are more than competent at developing without a graphical debugger,
-> but I maintain that if they had the ability to _just press a key_ and jump
-> into the debugger, it would be faster and more enjoyable that just cerebral
-> code comprehension.
->
-> I created Vimsepctor because I find changing tools frustrating. `gdb` for c++,
-> `pdb` for python, etc. Each has its own syntax. Each its own lexicon. Each its
-> own foibles. 
->
-> I designed the configuration system in such a way that the configuration can
-> be committed to source control so that it _just works_ for any of your
-> colleagues, friends, collaborators or complete strangers.
->
-> I made remote debugging a first-class feature because that's a primary use
-> case for me in my job.
->
-> With Vimspector I can _just hit `<F5>`_ in all of the languages I develop in
-> and debug locally or remotely using the exact same workflow, mappings and UI.
-> I have integrated this with my Vim in such a way that I can hit a button and
-> _run the test under the cursor in Vimspector_.  This kind of integration has
-> massively improved my workflow and productivity.  It's even made the process
-> of learning a new codebase... fun.
->
-> \- Ben Jackson, Creator.
 
 # Features and Usage
 
@@ -1301,6 +1262,50 @@ syn region jsonComment start="/\*" end="\*/"
 hi link jsonCommentError Comment
 hi link jsonComment Comment
 ```
+
+# Motivation
+
+A message from the author about the motivation for this plugin:
+
+> Many development environments have a built-in debugger. I spend an inordinate
+> amount of my time in Vim. I do all my development in Vim and I have even
+> customised my workflows for building code, running tests etc.
+>
+> For many years I have observed myself, friends and colleagues have been
+> writing `printf`, `puts`, `print`, etc.  debugging statements in all sorts of
+> files simply because there is no _easy_ way to run a debugger for _whatever_
+> language we happen to be developing in.
+>
+> I truly believe that interactive, graphical debugging environments are the
+> best way to understand and reason about both unfamiliar and familiar code, and
+> that the lack of ready, simple access to a debugger is a huge hidden
+> productivity hole for many.
+>
+> Don't get me wrong, I know there are literally millions of developers out
+> there that are more than competent at developing without a graphical debugger,
+> but I maintain that if they had the ability to _just press a key_ and jump
+> into the debugger, it would be faster and more enjoyable that just cerebral
+> code comprehension.
+>
+> I created Vimsepctor because I find changing tools frustrating. `gdb` for c++,
+> `pdb` for python, etc. Each has its own syntax. Each its own lexicon. Each its
+> own foibles. 
+>
+> I designed the configuration system in such a way that the configuration can
+> be committed to source control so that it _just works_ for any of your
+> colleagues, friends, collaborators or complete strangers.
+>
+> I made remote debugging a first-class feature because that's a primary use
+> case for me in my job.
+>
+> With Vimspector I can _just hit `<F5>`_ in all of the languages I develop in
+> and debug locally or remotely using the exact same workflow, mappings and UI.
+> I have integrated this with my Vim in such a way that I can hit a button and
+> _run the test under the cursor in Vimspector_.  This kind of integration has
+> massively improved my workflow and productivity.  It's even made the process
+> of learning a new codebase... fun.
+>
+> \- Ben Jackson, Creator.
 
 # License
 
