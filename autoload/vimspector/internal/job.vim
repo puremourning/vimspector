@@ -128,8 +128,8 @@ function! vimspector#internal#job#StopDebugSession() abort
   endif
 
   if job_status( s:job ) ==# 'run'
-      echom 'Terminating job'
-      redraw
+    echom 'Terminating job'
+    redraw
     call job_stop( s:job, 'kill' )
   endif
 endfunction

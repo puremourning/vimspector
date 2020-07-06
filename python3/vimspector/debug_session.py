@@ -776,9 +776,10 @@ class DebugSession( object ):
     } )
 
 
-  def OnFailure( self, reason, message ):
-    msg = "Request for '{}' failed: {}".format( message[ 'command' ],
-                                                reason )
+  def OnFailure( self, reason, request, message ):
+    msg = "Request for '{}' failed: {}\nResponse: {}".format( request,
+                                                              reason,
+                                                              message )
     self._outputView.Print( 'server', msg )
 
   def _Launch( self ):

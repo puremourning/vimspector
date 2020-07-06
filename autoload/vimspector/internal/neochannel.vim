@@ -34,20 +34,50 @@ endfunction
 
 function! vimspector#internal#neochannel#StartDebugSession( config ) abort
   if exists( 's:ch' )
-    echom 'Not starging: Channel is already running'
+    echom 'Not starting: Channel is already running'
     redraw
     return v:false
   endif
 
-  let l:addr = get( a:config, 'host', 'localhost' ) . ':' . a:config[ 'port' ]
-
-  let s:ch = sockconnect( 'tcp', addr, { 'on_data': funcref( 's:_OnEvent' ) } )
-  if s:ch <= 0
-    unlet s:ch
-    return v:false
+  " If we _also_ have a command line, then start the actual job. This allows for
+  " servers which start up and listen on some port
+  if has_key( a:config, 'command' )
+    let old_env={}
+    try
+      let old_env = vimspector#internal#neoterm#PrepareEnvironment(
+            \ a:config[ 'env' ] )
+      let s:job = jobstart( a:config[ 'command' ],
+            \                {
+            \                    'cwd': a:config[ 'cwd' ],
+            \                    'env': a:config[ 'env' ],
+            \                }
+            \              )
+    finally
+      call vimspector#internal#neoterm#ResetEnvironment( a:config[ 'env' ],
+                                                       \ old_env )
+    endtry
   endif
 
-  return v:true
+  let l:addr = get( a:config, 'host', 'localhost' ) . ':' . a:config[ 'port' ]
+
+  let attempt = 1
+  while attempt <= 10
+    echo 'Connecting to ' . l:addr . '... (attempt' attempt 'of 10)'
+    try
+      let s:ch = sockconnect( 'tcp',
+                            \ addr,
+                            \ { 'on_data': funcref( 's:_OnEvent' ) } )
+      redraw
+      return v:true
+    catch /connection refused/
+      sleep 1
+    endtry
+    let attempt += 1
+  endwhile
+
+  echom 'Unable to connect to' l:addr 'after 10 attempts'
+  redraw
+  return v:false
 endfunction
 
 function! vimspector#internal#neochannel#Send( msg ) abort
@@ -62,16 +92,19 @@ function! vimspector#internal#neochannel#Send( msg ) abort
 endfunction
 
 function! vimspector#internal#neochannel#StopDebugSession() abort
-  if !exists( 's:ch' )
-    echom "Not stopping session: Channel doesn't exist"
-    redraw
-    return
+  if exists( 's:ch' )
+    call chanclose( s:ch )
+    " It doesn't look like we get a callback after chanclos. Who knows if we
+    " will subsequently receive data callbacks.
+    call s:_OnEvent( s:ch, [ '' ], 'data' )
   endif
 
-  call chanclose( s:ch )
-  " It doesn't look like we get a callback after chanclos. Who knows if we will
-  " subsequently receive data callbacks.
-  call s:_OnEvent( s:ch, [ '' ], 'data' )
+  if exists( 's:job' )
+    if vimspector#internal#neojob#JobIsRunning( s:job )
+      call jobstop( s:job )
+    endif
+    unlet s:job
+  endif
 endfunction
 
 function! vimspector#internal#neochannel#Reset() abort
