@@ -277,6 +277,7 @@ categorised as follows:
 | Java             | Supported    | `--force-enable-java  `        | vscode-java-debug   | Compatible LSP plugin (see [later](#java)) |
 | C# (dotnet core) | Experimental | `--force-enable-csharp`        | netcoredbg          | DotNet core                                |
 | C# (mono)        | Experimental | `--force-enable-csharp`        | vscode-mono-debug   | Mono                                       |
+| Rust (CodeLLDB)  | Experimental | `--force-enable-rust`          | CodeLLDB            | Python 3                                   |
 | Python.legacy    | Legacy       | `--force-enable-python.legacy` | vscode-python       | Node 10, Python 2.7 or Python 3            |
 
 For other languages, you'll need some other way to install the gadget.
@@ -1221,6 +1222,32 @@ For the launch arguments, see the
 
 See [this issue](https://github.com/puremourning/vimspector/issues/3) for more
 background.
+
+## Rust
+
+Rust is supported with any gdb/lldb-based debugger. So it works fine with
+`vscode-cpptools` and `lldb-vscode` above. However, support for rust is best in
+[`CodeLLDB`](https://github.com/vadimcn/vscode-lldb#features).
+
+* `./install_gadget.py --force-enable-rust`
+* Example: `support/test/rust/vimspector_test`
+
+```json
+{
+  "configurations": {
+    "launch": {
+      "adapter": "CodeLLDB",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/target/debug/vimspector_test"
+      }
+    }
+  }
+}
+```
+
+* Docs: https://github.com/vadimcn/vscode-lldb/blob/master/MANUAL.md
+
 
 ## Other servers
 
