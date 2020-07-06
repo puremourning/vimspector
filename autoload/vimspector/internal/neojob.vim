@@ -70,8 +70,8 @@ function! vimspector#internal#neojob#StartDebugSession( config ) abort
   return v:true
 endfunction
 
-function! s:JobIsRunning( job ) abort
-  return jobwait( [ s:job ], 0 )[ 0 ] == -1
+function! vimspector#internal#neojob#JobIsRunning( job ) abort
+  return jobwait( [ a:job ], 0 )[ 0 ] == -1
 endfunction
 
 function! vimspector#internal#neojob#Send( msg ) abort
@@ -81,7 +81,7 @@ function! vimspector#internal#neojob#Send( msg ) abort
     return 0
   endif
 
-  if !s:JobIsRunning( s:job )
+  if !vimspector#internal#neojob#JobIsRunning( s:job )
     echom "Can't send message: Job is not running"
     redraw
     return 0
@@ -96,7 +96,7 @@ function! vimspector#internal#neojob#StopDebugSession() abort
     return
   endif
 
-  if s:JobIsRunning( s:job )
+  if vimspector#internal#neojob#JobIsRunning( s:job )
     echom 'Terminating job'
     redraw
     call jobstop( s:job )

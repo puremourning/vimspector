@@ -67,7 +67,7 @@ function! vimspector#internal#channel#StartDebugSession( config ) abort
         \           )
 
   if ch_status( s:ch ) !=# 'open'
-    echom 'Unable to connect to debug adapter'
+    echom 'Unable to connect to' l:addr
     redraw
     return v:false
   endif
@@ -96,8 +96,10 @@ function! vimspector#internal#channel#StopDebugSession() abort
     call s:_OnClose( s:ch )
   endif
 
-  if exists( 's:job' ) && job_status( s:job ) ==# 'run'
-    call job_stop( s:job, 'kill' )
+  if exists( 's:job' )
+    if job_status( s:job ) ==# 'run'
+      call job_stop( s:job, 'kill' )
+    endif
     unlet s:job
   endif
 endfunction
