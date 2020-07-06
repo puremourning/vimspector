@@ -412,7 +412,74 @@ GADGETS = {
       },
     },
   },
+  'CodeLLDB': {
+    'language': 'rust',
+    'enabled': False,
+    'download': {
+      'url': 'https://github.com/vadimcn/vscode-lldb/releases/download/'
+             '${version}/${file_name}',
+    },
+    'all': {
+      'version': 'v1.5.3',
+    },
+    'macos': {
+      'file_name': 'codelldb-x86_64-darwin.vsix',
+      'checksum':
+        '7505bc1cdfcfd1cb981e2996aec62d63577440709bac31dcadb41a3b4b44631a',
+      'make_executable': [
+        'adapter/codelldb',
+        'lldb/bin/debugserver',
+        'lldb/bin/lldb',
+        'lldb/bin/lldb-argdumper',
+      ],
+    },
+    'linux': {
+      'file_name': 'codelldb-x86_64-linux.vsix',
+      'checksum':
+        'ce7efc3e94d775368e5942a02bf5c326b6809a0b4c389f79ffa6a8f6f6b72139',
+      'make_executable': [
+        'adapter/codelldb',
+        'lldb/bin/lldb',
+        'lldb/bin/lldb-server',
+        'lldb/bin/lldb-argdumper',
+      ],
+    },
+    'windows': {
+      'file_name': 'codelldb-x86_64-windows.vsix',
+      'checksum':
+        '',
+      'make_executable': []
+    },
+    'adapters': {
+      'CodeLLDB': {
+        'name': 'CodeLLDB',
+        'type': 'CodeLLDB',
+        "command": [
+          "${gadgetDir}/CodeLLDB/adapter/codelldb",
+          "--port", "${port}"
+        ],
+        "port": "${port}",
+        "configuration": {
+          "type": "lldb",
+          "name": "lldb",
+          "cargo": {},
+          "args": [],
+          "cwd": "${workspaceRoot}",
+          "env": {},
+          "terminal": "integrated",
+        }
+      },
+    },
+  },
 }
+
+
+def InstallGeneric( name, root, gadget ):
+  extension = os.path.join( root, 'extension' )
+  for f in gadget.get( 'make_executable', [] ):
+    installer.MakeExecutable( os.path.join( extension, f ) )
+
+  installer.MakeExtensionSymlink( vimspector_base, name, root )
 
 
 def InstallCppTools( name, root, gadget ):
@@ -550,7 +617,7 @@ def InstallGagdet( name, gadget, failed, all_adapters ):
     if 'do' in gadget:
       gadget[ 'do' ]( name, root, v )
     else:
-      installer.MakeExtensionSymlink( vimspector_base, name, root )
+      InstallGeneric( name, root, v )
 
     # Allow per-OS adapter overrides. v already did that for us...
     all_adapters.update( v.get( 'adapters', {} ) )
