@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -e
+
+./install_gadget.py --all --force-all --basedir ../vimspector-fidessa
+                        
