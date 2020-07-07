@@ -64,15 +64,25 @@ class Scope( Expandable ):
   def VariablesReference( self ):
     return self.scope.get( 'variablesReference', 0 )
 
+  def Update( self, scope ):
+    self.scope = scope
+
 
 class WatchResult( Expandable ):
   """Holds the result of a Watch expression with expand/collapse."""
   def __init__( self, result: dict ):
     super().__init__()
     self.result = result
+    self.changed = False
 
   def VariablesReference( self ):
     return self.result.get( 'variablesReference', 0 )
+
+  def Update( self, result ):
+    self.changed = False
+    if self.result[ 'result' ] != result[ 'result' ]:
+      self.changed = True
+    self.result = result
 
 
 class Variable( Expandable ):
@@ -80,9 +90,17 @@ class Variable( Expandable ):
   def __init__( self, variable: dict ):
     super().__init__()
     self.variable = variable
+    self.changed = False
 
   def VariablesReference( self ):
     return self.variable.get( 'variablesReference', 0 )
+
+  def Update( self, variable ):
+    self.changed = False
+    if self.variable[ 'value' ] != variable[ 'value' ]:
+      self.changed = True
+    self.variable = variable
+
 
 
 class Watch:
@@ -273,7 +291,7 @@ class VariablesView( object ):
 
   def _UpdateWatchExpression( self, watch: Watch, message: dict ):
     if watch.result is not None:
-      watch.result.result = message[ 'body' ]
+      watch.result.Update( message[ 'body' ] )
     else:
       watch.result = WatchResult( message[ 'body' ] )
 
@@ -327,8 +345,9 @@ class VariablesView( object ):
     for variable in variables:
       line = utils.AppendToBuffer(
         view.win.buffer,
-        '{indent}{icon} {name} ({type_}): {value}'.format(
+        '{indent}{marker}{icon} {name} ({type_}): {value}'.format(
           indent = ' ' * indent,
+          marker = '*' if variable.changed else ' ',
           icon = '+' if ( variable.IsExpandable()
                           and not variable.IsExpandedByUser() ) else '-',
           name = variable.variable[ 'name' ],
@@ -394,7 +413,12 @@ class VariablesView( object ):
     if result_str is None:
       result_str = '<unknown>'
 
-    line =  '{0}{1} Result: {2}'.format( ' ' * indent, icon, result_str )
+    line =  '{indent}{marker}{icon} Result: {result}'.format(
+      indent = ' ' * indent,
+      marker = '*' if watch.result.changed else ' ',
+      icon = icon,
+      result = result_str )
+
     line = utils.AppendToBuffer( self._watch.win.buffer, line.split( '\n' ) )
     self._watch.lines[ line ] = watch.result
 
@@ -413,7 +437,7 @@ class VariablesView( object ):
       found = False
       for index, v in enumerate( parent.variables ):
         if v.variable[ 'name' ] == variable_body[ 'name' ]:
-          v.variable = variable_body
+          v.Update( variable_body )
           variable = v
           found = True
           break
