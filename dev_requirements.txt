@@ -1,4 +1,4 @@
-flake8==3.7.7
+flake8==3.8.3
 vim-vint==0.3.21
-flake8-comprehensions
+flake8-comprehensions==3.2.3
 flake8-ycm>= 0.1.0

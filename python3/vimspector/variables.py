@@ -18,6 +18,7 @@ import vim
 import logging
 from collections import namedtuple
 from functools import partial
+import typing
 
 from vimspector import utils
 
@@ -25,10 +26,17 @@ View = namedtuple( 'View', [ 'win', 'lines', 'draw' ] )
 
 
 
-class VariablesContainer:
+class Expandable:
+  """Base for anything which might contain a hierarchy of values represented by
+  a 'variablesReference' to be resolved by the 'variables' request. Records the
+  current state expanded/collapsed. Implementations just implement
+  VariablesReference to get the variables."""
   def __init__( self ):
-    self.variables = None
-    self.expanded = None
+    self.variables: typing.List[ 'Variable' ] = None
+    # None is Falsy and represents collapsed _by default_. WHen set to False,
+    # this means the user explicitly collapsed it. When True, the user expanded
+    # it.
+    self.expanded: bool = None
 
   def IsCollapsedByUser( self ):
     return self.expanded is False
@@ -47,8 +55,9 @@ class VariablesContainer:
     assert False
 
 
-class Scope( VariablesContainer ):
-  def __init__( self, scope ):
+class Scope( Expandable ):
+  """Holds an expandable scope (a DAP scope dict), with expand/collapse state"""
+  def __init__( self, scope: dict ):
     super().__init__()
     self.scope = scope
 
@@ -56,8 +65,9 @@ class Scope( VariablesContainer ):
     return self.scope.get( 'variablesReference', 0 )
 
 
-class WatchResult( VariablesContainer ):
-  def __init__( self, result ):
+class WatchResult( Expandable ):
+  """Holds the result of a Watch expression with expand/collapse."""
+  def __init__( self, result: dict ):
     super().__init__()
     self.result = result
 
@@ -65,8 +75,9 @@ class WatchResult( VariablesContainer ):
     return self.result.get( 'variablesReference', 0 )
 
 
-class Variable( VariablesContainer ):
-  def __init__( self, variable ):
+class Variable( Expandable ):
+  """Holds one level of an expanded value tree. Also itself expandable."""
+  def __init__( self, variable: dict ):
     super().__init__()
     self.variable = variable
 
@@ -75,7 +86,10 @@ class Variable( VariablesContainer ):
 
 
 class Watch:
-  def __init__( self, expression ):
+  """Holds a user watch expression (DAP request) and the result (WatchResult)"""
+  def __init__( self, expression: dict ):
+    self.result: WatchResult
+
     self.expression = expression
     self.result = None
 
@@ -96,10 +110,10 @@ class VariablesView( object ):
         'nnoremap <buffer> <CR> :call vimspector#ExpandVariable()<CR>' )
 
     # List of current scopes of type Scope
-    self._scopes = []
+    self._scopes: typing.List[ 'Scope' ] = []
 
     # List of current Watches of type Watch
-    self._watches = []
+    self._watches: typing.List[ 'Watch' ] = []
 
     # Allows us to hit <CR> to expand/collapse variables
     with utils.LetCurrentWindow( self._watch.win ):
@@ -257,7 +271,7 @@ class VariablesView( object ):
         'arguments': watch.expression,
       } )
 
-  def _UpdateWatchExpression( self, watch, message ):
+  def _UpdateWatchExpression( self, watch: Watch, message: dict ):
     if watch.result is not None:
       watch.result.result = message[ 'body' ]
     else:
