@@ -236,7 +236,7 @@ class VariablesView( object ):
       for index, s in enumerate( self._scopes ):
         if s.scope[ 'name' ] not in names:
           marked.append( index )
-      for m in marked:
+      for m in reversed( marked ):
         self._scopes.pop( m )
 
       self._DrawScopes()
@@ -464,7 +464,7 @@ class VariablesView( object ):
       for index, v in enumerate( parent.variables ):
         if v.variable[ 'name' ] not in names:
           marked.append( index )
-      for m in marked:
+      for m in reversed( marked ):
         parent.variables.pop( m )
 
     draw()
