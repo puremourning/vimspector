@@ -342,11 +342,13 @@ class VariablesView( object ):
     } )
 
   def _DrawVariables( self, view,  variables, indent ):
+    assert indent > 0
     for variable in variables:
       line = utils.AppendToBuffer(
         view.win.buffer,
         '{indent}{marker}{icon} {name} ({type_}): {value}'.format(
-          indent = ' ' * indent,
+          # We borrow 1 space of indent to draw the change marker
+          indent = ' ' * ( indent - 1 ),
           marker = '*' if variable.changed else ' ',
           icon = '+' if ( variable.IsExpandable()
                           and not variable.IsExpandedByUser() ) else '-',
@@ -406,6 +408,7 @@ class VariablesView( object ):
     if not watch.result:
       return
 
+    assert indent > 0
     icon = '+' if ( watch.result.IsExpandable() and
                     not watch.result.IsExpandedByUser() ) else '-'
 
@@ -414,7 +417,8 @@ class VariablesView( object ):
       result_str = '<unknown>'
 
     line =  '{indent}{marker}{icon} Result: {result}'.format(
-      indent = ' ' * indent,
+      # We borrow 1 space of indent to draw the change marker
+      indent = ' ' * ( indent - 1 ),
       marker = '*' if watch.result.changed else ' ',
       icon = icon,
       result = result_str )
