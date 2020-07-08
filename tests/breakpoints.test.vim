@@ -394,7 +394,7 @@ function! Test_Conditional_Line_Breakpoint_Hit()
   " window (also, tests the watch window!)
   call vimspector#AddWatch( 'i' )
   call WaitForAssert( {->
-        \       assert_equal( [ '  - Result: 2' ],
+        \       assert_equal( [ ' *- Result: 2' ],
         \                     getbufline( 'vimspector.Watches', '$' ) )
         \ } )
 

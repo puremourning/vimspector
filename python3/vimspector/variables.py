@@ -35,7 +35,7 @@ class Expandable:
     self.variables: typing.List[ 'Variable' ] = None
     # None is Falsy and represents collapsed _by default_. WHen set to False,
     # this means the user explicitly collapsed it. When True, the user expanded
-    # it.
+    # it (or we expanded it by default).
     self.expanded: bool = None
 
   def IsCollapsedByUser( self ):
@@ -73,7 +73,8 @@ class WatchResult( Expandable ):
   def __init__( self, result: dict ):
     super().__init__()
     self.result = result
-    self.changed = False
+    # A new watch result is marked as changed
+    self.changed = True
 
   def VariablesReference( self ):
     return self.result.get( 'variablesReference', 0 )
@@ -90,7 +91,8 @@ class Variable( Expandable ):
   def __init__( self, variable: dict ):
     super().__init__()
     self.variable = variable
-    self.changed = False
+    # A new variable appearing is marked as changed
+    self.changed = True
 
   def VariablesReference( self ):
     return self.variable.get( 'variablesReference', 0 )
@@ -201,22 +203,22 @@ class VariablesView( object ):
 
   def LoadScopes( self, frame ):
     def scopes_consumer( message ):
-      names = set()
+      new_scopes = []
       for scope_body in message[ 'body' ][ 'scopes' ]:
         # Find it in the scopes list
         found = False
         for index, s in enumerate( self._scopes ):
           if s.scope[ 'name' ] == scope_body[ 'name' ]:
             found = True
-            s.scope = scope_body
             scope = s
             break
 
         if not found:
           scope = Scope( scope_body )
-          self._scopes.append( scope )
+        else:
+          scope.Update( scope_body )
 
-        names.add( scope.scope[ 'name' ] )
+        new_scopes.append( scope )
 
         if not scope.scope[ 'expensive' ] and not scope.IsCollapsedByUser():
           # Expand any non-expensive scope which is not manually collapsed
@@ -232,13 +234,7 @@ class VariablesView( object ):
             },
           } )
 
-      marked = []
-      for index, s in enumerate( self._scopes ):
-        if s.scope[ 'name' ] not in names:
-          marked.append( index )
-      for m in reversed( marked ):
-        self._scopes.pop( m )
-
+      self._scopes = new_scopes
       self._DrawScopes()
 
     self._connection.DoRequest( scopes_consumer, {
@@ -364,8 +360,7 @@ class VariablesView( object ):
   def _DrawScopes( self ):
     # FIXME: The drawing is dumb and draws from scratch every time. This is
     # simple and works and makes sure the line-map is always correct.
-    # However it is really inefficient, and makes it so that expanded results
-    # are collapsed on every step.
+    # However it is pretty inefficient.
     self._vars.lines.clear()
     with utils.RestoreCursorPosition():
       with utils.ModifiableScratchBuffer( self._vars.win.buffer ):
@@ -376,8 +371,7 @@ class VariablesView( object ):
   def _DrawWatches( self ):
     # FIXME: The drawing is dumb and draws from scratch every time. This is
     # simple and works and makes sure the line-map is always correct.
-    # However it is really inefficient, and makes it so that expanded results
-    # are collapsed on every step.
+    # However it is pretty inefficient.
     self._watch.lines.clear()
     with utils.RestoreCursorPosition():
       with utils.ModifiableScratchBuffer( self._watch.win.buffer ):
@@ -427,8 +421,7 @@ class VariablesView( object ):
       self._DrawVariables( self._watch, watch.result.variables, indent )
 
   def _ConsumeVariables( self, draw, parent, message ):
-    names = set()
-
+    new_variables = []
     for variable_body in message[ 'body' ][ 'variables' ]:
       if parent.variables is None:
         parent.variables = []
@@ -437,16 +430,16 @@ class VariablesView( object ):
       found = False
       for index, v in enumerate( parent.variables ):
         if v.variable[ 'name' ] == variable_body[ 'name' ]:
-          v.Update( variable_body )
           variable = v
           found = True
           break
 
       if not found:
         variable = Variable( variable_body )
-        parent.variables.append( variable )
+      else:
+        variable.Update( variable_body )
 
-      names.add( variable.variable[ 'name' ] )
+      new_variables.append( variable )
 
       if variable.IsExpandable() and variable.IsExpandedByUser():
         self._connection.DoRequest( partial( self._ConsumeVariables,
@@ -458,14 +451,7 @@ class VariablesView( object ):
           },
         } )
 
-    # Delete any variables from parent not seen in this pass
-    if parent.variables:
-      marked = []
-      for index, v in enumerate( parent.variables ):
-        if v.variable[ 'name' ] not in names:
-          marked.append( index )
-      for m in reversed( marked ):
-        parent.variables.pop( m )
+    parent.variables = new_variables
 
     draw()
 
