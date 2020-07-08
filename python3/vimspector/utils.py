@@ -345,9 +345,9 @@ def IsCurrent( window, buf ):
   return vim.current.window == window and vim.current.window.buffer == buf
 
 
-def ExpandReferencesInObject( obj, mapping, user_choices ):
+def ExpandReferencesInObject( obj, mapping, calculus, user_choices ):
   if isinstance( obj, dict ):
-    ExpandReferencesInDict( obj, mapping, user_choices )
+    ExpandReferencesInDict( obj, mapping, calculus, user_choices )
   elif isinstance( obj, list ):
     j_offset = 0
     obj_copy = list( obj )
@@ -360,6 +360,7 @@ def ExpandReferencesInObject( obj, mapping, user_choices ):
         # *${something} - expand list in place
         value = ExpandReferencesInString( obj_copy[ i ][ 1: ],
                                           mapping,
+                                          calculus,
                                           user_choices )
         obj.pop( j )
         j_offset -= 1
@@ -369,14 +370,18 @@ def ExpandReferencesInObject( obj, mapping, user_choices ):
       else:
         obj[ j ] = ExpandReferencesInObject( obj_copy[ i ],
                                              mapping,
+                                             calculus,
                                              user_choices )
   elif isinstance( obj, str ):
-    obj = ExpandReferencesInString( obj, mapping, user_choices )
+    obj = ExpandReferencesInString( obj, mapping, calculus, user_choices )
 
   return obj
 
 
-def ExpandReferencesInString( orig_s, mapping, user_choices ):
+def ExpandReferencesInString( orig_s,
+                              mapping,
+                              calculus,
+                              user_choices ):
   s = os.path.expanduser( orig_s )
   s = os.path.expandvars( s )
 
@@ -393,15 +398,19 @@ def ExpandReferencesInString( orig_s, mapping, user_choices ):
       # HACK: This is seemingly the only way to get the key. str( e ) returns
       # the key surrounded by '' for unknowable reasons.
       key = e.args[ 0 ]
-      default_value = user_choices.get( key, None )
-      mapping[ key ] = AskForInput( 'Enter value for {}: '.format( key ),
-                                    default_value )
-      user_choices[ key ] = mapping[ key ]
-      _logger.debug( "Value for %s not set in %s (from %s): set to %s",
-                     key,
-                     s,
-                     orig_s,
-                     mapping[ key ] )
+
+      if key in calculus:
+        mapping[ key ] = calculus[ key ]()
+      else:
+        default_value = user_choices.get( key, None )
+        mapping[ key ] = AskForInput( 'Enter value for {}: '.format( key ),
+                                      default_value )
+        user_choices[ key ] = mapping[ key ]
+        _logger.debug( "Value for %s not set in %s (from %s): set to %s",
+                       key,
+                       s,
+                       orig_s,
+                       mapping[ key ] )
     except ValueError as e:
       UserMessage( 'Invalid $ in string {}: {}'.format( s, e ),
                    persist = True )
@@ -412,12 +421,18 @@ def ExpandReferencesInString( orig_s, mapping, user_choices ):
 
 # TODO: Should we just run the substitution on the whole JSON string instead?
 # That woul dallow expansion in bool and number values, such as ports etc. ?
-def ExpandReferencesInDict( obj, mapping, user_choices ):
+def ExpandReferencesInDict( obj, mapping, calculus, user_choices ):
   for k in obj.keys():
-    obj[ k ] = ExpandReferencesInObject( obj[ k ], mapping, user_choices )
+    obj[ k ] = ExpandReferencesInObject( obj[ k ],
+                                         mapping,
+                                         calculus,
+                                         user_choices )
 
 
-def ParseVariables( variables_list, mapping, user_choices ):
+def ParseVariables( variables_list,
+                    mapping,
+                    calculus,
+                    user_choices ):
   new_variables = {}
   new_mapping = mapping.copy()
 
@@ -431,7 +446,10 @@ def ParseVariables( variables_list, mapping, user_choices ):
         if 'shell' in v:
           new_v = v.copy()
           # Bit of a hack. Allows environment variables to be used.
-          ExpandReferencesInDict( new_v, new_mapping, user_choices )
+          ExpandReferencesInDict( new_v,
+                                  new_mapping,
+                                  calculus,
+                                  user_choices )
 
           env = os.environ.copy()
           env.update( new_v.get( 'env' ) or {} )
@@ -455,6 +473,7 @@ def ParseVariables( variables_list, mapping, user_choices ):
       else:
         new_variables[ n ] = ExpandReferencesInObject( v,
                                                        mapping,
+                                                       calculus,
                                                        user_choices )
 
   return new_variables
@@ -575,3 +594,13 @@ def GetVimspectorBase():
     return base.decode( 'utf-8' )
   else:
     return base
+
+
+def GetUnusedLocalPort():
+  import socket
+  sock = socket.socket()
+  # This tells the OS to give us any free port in the range [1024 - 65535]
+  sock.bind( ( '', 0 ) )
+  port = sock.getsockname()[ 1 ]
+  sock.close()
+  return port
