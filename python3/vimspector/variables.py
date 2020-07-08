@@ -412,16 +412,12 @@ class VariablesView( object ):
     icon = '+' if ( watch.result.IsExpandable() and
                     not watch.result.IsExpandedByUser() ) else '-'
 
-    result_str = watch.result.result[ 'result' ]
-    if result_str is None:
-      result_str = '<unknown>'
-
     line =  '{indent}{marker}{icon} Result: {result}'.format(
       # We borrow 1 space of indent to draw the change marker
       indent = ' ' * ( indent - 1 ),
       marker = '*' if watch.result.changed else ' ',
       icon = icon,
-      result = result_str )
+      result = watch.result.result.get( 'result', '<unknown>' ) )
 
     line = utils.AppendToBuffer( self._watch.win.buffer, line.split( '\n' ) )
     self._watch.lines[ line ] = watch.result
