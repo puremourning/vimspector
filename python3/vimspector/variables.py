@@ -13,14 +13,105 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import abc
 import vim
 import logging
 from collections import namedtuple
 from functools import partial
+import typing
 
 from vimspector import utils
 
 View = namedtuple( 'View', [ 'win', 'lines', 'draw' ] )
+
+
+
+class Expandable:
+  """Base for anything which might contain a hierarchy of values represented by
+  a 'variablesReference' to be resolved by the 'variables' request. Records the
+  current state expanded/collapsed. Implementations just implement
+  VariablesReference to get the variables."""
+  def __init__( self ):
+    self.variables: typing.List[ 'Variable' ] = None
+    # None is Falsy and represents collapsed _by default_. WHen set to False,
+    # this means the user explicitly collapsed it. When True, the user expanded
+    # it (or we expanded it by default).
+    self.expanded: bool = None
+
+  def IsCollapsedByUser( self ):
+    return self.expanded is False
+
+  def IsExpandedByUser( self ):
+    return self.expanded is True
+
+  def ShouldDrawDrillDown( self ):
+    return self.IsExpandedByUser() and self.variables is not None
+
+  def IsExpandable( self ):
+    return self.VariablesReference() > 0
+
+  @abc.abstractmethod
+  def VariablesReference( self ):
+    assert False
+
+
+class Scope( Expandable ):
+  """Holds an expandable scope (a DAP scope dict), with expand/collapse state"""
+  def __init__( self, scope: dict ):
+    super().__init__()
+    self.scope = scope
+
+  def VariablesReference( self ):
+    return self.scope.get( 'variablesReference', 0 )
+
+  def Update( self, scope ):
+    self.scope = scope
+
+
+class WatchResult( Expandable ):
+  """Holds the result of a Watch expression with expand/collapse."""
+  def __init__( self, result: dict ):
+    super().__init__()
+    self.result = result
+    # A new watch result is marked as changed
+    self.changed = True
+
+  def VariablesReference( self ):
+    return self.result.get( 'variablesReference', 0 )
+
+  def Update( self, result ):
+    self.changed = False
+    if self.result[ 'result' ] != result[ 'result' ]:
+      self.changed = True
+    self.result = result
+
+
+class Variable( Expandable ):
+  """Holds one level of an expanded value tree. Also itself expandable."""
+  def __init__( self, variable: dict ):
+    super().__init__()
+    self.variable = variable
+    # A new variable appearing is marked as changed
+    self.changed = True
+
+  def VariablesReference( self ):
+    return self.variable.get( 'variablesReference', 0 )
+
+  def Update( self, variable ):
+    self.changed = False
+    if self.variable[ 'value' ] != variable[ 'value' ]:
+      self.changed = True
+    self.variable = variable
+
+
+
+class Watch:
+  """Holds a user watch expression (DAP request) and the result (WatchResult)"""
+  def __init__( self, expression: dict ):
+    self.result: WatchResult
+
+    self.expression = expression
+    self.result = None
 
 
 class VariablesView( object ):
@@ -38,19 +129,11 @@ class VariablesView( object ):
       vim.command(
         'nnoremap <buffer> <CR> :call vimspector#ExpandVariable()<CR>' )
 
-    # This is actually the tree (scopes are alwyas the root)
-    #  it's just a list of DAP scope dicts, with one magic key (_variables)
-    #  _variables is a list of DAP variable with the same magic key
-    #
-    # If _variables is present, then we have requested and should display the
-    # children. Otherwise, we haven't or shouldn't.
-    self._scopes = []
+    # List of current scopes of type Scope
+    self._scopes: typing.List[ 'Scope' ] = []
 
-    # This is similar to scopes, but the top level is an "expression" (request)
-    # containing a special '_result' key which is the response. The response
-    # structure con contain _variables and is handled identically to the scopes
-    # above. It also has a special _line key which is where we printed it (last)
-    self._watches = []
+    # List of current Watches of type Watch
+    self._watches: typing.List[ 'Watch' ] = []
 
     # Allows us to hit <CR> to expand/collapse variables
     with utils.LetCurrentWindow( self._watch.win ):
@@ -120,31 +203,38 @@ class VariablesView( object ):
 
   def LoadScopes( self, frame ):
     def scopes_consumer( message ):
-      old_scopes = self._scopes
-      self._scopes = []
+      new_scopes = []
+      for scope_body in message[ 'body' ][ 'scopes' ]:
+        # Find it in the scopes list
+        found = False
+        for index, s in enumerate( self._scopes ):
+          if s.scope[ 'name' ] == scope_body[ 'name' ]:
+            found = True
+            scope = s
+            break
 
-      for i, scope in enumerate( message[ 'body' ][ 'scopes' ] ):
-        if ( i < len( old_scopes ) and
-             old_scopes[ i ][ 'name' ] == scope[ 'name' ] ):
-          scope[ '_expanded' ] = old_scopes[ i ].get( '_expanded', False )
-          scope[ '_old_variables' ] = old_scopes[ i ].get( '_variables', [] )
-        elif not scope.get( 'expensive' ):
-          # Expand any non-expensive scope unless manually collapsed
-          scope[ '_expanded' ] = True
+        if not found:
+          scope = Scope( scope_body )
         else:
-          scope[ '_expanded' ] = False
+          scope.Update( scope_body )
 
-        self._scopes.append( scope )
-        if scope[ '_expanded' ]:
+        new_scopes.append( scope )
+
+        if not scope.scope[ 'expensive' ] and not scope.IsCollapsedByUser():
+          # Expand any non-expensive scope which is not manually collapsed
+          scope.expanded = True
+
+        if scope.IsExpandedByUser():
           self._connection.DoRequest( partial( self._ConsumeVariables,
                                                self._DrawScopes,
                                                scope ), {
             'command': 'variables',
             'arguments': {
-              'variablesReference': scope[ 'variablesReference' ]
+              'variablesReference': scope.scope[ 'variablesReference' ]
             },
           } )
 
+      self._scopes = new_scopes
       self._DrawScopes()
 
     self._connection.DoRequest( scopes_consumer, {
@@ -162,7 +252,7 @@ class VariablesView( object ):
     if frame:
       watch[ 'frameId' ] = frame[ 'id' ]
 
-    self._watches.append( watch )
+    self._watches.append( Watch( watch ) )
     self.EvaluateWatches()
 
   def DeleteWatch( self ):
@@ -174,9 +264,9 @@ class VariablesView( object ):
 
     best_index = -1
     for index, watch in enumerate( self._watches ):
-      if ( '_line' in watch
-           and watch[ '_line' ] <= current_line
-           and watch[ '_line' ] > best_index ):
+      if ( watch.line is not None
+           and watch.line <= current_line
+           and watch.line > best_index ):
         best_index = index
 
     if best_index >= 0:
@@ -192,30 +282,23 @@ class VariablesView( object ):
       self._connection.DoRequest( partial( self._UpdateWatchExpression,
                                            watch ), {
         'command': 'evaluate',
-        'arguments': watch,
+        'arguments': watch.expression,
       } )
 
-  def _UpdateWatchExpression( self, watch, message ):
-    old_result = None
-    if '_result' in watch:
-      old_result = watch[ '_result' ]
+  def _UpdateWatchExpression( self, watch: Watch, message: dict ):
+    if watch.result is not None:
+      watch.result.Update( message[ 'body' ] )
+    else:
+      watch.result = WatchResult( message[ 'body' ] )
 
-    result = message[ 'body' ]
-    watch[ '_result' ] = result
-
-    if old_result:
-      if '_expanded' in old_result:
-        result[ '_expanded' ] = old_result[ '_expanded' ]
-      result[ '_old_variables' ] = old_result.get( '_variables', [] )
-
-    if ( result.get( 'variablesReference', 0 ) > 0 and
-         result.get( '_expanded', False ) ):
+    if ( watch.result.IsExpandable() and
+         watch.result.IsExpandedByUser() ):
       self._connection.DoRequest( partial( self._ConsumeVariables,
                                            self._watch.draw,
-                                           result ), {
+                                           watch.result.result ), {
         'command': 'variables',
         'arguments': {
-          'variablesReference': result[ 'variablesReference' ]
+          'variablesReference': watch.result.result[ 'variablesReference' ]
         },
       } )
 
@@ -235,47 +318,49 @@ class VariablesView( object ):
 
     variable = view.lines[ current_line ]
 
-    if '_variables' in variable:
+    if variable.expanded:
       # Collapse
-      del variable[ '_variables' ]
-      variable[ '_expanded' ] = False
+      variable.expanded = False
       view.draw()
       return
 
-    if variable.get( 'variablesReference', 0 ) <= 0:
+    if not variable.IsExpandable():
       return
 
-    variable[ '_expanded' ] = True
+    variable.expanded = True
     self._connection.DoRequest( partial( self._ConsumeVariables,
                                          view.draw,
                                          variable ), {
       'command': 'variables',
       'arguments': {
-        'variablesReference': variable[ 'variablesReference' ]
+        'variablesReference': variable.VariablesReference()
       },
     } )
 
   def _DrawVariables( self, view,  variables, indent ):
+    assert indent > 0
     for variable in variables:
       line = utils.AppendToBuffer(
         view.win.buffer,
-        '{indent}{icon} {name} ({type_}): {value}'.format(
-          indent = ' ' * indent,
-          icon = '+' if ( variable.get( 'variablesReference', 0 ) > 0 and
-                          '_variables' not in variable ) else '-',
-          name = variable[ 'name' ],
-          type_ = variable.get( 'type', '<unknown type>' ),
-          value = variable.get( 'value', '<unknown value>' ) ).split( '\n' ) )
+        '{indent}{marker}{icon} {name} ({type_}): {value}'.format(
+          # We borrow 1 space of indent to draw the change marker
+          indent = ' ' * ( indent - 1 ),
+          marker = '*' if variable.changed else ' ',
+          icon = '+' if ( variable.IsExpandable()
+                          and not variable.IsExpandedByUser() ) else '-',
+          name = variable.variable[ 'name' ],
+          type_ = variable.variable.get( 'type', '<unknown type>' ),
+          value = variable.variable.get( 'value',
+                                         '<unknown value>' ) ).split( '\n' ) )
       view.lines[ line ] = variable
 
-      if '_variables' in variable:
-        self._DrawVariables( view, variable[ '_variables' ], indent + 2 )
+      if variable.ShouldDrawDrillDown():
+        self._DrawVariables( view, variable.variables, indent + 2 )
 
   def _DrawScopes( self ):
     # FIXME: The drawing is dumb and draws from scratch every time. This is
     # simple and works and makes sure the line-map is always correct.
-    # However it is really inefficient, and makes it so that expanded results
-    # are collapsed on every step.
+    # However it is pretty inefficient.
     self._vars.lines.clear()
     with utils.RestoreCursorPosition():
       with utils.ModifiableScratchBuffer( self._vars.win.buffer ):
@@ -286,8 +371,7 @@ class VariablesView( object ):
   def _DrawWatches( self ):
     # FIXME: The drawing is dumb and draws from scratch every time. This is
     # simple and works and makes sure the line-map is always correct.
-    # However it is really inefficient, and makes it so that expanded results
-    # are collapsed on every step.
+    # However it is pretty inefficient.
     self._watch.lines.clear()
     with utils.RestoreCursorPosition():
       with utils.ModifiableScratchBuffer( self._watch.win.buffer ):
@@ -295,74 +379,79 @@ class VariablesView( object ):
         utils.AppendToBuffer( self._watch.win.buffer, 'Watches: ----' )
         for watch in self._watches:
           line = utils.AppendToBuffer( self._watch.win.buffer,
-                                       'Expression: ' + watch[ 'expression' ] )
-          watch[ '_line' ] = line
+                                       'Expression: '
+                                       + watch.expression[ 'expression' ] )
+          watch.line = line
           self._DrawWatchResult( 2, watch )
 
   def _DrawScope( self, indent, scope ):
-    icon = '+' if ( scope.get( 'variablesReference', 0 ) > 0 and
-                    '_variables' not in scope ) else '-'
+    icon = '+' if scope.IsExpandable() and not scope.IsExpandedByUser() else '-'
 
     line = utils.AppendToBuffer( self._vars.win.buffer,
-                                 '{0}{1} Scope: {2}'.format( ' ' * indent,
-                                                             icon,
-                                                             scope[ 'name' ] ) )
+                                 '{0}{1} Scope: {2}'.format(
+                                   ' ' * indent,
+                                   icon,
+                                   scope.scope[ 'name' ] ) )
     self._vars.lines[ line ] = scope
 
-    if '_variables' in scope:
+    if scope.ShouldDrawDrillDown():
       indent += 2
-      self._DrawVariables( self._vars, scope[ '_variables' ], indent )
+      self._DrawVariables( self._vars, scope.variables, indent )
 
   def _DrawWatchResult( self, indent, watch ):
-    if '_result' not in watch:
+    if not watch.result:
       return
 
-    result = watch[ '_result' ]
+    assert indent > 0
+    icon = '+' if ( watch.result.IsExpandable() and
+                    not watch.result.IsExpandedByUser() ) else '-'
 
-    icon = '+' if ( result.get( 'variablesReference', 0 ) > 0 and
-                    '_variables' not in result ) else '-'
+    line =  '{indent}{marker}{icon} Result: {result}'.format(
+      # We borrow 1 space of indent to draw the change marker
+      indent = ' ' * ( indent - 1 ),
+      marker = '*' if watch.result.changed else ' ',
+      icon = icon,
+      result = watch.result.result.get( 'result', '<unknown>' ) )
 
-    result_str = result[ 'result' ]
-    if result_str is None:
-      result_str = 'null'
-
-    line =  '{0}{1} Result: {2}'.format( ' ' * indent, icon, result_str )
     line = utils.AppendToBuffer( self._watch.win.buffer, line.split( '\n' ) )
-    self._watch.lines[ line ] = result
+    self._watch.lines[ line ] = watch.result
 
-    if '_variables' in result:
+    if watch.result.ShouldDrawDrillDown():
       indent = 4
-      self._DrawVariables( self._watch, result[ '_variables' ], indent )
+      self._DrawVariables( self._watch, watch.result.variables, indent )
 
   def _ConsumeVariables( self, draw, parent, message ):
-    for variable in message[ 'body' ][ 'variables' ]:
-      if '_variables' not in parent:
-        parent[ '_variables' ] = []
+    new_variables = []
+    for variable_body in message[ 'body' ][ 'variables' ]:
+      if parent.variables is None:
+        parent.variables = []
 
-      parent[ '_variables' ].append( variable )
-
-      # If the variable was previously expanded, expand it again
-      for index, v in enumerate( parent.get( '_old_variables', [] ) ):
-        if v[ 'name' ] == variable[ 'name' ]:
-          if ( v.get( '_expanded', False ) and
-               variable.get( 'variablesReference', 0 ) > 0 ):
-
-            variable[ '_expanded' ] = True
-            variable[ '_old_variables' ] = v.get( '_variables', [] )
-
-            self._connection.DoRequest( partial( self._ConsumeVariables,
-                                                 draw,
-                                                 variable ), {
-              'command': 'variables',
-              'arguments': {
-                'variablesReference': variable[ 'variablesReference' ]
-              },
-            } )
-
+      # Find the variable in parent
+      found = False
+      for index, v in enumerate( parent.variables ):
+        if v.variable[ 'name' ] == variable_body[ 'name' ]:
+          variable = v
+          found = True
           break
 
-    if '_old_variables' in parent:
-      del parent[ '_old_variables' ]
+      if not found:
+        variable = Variable( variable_body )
+      else:
+        variable.Update( variable_body )
+
+      new_variables.append( variable )
+
+      if variable.IsExpandable() and variable.IsExpandedByUser():
+        self._connection.DoRequest( partial( self._ConsumeVariables,
+                                             draw,
+                                             variable ), {
+          'command': 'variables',
+          'arguments': {
+            'variablesReference': variable.VariablesReference()
+          },
+        } )
+
+    parent.variables = new_variables
 
     draw()
 
