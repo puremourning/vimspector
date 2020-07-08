@@ -208,9 +208,31 @@ GADGETS = {
     'language': 'tcl',
     'repo': {
       'url': 'https://github.com/puremourning/TclProDebug',
-      'ref': 'f5c56b7067661ce84e205765060224076569ae0e', # master 26/10/2019
+      'ref': 'master'
     },
-    'do': lambda name, root, gadget: InstallTclProDebug( name, root, gadget )
+    'do': lambda name, root, gadget: InstallTclProDebug( name, root, gadget ),
+    'adapters': {
+      "tclpro": {
+        "name": "tclpro",
+        "type": "tclpro",
+        "command": [
+          "${gadgetDir}/tclpro/bin/debugadapter"
+        ],
+        "attach": {
+          "pidSelect": "none"
+        },
+        "configuration": {
+          "target": "${file}",
+          "args": [ "*${args}" ],
+          "tclsh": "tclsh",
+          "cwd": "${workspaceRoot}",
+          "extensionDirs": [
+            "${workspaceRoot}/.tclpro/extensions",
+            "${HOME}/.tclpro/extensions",
+          ]
+        }
+      }
+    },
   },
   'netcoredbg': {
     'language': 'csharp',
