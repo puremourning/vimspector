@@ -181,12 +181,11 @@ class DebugSession( object ):
       'dollar': '$', # HACK. Hote '$$' also works.
       'workspaceRoot': self._workspace_root,
       'workspaceFolder': self._workspace_root,
+      'gadgetDir': install.GetGadgetDir( VIMSPECTOR_HOME, install.GetOS() ),
       'file': current_file,
     }
 
     calculus = {
-      'gadgetDir': lambda: install.GetGadgetDir( VIMSPECTOR_HOME,
-                                                 install.GetOS() ),
       'relativeFile': lambda: relpath( current_file,
                                        self._workspace_root ),
       'fileBasename': lambda: os.path.basename( current_file ),
