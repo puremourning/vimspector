@@ -230,7 +230,7 @@ class VariablesView( object ):
                                                scope ), {
             'command': 'variables',
             'arguments': {
-              'variablesReference': scope.scope[ 'variablesReference' ]
+              'variablesReference': scope.VariablesReference(),
             },
           } )
 
@@ -295,10 +295,10 @@ class VariablesView( object ):
          watch.result.IsExpandedByUser() ):
       self._connection.DoRequest( partial( self._ConsumeVariables,
                                            self._watch.draw,
-                                           watch.result.result ), {
+                                           watch.result ), {
         'command': 'variables',
         'arguments': {
-          'variablesReference': watch.result.result[ 'variablesReference' ]
+          'variablesReference': watch.result.VariablesReference(),
         },
       } )
 
