@@ -364,6 +364,7 @@ The following variables are provided:
 * `${fileDirname}` - the current opened file's dirname
 * `${fileExtname}` - the current opened file's extension
 * `${cwd}` - the current working directory of the active window on launch
+* `${unusedLocalPort}` - an unused local TCP port
 
 ## Remote Debugging Support
 
