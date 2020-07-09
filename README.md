@@ -33,6 +33,8 @@ For a tutorial and usage overview, take a look at the
       * [Launch and attach by PID:](#launch-and-attach-by-pid)
          * [Launch with options](#launch-with-options)
       * [Breakpoints](#breakpoints)
+         * [Exception breakpoints](#exception-breakpoints)
+         * [Clear breakpoints](#clear-breakpoints)
       * [Stepping](#stepping)
       * [Variables and scopes](#variables-and-scopes)
       * [Watches](#watches)
@@ -66,7 +68,7 @@ For a tutorial and usage overview, take a look at the
    * [Motivation](#motivation)
    * [License](#license)
 
-<!-- Added by: ben, at: Mon  6 Jul 2020 11:30:01 BST -->
+<!-- Added by: ben, at: Thu  9 Jul 2020 18:19:20 BST -->
 
 <!--te-->
 
@@ -305,6 +307,30 @@ should be):
 
 ```
 ./install_gadget.py --all --disable-tcl
+```
+
+If you want to just add a new adapter without destroying the exisitng ones, add
+`--update-gadget-config`, as in:
+
+```bash
+$ ./install_gadget.py --enable-tcl
+$ ./install_gadget.py --enable-rust --update-gadget-config
+$ ./install_gadget.py --enable-java --update-gadget-config
+```
+
+If you want to maintain `configurations` outside of the vimspector repository
+(this can be useful if you have custom gadgets or global configurations),
+you can tell the installer to use a different basedir, then set
+`g:vimspector_base_dir` to point to that directory, for example:
+
+```bash
+$ ./install_gadget.py --basedir $HOME/.vim/vimspector-config --all --force-all
+```
+
+Then add this to your `.vimrc`:
+
+```viml
+let g:vimspector_base_dir=expand( '$HOME/.vim/vimspector-config' )
 ```
 
 See `--help` for more info.
@@ -571,7 +597,7 @@ This would start the `Run Test` configuration with `${Test}` set to `'Name of
 the test'` and Vimspector would _not_ prompt the user to enter or confirm these
 things.
 
-See [this issue](https://github.com/puremourning/vimspector/issues/97) for
+See [our YouCompleteMe integration guide](#usage-with-youcompleteme) for
 another example where it can be used to specify the port to connect the [java
 debugger](#java---partially-supported)
 
@@ -598,6 +624,24 @@ whatever dialect the debugger understands when evaluating expressions.
 
 When using the `<leader><F9>` mapping, the user is prompted to enter these
 expressions in a command line (with history).
+
+### Exception breakpoints
+
+When starting debugging, you may be asekd a few questions about how to handle
+exceptoins. These are "exception breakpoints" and vimspector remembers your
+choices while Vim is still running.
+
+Typically you can accept the defaults (just keep pressing `<CR>`!) as most debug
+adapter defaults are sane, but if you want to break on, say `uncaught exception`
+then answer `Y` to that (for example).
+
+You can configure your choices in the `.vimspector.json`. See
+[the configuration guide][vimspector-ref-exception] for details on that.
+
+### Clear breakpoints
+
+* Use `vimspector#ClearBreakpoints()`
+  to clear all breakpoints including the memory of exception breakpoint choices.
 
 ## Stepping
 
