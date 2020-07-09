@@ -33,6 +33,8 @@ For a tutorial and usage overview, take a look at the
       * [Launch and attach by PID:](#launch-and-attach-by-pid)
          * [Launch with options](#launch-with-options)
       * [Breakpoints](#breakpoints)
+         * [Exception breakpoints](#exception-breakpoints)
+         * [Clear breakpoints](#clear-breakpoints)
       * [Stepping](#stepping)
       * [Variables and scopes](#variables-and-scopes)
       * [Watches](#watches)
@@ -66,7 +68,7 @@ For a tutorial and usage overview, take a look at the
    * [Motivation](#motivation)
    * [License](#license)
 
-<!-- Added by: ben, at: Mon  6 Jul 2020 11:30:01 BST -->
+<!-- Added by: ben, at: Thu  9 Jul 2020 18:19:20 BST -->
 
 <!--te-->
 
