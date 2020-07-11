@@ -82,8 +82,8 @@ class CodeView( object ):
                                      frame[ 'source' ][ 'path' ] ) )
     except vim.error as e:
       # Ignore 'invalid buffer name'
-      if 'E158' in str( e ):
-        pass
+      if 'E158' not in str( e ):
+        raise
 
     if not self._window.valid:
       return False
