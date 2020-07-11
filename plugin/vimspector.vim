@@ -97,6 +97,12 @@ command! -bar
       \ VimspectorReset
       \ call vimspector#Reset()
 
+" Dummy autocommands so that we can call this whenever
+augroup VimspectorUserAutoCmds
+  au!
+  au User VimspectorUICreated silent
+augroup END
+
 " boilerplate {{{
 call s:restore_cpo()
 " }}}

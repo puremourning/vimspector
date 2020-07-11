@@ -1,0 +1,23 @@
+execute 'source' expand( '<sfile>:p:h' ) . '/minimal_vimrc'
+set noequalalways
+
+function! s:CustomiseUI()
+  let wins = g:vimspector_session_windows
+
+  " Close the Variables window
+  call win_execute( wins.variables, 'q' )
+
+  " Put the stack trace at the top of the "left bar" (rotate)
+  call win_gotoid( wins.stack_trace )
+  wincmd r
+
+  " Make the output window 10 lines high and right at the top of the screen
+  call win_gotoid( wins.output )
+  10wincmd _
+  wincmd K
+endfunction
+
+augroup TestUICustomistaion
+  autocmd!
+  autocmd User VimspectorUICreated call s:CustomiseUI()
+augroup END

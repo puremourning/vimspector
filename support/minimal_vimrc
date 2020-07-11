@@ -1,0 +1,4 @@
+let s:vimspector_path = expand( '<sfile>:p:h:h' )
+let g:vimspector_enable_mappings = 'HUMAN'
+exe 'source ' . s:vimspector_path . '/tests/vimrc'
+
