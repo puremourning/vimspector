@@ -335,6 +335,8 @@ class DebugSession( object ):
     self._logger.info( "Debugging complete." )
     if self._uiTab:
       self._logger.debug( "Clearing down UI" )
+
+      del vim.vars[ 'vimspector_session_windows' ]
       vim.current.tabpage = self._uiTab
 
       self._splash_screen = utils.HideSplash( self._api_prefix,
@@ -473,41 +475,59 @@ class DebugSession( object ):
     self._uiTab = vim.current.tabpage
 
     # Code window
-    self._codeView = code.CodeView( vim.current.window,
-                                    self._api_prefix )
+    code_window = vim.current.window
+    self._codeView = code.CodeView( code_window, self._api_prefix )
 
     # Call stack
     with utils.TemporaryVimOptions( { 'splitright':  False,
                                       'equalalways': False, } ):
       vim.command( 'topleft vertical 50new' )
+      stack_trace_window = vim.current.window
       self._stackTraceView = stack_trace.StackTraceView( self,
                                                          self._connection,
-                                                         vim.current.buffer )
+                                                         stack_trace_window )
 
     with utils.TemporaryVimOptions( { 'splitbelow':  False,
                                       'eadirection': 'ver',
                                       'equalalways': True } ):
       # Watches
       vim.command( 'new' )
-      watch_win = vim.current.window
+      watch_window = vim.current.window
 
       # Variables
       vim.command( 'new' )
-      vars_win = vim.current.window
+      vars_window = vim.current.window
 
       self._variablesView = variables.VariablesView( self._connection,
-                                                     vars_win,
-                                                     watch_win )
+                                                     vars_window,
+                                                     watch_window )
 
 
     with utils.TemporaryVimOption( 'splitbelow', True ):
-      vim.current.window = self._codeView._window
+      vim.current.window = code_window
 
       # Output/logging
       vim.command( '10new' )
+      output_window = vim.current.window
       self._outputView = output.OutputView( self._connection,
-                                            vim.current.window,
+                                            output_window,
                                             self._api_prefix )
+
+    # TODO: If/when we support multiple sessions, we'll need some way to
+    # indicate which tab was created and store all the tabs
+    vim.vars[ 'vimspector_session_windows' ] = {
+      'tabpage': self._uiTab.number,
+      'code': utils.WindowID( code_window, self._uiTab ),
+      'stack_trace': utils.WindowID( stack_trace_window, self._uiTab ),
+      'variables': utils.WindowID( vars_window, self._uiTab ),
+      'watches': utils.WindowID( watch_window, self._uiTab ),
+      'output': utils.WindowID( output_window, self._uiTab ),
+    }
+    with utils.RestoreCursorPosition():
+      with utils.RestoreCurrentWindow():
+        with utils.RestoreCurrentBuffer( vim.current.window ):
+          vim.command( 'doautocmd User VimspectorUICreated' )
+
 
   def ClearCurrentFrame( self ):
     self.SetCurrentFrame( None )

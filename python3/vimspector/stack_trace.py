@@ -21,11 +21,11 @@ from vimspector import utils
 
 
 class StackTraceView( object ):
-  def __init__( self, session, connection, buf ):
+  def __init__( self, session, connection, win ):
     self._logger = logging.getLogger( __name__ )
     utils.SetUpLogging( self._logger )
 
-    self._buf = buf
+    self._buf = win.buffer
     self._session = session
     self._connection = connection
 
@@ -38,9 +38,7 @@ class StackTraceView( object ):
     self._scratch_buffers = []
 
     utils.SetUpHiddenBuffer( self._buf, 'vimspector.StackTrace' )
-
-    vim.current.buffer = self._buf
-    utils.SetUpUIWindow( vim.current.window )
+    utils.SetUpUIWindow( win )
 
     vim.command( 'nnoremap <buffer> <CR> :call vimspector#GoToFrame()<CR>' )
 

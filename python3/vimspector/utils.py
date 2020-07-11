@@ -639,3 +639,7 @@ def GetUnusedLocalPort():
   port = sock.getsockname()[ 1 ]
   sock.close()
   return port
+
+
+def WindowID( window, tab ):
+  return int( Call( 'win_getid', window.number, tab.number ) )
