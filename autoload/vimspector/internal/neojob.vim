@@ -22,6 +22,14 @@ set cpoptions&vim
 
 
 function! s:_OnEvent( chan_id, data, event ) abort
+  if v:exiting isnot# v:null
+    return
+  endif
+
+  if !exists( 's:job' ) || a:chan_id != s:job
+    return
+  endif
+
   " In neovim, the data argument is a list.
   if a:event ==# 'stdout'
     py3 _vimspector_session.OnChannelData( '\n'.join( vim.eval( 'a:data' ) ) )
@@ -30,9 +38,7 @@ function! s:_OnEvent( chan_id, data, event ) abort
   elseif a:event ==# 'exit'
     echom 'Channel exit with status ' . a:data
     redraw
-    if exists( 's:job' )
-      unlet s:job
-    endif
+    unlet s:job
     " This causes terminal spam in neovim due to
     " https://github.com/neovim/neovim/issues/11725
     py3 _vimspector_session.OnServerExit( vim.eval( 'a:data' ) )
@@ -108,7 +114,19 @@ function! vimspector#internal#neojob#Reset() abort
 endfunction
 
 function! s:_OnCommandEvent( category, id, data, event ) abort
+  if v:exiting isnot# v:null
+    return
+  endif
+
   if a:data == ['']
+    return
+  endif
+
+  if !has_key( s:commands, a:category )
+    return
+  endif
+
+  if !has_key( s:commands[ a:category ], a:id )
     return
   endif
 
@@ -212,8 +230,8 @@ function! vimspector#internal#neojob#CleanUpCommand( category ) abort
   endif
 
   for id in keys( s:commands[ a:category ] )
-    call jobstop( id )
-    call jobwait( id )
+    call jobstop( str2nr( id ) )
+    call jobwait( [ str2nr( id ) ] )
   endfor
   unlet! s:commands[ a:category ]
 endfunction
