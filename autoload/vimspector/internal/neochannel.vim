@@ -22,6 +22,14 @@ set cpoptions&vim
 
 
 function! s:_OnEvent( chan_id, data, event ) abort
+  if v:exiting isnot# v:null
+    return
+  endif
+
+  if !exists( 's:ch' ) || a:chan_id != s:ch
+    return
+  endif
+
   if a:data == ['']
     echom 'Channel closed'
     redraw

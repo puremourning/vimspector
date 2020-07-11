@@ -20,12 +20,20 @@ set cpoptions&vim
 " }}}
 
 function! s:_OnServerData( channel, data ) abort
+  if !exists( 's:ch' ) || s:ch isnot a:channel
+    return
+  endif
+
   py3 << EOF
 _vimspector_session.OnChannelData( vim.eval( 'a:data' ) )
 EOF
 endfunction
 
 function! s:_OnClose( channel ) abort
+  if !exists( 's:ch' ) || s:ch isnot a:channel
+    return
+  endif
+
   echom 'Channel closed'
   redraw
   unlet s:ch

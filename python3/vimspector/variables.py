@@ -16,14 +16,10 @@
 import abc
 import vim
 import logging
-from collections import namedtuple
 from functools import partial
 import typing
 
 from vimspector import utils
-
-View = namedtuple( 'View', [ 'win', 'lines', 'draw' ] )
-
 
 
 class Expandable:
@@ -104,7 +100,6 @@ class Variable( Expandable ):
     self.variable = variable
 
 
-
 class Watch:
   """Holds a user watch expression (DAP request) and the result (WatchResult)"""
   def __init__( self, expression: dict ):
@@ -114,29 +109,43 @@ class Watch:
     self.result = None
 
 
+class View:
+  lines: typing.Dict[ int, Expandable ]
+  draw: typing.Callable
+
+  def __init__( self, win, lines, draw ):
+    self.lines = lines
+    self.draw = draw
+    self.buf = win.buffer
+
+    utils.SetUpUIWindow( win )
+
+
 class VariablesView( object ):
   def __init__( self, connection, variables_win, watches_win ):
     self._logger = logging.getLogger( __name__ )
     utils.SetUpLogging( self._logger )
 
-    self._vars = View( variables_win, {}, self._DrawScopes )
-    self._watch = View( watches_win, {}, self._DrawWatches )
     self._connection = connection
     self._current_syntax = ''
 
-    # Allows us to hit <CR> to expand/collapse variables
-    with utils.LetCurrentWindow( self._vars.win ):
+    # Set up the "Variables" buffer in the variables_win
+    self._scopes: typing.List[ Scope ] = []
+    self._vars = View( variables_win, {}, self._DrawScopes )
+    utils.SetUpHiddenBuffer( self._vars.buf, 'vimspector.Variables' )
+    with utils.LetCurrentWindow( variables_win ):
       vim.command(
         'nnoremap <buffer> <CR> :call vimspector#ExpandVariable()<CR>' )
 
-    # List of current scopes of type Scope
-    self._scopes: typing.List[ 'Scope' ] = []
-
-    # List of current Watches of type Watch
-    self._watches: typing.List[ 'Watch' ] = []
-
-    # Allows us to hit <CR> to expand/collapse variables
-    with utils.LetCurrentWindow( self._watch.win ):
+    # Set up the "Watches" buffer in the watches_win (and create a WinBar in
+    # there)
+    self._watches: typing.List[ Watch ] = []
+    self._watch = View( watches_win, {}, self._DrawWatches )
+    utils.SetUpPromptBuffer( self._watch.buf,
+                             'vimspector.Watches',
+                             'Expression: ',
+                             'vimspector#AddWatchPrompt' )
+    with utils.LetCurrentWindow( watches_win ):
       vim.command(
         'nnoremap <buffer> <CR> :call vimspector#ExpandVariable()<CR>' )
       vim.command(
@@ -149,15 +158,7 @@ class VariablesView( object ):
       vim.command( 'nnoremenu 1.3 WinBar.Delete '
                    ':call vimspector#DeleteWatch()<CR>' )
 
-    utils.SetUpScratchBuffer( self._vars.win.buffer, 'vimspector.Variables' )
-    utils.SetUpPromptBuffer( self._watch.win.buffer,
-                             'vimspector.Watches',
-                             'Expression: ',
-                             'vimspector#AddWatchPrompt' )
-
-    utils.SetUpUIWindow( self._vars.win )
-    utils.SetUpUIWindow( self._watch.win )
-
+    # Set the (global!) balloon expr if supported
     has_balloon      = int( vim.eval( "has( 'balloon_eval' )" ) )
     has_balloon_term = int( vim.eval( "has( 'balloon_eval_term' )" ) )
 
@@ -181,10 +182,10 @@ class VariablesView( object ):
     self._is_term = not bool( int( vim.eval( "has( 'gui_running' )" ) ) )
 
   def Clear( self ):
-    with utils.ModifiableScratchBuffer( self._vars.win.buffer ):
-      utils.ClearBuffer( self._vars.win.buffer )
-    with utils.ModifiableScratchBuffer( self._watch.win.buffer ):
-      utils.ClearBuffer( self._watch.win.buffer )
+    with utils.ModifiableScratchBuffer( self._vars.buf ):
+      utils.ClearBuffer( self._vars.buf )
+    with utils.ModifiableScratchBuffer( self._watch.buf ):
+      utils.ClearBuffer( self._watch.buf )
     self._current_syntax = ''
 
   def ConnectionUp( self, connection ):
@@ -198,8 +199,8 @@ class VariablesView( object ):
     for k, v in self._oldoptions.items():
       vim.options[ k ] = v
 
-    vim.command( 'bdelete! ' + str( self._watch.win.buffer.number ) )
-    vim.command( 'bdelete! ' + str( self._vars.win.buffer.number ) )
+    utils.CleanUpHiddenBuffer( self._vars.buf )
+    utils.CleanUpHiddenBuffer( self._watch.buf )
 
   def LoadScopes( self, frame ):
     def scopes_consumer( message ):
@@ -256,8 +257,8 @@ class VariablesView( object ):
     self.EvaluateWatches()
 
   def DeleteWatch( self ):
-    if vim.current.window != self._watch.win:
-      utils.UserMessage( 'Not a watch window' )
+    if vim.current.buffer != self._watch.buf:
+      utils.UserMessage( 'Not a watch buffer' )
       return
 
     current_line = vim.current.window.cursor[ 0 ]
@@ -305,9 +306,9 @@ class VariablesView( object ):
     self._DrawWatches()
 
   def ExpandVariable( self ):
-    if vim.current.window == self._vars.win:
+    if vim.current.buffer == self._vars.buf:
       view = self._vars
-    elif vim.current.window == self._watch.win:
+    elif vim.current.buffer == self._watch.buf:
       view = self._watch
     else:
       return
@@ -341,7 +342,7 @@ class VariablesView( object ):
     assert indent > 0
     for variable in variables:
       line = utils.AppendToBuffer(
-        view.win.buffer,
+        view.buf,
         '{indent}{marker}{icon} {name} ({type_}): {value}'.format(
           # We borrow 1 space of indent to draw the change marker
           indent = ' ' * ( indent - 1 ),
@@ -363,8 +364,8 @@ class VariablesView( object ):
     # However it is pretty inefficient.
     self._vars.lines.clear()
     with utils.RestoreCursorPosition():
-      with utils.ModifiableScratchBuffer( self._vars.win.buffer ):
-        utils.ClearBuffer( self._vars.win.buffer )
+      with utils.ModifiableScratchBuffer( self._vars.buf ):
+        utils.ClearBuffer( self._vars.buf )
         for scope in self._scopes:
           self._DrawScope( 0, scope )
 
@@ -374,11 +375,11 @@ class VariablesView( object ):
     # However it is pretty inefficient.
     self._watch.lines.clear()
     with utils.RestoreCursorPosition():
-      with utils.ModifiableScratchBuffer( self._watch.win.buffer ):
-        utils.ClearBuffer( self._watch.win.buffer )
-        utils.AppendToBuffer( self._watch.win.buffer, 'Watches: ----' )
+      with utils.ModifiableScratchBuffer( self._watch.buf ):
+        utils.ClearBuffer( self._watch.buf )
+        utils.AppendToBuffer( self._watch.buf, 'Watches: ----' )
         for watch in self._watches:
-          line = utils.AppendToBuffer( self._watch.win.buffer,
+          line = utils.AppendToBuffer( self._watch.buf,
                                        'Expression: '
                                        + watch.expression[ 'expression' ] )
           watch.line = line
@@ -387,7 +388,7 @@ class VariablesView( object ):
   def _DrawScope( self, indent, scope ):
     icon = '+' if scope.IsExpandable() and not scope.IsExpandedByUser() else '-'
 
-    line = utils.AppendToBuffer( self._vars.win.buffer,
+    line = utils.AppendToBuffer( self._vars.buf,
                                  '{0}{1} Scope: {2}'.format(
                                    ' ' * indent,
                                    icon,
@@ -413,7 +414,7 @@ class VariablesView( object ):
       icon = icon,
       result = watch.result.result.get( 'result', '<unknown>' ) )
 
-    line = utils.AppendToBuffer( self._watch.win.buffer, line.split( '\n' ) )
+    line = utils.AppendToBuffer( self._watch.buf, line.split( '\n' ) )
     self._watch.lines[ line ] = watch.result
 
     if watch.result.ShouldDrawDrillDown():
@@ -495,7 +496,7 @@ class VariablesView( object ):
   def SetSyntax( self, syntax ):
     self._current_syntax = utils.SetSyntax( self._current_syntax,
                                             syntax,
-                                            self._vars.win,
-                                            self._watch.win )
+                                            self._vars.buf,
+                                            self._watch.buf )
 
 # vim: sw=2

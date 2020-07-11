@@ -9,7 +9,10 @@
         "classPaths": [ "${workspaceRoot}/target/classes" ],
         "args": "hello world!",
         "stopOnEntry": true,
-        "console": "integratedTerminal"
+        "console": "integratedTerminal",
+        "stepFilters": {
+          "skipClasses": [ "$$JDK" ]
+        }
       }
     },
     "Java Attach": {
@@ -19,7 +22,10 @@
         "sourcePaths": [ "${workspaceRoot}/src/main/java" ],
         "stopOnEntry": true,
         "hostName": "localhost",
-        "port": "${JVMDebugPort}"
+        "port": "${JVMDebugPort}",
+        "stepFilters": {
+          "skipClasses": [ "$$JDK" ]
+        }
       }
     },
     "Attach with vscode-javac": {

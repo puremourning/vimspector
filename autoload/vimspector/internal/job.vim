@@ -20,7 +20,7 @@ set cpoptions&vim
 " }}}
 
 function! s:_OnServerData( channel, data ) abort
-  if !exists( 's:job' )
+  if !exists( 's:job' ) || ch_getjob( a:channel ) isnot s:job
     call ch_log( 'Get data after process exit' )
     return
   endif
@@ -29,7 +29,7 @@ function! s:_OnServerData( channel, data ) abort
 endfunction
 
 function! s:_OnServerError( channel, data ) abort
-  if !exists( 's:job' )
+  if !exists( 's:job' ) || ch_getjob( a:channel ) isnot s:job
     call ch_log( 'Get data after process exit' )
     return
   endif
@@ -37,7 +37,16 @@ function! s:_OnServerError( channel, data ) abort
   py3 _vimspector_session.OnServerStderr( vim.eval( 'a:data' ) )
 endfunction
 
+
+" FIXME: We should wait until both the exit_cb _and_ the channel closed callback
+" have been received before OnServerExit?
+
 function! s:_OnExit( channel, status ) abort
+  if !exists( 's:job' ) || ch_getjob( a:channel ) isnot s:job
+    call ch_log( 'Unexpected exit callback' )
+    return
+  endif
+
   echom 'Channel exit with status ' . a:status
   redraw
   if exists( 's:job' )
@@ -47,6 +56,11 @@ function! s:_OnExit( channel, status ) abort
 endfunction
 
 function! s:_OnClose( channel ) abort
+  if !exists( 's:job' ) || job_getchannel( s:job ) != a:channel
+    call ch_log( 'Channel closed after exit' )
+    return
+  endif
+
   echom 'Channel closed'
   redraw
 endfunction

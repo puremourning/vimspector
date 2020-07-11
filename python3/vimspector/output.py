@@ -77,9 +77,10 @@ class OutputView( object ):
     self._ToggleFlag( category, True )
 
     # Scroll the buffer
-    with utils.RestoreCurrentWindow():
-      with utils.RestoreCurrentBuffer( self._window ):
-        self._ShowOutput( category )
+    if self._window.valid:
+      with utils.RestoreCurrentWindow():
+        with utils.RestoreCurrentBuffer( self._window ):
+          self._ShowOutput( category )
 
   def ConnectionUp( self, connection ):
     self._connection = connection
@@ -96,18 +97,17 @@ class OutputView( object ):
       if tab_buffer.is_job:
         utils.CleanUpCommand( tab_buffer.job_category or category,
                               self._api_prefix )
-      try:
-        vim.command( 'bdelete! {0}'.format( tab_buffer.buf.number ) )
-      except vim.error as e:
-        # FIXME: For now just ignore the "no buffers were deleted" error
-        if 'E516' not in str( e ):
-          raise
+      utils.CleanUpHiddenBuffer( tab_buffer.buf )
 
+    # FIXME: nunmenu the WinBar ?
     self._buffers = {}
 
   def _ShowOutput( self, category ):
+    if not self._window.valid:
+      return
+
     utils.JumpToWindow( self._window )
-    vim.command( 'bu {0}'.format( self._buffers[ category ].buf.name ) )
+    vim.current.buffer = self._buffers[ category ].buf
     vim.command( 'normal G' )
 
   def ShowOutput( self, category ):
@@ -146,8 +146,10 @@ class OutputView( object ):
   def _ToggleFlag( self, category, flag ):
     if self._buffers[ category ].flag != flag:
       self._buffers[ category ].flag = flag
-      with utils.LetCurrentWindow( self._window ):
-        self._RenderWinBar( category )
+
+      if self._window.valid:
+        with utils.LetCurrentWindow( self._window ):
+          self._RenderWinBar( category )
 
 
   def RunJobWithOutput( self, category, cmd ):
@@ -155,6 +157,9 @@ class OutputView( object ):
 
 
   def _CreateBuffer( self, category, file_name = None, cmd = None ):
+    if not self._window.valid:
+      return
+
     with utils.LetCurrentWindow( self._window ):
       with utils.RestoreCurrentBuffer( self._window ):
 
@@ -185,8 +190,7 @@ class OutputView( object ):
             utils.SetUpPromptBuffer( tab_buffer.buf,
                                      'vimspector.Console',
                                      '> ',
-                                     'vimspector#EvaluateConsole',
-                                     hidden=True )
+                                     'vimspector#EvaluateConsole' )
           else:
             utils.SetUpHiddenBuffer(
               tab_buffer.buf,
