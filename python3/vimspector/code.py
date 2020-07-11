@@ -40,7 +40,6 @@ class CodeView( object ):
       'breakpoints': []
     }
 
-
     with utils.LetCurrentWindow( self._window ):
       vim.command( 'nnoremenu WinBar.Continue :call vimspector#Continue()<CR>' )
       vim.command( 'nnoremenu WinBar.Next :call vimspector#StepOver()<CR>' )
@@ -221,6 +220,7 @@ class CodeView( object ):
 
     options = {
       'vertical': 1,
+      'term_cols': 80,
       'norestore': 1,
       'cwd': cwd,
       'env': env,

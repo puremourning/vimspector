@@ -46,12 +46,17 @@ function! vimspector#internal#neoterm#ResetEnvironment( env, old_env ) abort
 endfunction
 
 function! vimspector#internal#neoterm#Start( cmd, opts ) abort
+  " Prepare current buffer to be turned into a term if curwin is not set
   if ! get( a:opts, 'curwin', 0 )
+    let mods = ''
     if get( a:opts, 'vertical', 0 )
-      vnew
+      let mods .= 'vertical '
+      let mods .= get( a:opts, 'term_cols', '' )
     else
-      new
+      let mods .= get( a:opts, 'term_rows', '' )
     endif
+
+    execute mods . 'new'
   endif
 
   " HACK: Neovim's termopen doesn't support env
