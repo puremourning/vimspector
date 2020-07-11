@@ -100,7 +100,8 @@ command! -bar
 " Dummy autocommands so that we can call this whenever
 augroup VimspectorUserAutoCmds
   au!
-  au User VimspectorUICreated silent
+  au User VimspectorUICreated      silent
+  au User VimspectorTerminalOpened silent
 augroup END
 
 " boilerplate {{{

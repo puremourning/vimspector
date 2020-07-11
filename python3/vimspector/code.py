@@ -228,7 +228,7 @@ class CodeView( object ):
     if self._window.valid:
       window_for_start = self._window
     else:
-      # TOOD: Where?
+      # TOOD: Where? Maybe we should just use botright vertical ...
       window_for_start = vim.current.window
 
     if self._terminal_window is not None and self._terminal_window.valid:
@@ -255,11 +255,16 @@ class CodeView( object ):
     if buffer_number is None or buffer_number <= 0:
       # TODO: Do something better like reject the request?
       raise ValueError( "Unable to start terminal" )
-    else:
-      self._terminal_window = terminal_window
-      self._terminal_buffer_number = buffer_number
-      vim.vars[ 'vimspector_session_windows' ][ 'terminal' ] = utils.WindowID(
-        self._terminal_window,
-        vim.current.tabpage )
+
+    self._terminal_window = terminal_window
+    self._terminal_buffer_number = buffer_number
+
+    vim.vars[ 'vimspector_session_windows' ][ 'terminal' ] = utils.WindowID(
+      self._terminal_window,
+      vim.current.tabpage )
+    with utils.RestoreCursorPosition():
+      with utils.RestoreCurrentWindow():
+        with utils.RestoreCurrentBuffer( vim.current.window ):
+          vim.command( 'doautocmd User VimspectorTerminalOpened' )
 
     return buffer_number
