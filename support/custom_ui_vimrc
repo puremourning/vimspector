@@ -5,7 +5,13 @@ function! s:CustomiseUI()
   let wins = g:vimspector_session_windows
 
   " Close the Variables window
-  call win_execute( wins.variables, 'q' )
+  if has( 'nvim' )
+    " No win_execute in neovim
+    call win_gotoid( wins.variables )
+    quit
+  else
+    call win_execute( wins.variables, 'q' )
+  endif
 
   " Put the stack trace at the top of the "left bar" (rotate)
   call win_gotoid( wins.stack_trace )
