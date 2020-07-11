@@ -92,7 +92,7 @@ function! s:RunTestUnderCursor()
   let l:cwd = getcwd()
   execute 'lcd ' . s:root_dir
   try
-    execute s:make_cmd . ' '
+    execute s:make_cmd . ' --report messages '
           \ . get( g:, 'vimspector_test_args', '' ) . ' '
           \ . l:test_arg
   finally
@@ -105,7 +105,7 @@ function! s:RunTest()
   let l:cwd = getcwd()
   execute 'lcd ' . s:root_dir
   try
-    execute s:make_cmd . ' '
+    execute s:make_cmd . ' --report messages '
           \ . get( g:, 'vimspector_test_args', '' )
           \ . ' %:p:t'
   finally
@@ -118,7 +118,7 @@ function! s:RunAllTests()
   let l:cwd = getcwd()
   execute 'lcd ' . s:root_dir
   try
-    execute s:make_cmd . ' '
+    execute s:make_cmd . ' --report messages '
           \ . get( g:, 'vimspector_test_args', '' )
   finally
     execute 'lcd ' . l:cwd

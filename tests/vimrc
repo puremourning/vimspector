@@ -1,5 +1,6 @@
 let g:vimspector_test_plugin_path = expand( '<sfile>:p:h:h' )
 set mouse=a
+set noequalalways
 
 let &rtp = &rtp . ',' . g:vimspector_test_plugin_path
 
