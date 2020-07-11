@@ -62,11 +62,13 @@ class DebugSession( object ):
 
     self._run_on_server_exit = None
 
+    self._configuration = None
+    self._adapter = None
+
     self._ResetServerState()
 
   def _ResetServerState( self ):
     self._connection = None
-    self._configuration = None
     self._init_complete = False
     self._launch_complete = False
     self._on_init_complete_handlers = []
@@ -278,11 +280,7 @@ class DebugSession( object ):
     start()
 
   def Restart( self ):
-    # TODO: There is a restart message but isn't always supported.
-    # FIXME: For some reason this doesn't work when run from the WinBar. It just
-    # beeps and doesn't display the config selector. One option is to just not
-    # display the selector and restart with the same opitons.
-    if not self._configuration or not self._adapter:
+    if self._configuration is None or self._adapter is None:
       return self.Start()
 
     self._StartWithConfiguration( self._configuration, self._adapter )
@@ -294,7 +292,8 @@ class DebugSession( object ):
       if not self._connection:
         utils.UserMessage(
           'Vimspector not connected, start a debug session first',
-          persist=True, error=True )
+          persist=True,
+          error=True )
         return
       return fct( self, *args, **kwargs )
     return wrapper
@@ -595,6 +594,9 @@ class DebugSession( object ):
       "Shutting down debug adapter..." )
 
     def handler( *args ):
+      self._splash_screen = utils.HideSplash( self._api_prefix,
+                                              self._splash_screen )
+
       if callback:
         self._logger.debug( "Setting server exit handler before disconnect" )
         assert not self._run_on_server_exit
