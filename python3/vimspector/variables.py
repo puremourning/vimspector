@@ -112,9 +112,8 @@ class Watch:
 class View:
   lines: typing.Dict[ int, Expandable ]
   draw: typing.Callable
-  buf: vim.Buffer
 
-  def __init__( self, win: vim.Window, lines, draw ):
+  def __init__( self, win, lines, draw ):
     self.lines = lines
     self.draw = draw
     self.buf = win.buffer
