@@ -300,6 +300,10 @@ class DebugSession( object ):
     return wrapper
 
   def OnChannelData( self, data ):
+    if self._connection is None:
+      # Should _not_ happen, but maybe possible due to races or vim bufs?
+      return
+
     self._connection.OnData( data )
 
 
@@ -969,7 +973,9 @@ class DebugSession( object ):
 
     if self._run_on_server_exit:
       self._logger.debug( "Running server exit handler" )
-      self._run_on_server_exit()
+      callback = self._run_on_server_exit
+      self._run_on_server_exit = None
+      callback()
     else:
       self._logger.debug( "No server exit handler" )
 
