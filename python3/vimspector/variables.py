@@ -205,6 +205,7 @@ class VariablesView( object ):
   def LoadScopes( self, frame ):
     def scopes_consumer( message ):
       new_scopes = []
+      expanded_some_scope = False
       for scope_body in message[ 'body' ][ 'scopes' ]:
         # Find it in the scopes list
         found = False
@@ -221,9 +222,12 @@ class VariablesView( object ):
 
         new_scopes.append( scope )
 
-        if not scope.scope.get( 'expensive' ) and not scope.IsCollapsedByUser():
-          # Expand any non-expensive scope which is not manually collapsed
+        # Expand the first non-expensive scope which is not manually collapsed
+        if ( not expanded_some_scope
+             and not scope.scope.get( 'expensive' )
+             and not scope.IsCollapsedByUser() ):
           scope.expanded = True
+          expanded_some_scope = True
 
         if scope.IsExpandedByUser():
           self._connection.DoRequest( partial( self._ConsumeVariables,
