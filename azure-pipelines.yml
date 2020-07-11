@@ -62,7 +62,7 @@ stages:
       displayName: 'Run the tests'
       env:
         VIMSPECTOR_MIMODE: gdb
-        VIMSPECTOR_TEST_STDOUT: true
+        VIMSPECTOR_TEST_STDOUT: all
 
     - bash: ./make_package linux $(Build.SourceVersion)
       displayName: 'Package'
@@ -107,7 +107,7 @@ stages:
       displayName: 'Run the tests'
       env:
         VIMSPECTOR_MIMODE: lldb
-        VIMSPECTOR_TEST_STDOUT: true
+        VIMSPECTOR_TEST_STDOUT: all
 
     - bash: ./make_package macos $(Build.SourceVersion)
       displayName: 'Package'

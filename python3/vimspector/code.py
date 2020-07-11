@@ -258,5 +258,8 @@ class CodeView( object ):
     else:
       self._terminal_window = terminal_window
       self._terminal_buffer_number = buffer_number
+      vim.vars[ 'vimspector_session_windows' ][ 'terminal' ] = utils.WindowID(
+        self._terminal_window,
+        vim.current.tabpage )
 
     return buffer_number

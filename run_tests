@@ -3,8 +3,9 @@
 if [ "$1" == "--help" ]; then
   echo "$(basename $0) [--basedir <basedir>] [--install] <optional list of tests in form file:func>"
   echo ""
-  echo " --basedir <basedir> path to runtime directory like the optino to install_gadget.py"
-  echo " --install           run install_gadget.py, useful with --basedir"
+  echo " --basedir <basedir>     path to runtime directory like the optino to install_gadget.py"
+  echo " --install               run install_gadget.py, useful with --basedir"
+  echo " --report <messages|all> how verbose to be with stdout"
   echo "e.g.: "
   echo " - run all tests: $0"
   echo " - run specific tests script: $0 signature_help.test.vim"
@@ -23,17 +24,22 @@ BASEDIR_CMD='py3 pass'
 while [ -n "$1" ]; do
   case "$1" in
     "--basedir")
-      BASEDIR=$2
+      shift
+      BASEDIR=$1
+      shift
       if [[ ! $BASEDIR = /* ]]; then
         # Relative
         BASEDIR=$(pwd)/${BASEDIR}
       fi
       BASEDIR_CMD="let g:vimspector_base_dir='${BASEDIR}'"
-      shift
-      shift
       ;;
     "--install")
       INSTALL=1
+      shift
+      ;;
+    "--report")
+      shift
+      VIMSPECTOR_TEST_STDOUT=$1
       shift
       ;;
     "--")
@@ -109,10 +115,16 @@ for t in ${TESTS}; do
   rm -rf $TESTLOGDIR
   mkdir -p $TESTLOGDIR
   ${RUN_VIM} --version > ${TESTLOGDIR}/vimversion
+  if [ "$VIMSPECTOR_TEST_STDOUT" = "messages" ]; then
+    if [ -f messages ]; then
+      cat messages
+    fi
+  fi
+
   for l in messages debuglog test.log *.testlog; do
     # In CI we can't view the output files, so we just have to cat them
     if [ -f $l ]; then
-      if [ "$VIMSPECTOR_TEST_STDOUT" ]; then
+      if [ "$VIMSPECTOR_TEST_STDOUT" = "all" ]; then
         echo ""
         echo ""
         echo "*** START: $l ***"
@@ -130,7 +142,6 @@ echo "Done running tests"
 popd > /dev/null
 
 echo ""
-echo "All done."
-
+echo "All done. Exit with ${RESULT}"
 
 exit $RESULT
