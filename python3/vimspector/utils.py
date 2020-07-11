@@ -86,15 +86,17 @@ def CleanUpCommand( name, api_prefix ):
     name ) )
 
 
+def CleanUpHiddenBuffer( buf ):
+  try:
+    vim.command( 'bdelete! {}'.format( buf.number ) )
+  except vim.error as e:
+    # FIXME: For now just ignore the "no buffers were deleted" error
+    if 'E516' not in str( e ):
+      raise
+
+
 def SetUpScratchBuffer( buf, name ):
-  buf.options[ 'buftype' ] = 'nofile'
-  buf.options[ 'swapfile' ] = False
-  buf.options[ 'modifiable' ] = False
-  buf.options[ 'modified' ] = False
-  buf.options[ 'readonly' ] = True
-  buf.options[ 'buflisted' ] = False
-  buf.options[ 'bufhidden' ] = 'wipe'
-  buf.name = name
+  SetUpHiddenBuffer( buf, name )
 
 
 def SetUpHiddenBuffer( buf, name ):
@@ -108,7 +110,7 @@ def SetUpHiddenBuffer( buf, name ):
   buf.name = name
 
 
-def SetUpPromptBuffer( buf, name, prompt, callback, hidden=False ):
+def SetUpPromptBuffer( buf, name, prompt, callback ):
   # This feature is _super_ new, so only enable when available
   if not Exists( '*prompt_setprompt' ):
     return SetUpHiddenBuffer( buf, name )
@@ -119,7 +121,8 @@ def SetUpPromptBuffer( buf, name, prompt, callback, hidden=False ):
   buf.options[ 'modified' ] = False
   buf.options[ 'readonly' ] = False
   buf.options[ 'buflisted' ] = False
-  buf.options[ 'bufhidden' ] = 'wipe' if not hidden else 'hide'
+  buf.options[ 'bufhidden' ] = 'hide'
+  buf.options[ 'textwidth' ] = 0
   buf.name = name
 
   vim.eval( "prompt_setprompt( {0}, '{1}' )".format( buf.number,
@@ -177,7 +180,6 @@ def RestoreCurrentWindow():
 
 @contextlib.contextmanager
 def RestoreCurrentBuffer( window ):
-  # TODO: Don't trigger autoccommands when shifting buffers
   old_buffer = window.buffer
   try:
     yield

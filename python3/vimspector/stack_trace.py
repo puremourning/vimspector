@@ -81,7 +81,7 @@ class StackTraceView( object ):
 
   def Reset( self ):
     self.Clear()
-    # TODO: delete the buffer ?
+    utils.CleanUpHiddenBuffer( self._buf )
 
   def LoadThreads( self, infer_current_frame ):
     pending_request = False
