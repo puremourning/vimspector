@@ -518,6 +518,10 @@ class DebugSession( object ):
     self.SetCurrentFrame( None )
 
   def SetCurrentFrame( self, frame ):
+    if not frame:
+      self._stackTraceView.Clear()
+      self._variablesView.Clear()
+
     if not self._codeView.SetCurrentFrame( frame ):
       return False
 
@@ -526,9 +530,6 @@ class DebugSession( object ):
       self._stackTraceView.SetSyntax( self._codeView.current_syntax )
       self._variablesView.LoadScopes( frame )
       self._variablesView.EvaluateWatches()
-    else:
-      self._stackTraceView.Clear()
-      self._variablesView.Clear()
 
     return True
 

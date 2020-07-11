@@ -56,6 +56,10 @@ class CodeView( object ):
 
 
   def SetCurrentFrame( self, frame ):
+    """Returns True if the code window was updated with the frame, False
+    otherwise. False means either the frame is junk, we couldn't find the file
+    (or don't have the data) or the code window no longer exits."""
+
     if self._signs[ 'vimspectorPC' ]:
       vim.command( 'sign unplace {} group=VimspectorCode'.format(
         self._signs[ 'vimspectorPC' ] ) )
@@ -67,8 +71,25 @@ class CodeView( object ):
     if 'path' not in frame[ 'source' ]:
       return False
 
-    utils.JumpToWindow( self._window )
+    self._signs[ 'vimspectorPC' ] = self._next_sign_id
+    self._next_sign_id += 1
 
+    try:
+      vim.command( 'sign place {0} group=VimspectorCode priority=20 '
+                                   'line={1} name=vimspectorPC '
+                                   'file={2}'.format(
+                                     self._signs[ 'vimspectorPC' ],
+                                     frame[ 'line' ],
+                                     frame[ 'source' ][ 'path' ] ) )
+    except vim.error as e:
+      # Ignore 'invalid buffer name'
+      if 'E158' in str( e ):
+        pass
+
+    if not self._window.valid:
+      return False
+
+    utils.JumpToWindow( self._window )
     try:
       utils.OpenFileInCurrentWindow( frame[ 'source' ][ 'path' ] )
     except vim.error:
@@ -88,16 +109,6 @@ class CodeView( object ):
                               frame[ 'column' ],
                               frame[ 'source' ][ 'path' ] )
       return False
-
-    self._signs[ 'vimspectorPC' ] = self._next_sign_id
-    self._next_sign_id += 1
-
-    vim.command( 'sign place {0} group=VimspectorCode priority=20 '
-                                 'line={1} name=vimspectorPC '
-                                 'file={2}'.format(
-                                   self._signs[ 'vimspectorPC' ],
-                                   frame[ 'line' ],
-                                   frame[ 'source' ][ 'path' ] ) )
 
     self.current_syntax = utils.ToUnicode(
       vim.current.buffer.options[ 'syntax' ] )
@@ -215,8 +226,13 @@ class CodeView( object ):
       'env': env,
     }
 
-    window_for_start = self._window
-    if self._terminal_window is not None:
+    if self._window.valid:
+      window_for_start = self._window
+    else:
+      # TOOD: Where?
+      window_for_start = vim.current.window
+
+    if self._terminal_window is not None and self._terminal_window.valid:
       assert self._terminal_buffer_number
       if ( self._terminal_window.buffer.number == self._terminal_buffer_number
            and int( utils.Call( 'vimspector#internal#{}term#IsFinished'.format(
