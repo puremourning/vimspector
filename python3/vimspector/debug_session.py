@@ -479,8 +479,7 @@ class DebugSession( object ):
     # Call stack
     with utils.TemporaryVimOptions( { 'splitright':  False,
                                       'equalalways': False, } ):
-      vim.command( 'topleft 50vspl' )
-      vim.command( 'enew' )
+      vim.command( 'topleft vertical 50new' )
       self._stackTraceView = stack_trace.StackTraceView( self,
                                                          self._connection,
                                                          vim.current.buffer )
@@ -489,13 +488,11 @@ class DebugSession( object ):
                                       'eadirection': 'ver',
                                       'equalalways': True } ):
       # Watches
-      vim.command( 'spl' )
-      vim.command( 'enew' )
+      vim.command( 'new' )
       watch_win = vim.current.window
 
       # Variables
-      vim.command( 'spl' )
-      vim.command( 'enew' )
+      vim.command( 'new' )
       vars_win = vim.current.window
 
       self._variablesView = variables.VariablesView( self._connection,
@@ -507,8 +504,7 @@ class DebugSession( object ):
       vim.current.window = self._codeView._window
 
       # Output/logging
-      vim.command( '10spl' )
-      vim.command( 'enew' )
+      vim.command( '10new' )
       self._outputView = output.OutputView( self._connection,
                                             vim.current.window,
                                             self._api_prefix )
