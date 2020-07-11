@@ -1,0 +1,11 @@
+{
+  "configurations": {
+    "Run Current Script": {
+      "adapter": "tclpro",
+      "configuration": {
+        "request": "launch",
+        "target": "${file}"
+      }
+    }
+  }
+}

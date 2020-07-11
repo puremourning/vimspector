@@ -25,6 +25,7 @@ class TabBuffer( object ):
     self.index = index
     self.flag = False
     self.is_job = False
+    self.job_category = None
 
 
 BUFFER_MAP = {
@@ -93,7 +94,8 @@ class OutputView( object ):
   def Clear( self ):
     for category, tab_buffer in self._buffers.items():
       if tab_buffer.is_job:
-        utils.CleanUpCommand( category, self._api_prefix )
+        utils.CleanUpCommand( tab_buffer.job_category or category,
+                              self._api_prefix )
       try:
         vim.command( 'bdelete! {0}'.format( tab_buffer.buf.number ) )
       except vim.error as e:
@@ -169,6 +171,7 @@ class OutputView( object ):
           self._buffers[ category + '-out' ] = TabBuffer( out,
                                                           len( self._buffers ) )
           self._buffers[ category + '-out' ].is_job = True
+          self._buffers[ category + '-out' ].job_category = category
           self._buffers[ category + '-err' ] = TabBuffer( err,
                                                           len( self._buffers ) )
           self._buffers[ category + '-err' ].is_job = False

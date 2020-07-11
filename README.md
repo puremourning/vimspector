@@ -6,7 +6,6 @@ For a tutorial and usage overview, take a look at the
 [![Build Status](https://dev.azure.com/puremouron/Vimspector/_apis/build/status/puremourning.vimspector?branchName=master)](https://dev.azure.com/puremouron/Vimspector/_build/latest?definitionId=1&branchName=master) [![Gitter](https://badges.gitter.im/vimspector/Lobby.svg)](https://gitter.im/vimspector/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 <!--ts-->
-   * [Motivation](#motivation)
    * [Features and Usage](#features-and-usage)
       * [Supported debugging features](#supported-debugging-features)
       * [Supported languages:](#supported-languages)
@@ -34,6 +33,8 @@ For a tutorial and usage overview, take a look at the
       * [Launch and attach by PID:](#launch-and-attach-by-pid)
          * [Launch with options](#launch-with-options)
       * [Breakpoints](#breakpoints)
+         * [Exception breakpoints](#exception-breakpoints)
+         * [Clear breakpoints](#clear-breakpoints)
       * [Stepping](#stepping)
       * [Variables and scopes](#variables-and-scopes)
       * [Watches](#watches)
@@ -43,7 +44,11 @@ For a tutorial and usage overview, take a look at the
       * [Closing debugger](#closing-debugger)
    * [Debug adapter configuration](#debug-adapter-configuration)
       * [C, C  , Rust, etc.](#c-c-rust-etc)
+         * [Remote debugging](#remote-debugging)
+         * [Remote launch and attach](#remote-launch-and-attach)
       * [Python](#python)
+         * [Remote Debugging](#remote-debugging-1)
+         * [Remote launch and attach](#remote-launch-and-attach-1)
          * [Legacy: vscode-python](#legacy-vscode-python)
       * [TCL](#tcl)
       * [C♯](#c)
@@ -55,59 +60,17 @@ For a tutorial and usage overview, take a look at the
       * [Java](#java)
          * [Usage with YouCompleteMe](#usage-with-youcompleteme)
          * [Other LSP clients](#other-lsp-clients)
+      * [Rust](#rust)
       * [Other servers](#other-servers)
    * [Customisation](#customisation)
       * [Changing the default signs](#changing-the-default-signs)
    * [FAQ](#faq)
+   * [Motivation](#motivation)
    * [License](#license)
 
-<!-- Added by: ben, at: Thu  7 May 2020 22:30:21 BST -->
+<!-- Added by: ben, at: Thu  9 Jul 2020 18:19:20 BST -->
 
 <!--te-->
-
-# Motivation
-
-A message from the author about the motivation for this plugin:
-
-> Many development environments have a built-in debugger. I spend an inordinate
-> amount of my time in Vim. I do all my development in Vim and I have even
-> customised my workflows for building code, running tests etc.
->
-> For many years I have observed myself, friends and colleagues have been
-> writing `printf`, `puts`, `print`, etc.  debugging statements in all sorts of
-> files simply because there is no _easy_ way to run a debugger for _whatever_
-> language we happen to be developing in.
->
-> I truly believe that interactive, graphical debugging environments are the
-> best way to understand and reason about both unfamiliar and familiar code, and
-> that the lack of ready, simple access to a debugger is a huge hidden
-> productivity hole for many.
->
-> Don't get me wrong, I know there are literally millions of developers out
-> there that are more than competent at developing without a graphical debugger,
-> but I maintain that if they had the ability to _just press a key_ and jump
-> into the debugger, it would be faster and more enjoyable that just cerebral
-> code comprehension.
->
-> I created Vimsepctor because I find changing tools frustrating. `gdb` for c++,
-> `pdb` for python, etc. Each has its own syntax. Each its own lexicon. Each its
-> own foibles. 
->
-> I designed the configuration system in such a way that the configuration can
-> be committed to source control so that it _just works_ for any of your
-> colleagues, friends, collaborators or complete strangers.
->
-> I made remote debugging a first-class feature because that's a primary use
-> case for me in my job.
->
-> With Vimspector I can _just hit `<F5>`_ in all of the languages I develop in
-> and debug locally or remotely using the exact same workflow, mappings and UI.
-> I have integrated this with my Vim in such a way that I can hit a button and
-> _run the test under the cursor in Vimspector_.  This kind of integration has
-> massively improved my workflow and productivity.  It's even made the process
-> of learning a new codebase... fun.
->
-> \- Ben Jackson, Creator.
 
 # Features and Usage
 
@@ -277,6 +240,7 @@ categorised as follows:
 | Java             | Supported    | `--force-enable-java  `        | vscode-java-debug   | Compatible LSP plugin (see [later](#java)) |
 | C# (dotnet core) | Experimental | `--force-enable-csharp`        | netcoredbg          | DotNet core                                |
 | C# (mono)        | Experimental | `--force-enable-csharp`        | vscode-mono-debug   | Mono                                       |
+| Rust (CodeLLDB)  | Experimental | `--force-enable-rust`          | CodeLLDB            | Python 3                                   |
 | Python.legacy    | Legacy       | `--force-enable-python.legacy` | vscode-python       | Node 10, Python 2.7 or Python 3            |
 
 For other languages, you'll need some other way to install the gadget.
@@ -343,6 +307,30 @@ should be):
 
 ```
 ./install_gadget.py --all --disable-tcl
+```
+
+If you want to just add a new adapter without destroying the exisitng ones, add
+`--update-gadget-config`, as in:
+
+```bash
+$ ./install_gadget.py --enable-tcl
+$ ./install_gadget.py --enable-rust --update-gadget-config
+$ ./install_gadget.py --enable-java --update-gadget-config
+```
+
+If you want to maintain `configurations` outside of the vimspector repository
+(this can be useful if you have custom gadgets or global configurations),
+you can tell the installer to use a different basedir, then set
+`g:vimspector_base_dir` to point to that directory, for example:
+
+```bash
+$ ./install_gadget.py --basedir $HOME/.vim/vimspector-config --all --force-all
+```
+
+Then add this to your `.vimrc`:
+
+```viml
+let g:vimspector_base_dir=expand( '$HOME/.vim/vimspector-config' )
 ```
 
 See `--help` for more info.
@@ -609,7 +597,7 @@ This would start the `Run Test` configuration with `${Test}` set to `'Name of
 the test'` and Vimspector would _not_ prompt the user to enter or confirm these
 things.
 
-See [this issue](https://github.com/puremourning/vimspector/issues/97) for
+See [our YouCompleteMe integration guide](#usage-with-youcompleteme) for
 another example where it can be used to specify the port to connect the [java
 debugger](#java---partially-supported)
 
@@ -636,6 +624,24 @@ whatever dialect the debugger understands when evaluating expressions.
 
 When using the `<leader><F9>` mapping, the user is prompted to enter these
 expressions in a command line (with history).
+
+### Exception breakpoints
+
+When starting debugging, you may be asekd a few questions about how to handle
+exceptoins. These are "exception breakpoints" and vimspector remembers your
+choices while Vim is still running.
+
+Typically you can accept the defaults (just keep pressing `<CR>`!) as most debug
+adapter defaults are sane, but if you want to break on, say `uncaught exception`
+then answer `Y` to that (for example).
+
+You can configure your choices in the `.vimspector.json`. See
+[the configuration guide][vimspector-ref-exception] for details on that.
+
+### Clear breakpoints
+
+* Use `vimspector#ClearBreakpoints()`
+  to clear all breakpoints including the memory of exception breakpoint choices.
 
 ## Stepping
 
@@ -729,31 +735,29 @@ Current tested with the following debug adapters.
 Example `.vimspector.json` (works with both `vscode-cpptools` and `lldb-vscode`.
 For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
 
+* vscode-cpptools Linux/MacOS:
+
 ```
 {
   "configurations": {
-    "<name>: Launch": {
+    "Launch": {
       "adapter": "vscode-cpptools",
       "configuration": {
-        "name": "<name>",
-        "type": "cppdbg",
         "request": "launch",
         "program": "<path to binary>",
         "args": [ ... ],
         "cwd": "<working directory>",
         "environment": [ ... ],
         "externalConsole": true,
-        "MIMode": "lldb"
+        "MIMode": "<lldb or gdb>"
       }
     },
-    "<name>: Attach": {
+    "Attach": {
       "adapter": "vscode-cpptools",
       "configuration": {
-        "name": "<name>: Attach",
-        "type": "cppdbg",
         "request": "attach",
         "program": "<path to binary>",
-        "MIMode": "lldb"
+        "MIMode": "<lldb or gdb>"
       }
     }
     ...
@@ -761,14 +765,36 @@ For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
 }
 ```
 
+* vscode-cpptools Windows
+
+***NOTE FOR WINDOWS USERS:*** You need to install `gdb.exe`. I recommend using
+`scoop install gdb`. Vimspector cannot use the visual studio debugger due to
+licensing.
+
+```
+{
+  "configurations": {
+    "Launch": {
+      "adapter": "vscode-cpptools",
+      "configuration": {
+        "request": "launch",
+        "program": "<path to binary>",
+        "stopAtEntry": true
+      }
+    }
+  }
+}
+```
+
+* lldb-vscode (MacOS)
+
 An alternative is to to use `lldb-vscode`, which comes with llvm.  Here's how:
 
-* Install llvm with HomeBrew: `brew install llvm`
+* Install llvm (e.g. with HomeBrew: `brew install llvm`)
 * Create a file named
   `/path/to/vimspector/gadgets/macos/.gadgets.d/lldb-vscode.json`:
 
 ```json
-
 {
   "adapters": {
     "lldb-vscode": {
@@ -1202,6 +1228,32 @@ For the launch arguments, see the
 See [this issue](https://github.com/puremourning/vimspector/issues/3) for more
 background.
 
+## Rust
+
+Rust is supported with any gdb/lldb-based debugger. So it works fine with
+`vscode-cpptools` and `lldb-vscode` above. However, support for rust is best in
+[`CodeLLDB`](https://github.com/vadimcn/vscode-lldb#features).
+
+* `./install_gadget.py --force-enable-rust`
+* Example: `support/test/rust/vimspector_test`
+
+```json
+{
+  "configurations": {
+    "launch": {
+      "adapter": "CodeLLDB",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/target/debug/vimspector_test"
+      }
+    }
+  }
+}
+```
+
+* Docs: https://github.com/vadimcn/vscode-lldb/blob/master/MANUAL.md
+
+
 ## Other servers
 
 * Java - vscode-javac. This works, but is not as functional as Java Debug
@@ -1254,6 +1306,50 @@ syn region jsonComment start="/\*" end="\*/"
 hi link jsonCommentError Comment
 hi link jsonComment Comment
 ```
+
+# Motivation
+
+A message from the author about the motivation for this plugin:
+
+> Many development environments have a built-in debugger. I spend an inordinate
+> amount of my time in Vim. I do all my development in Vim and I have even
+> customised my workflows for building code, running tests etc.
+>
+> For many years I have observed myself, friends and colleagues have been
+> writing `printf`, `puts`, `print`, etc.  debugging statements in all sorts of
+> files simply because there is no _easy_ way to run a debugger for _whatever_
+> language we happen to be developing in.
+>
+> I truly believe that interactive, graphical debugging environments are the
+> best way to understand and reason about both unfamiliar and familiar code, and
+> that the lack of ready, simple access to a debugger is a huge hidden
+> productivity hole for many.
+>
+> Don't get me wrong, I know there are literally millions of developers out
+> there that are more than competent at developing without a graphical debugger,
+> but I maintain that if they had the ability to _just press a key_ and jump
+> into the debugger, it would be faster and more enjoyable that just cerebral
+> code comprehension.
+>
+> I created Vimsepctor because I find changing tools frustrating. `gdb` for c++,
+> `pdb` for python, etc. Each has its own syntax. Each its own lexicon. Each its
+> own foibles. 
+>
+> I designed the configuration system in such a way that the configuration can
+> be committed to source control so that it _just works_ for any of your
+> colleagues, friends, collaborators or complete strangers.
+>
+> I made remote debugging a first-class feature because that's a primary use
+> case for me in my job.
+>
+> With Vimspector I can _just hit `<F5>`_ in all of the languages I develop in
+> and debug locally or remotely using the exact same workflow, mappings and UI.
+> I have integrated this with my Vim in such a way that I can hit a button and
+> _run the test under the cursor in Vimspector_.  This kind of integration has
+> massively improved my workflow and productivity.  It's even made the process
+> of learning a new codebase... fun.
+>
+> \- Ben Jackson, Creator.
 
 # License
 

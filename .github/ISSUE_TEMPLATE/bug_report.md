@@ -35,8 +35,9 @@ NOTE: NeoVim is supported only on a best-effort basis. Please check the README
 for limitations of neovim. Don't be offended if I ask you to reproduce issues in
 Vim.
 
-NOTE: Windows is not supported. There is a branch with windows support, which
-you can contribute to, rather than opening an issue.
+NOTE: Windows support is experimental and best-efrort only. If you find an
+issue related to Windows or windows-isms, consider sending a PR or
+discussing on Gitter rather than raising an issue.
 
 * Version of Vimspector: (e.g. output of `git rev-parse HEAD` if cloned or the
   name of the tarball used to install otherwise)

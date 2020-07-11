@@ -39,6 +39,21 @@ function! vimspector#internal#channel#StartDebugSession( config ) abort
     return v:false
   endif
 
+  " If we _also_ have a command line, then start the actual job. This allows for
+  " servers which start up and listen on some port
+  if has_key( a:config, 'command' )
+    let s:job = job_start( a:config[ 'command' ],
+          \                {
+          \                    'in_mode': 'raw',
+          \                    'out_mode': 'raw',
+          \                    'err_mode': 'raw',
+          \                    'stoponexit': 'term',
+          \                    'env': a:config[ 'env' ],
+          \                    'cwd': a:config[ 'cwd' ],
+          \                }
+          \              )
+  endif
+
   let l:addr = get( a:config, 'host', 'localhost' ) . ':' . a:config[ 'port' ]
 
   echo 'Connecting to ' . l:addr . '... (waiting fo up to 10 seconds)'
@@ -52,7 +67,7 @@ function! vimspector#internal#channel#StartDebugSession( config ) abort
         \           )
 
   if ch_status( s:ch ) !=# 'open'
-    echom 'Unable to connect to debug adapter'
+    echom 'Unable to connect to' l:addr
     redraw
     return v:false
   endif
@@ -72,11 +87,7 @@ EOF
 endfunction
 
 function! vimspector#internal#channel#StopDebugSession() abort
-  if !exists( 's:ch' )
-    return
-  endif
-
-  if ch_status( s:ch ) ==# 'open'
+  if exists( 's:ch' ) && ch_status( s:ch ) ==# 'open'
     " channel is open, close it and trigger the callback. The callback is _not_
     " triggered when manually calling ch_close. if we get here and the channel
     " is not open, then we there is a _OnClose callback waiting for us, so do
@@ -84,10 +95,17 @@ function! vimspector#internal#channel#StopDebugSession() abort
     call ch_close( s:ch )
     call s:_OnClose( s:ch )
   endif
+
+  if exists( 's:job' )
+    if job_status( s:job ) ==# 'run'
+      call job_stop( s:job, 'kill' )
+    endif
+    unlet s:job
+  endif
 endfunction
 
 function! vimspector#internal#channel#Reset() abort
-  if exists( 's:ch' )
+  if exists( 's:ch' ) || exists( 's:job' )
     call vimspector#internal#channel#StopDebugSession()
   endif
 endfunction

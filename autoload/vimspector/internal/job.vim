@@ -20,11 +20,8 @@ set cpoptions&vim
 " }}}
 
 function! s:_OnServerData( channel, data ) abort
-  if py3eval( '_vimspector_session is None' )
-    call ch_log( 'Unexpected stdout data received on channel '
-               \ . a:channel
-               \ . 'after reset: '
-               \ . a:data )
+  if !exists( 's:job' )
+    call ch_log( 'Get data after process exit' )
     return
   endif
 
@@ -32,11 +29,8 @@ function! s:_OnServerData( channel, data ) abort
 endfunction
 
 function! s:_OnServerError( channel, data ) abort
-  if py3eval( '_vimspector_session is None' )
-    call ch_log( 'Unexpected stderr data received on channel '
-               \ . a:channel
-               \ . 'after reset: '
-               \ . a:data )
+  if !exists( 's:job' )
+    call ch_log( 'Get data after process exit' )
     return
   endif
 
@@ -128,8 +122,8 @@ function! vimspector#internal#job#StopDebugSession() abort
   endif
 
   if job_status( s:job ) ==# 'run'
-      echom 'Terminating job'
-      redraw
+    echom 'Terminating job'
+    redraw
     call job_stop( s:job, 'kill' )
   endif
 endfunction

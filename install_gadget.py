@@ -48,11 +48,29 @@ GADGETS = {
     'do': lambda name, root, gadget: InstallCppTools( name, root, gadget ),
     'all': {
       'version': '0.27.0',
+      "adapters": {
+        "vscode-cpptools": {
+          "name": "cppdbg",
+          "command": [
+            "${gadgetDir}/vscode-cpptools/debugAdapters/OpenDebugAD7"
+          ],
+          "attach": {
+            "pidProperty": "processId",
+            "pidSelect": "ask"
+          },
+          "configuration": {
+            "type": "cppdbg",
+            "args": [],
+            "cwd": "${workspaceRoot}",
+            "environment": [],
+          }
+        },
+      },
     },
     'linux': {
       'file_name': 'cpptools-linux.vsix',
       'checksum':
-        '3695202e1e75a03de18049323b66d868165123f26151f8c974a480eaf0205435'
+        '3695202e1e75a03de18049323b66d868165123f26151f8c974a480eaf0205435',
     },
     'macos': {
       'file_name': 'cpptools-osx.vsix',
@@ -61,24 +79,27 @@ GADGETS = {
     },
     'windows': {
       'file_name': 'cpptools-win32.vsix',
-      'checksum': None,
-    },
-    "adapters": {
-      "vscode-cpptools": {
-        "name": "cppdbg",
-        "command": [
-          "${gadgetDir}/vscode-cpptools/debugAdapters/OpenDebugAD7"
-        ],
-        "attach": {
-          "pidProperty": "processId",
-          "pidSelect": "ask"
+      'checksum':
+        'aa294368ed16d48c59e49c8000e146eae5a19ad07b654efed5db8ec93b24229e',
+      "adapters": {
+        "vscode-cpptools": {
+          "name": "cppdbg",
+          "command": [
+            "${gadgetDir}/vscode-cpptools/debugAdapters/bin/OpenDebugAD7.exe"
+          ],
+          "attach": {
+            "pidProperty": "processId",
+            "pidSelect": "ask"
+          },
+          "configuration": {
+            "type": "cppdbg",
+            "args": [],
+            "cwd": "${workspaceRoot}",
+            "environment": [],
+            "MIMode": "gdb",
+            "MIDebuggerPath": "gdb.exe"
+          }
         },
-        "configuration": {
-          "type": "cppdbg",
-          "args": [],
-          "cwd": "${workspaceRoot}",
-          "environment": [],
-        }
       },
     },
   },
@@ -111,10 +132,10 @@ GADGETS = {
       'url': 'https://github.com/microsoft/debugpy/archive/${file_name}'
     },
     'all': {
-      'version': '1.0.0b8',
-      'file_name': 'v1.0.0b8.zip',
+      'version': '1.0.0b12',
+      'file_name': 'v1.0.0b12.zip',
       'checksum':
-        '07c208bcd2a18088757f3bcb6f3bfc68d42c16a504c716e35d34fbe6b010a7b3'
+        '210632bba2221fbb841c9785a615258819ceec401d1abdbeb5f2326f12cc72a1'
     },
     'do': lambda name, root, gadget: InstallDebugpy( name, root, gadget ),
     'adapters': {
@@ -187,9 +208,31 @@ GADGETS = {
     'language': 'tcl',
     'repo': {
       'url': 'https://github.com/puremourning/TclProDebug',
-      'ref': 'f5c56b7067661ce84e205765060224076569ae0e', # master 26/10/2019
+      'ref': 'master'
     },
-    'do': lambda name, root, gadget: InstallTclProDebug( name, root, gadget )
+    'do': lambda name, root, gadget: InstallTclProDebug( name, root, gadget ),
+    'adapters': {
+      "tclpro": {
+        "name": "tclpro",
+        "type": "tclpro",
+        "command": [
+          "${gadgetDir}/tclpro/bin/debugadapter"
+        ],
+        "attach": {
+          "pidSelect": "none"
+        },
+        "configuration": {
+          "target": "${file}",
+          "args": [ "*${args}" ],
+          "tclsh": "tclsh",
+          "cwd": "${workspaceRoot}",
+          "extensionDirs": [
+            "${workspaceRoot}/.tclpro/extensions",
+            "${HOME}/.tclpro/extensions",
+          ]
+        }
+      }
+    },
   },
   'netcoredbg': {
     'language': 'csharp',
@@ -391,7 +434,74 @@ GADGETS = {
       },
     },
   },
+  'CodeLLDB': {
+    'language': 'rust',
+    'enabled': False,
+    'download': {
+      'url': 'https://github.com/vadimcn/vscode-lldb/releases/download/'
+             '${version}/${file_name}',
+    },
+    'all': {
+      'version': 'v1.5.3',
+    },
+    'macos': {
+      'file_name': 'codelldb-x86_64-darwin.vsix',
+      'checksum':
+        '7505bc1cdfcfd1cb981e2996aec62d63577440709bac31dcadb41a3b4b44631a',
+      'make_executable': [
+        'adapter/codelldb',
+        'lldb/bin/debugserver',
+        'lldb/bin/lldb',
+        'lldb/bin/lldb-argdumper',
+      ],
+    },
+    'linux': {
+      'file_name': 'codelldb-x86_64-linux.vsix',
+      'checksum':
+        'ce7efc3e94d775368e5942a02bf5c326b6809a0b4c389f79ffa6a8f6f6b72139',
+      'make_executable': [
+        'adapter/codelldb',
+        'lldb/bin/lldb',
+        'lldb/bin/lldb-server',
+        'lldb/bin/lldb-argdumper',
+      ],
+    },
+    'windows': {
+      'file_name': 'codelldb-x86_64-windows.vsix',
+      'checksum':
+        '',
+      'make_executable': []
+    },
+    'adapters': {
+      'CodeLLDB': {
+        'name': 'CodeLLDB',
+        'type': 'CodeLLDB',
+        "command": [
+          "${gadgetDir}/CodeLLDB/adapter/codelldb",
+          "--port", "${unusedLocalPort}"
+        ],
+        "port": "${unusedLocalPort}",
+        "configuration": {
+          "type": "lldb",
+          "name": "lldb",
+          "cargo": {},
+          "args": [],
+          "cwd": "${workspaceRoot}",
+          "env": {},
+          "terminal": "integrated",
+        }
+      },
+    },
+  },
 }
+
+
+def InstallGeneric( name, root, gadget ):
+  extension = os.path.join( root, 'extension' )
+  for f in gadget.get( 'make_executable', [] ):
+    installer.MakeExecutable( os.path.join( extension, f ) )
+
+  installer.MakeExtensionSymlink( vimspector_base, name, root )
 
 
 def InstallCppTools( name, root, gadget ):
@@ -529,8 +639,11 @@ def InstallGagdet( name, gadget, failed, all_adapters ):
     if 'do' in gadget:
       gadget[ 'do' ]( name, root, v )
     else:
-      installer.MakeExtensionSymlink( vimspector_base, name, root )
+      InstallGeneric( name, root, v )
 
+    # Allow per-OS adapter overrides. v already did that for us...
+    all_adapters.update( v.get( 'adapters', {} ) )
+    # Add any other "all" adapters
     all_adapters.update( gadget.get( 'adapters', {} ) )
 
     print( "Done installing {}".format( name ) )

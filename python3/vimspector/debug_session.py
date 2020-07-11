@@ -177,43 +177,52 @@ class DebugSession( object ):
         return [ '', '' ]
       return os.path.splitext( p )
 
-    self._variables = {
+    variables = {
       'dollar': '$', # HACK. Hote '$$' also works.
       'workspaceRoot': self._workspace_root,
       'workspaceFolder': self._workspace_root,
       'gadgetDir': install.GetGadgetDir( VIMSPECTOR_HOME, install.GetOS() ),
       'file': current_file,
-      'relativeFile': relpath( current_file, self._workspace_root ),
-      'fileBasename': os.path.basename( current_file ),
+    }
+
+    calculus = {
+      'relativeFile': lambda: relpath( current_file,
+                                       self._workspace_root ),
+      'fileBasename': lambda: os.path.basename( current_file ),
       'fileBasenameNoExtension':
-        splitext( os.path.basename( current_file ) )[ 0 ],
-      'fileDirname': os.path.dirname( current_file ),
-      'fileExtname': splitext( os.path.basename( current_file ) )[ 1 ],
+        lambda: splitext( os.path.basename( current_file ) )[ 0 ],
+      'fileDirname': lambda: os.path.dirname( current_file ),
+      'fileExtname': lambda: splitext( os.path.basename( current_file ) )[ 1 ],
       # NOTE: this is the window-local cwd for the current window, *not* Vim's
       # working directory.
-      'cwd': os.getcwd(),
+      'cwd': os.getcwd,
+      'unusedLocalPort': utils.GetUnusedLocalPort,
     }
 
     # Pretend that vars passed to the launch command were typed in by the user
     # (they may have been in theory)
     USER_CHOICES.update( launch_variables )
-    self._variables.update( launch_variables )
+    variables.update( launch_variables )
 
-    self._variables.update(
+    variables.update(
       utils.ParseVariables( adapter.get( 'variables', {} ),
-                            self._variables,
+                            variables,
+                            calculus,
                             USER_CHOICES ) )
-    self._variables.update(
+    variables.update(
       utils.ParseVariables( configuration.get( 'variables', {} ),
-                            self._variables,
+                            variables,
+                            calculus,
                             USER_CHOICES ) )
 
 
     utils.ExpandReferencesInDict( configuration,
-                                  self._variables,
+                                  variables,
+                                  calculus,
                                   USER_CHOICES )
     utils.ExpandReferencesInDict( adapter,
-                                  self._variables,
+                                  variables,
+                                  calculus,
                                   USER_CHOICES )
 
     if not adapter:
@@ -291,6 +300,10 @@ class DebugSession( object ):
     return wrapper
 
   def OnChannelData( self, data ):
+    if self._connection is None:
+      # Should _not_ happen, but maybe possible due to races or vim bufs?
+      return
+
     self._connection.OnData( data )
 
 
@@ -776,9 +789,10 @@ class DebugSession( object ):
     } )
 
 
-  def OnFailure( self, reason, message ):
-    msg = "Request for '{}' failed: {}".format( message[ 'command' ],
-                                                reason )
+  def OnFailure( self, reason, request, message ):
+    msg = "Request for '{}' failed: {}\nResponse: {}".format( request,
+                                                              reason,
+                                                              message )
     self._outputView.Print( 'server', msg )
 
   def _Launch( self ):
@@ -959,7 +973,9 @@ class DebugSession( object ):
 
     if self._run_on_server_exit:
       self._logger.debug( "Running server exit handler" )
-      self._run_on_server_exit()
+      callback = self._run_on_server_exit
+      self._run_on_server_exit = None
+      callback()
     else:
       self._logger.debug( "No server exit handler" )
 

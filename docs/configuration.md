@@ -11,15 +11,21 @@ for Vimspector.
      * [Debug adapter configuration](#debug-adapter-configuration)
      * [Debug profile configuration](#debug-profile-configuration)
      * [Replacements and variables](#replacements-and-variables)
+     * [The splat operator](#the-splat-operator)
   * [Configuration Format](#configuration-format)
   * [Files and locations](#files-and-locations)
   * [Adapter configurations](#adapter-configurations)
   * [Debug configurations](#debug-configurations)
      * [Exception breakpionts](#exception-breakpionts)
   * [Predefined Variables](#predefined-variables)
+  * [Remote Debugging Support](#remote-debugging-support)
+     * [Python (debugpy) Example](#python-debugpy-example)
+     * [C-family (gdbserver) Example](#c-family-gdbserver-example)
+     * [Docker Example](#docker-example)
+  * [Appendix: Configuration file format](#appendix-configuration-file-format)
   * [Appendix: Editor configuration](#appendix-editor-configuration)
 
-<!-- Added by: ben, at: Tue 28 Jan 2020 08:47:40 GMT -->
+<!-- Added by: ben, at: Thu  9 Jul 2020 18:19:39 BST -->
 
 <!--te-->
 
@@ -330,7 +336,7 @@ the configured response is empty string, the debug adapter default will be used.
 Referring to the above example, the following tells the debug adapter to use the
 default value for `caught` exceptoins and to break on `uncaught` exception:
 
-```
+```json
 {
   "configurations": {
     "example-debug-configuration": {
@@ -342,6 +348,52 @@ default value for `caught` exceptoins and to break on `uncaught` exception:
         }
       },
       ...
+```
+
+The keys in the `exception` mapping are what Vimspector includes in the prompt.
+For example, when prompted with the following:
+
+```
+cpp_throw: Break on C++: on throw (Y/N/default: Y)?
+```
+
+The exception breakpoint "type" is `cpp_throw` and the default is `Y`.
+
+Similarly:
+
+```
+cpp_catch: Break on C++: on catch (Y/N/default: N)?
+```
+
+The exception breakpoint "type" is `cpp_catch` and the default is `N`.
+
+Use the following to set the values in config and not get asked:
+
+```json
+  "configurations": {
+    "example-debug-configuration": {
+      "adapter": "example-adapter-name",
+      "breakpoints": {
+        "exception": {
+          "cpp_throw": "Y",
+          "cpp_catch": "Y"
+        }
+      },
+```
+
+To just accept the defaults for these exception breakpoint types, don't specify
+a value, as in :
+
+```json
+  "configurations": {
+    "example-debug-configuration": {
+      "adapter": "example-adapter-name",
+      "breakpoints": {
+        "exception": {
+          "cpp_throw": "",
+          "cpp_catch": ""
+        }
+      },
 ```
 
 ## Predefined Variables
@@ -364,6 +416,7 @@ The following variables are provided:
 * `${fileDirname}` - the current opened file's dirname
 * `${fileExtname}` - the current opened file's extension
 * `${cwd}` - the current working directory of the active window on launch
+* `${unusedLocalPort}` - an unused local TCP port
 
 ## Remote Debugging Support
 
