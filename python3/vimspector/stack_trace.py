@@ -39,10 +39,7 @@ class StackTraceView( object ):
     utils.SetUpScratchBuffer( self._buf, 'vimspector.StackTrace' )
 
     vim.current.buffer = self._buf
-    # FIXME: Remove all usage of "Windown" and just use buffers to prevent all
-    # the bugs around the window being closed.
-    self._win = vim.current.window
-    utils.SetUpUIWindow( self._win )
+    utils.SetUpUIWindow( vim.current.window )
 
     vim.command( 'nnoremap <buffer> <CR> :call vimspector#GoToFrame()<CR>' )
 
@@ -311,4 +308,4 @@ class StackTraceView( object ):
   def SetSyntax( self, syntax ):
     self._current_syntax = utils.SetSyntax( self._current_syntax,
                                             syntax,
-                                            self._win )
+                                            self._buf )

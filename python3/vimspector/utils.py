@@ -194,6 +194,14 @@ def LetCurrentWindow( window ):
     yield
 
 
+@contextlib.contextmanager
+def LetCurrentBuffer( buf ):
+  with RestoreCursorPosition():
+    with RestoreCurrentBuffer( vim.current.window ):
+      vim.current.buffer = buf
+      yield
+
+
 def JumpToWindow( window ):
   vim.current.tabpage = window.tabpage
   vim.current.window = window
@@ -555,8 +563,11 @@ def SetSyntax( current_syntax, syntax, *args ):
   if current_syntax == syntax:
     return
 
-  for win in args:
-    with LetCurrentWindow( win ):
+  for buf in args:
+    with LetCurrentBuffer( buf ):
+      # We use set syn= because just setting vim.Buffer.options[ 'syntax' ]
+      # doesn't actually trigger the Syntax autocommand, and i'm not sure that
+      # 'doautocmd Syntax' is the right solution or not
       vim.command( 'set syntax={}'.format( Escape( syntax ) ) )
 
   return syntax
