@@ -133,7 +133,7 @@ class VariablesView( object ):
     # Set up the "Variables" buffer in the variables_win
     self._scopes: typing.List[ Scope ] = []
     self._vars = View( variables_win, {}, self._DrawScopes )
-    utils.SetUpScratchBuffer( self._vars.buf, 'vimspector.Variables' )
+    utils.SetUpHiddenBuffer( self._vars.buf, 'vimspector.Variables' )
     with utils.LetCurrentWindow( variables_win ):
       vim.command(
         'nnoremap <buffer> <CR> :call vimspector#ExpandVariable()<CR>' )

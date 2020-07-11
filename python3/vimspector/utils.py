@@ -97,6 +97,7 @@ def CleanUpHiddenBuffer( buf ):
 
 def SetUpScratchBuffer( buf, name ):
   SetUpHiddenBuffer( buf, name )
+  buf.options[ 'bufhidden' ] = 'wipe'
 
 
 def SetUpHiddenBuffer( buf, name ):

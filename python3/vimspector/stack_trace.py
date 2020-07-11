@@ -36,7 +36,7 @@ class StackTraceView( object ):
     self._threads = []
     self._sources = {}
 
-    utils.SetUpScratchBuffer( self._buf, 'vimspector.StackTrace' )
+    utils.SetUpHiddenBuffer( self._buf, 'vimspector.StackTrace' )
 
     vim.current.buffer = self._buf
     utils.SetUpUIWindow( vim.current.window )
