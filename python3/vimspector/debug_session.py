@@ -125,9 +125,17 @@ class DebugSession( object ):
            next( iter( configurations.values() ) ).get( "autoselect", True ) ):
       configuration_name = next( iter( configurations.keys() ) )
     else:
-      configuration_name = utils.SelectFromList(
-        'Which launch configuration?',
-        sorted( configurations.keys() ) )
+      # Find a single configuration with 'default' True and autoselect not False
+      defaults = { n: c for n, c in configurations.items()
+                   if c.get( 'default', False ) is True
+                   and c.get( 'autoselect', True ) is not False }
+
+      if len( defaults ) == 1:
+        configuration_name = next( iter( defaults.keys() ) )
+      else:
+        configuration_name = utils.SelectFromList(
+          'Which launch configuration?',
+          sorted( configurations.keys() ) )
 
     if not configuration_name or configuration_name not in configurations:
       return

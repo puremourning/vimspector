@@ -321,6 +321,62 @@ typical example looks like this:
 }
 ```
 
+### Configuration selection
+
+When starting debugging, you can specify which debug configuration to launch
+with `call vimspector#LaunchWithSettings( #{ configuration: 'name here' } )`.
+
+Otherwise, if there's only one configuration found, Vimspector will use that
+configuration, unless it contains a key `"autoselect": false`.
+
+If multiple debug configurations are found, and no explicit configuration was
+selected on Launch, the user is prompted to select a configuration, unless a
+single debug configuration is found with a key `"default": true`.
+
+#### Specifying a default configuration
+
+As noted, you can specify a default configuration with `"default": true`:
+
+```json
+{
+  "configurations": {
+    "use this one": {
+      "default": true,
+      "adapter": " ... ",
+      "configuation": {
+        // ...
+      }
+    },
+    "don't use this one": {
+      // ...
+    }
+  }
+}
+```
+
+If multiple conifigurations are found with `default` set to `true`, then the
+user is prompted anyway.
+
+#### Preventing automatic selection
+
+If you don't want a configuration to be selected automatically, then set
+`"autoselect": false`. This particularly useful for configurations in the
+central (as opposed to project-local) directory. For example:
+
+```json
+  "configurations": {
+    "Don't use this by default!": {
+      "autoselect": false,
+      "adapter": " ... ",
+      "configuation": {
+        // ...
+      }
+    }
+  }
+```
+
+Setting `autoselect` to `false` overrides setting `default` to `true`.
+
 ### Exception breakpionts
 
 Debug adapters have arbitrary configuration for exception breakpoints. Normally
@@ -426,12 +482,12 @@ where the development is done on one host and the runtime is
 some other host, account, container, etc.
 
 In order for it to work, you have to set up passwordless SSH between the local
-and remote machines/accounts. Then just tell Vimsector how to remotely launch
+and remote machines/accounts. Then just tell Vimspector how to remotely launch
 and/or attach to the app.
 
 This is presented as examples with commentary, as it's a fairly advanced/niche
 case. If you're not already familiar with remote debugging tools (such as
-gdbserver) or not familar with ssh or such, you might need to independently
+gdbserver) or not familiar with ssh or such, you might need to independently
 research that.
 
 Vimspector's tools are intended to automate your existing process for setting

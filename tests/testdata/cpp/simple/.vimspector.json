@@ -1,17 +1,38 @@
 {
   "configurations": {
-    "cpptools-run": {
+    "run-to-entry": {
       "adapter": "vscode-cpptools",
+      // This makes this configuration the default. Only one default can be set
+      // (having two is the same as having none)
+      "default": true,
       "configuration": {
         "request": "launch",
         "program": "${workspaceRoot}/${fileBasenameNoExtension}",
         "externalConsole": false,
         "stopAtEntry": true,
         "stopOnEntry": true,
-        "MImode": "${VIMSPECTOR_MIMODE}",
-        "logging": {
-          "engineLogging": true
+        "MImode": "${VIMSPECTOR_MIMODE}"
+      },
+      "breakpoints": {
+        "exception": {
+          "cpp_catch": "",
+          "cpp_throw": "",
+          "objc_catch": "",
+          "objc_throw": "",
+          "swift_catch": "",
+          "swift_throw": ""
         }
+      }
+    },
+    "run-to-breakpoint": {
+      "adapter": "vscode-cpptools",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/${fileBasenameNoExtension}",
+        "externalConsole": false,
+        "stopAtEntry": false,
+        "stopOnEntry": false,
+        "MImode": "${VIMSPECTOR_MIMODE}"
       },
       "breakpoints": {
         "exception": {

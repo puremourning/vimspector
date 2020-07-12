@@ -601,6 +601,19 @@ See [our YouCompleteMe integration guide](#usage-with-youcompleteme) for
 another example where it can be used to specify the port to connect the [java
 debugger](#java---partially-supported)
 
+### Debug configuration selection
+
+Vimspector uses the following logic to choose a configuration to launch:
+
+1. If a configuration was specified in the launch options (as above), use that.
+2. Otherwise if there's only one configuration and it doesn't have `autoselect`
+   set to `false`, use that.
+3. Otherwise if there's exactly one configuration with `default` set to `true`
+   and without `autoselect` set to `false`, use that.
+4. Otherwise, prompt the user to select a configuration.
+
+See [the reference guide][vimspector-ref-config-selection] for details.
+
 ## Breakpoints
 
 * Use `vimspector#ToggleBreakpoint([ { 'condition': '<condition expr>' } ])`
@@ -1366,6 +1379,7 @@ Copyright © 2018 Ben Jackson
 [vimspector-ref]: https://puremourning.github.io/vimspector/configuration.html
 [vimspector-ref-var]: https://puremourning.github.io/vimspector/configuration.html#replacements-and-variables
 [vimspector-ref-exception]: https://puremourning.github.io/vimspector/configuration.html#exception-breakpoints
+[vimspector-ref-config-selection]: https://puremourning.github.io/vimspector/configuration.html#configuration-selection
 [debugpy]: https://github.com/microsoft/debugpy
 [YouCompleteMe]: https://github.com/ycm-core/YouCompleteMe#java-semantic-completion
 [remote-debugging]: https://puremourning.github.io/vimspector/configuration.html#remote-debugging-support
