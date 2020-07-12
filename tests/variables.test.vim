@@ -8,6 +8,17 @@ function! ClearDown()
   call vimspector#test#setup#ClearDown()
 endfunction
 
+function! s:assert_match_list( expected, actual ) abort
+  let ret = assert_equal( len( a:expected ), len( a:actual ) )
+  let len = min( [ len( a:expected ), len( a:actual ) ] )
+  let idx = 0
+  while idx < len
+    let ret += assert_match( a:expected[ idx ], a:actual[ idx ] )
+    let idx += 1
+  endwhile
+  return ret
+endfunction
+
 function! s:StartDebugging( ... )
   if a:0 == 0
     let config = #{
@@ -181,10 +192,10 @@ endfunction
 
 function! Test_ExpandWatch()
   let fn =  'testdata/cpp/simple/struct.cpp'
-  " TODO: This stops at a different point on linux/gdb
   call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
         \   configuration: 'run-to-breakpoint'
         \ } } )
+
   " Make sure the Test t is initialised
   call vimspector#StepOver()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 26, 1 )
@@ -211,14 +222,14 @@ function! Test_ExpandWatch()
   call feedkeys( "\<CR>", 'xt' )
 
   call WaitForAssert( {->
-        \   assert_equal(
+        \   s:assert_match_list(
         \     [
         \       '- Scope: Locals',
-        \       ' *- t (Test): {...}',
-        \       '   *- i (int): 0',
-        \       "   *- c (char): 0 '\\0'",
-        \       '   *- fffff (float): 0',
-        \       '   *+ another_test (AnotherTest): {...}',
+        \       ' \*- t (Test): {...}',
+        \       '   \*- i (int): 0',
+        \       '   \*- c (char): 0 ''\\0\{1,3}''',
+        \       '   \*- fffff (float): 0',
+        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
         \                 1,
@@ -229,14 +240,14 @@ function! Test_ExpandWatch()
   " Step - stays expanded
   call vimspector#StepOver()
   call WaitForAssert( {->
-        \   assert_equal(
+        \   s:assert_match_list(
         \     [
         \       '- Scope: Locals',
         \       '  - t (Test): {...}',
-        \       '   *- i (int): 1',
-        \       "    - c (char): 0 '\\0'",
+        \       '   \*- i (int): 1',
+        \       '    - c (char): 0 ''\\0\{1,3}''',
         \       '    - fffff (float): 0',
-        \       '    + another_test (AnotherTest): {...}',
+        \       '    + another_test (AnotherTest):\( {...}\)\?',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
         \                 1,
@@ -278,14 +289,14 @@ function! Test_ExpandWatch()
   call setpos( '.', [ 0, 2, 1 ] )
   call feedkeys( "\<CR>", 'xt' )
   call WaitForAssert( {->
-        \   assert_equal(
+        \   s:assert_match_list(
         \     [
         \       '- Scope: Locals',
         \       '  - t (Test): {...}',
         \       '    - i (int): 1',
-        \       "   *- c (char): 99 'c'",
+        \       '   \*- c (char): 99 ''c''',
         \       '    - fffff (float): 0',
-        \       '    + another_test (AnotherTest): {...}',
+        \       '    + another_test (AnotherTest):\( {...}\)\?',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
         \                 1,
