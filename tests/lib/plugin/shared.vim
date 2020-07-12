@@ -73,7 +73,7 @@ func s:WaitForCommon(expr, assert, timeout)
       " Remove the errors added by the assert function.
       let errors_added = len( v:errors ) - errors_before
       if errors_added > 0
-        call remove(v:errors, -1 * errors_added )
+        call remove( v:errors, -1 * errors_added, -1 )
       endif
     endif
 
