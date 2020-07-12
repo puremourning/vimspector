@@ -11,6 +11,12 @@ function! vimspector#test#setup#SetUpWithMappings( mappings ) abort
 
   " This is a bit of a hack
   runtime! plugin/**/*.vim
+
+  augroup VimspectorTestSwap
+    au!
+    au SwapExists * let v:swapchoice = 'e'
+  augroup END
+
 endfunction
 
 function! vimspector#test#setup#ClearDown() abort

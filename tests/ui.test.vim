@@ -1,4 +1,4 @@
-let s:fn='main.py'
+let s:fn='../support/test/python/simple_python/main.py'
 
 function! SetUp()
   call vimspector#test#setup#SetUpWithMappings( 'HUMAN' )
@@ -9,7 +9,6 @@ function! ClearDown()
 endfunction
 
 function! s:StartDebugging()
-  lcd ../support/test/python/simple_python
   exe 'edit ' . s:fn
   call setpos( '.', [ 0, 23, 1 ] )
   call vimspector#ToggleBreakpoint()
