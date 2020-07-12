@@ -94,7 +94,7 @@ func StopVimInTerminal(buf)
   " In Command-line it's inserted, the CTRL-U removes it again.
   call term_sendkeys(a:buf, "\<C-O>:\<C-U>qa!\<cr>")
 
-  call WaitForAssert({-> assert_equal("finished", term_getstatus(a:buf))})
+  call WaitForAssert({-> assert_equal('finished', term_getstatus(a:buf))})
   only!
 endfunc
 

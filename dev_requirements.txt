@@ -1,4 +1,6 @@
 flake8==3.8.3
-vim-vint==0.3.21
 flake8-comprehensions==3.2.3
 flake8-ycm>= 0.1.0
+
+# Use fork of vint which is up to date
+git+https://github.com/puremourning/vint

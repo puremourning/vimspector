@@ -41,7 +41,7 @@ function s:SetUpTerminal()
   let left_bar = 70
   let code = 80
   let padding = 4
-  let cols = max( [ min([ &columns - left_bar - code - padding, 80 ] ), 10 ] )
+  let cols = max( [ min( [ &columns - left_bar - code - padding, 80 ] ), 10 ] )
   call win_gotoid( terminal_win )
   execute cols . 'wincmd |'
 endfunction
