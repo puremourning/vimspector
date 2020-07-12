@@ -16,6 +16,9 @@ for Vimspector.
   * [Files and locations](#files-and-locations)
   * [Adapter configurations](#adapter-configurations)
   * [Debug configurations](#debug-configurations)
+     * [Configuration selection](#configuration-selection)
+        * [Specifying a default configuration](#specifying-a-default-configuration)
+        * [Preventing automatic selection](#preventing-automatic-selection)
      * [Exception breakpionts](#exception-breakpionts)
   * [Predefined Variables](#predefined-variables)
   * [Remote Debugging Support](#remote-debugging-support)
@@ -25,7 +28,7 @@ for Vimspector.
   * [Appendix: Configuration file format](#appendix-configuration-file-format)
   * [Appendix: Editor configuration](#appendix-editor-configuration)
 
-<!-- Added by: ben, at: Thu  9 Jul 2020 18:19:39 BST -->
+<!-- Added by: ben, at: Sun 12 Jul 2020 16:46:18 BST -->
 
 <!--te-->
 
