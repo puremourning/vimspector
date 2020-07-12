@@ -1,8 +1,11 @@
 package com.vimspector.test;
 
-class Base {
+public class Base
+{
   public String DoSomething()
   {
-    return "";
+    String s = new String();
+    s.replace( "A", "B" );
+    return s;
   }
 }
