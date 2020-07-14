@@ -352,3 +352,130 @@ function! Test_ExpandVariables()
   call vimspector#test#setup#Reset()
   %bwipe!
 endfunction
+
+function! Test_ExpandWatch()
+  let fn =  'testdata/cpp/simple/struct.cpp'
+  call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
+        \   configuration: 'run-to-breakpoint'
+        \ } } )
+
+  " Make sure the Test t is initialised
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 26, 1 )
+
+  call win_gotoid( g:vimspector_session_windows.watches )
+  call feedkeys( "it\<CR>", 'xt' )
+
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       'Watches: ----',
+        \       'Expression: t',
+        \       ' *+ Result: {...}',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.watches ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+  call assert_equal( 'cpp',
+                   \ getbufvar(
+                   \   winbufnr( g:vimspector_session_windows.watches ),
+                   \   '&syntax' ) )
+
+  " Expand
+  call win_gotoid( g:vimspector_session_windows.watches )
+  call setpos( '.', [ 0, 3, 1 ] )
+  call feedkeys( "\<CR>", 'xt' )
+
+  call WaitForAssert( {->
+        \   s:assert_match_list(
+        \     [
+        \       'Watches: ----',
+        \       'Expression: t',
+        \       ' \*- Result: {...}',
+        \       '   \*- i (int): 0',
+        \       '   \*- c (char): 0 ''\\0\{1,3}''',
+        \       '   \*- fffff (float): 0',
+        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.watches ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  " Step - stays expanded
+  call vimspector#StepOver()
+  call WaitForAssert( {->
+        \   s:assert_match_list(
+        \     [
+        \       'Watches: ----',
+        \       'Expression: t',
+        \       '  - Result: {...}',
+        \       '   \*- i (int): 1',
+        \       '    - c (char): 0 ''\\0\{1,3}''',
+        \       '    - fffff (float): 0',
+        \       '    + another_test (AnotherTest):\( {...}\)\?',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.watches ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  " Collapse
+  call win_gotoid( g:vimspector_session_windows.watches )
+  call setpos( '.', [ 0, 3, 1 ] )
+  call feedkeys( "\<CR>", 'xt' )
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       'Watches: ----',
+        \       'Expression: t',
+        \       '  + Result: {...}',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.watches ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 28, 1 )
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       'Watches: ----',
+        \       'Expression: t',
+        \       '  + Result: {...}',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.watches ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  call win_gotoid( g:vimspector_session_windows.watches )
+  call setpos( '.', [ 0, 3, 1 ] )
+  call feedkeys( "\<CR>", 'xt' )
+  call WaitForAssert( {->
+        \   s:assert_match_list(
+        \     [
+        \       'Watches: ----',
+        \       'Expression: t',
+        \       '  - Result: {...}',
+        \       '    - i (int): 1',
+        \       '    - c (char): 99 ''c''',
+        \       '    - fffff (float): 0',
+        \       '    + another_test (AnotherTest):\( {...}\)\?',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.watches ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
