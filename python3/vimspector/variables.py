@@ -359,9 +359,9 @@ class VariablesView( object ):
           icon = '+' if ( variable.IsExpandable()
                           and not variable.IsExpanded() ) else '-',
           name = variable.variable[ 'name' ],
-          type_ = variable.variable.get( 'type', '<unknown type>' ),
+          type_ = variable.variable.get( 'type', '' ),
           value = variable.variable.get( 'value',
-                                         '<unknown value>' ) ).split( '\n' ) )
+                                         '<unknown>' ) ).split( '\n' ) )
       view.lines[ line ] = variable
 
       if variable.ShouldDrawDrillDown():
