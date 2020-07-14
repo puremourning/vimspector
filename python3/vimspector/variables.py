@@ -221,7 +221,7 @@ class VariablesView( object ):
 
         new_scopes.append( scope )
 
-        if not scope.scope[ 'expensive' ] and not scope.IsCollapsedByUser():
+        if not scope.scope.get( 'expensive' ) and not scope.IsCollapsedByUser():
           # Expand any non-expensive scope which is not manually collapsed
           scope.expanded = True
 
