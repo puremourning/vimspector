@@ -254,6 +254,10 @@ GADGETS = {
       'file_name': 'netcoredbg-linux-master.tar.gz',
       'checksum': '',
     },
+    'windows': {
+      'file_name': 'netcoredbg-win64-master.zip',
+      'checksum': '',
+    },
     'do': lambda name, root, gadget: installer.MakeSymlink(
       gadget_dir,
       name,
