@@ -190,7 +190,7 @@ function! Test_SimpleWatches()
   %bwipe!
 endfunction
 
-function! Test_ExpandWatch()
+function! Test_ExpandVariables()
   let fn =  'testdata/cpp/simple/struct.cpp'
   call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
         \   configuration: 'run-to-breakpoint'
@@ -272,6 +272,7 @@ function! Test_ExpandWatch()
         \ } )
 
   call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 28, 1 )
   call WaitForAssert( {->
         \   assert_equal(
         \     [
@@ -284,7 +285,6 @@ function! Test_ExpandWatch()
         \   )
         \ } )
 
-  " Exapand - see that the changed value is highlighted
   call win_gotoid( g:vimspector_session_windows.variables )
   call setpos( '.', [ 0, 2, 1 ] )
   call feedkeys( "\<CR>", 'xt' )
@@ -293,10 +293,10 @@ function! Test_ExpandWatch()
         \     [
         \       '- Scope: Locals',
         \       '  - t (Test): {...}',
-        \       '    - i (int): 1',
+        \       '   \*- i (int): 1',
         \       '   \*- c (char): 99 ''c''',
-        \       '    - fffff (float): 0',
-        \       '    + another_test (AnotherTest):\( {...}\)\?',
+        \       '   \*- fffff (float): 0',
+        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
         \                 1,
