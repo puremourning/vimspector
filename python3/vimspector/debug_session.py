@@ -613,6 +613,10 @@ class DebugSession( object ):
       'arguments': arguments,
     }, failure_handler = handler, timeout = 5000 )
 
+    self._splash_screen = utils.HideSplash(
+      self._api_prefix,
+      self._splash_screen )
+
     # TODO: Use the 'tarminate' request if supportsTerminateRequest set
 
 
