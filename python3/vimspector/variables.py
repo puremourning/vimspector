@@ -23,6 +23,11 @@ from vimspector import utils
 
 
 class Expandable:
+  EXPANDED_BY_USER = 2
+  EXPANDED_BY_US = 1
+  COLLAPSED_BY_USER = 0
+  COLLAPSED_BY_DEFAULT = None
+
   """Base for anything which might contain a hierarchy of values represented by
   a 'variablesReference' to be resolved by the 'variables' request. Records the
   current state expanded/collapsed. Implementations just implement
@@ -32,16 +37,13 @@ class Expandable:
     # None is Falsy and represents collapsed _by default_. WHen set to False,
     # this means the user explicitly collapsed it. When True, the user expanded
     # it (or we expanded it by default).
-    self.expanded: bool = None
+    self.expanded: int = Expandable.COLLAPSED_BY_DEFAULT
 
-  def IsCollapsedByUser( self ):
-    return self.expanded is False
-
-  def IsExpandedByUser( self ):
-    return self.expanded is True
+  def IsExpanded( self ):
+    return bool( self.expanded )
 
   def ShouldDrawDrillDown( self ):
-    return self.IsExpandedByUser() and self.variables is not None
+    return self.IsExpanded() and self.variables is not None
 
   def IsExpandable( self ):
     return self.VariablesReference() > 0
@@ -205,6 +207,7 @@ class VariablesView( object ):
   def LoadScopes( self, frame ):
     def scopes_consumer( message ):
       new_scopes = []
+      expanded_some_scope = False
       for scope_body in message[ 'body' ][ 'scopes' ]:
         # Find it in the scopes list
         found = False
@@ -221,11 +224,17 @@ class VariablesView( object ):
 
         new_scopes.append( scope )
 
-        if not scope.scope.get( 'expensive' ) and not scope.IsCollapsedByUser():
-          # Expand any non-expensive scope which is not manually collapsed
-          scope.expanded = True
+        # Expand the first non-expensive scope which is not manually collapsed
+        if ( not expanded_some_scope
+             and not scope.scope.get( 'expensive' )
+             and scope.expanded is not Expandable.COLLAPSED_BY_USER ):
+          scope.expanded = Expandable.EXPANDED_BY_US
+          expanded_some_scope = True
+        elif ( expanded_some_scope and scope.expanded is
+               Expandable.EXPANDED_BY_US ):
+          scope.expanded = Expandable.COLLAPSED_BY_DEFAULT
 
-        if scope.IsExpandedByUser():
+        if scope.IsExpanded():
           self._connection.DoRequest( partial( self._ConsumeVariables,
                                                self._DrawScopes,
                                                scope ), {
@@ -293,7 +302,7 @@ class VariablesView( object ):
       watch.result = WatchResult( message[ 'body' ] )
 
     if ( watch.result.IsExpandable() and
-         watch.result.IsExpandedByUser() ):
+         watch.result.IsExpanded() ):
       self._connection.DoRequest( partial( self._ConsumeVariables,
                                            self._watch.draw,
                                            watch.result ), {
@@ -319,16 +328,16 @@ class VariablesView( object ):
 
     variable = view.lines[ current_line ]
 
-    if variable.expanded:
+    if variable.IsExpanded():
       # Collapse
-      variable.expanded = False
+      variable.expanded = Expandable.COLLAPSED_BY_USER
       view.draw()
       return
 
     if not variable.IsExpandable():
       return
 
-    variable.expanded = True
+    variable.expanded = Expandable.EXPANDED_BY_USER
     self._connection.DoRequest( partial( self._ConsumeVariables,
                                          view.draw,
                                          variable ), {
@@ -348,11 +357,11 @@ class VariablesView( object ):
           indent = ' ' * ( indent - 1 ),
           marker = '*' if variable.changed else ' ',
           icon = '+' if ( variable.IsExpandable()
-                          and not variable.IsExpandedByUser() ) else '-',
+                          and not variable.IsExpanded() ) else '-',
           name = variable.variable[ 'name' ],
-          type_ = variable.variable.get( 'type', '<unknown type>' ),
+          type_ = variable.variable.get( 'type', '' ),
           value = variable.variable.get( 'value',
-                                         '<unknown value>' ) ).split( '\n' ) )
+                                         '<unknown>' ) ).split( '\n' ) )
       view.lines[ line ] = variable
 
       if variable.ShouldDrawDrillDown():
@@ -386,7 +395,7 @@ class VariablesView( object ):
           self._DrawWatchResult( 2, watch )
 
   def _DrawScope( self, indent, scope ):
-    icon = '+' if scope.IsExpandable() and not scope.IsExpandedByUser() else '-'
+    icon = '+' if scope.IsExpandable() and not scope.IsExpanded() else '-'
 
     line = utils.AppendToBuffer( self._vars.buf,
                                  '{0}{1} Scope: {2}'.format(
@@ -405,7 +414,7 @@ class VariablesView( object ):
 
     assert indent > 0
     icon = '+' if ( watch.result.IsExpandable() and
-                    not watch.result.IsExpandedByUser() ) else '-'
+                    not watch.result.IsExpanded() ) else '-'
 
     line =  '{indent}{marker}{icon} Result: {result}'.format(
       # We borrow 1 space of indent to draw the change marker
@@ -442,7 +451,7 @@ class VariablesView( object ):
 
       new_variables.append( variable )
 
-      if variable.IsExpandable() and variable.IsExpandedByUser():
+      if variable.IsExpandable() and variable.IsExpanded():
         self._connection.DoRequest( partial( self._ConsumeVariables,
                                              draw,
                                              variable ), {

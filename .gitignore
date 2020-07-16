@@ -17,3 +17,5 @@ README.md.toc.*
 support/test/csharp/*.exe*
 .neomake.log
 configurations/
+venv/
+test-base/

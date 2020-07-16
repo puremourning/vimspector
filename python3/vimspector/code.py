@@ -220,7 +220,6 @@ class CodeView( object ):
 
     options = {
       'vertical': 1,
-      'term_cols': 80,
       'norestore': 1,
       'cwd': cwd,
       'env': env,

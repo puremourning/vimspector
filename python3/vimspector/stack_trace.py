@@ -35,6 +35,7 @@ class StackTraceView( object ):
 
     self._threads = []
     self._sources = {}
+    self._scratch_buffers = []
 
     utils.SetUpHiddenBuffer( self._buf, 'vimspector.StackTrace' )
 
@@ -82,6 +83,11 @@ class StackTraceView( object ):
   def Reset( self ):
     self.Clear()
     utils.CleanUpHiddenBuffer( self._buf )
+    for b in self._scratch_buffers:
+      utils.CleanUpHiddenBuffer( b )
+
+    self._scratch_buffers = []
+    self._buf = None
 
   def LoadThreads( self, infer_current_frame ):
     pending_request = False
@@ -290,7 +296,8 @@ class StackTraceView( object ):
         self._logger.debug( "Received source %s: %s", buf_name, msg )
 
         buf = utils.BufferForFile( buf_name )
-        utils.SetUpScratchBuffer( buf, buf_name )
+        self._scratch_buffers.append( buf )
+        utils.SetUpHiddenBuffer( buf, buf_name )
         source[ 'path' ] = buf_name
         with utils.ModifiableScratchBuffer( buf ):
           utils.SetBufferContents( buf, msg[ 'body' ][ 'content' ] )

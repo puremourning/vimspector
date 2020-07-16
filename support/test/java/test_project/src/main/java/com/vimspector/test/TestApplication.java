@@ -24,16 +24,6 @@ public class TestApplication {
     }
   }
 
-  private static class TestGeneric<T extends Base > {
-    T t;
-    public TestGeneric( T t ) {
-      this.t = t;
-    }
-    public void DoSomethingUseful() {
-      System.out.println( t.DoSomething() );
-    }
-  }
-
   private static <T extends Base> void DoGeneric( T b ) {
     TestGeneric<T> foo = new TestGeneric<>( b );
     foo.DoSomethingUseful();
