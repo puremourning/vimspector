@@ -487,39 +487,39 @@ class DebugSession( object ):
     self._codeView = code.CodeView( code_window, self._api_prefix )
 
     # Call stack
-    with utils.TemporaryVimOptions( { 'splitright':  False,
-                                      'equalalways': False, } ):
-      vim.command( 'topleft vertical 50new' )
-      stack_trace_window = vim.current.window
-      self._stackTraceView = stack_trace.StackTraceView( self,
-                                                         self._connection,
-                                                         stack_trace_window )
+    vim.command( 'topleft vertical 50new' )
+    stack_trace_window = vim.current.window
+    one_third = int( vim.eval( 'winheight( 0 )' ) ) / 3
+    self._stackTraceView = stack_trace.StackTraceView( self,
+                                                       self._connection,
+                                                       stack_trace_window )
 
-    with utils.TemporaryVimOptions( { 'splitbelow':  False,
-                                      'eadirection': 'ver',
-                                      'equalalways': True } ):
-      # Watches
-      vim.command( 'new' )
-      watch_window = vim.current.window
+    # Watches
+    vim.command( 'leftabove new' )
+    watch_window = vim.current.window
 
-      # Variables
-      vim.command( 'new' )
-      vars_window = vim.current.window
+    # Variables
+    vim.command( 'leftabove new' )
+    vars_window = vim.current.window
 
-      self._variablesView = variables.VariablesView( self._connection,
-                                                     vars_window,
-                                                     watch_window )
+    with utils.LetCurrentWindow( vars_window ):
+      vim.command( f'{ one_third }wincmd _' )
+    with utils.LetCurrentWindow( watch_window ):
+      vim.command( f'{ one_third }wincmd _' )
+    with utils.LetCurrentWindow( stack_trace_window ):
+      vim.command( f'{ one_third }wincmd _' )
 
+    self._variablesView = variables.VariablesView( self._connection,
+                                                   vars_window,
+                                                   watch_window )
 
-    with utils.TemporaryVimOption( 'splitbelow', True ):
-      vim.current.window = code_window
-
-      # Output/logging
-      vim.command( '10new' )
-      output_window = vim.current.window
-      self._outputView = output.OutputView( self._connection,
-                                            output_window,
-                                            self._api_prefix )
+    # Output/logging
+    vim.current.window = code_window
+    vim.command( 'rightbelow 10new' )
+    output_window = vim.current.window
+    self._outputView = output.OutputView( self._connection,
+                                          output_window,
+                                          self._api_prefix )
 
     # TODO: If/when we support multiple sessions, we'll need some way to
     # indicate which tab was created and store all the tabs

@@ -233,24 +233,33 @@ class CodeView( object ):
 
     if self._terminal_window is not None and self._terminal_window.valid:
       assert self._terminal_buffer_number
+      window_for_start = self._terminal_window
       if ( self._terminal_window.buffer.number == self._terminal_buffer_number
            and int( utils.Call( 'vimspector#internal#{}term#IsFinished'.format(
                                   self._api_prefix ),
                                 self._terminal_buffer_number ) ) ):
-        window_for_start = self._terminal_window
         options[ 'curwin' ] = 1
+      else:
+        options[ 'vertical' ] = 0
 
     buffer_number = None
     terminal_window = None
-    with utils.TemporaryVimOptions( { 'splitright': True,
-                                      'equalalways': False } ):
-      with utils.LetCurrentWindow( window_for_start ):
-        buffer_number = int(
-          utils.Call(
-            'vimspector#internal#{}term#Start'.format( self._api_prefix ),
-            args,
-            options ) )
-        terminal_window = vim.current.window
+    with utils.LetCurrentWindow( window_for_start ):
+      # If we're making a vertical split from the code window, make it no more
+      # than 80 columns and no fewer than 10. Also try and keep the code window
+      # at least 82 columns
+      if options[ 'vertical' ] and not options.get( 'curwin', 0 ):
+        options[ 'term_cols' ] = max(
+          min ( int( vim.eval( 'winwidth( 0 ) - 82' ) ), 80 ),
+          10
+        )
+
+      buffer_number = int(
+        utils.Call(
+          'vimspector#internal#{}term#Start'.format( self._api_prefix ),
+          args,
+          options ) )
+      terminal_window = vim.current.window
 
     if buffer_number is None or buffer_number <= 0:
       # TODO: Do something better like reject the request?
