@@ -176,6 +176,7 @@ function! s:SetUpHiddenBuffer( buffer ) abort
   call setbufvar( a:buffer, '&bufhidden', 'hide' )
   call setbufvar( a:buffer, '&wrap', 0 )
   call setbufvar( a:buffer, '&swapfile', 0 )
+  call setbufvar( a:buffer, '&textwidth', 0 )
   call s:MakeBufferReadOnly( a:buffer )
 endfunction
 
