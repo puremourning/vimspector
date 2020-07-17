@@ -29,7 +29,8 @@ from vimspector import ( breakpoints,
                          output,
                          stack_trace,
                          utils,
-                         variables )
+                         variables,
+                         settings )
 from vimspector.vendor.json_minify import minify
 
 # We cache this once, and don't allow it to change (FIXME?)
@@ -487,7 +488,8 @@ class DebugSession( object ):
     self._codeView = code.CodeView( code_window, self._api_prefix )
 
     # Call stack
-    vim.command( 'topleft vertical 50new' )
+    vim.command(
+      f'topleft vertical { settings.Int( "sidebar_width", 50 ) }new' )
     stack_trace_window = vim.current.window
     one_third = int( vim.eval( 'winheight( 0 )' ) ) / 3
     self._stackTraceView = stack_trace.StackTraceView( self,
@@ -515,7 +517,7 @@ class DebugSession( object ):
 
     # Output/logging
     vim.current.window = code_window
-    vim.command( 'rightbelow 10new' )
+    vim.command( f'rightbelow { settings.Int( "bottombar_height", 10 ) }new' )
     output_window = vim.current.window
     self._outputView = output.OutputView( self._connection,
                                           output_window,

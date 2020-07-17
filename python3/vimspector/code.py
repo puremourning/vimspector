@@ -18,7 +18,7 @@ import logging
 import json
 from collections import defaultdict
 
-from vimspector import utils
+from vimspector import utils, settings
 
 
 class CodeView( object ):
@@ -218,7 +218,7 @@ class CodeView( object ):
     args = params[ 'args' ]
     env = params.get( 'env', {} )
 
-    options = {
+    term_options = {
       'vertical': 1,
       'norestore': 1,
       'cwd': cwd,
@@ -238,9 +238,9 @@ class CodeView( object ):
            and int( utils.Call( 'vimspector#internal#{}term#IsFinished'.format(
                                   self._api_prefix ),
                                 self._terminal_buffer_number ) ) ):
-        options[ 'curwin' ] = 1
+        term_options[ 'curwin' ] = 1
       else:
-        options[ 'vertical' ] = 0
+        term_options[ 'vertical' ] = 0
 
     buffer_number = None
     terminal_window = None
@@ -248,17 +248,19 @@ class CodeView( object ):
       # If we're making a vertical split from the code window, make it no more
       # than 80 columns and no fewer than 10. Also try and keep the code window
       # at least 82 columns
-      if options[ 'vertical' ] and not options.get( 'curwin', 0 ):
-        options[ 'term_cols' ] = max(
-          min ( int( vim.eval( 'winwidth( 0 ) - 82' ) ), 80 ),
-          10
+      if term_options[ 'vertical' ] and not term_options.get( 'curwin', 0 ):
+        term_options[ 'term_cols' ] = max(
+          min ( int( vim.eval( 'winwidth( 0 )' ) )
+                     - settings.Int( 'code_minwidth', 82 ),
+                settings.Int( 'terminal_maxwidth', 80 ) ),
+          settings.Int( 'terminal_minwidth' , 10 )
         )
 
       buffer_number = int(
         utils.Call(
           'vimspector#internal#{}term#Start'.format( self._api_prefix ),
           args,
-          options ) )
+          term_options ) )
       terminal_window = vim.current.window
 
     if buffer_number is None or buffer_number <= 0:
