@@ -215,26 +215,30 @@ class DebugSession( object ):
     USER_CHOICES.update( launch_variables )
     variables.update( launch_variables )
 
-    variables.update(
-      utils.ParseVariables( adapter.get( 'variables', {} ),
-                            variables,
-                            calculus,
-                            USER_CHOICES ) )
-    variables.update(
-      utils.ParseVariables( configuration.get( 'variables', {} ),
-                            variables,
-                            calculus,
-                            USER_CHOICES ) )
+    try:
+      variables.update(
+        utils.ParseVariables( adapter.get( 'variables', {} ),
+                              variables,
+                              calculus,
+                              USER_CHOICES ) )
+      variables.update(
+        utils.ParseVariables( configuration.get( 'variables', {} ),
+                              variables,
+                              calculus,
+                              USER_CHOICES ) )
 
 
-    utils.ExpandReferencesInDict( configuration,
-                                  variables,
-                                  calculus,
-                                  USER_CHOICES )
-    utils.ExpandReferencesInDict( adapter,
-                                  variables,
-                                  calculus,
-                                  USER_CHOICES )
+      utils.ExpandReferencesInDict( configuration,
+                                    variables,
+                                    calculus,
+                                    USER_CHOICES )
+      utils.ExpandReferencesInDict( adapter,
+                                    variables,
+                                    calculus,
+                                    USER_CHOICES )
+    except KeyboardInterrupt:
+      self._Reset()
+      return
 
     if not adapter:
       utils.UserMessage( 'No adapter configured for {}'.format(
@@ -294,18 +298,35 @@ class DebugSession( object ):
 
     self._StartWithConfiguration( self._configuration, self._adapter )
 
-  def IfConnected( fct ):
+  def IfConnected( otherwise=None ):
+    def decorator( fct ):
+      """Decorator, call fct if self._connected else echo warning"""
+      @functools.wraps( fct )
+      def wrapper( self, *args, **kwargs ):
+        if not self._connection:
+          utils.UserMessage(
+            'Vimspector not connected, start a debug session first',
+            persist=False,
+            error=True )
+          return otherwise
+        return fct( self, *args, **kwargs )
+      return wrapper
+    return decorator
+
+  def RequiresUI( otherwise=None ):
     """Decorator, call fct if self._connected else echo warning"""
-    @functools.wraps( fct )
-    def wrapper( self, *args, **kwargs ):
-      if not self._connection:
-        utils.UserMessage(
-          'Vimspector not connected, start a debug session first',
-          persist=True,
-          error=True )
-        return
-      return fct( self, *args, **kwargs )
-    return wrapper
+    def decorator( fct ):
+      @functools.wraps( fct )
+      def wrapper( self, *args, **kwargs ):
+        if not self._uiTab or not self._uiTab.valid:
+          utils.UserMessage(
+            'Vimspector is not active',
+            persist=False,
+            error=True )
+          return otherwise
+        return fct( self, *args, **kwargs )
+      return wrapper
+    return decorator
 
   def OnChannelData( self, data ):
     if self._connection is None:
@@ -328,7 +349,7 @@ class DebugSession( object ):
     # TODO: Not calld
     self._connection = None
 
-  @IfConnected
+  @IfConnected()
   def Stop( self ):
     self._logger.debug( "Stop debug adapter with no callback" )
     self._StopDebugAdapter()
@@ -365,7 +386,7 @@ class DebugSession( object ):
     # make sure that we're displaying signs in any still-open buffers
     self._breakpoints.UpdateUI()
 
-  @IfConnected
+  @IfConnected()
   def StepOver( self ):
     if self._stackTraceView.GetCurrentThreadId() is None:
       return
@@ -377,7 +398,7 @@ class DebugSession( object ):
       },
     } )
 
-  @IfConnected
+  @IfConnected()
   def StepInto( self ):
     if self._stackTraceView.GetCurrentThreadId() is None:
       return
@@ -389,7 +410,7 @@ class DebugSession( object ):
       },
     } )
 
-  @IfConnected
+  @IfConnected()
   def StepOut( self ):
     if self._stackTraceView.GetCurrentThreadId() is None:
       return
@@ -407,29 +428,29 @@ class DebugSession( object ):
     else:
       self.Start()
 
-  @IfConnected
+  @IfConnected()
   def Pause( self ):
     self._stackTraceView.Pause()
 
-  @IfConnected
+  @IfConnected()
   def ExpandVariable( self ):
     self._variablesView.ExpandVariable()
 
-  @IfConnected
+  @IfConnected()
   def AddWatch( self, expression ):
     self._variablesView.AddWatch( self._stackTraceView.GetCurrentFrame(),
                                   expression )
 
-  @IfConnected
+  @IfConnected()
   def EvaluateConsole( self, expression ):
     self._outputView.Evaluate( self._stackTraceView.GetCurrentFrame(),
                                expression )
 
-  @IfConnected
+  @IfConnected()
   def DeleteWatch( self ):
     self._variablesView.DeleteWatch()
 
-  @IfConnected
+  @IfConnected()
   def ShowBalloon( self, winnr, expression ):
     """Proxy: ballonexpr -> variables.ShowBallon"""
     frame = self._stackTraceView.GetCurrentFrame()
@@ -448,10 +469,11 @@ class DebugSession( object ):
     # Return variable aware function
     return self._variablesView.ShowBalloon( frame, expression )
 
-  @IfConnected
+  @IfConnected()
   def ExpandFrameOrThread( self ):
     self._stackTraceView.ExpandFrameOrThread()
 
+  @RequiresUI()
   def ShowOutput( self, category ):
     if not self._outputView.WindowIsValid():
       # TODO: The UI code is too scattered. Re-organise into a UI class that
@@ -468,10 +490,11 @@ class DebugSession( object ):
 
     self._outputView.ShowOutput( category )
 
+  @RequiresUI( otherwise=[] )
   def GetOutputBuffers( self ):
     return self._outputView.GetCategories()
 
-  @IfConnected
+  @IfConnected( otherwise=[] )
   def GetCompletionsSync( self, text_line, column_in_bytes ):
     if not self._server_capabilities.get( 'supportsCompletionsRequest' ):
       return []
@@ -552,9 +575,11 @@ class DebugSession( object ):
           vim.command( 'doautocmd User VimspectorUICreated' )
 
 
+  @RequiresUI()
   def ClearCurrentFrame( self ):
     self.SetCurrentFrame( None )
 
+  @RequiresUI()
   def SetCurrentFrame( self, frame ):
     if not frame:
       self._stackTraceView.Clear()
@@ -596,6 +621,9 @@ class DebugSession( object ):
 
       if self._adapter[ 'port' ] == 'ask':
         port = utils.AskForInput( 'Enter port to connect to: ' )
+        if port is None:
+          self._Reset()
+          return
         self._adapter[ 'port' ] = port
 
     self._connection_type = self._api_prefix + self._connection_type
@@ -705,6 +733,8 @@ class DebugSession( object ):
         prop = atttach_config[ 'pidProperty' ]
         if prop not in launch_config:
           pid = utils.AskForInput( 'Enter PID to attach to: ' )
+          if pid is None:
+            return
           launch_config[ prop ] = pid
         return
       elif atttach_config[ 'pidSelect' ] == 'none':

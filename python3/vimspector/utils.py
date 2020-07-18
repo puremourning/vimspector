@@ -339,7 +339,7 @@ def AskForInput( prompt, default_value = None ):
       return vim.eval( "input( '{}' {} )".format( Escape( prompt ),
                                                   default_option ) )
     except KeyboardInterrupt:
-      return ''
+      return None
 
 
 def AppendToBuffer( buf, line_or_lines, modified=False ):
@@ -447,6 +447,10 @@ def ExpandReferencesInString( orig_s,
         default_value = user_choices.get( key, None )
         mapping[ key ] = AskForInput( 'Enter value for {}: '.format( key ),
                                       default_value )
+
+        if mapping[ key ] is None:
+          raise KeyboardInterrupt
+
         user_choices[ key ] = mapping[ key ]
         _logger.debug( "Value for %s not set in %s (from %s): set to %s",
                        key,

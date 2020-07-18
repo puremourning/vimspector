@@ -332,6 +332,9 @@ function! Test_CloseOutput_Early()
   " 1 screen row, so g:vimspector_bottombar_height -1
   call assert_equal( 4, winheight( g:vimspector_session_windows.output ) )
 
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 26, 1 )
+
   au! TestCustomUI
   call vimspector#test#setup#Reset()
   %bwipe!
