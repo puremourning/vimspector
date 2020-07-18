@@ -126,20 +126,13 @@ class OutputView( object ):
     self._ShowOutput( category )
 
   def Evaluate( self, frame, expression ):
-    console = self._buffers[ 'Console' ].buf
-    with utils.ModifiableScratchBuffer( console ):
-      utils.AppendToBuffer( console, 'Evaluating: ' + expression )
+    self._Print( 'Console', [ 'Evaluating: ' + expression ] )
 
     def print_result( message ):
-      with utils.ModifiableScratchBuffer( console ):
-        utils.AppendToBuffer( console,
-                              'Evaluated: ' + expression )
-
-        result = message[ 'body' ][ 'result' ]
-        if result is None:
-          result = 'null'
-
-        utils.AppendToBuffer( console, '  Result: ' + result )
+      result = message[ 'body' ][ 'result' ]
+      if result is None:
+        result = '<no result>'
+      self._Print( 'Console', f'  Result: { result }' )
 
     request = {
       'command': 'evaluate',
