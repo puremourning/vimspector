@@ -157,11 +157,13 @@ class OutputView( object ):
 
 
   def _CreateBuffer( self, category, file_name = None, cmd = None ):
-    if not self._window.valid:
-      return
+    win = self._window
+    if not win.valid:
+      # We need to borrow the current window
+      win = vim.current.window
 
-    with utils.LetCurrentWindow( self._window ):
-      with utils.RestoreCurrentBuffer( self._window ):
+    with utils.LetCurrentWindow( win ):
+      with utils.RestoreCurrentBuffer( win ):
 
         if file_name is not None:
           assert cmd is None

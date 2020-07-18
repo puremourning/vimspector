@@ -286,6 +286,36 @@ function! Test_CloseOutput()
   %bwipe!
 endfunction
 
+function! Test_CloseOutput_Early()
+  augroup TestCustomUI
+    au!
+    au User VimspectorUICreated
+          \ call win_execute( g:vimspector_session_windows.output, 'q' )
+  augroup END
+
+  call s:StartDebugging()
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 25, 1 )
+
+  call assert_equal(
+        \ [ 'row', [
+        \   [ 'col', [
+        \     [ 'leaf', g:vimspector_session_windows.variables ],
+        \     [ 'leaf', g:vimspector_session_windows.watches ],
+        \     [ 'leaf', g:vimspector_session_windows.stack_trace ],
+        \   ] ],
+        \   [ 'leaf', g:vimspector_session_windows.code ],
+        \   [ 'leaf', g:vimspector_session_windows.terminal ],
+        \ ] ],
+        \ winlayout( g:vimspector_session_windows.tabpage ) )
+
+  au! TestCustomUI
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+
 function! Test_CustomUI()
   augroup TestCustomUI
     au!

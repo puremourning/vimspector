@@ -184,8 +184,10 @@ def RestoreCurrentWindow():
   try:
     yield
   finally:
-    vim.current.tabpage = old_tabpage
-    vim.current.window = old_window
+    if old_tabpage.valid:
+      vim.current.tabpage = old_tabpage
+    if old_window.valid:
+      vim.current.window = old_window
 
 
 @contextlib.contextmanager
@@ -194,9 +196,10 @@ def RestoreCurrentBuffer( window ):
   try:
     yield
   finally:
-    with RestoreCurrentWindow():
-      vim.current.window = window
-      vim.current.buffer = old_buffer
+    if window.valid:
+      with RestoreCurrentWindow():
+        vim.current.window = window
+        vim.current.buffer = old_buffer
 
 
 @contextlib.contextmanager
