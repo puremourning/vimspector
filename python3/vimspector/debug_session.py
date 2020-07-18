@@ -453,6 +453,11 @@ class DebugSession( object ):
     self._stackTraceView.ExpandFrameOrThread()
 
   def ShowOutput( self, category ):
+    if not self._outputView.WindowIsValid():
+      with utils.LetCurrentTabpage( self._uiTab ):
+        vim.command( f'botright { settings.Int( "bottombar_height", 10 ) }new' )
+        self._outputView.UseWindow( vim.current.window )
+
     self._outputView.ShowOutput( category )
 
   def GetOutputBuffers( self ):

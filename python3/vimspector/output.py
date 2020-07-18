@@ -102,6 +102,17 @@ class OutputView( object ):
     # FIXME: nunmenu the WinBar ?
     self._buffers = {}
 
+  def WindowIsValid( self ):
+    return self._window.valid
+
+  def UseWindow( self, win ):
+    assert not self._window.valid
+    self._window = win
+    # TODO: Sorting of the WinBar ?
+    for category, _ in self._buffers.items():
+      self._RenderWinBar( category )
+
+
   def _ShowOutput( self, category ):
     if not self._window.valid:
       return

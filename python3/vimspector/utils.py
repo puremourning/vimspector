@@ -215,6 +215,13 @@ def AnyWindowForBuffer( buf ):
 
 
 @contextlib.contextmanager
+def LetCurrentTabpage( tabpage ):
+  with RestoreCurrentWindow():
+    vim.current.tabpage = tabpage
+    yield
+
+
+@contextlib.contextmanager
 def LetCurrentWindow( window ):
   with RestoreCurrentWindow():
     JumpToWindow( window )
