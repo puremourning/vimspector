@@ -454,9 +454,17 @@ class DebugSession( object ):
 
   def ShowOutput( self, category ):
     if not self._outputView.WindowIsValid():
+      # TODO: The UI code is too scattered. Re-organise into a UI class that
+      # just deals with these thigns like window layout and custmisattion.
+      # currently, this class and the CodeView share some responsiblity for this
+      # and poking into each View class to check its window is valid also feels
+      # wrong.
       with utils.LetCurrentTabpage( self._uiTab ):
         vim.command( f'botright { settings.Int( "bottombar_height", 10 ) }new' )
         self._outputView.UseWindow( vim.current.window )
+        vim.vars[ 'vimspector_session_windows' ][ 'output' ] = utils.WindowID(
+          vim.current.window,
+          self._uiTab )
 
     self._outputView.ShowOutput( category )
 

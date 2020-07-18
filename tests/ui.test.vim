@@ -310,6 +310,28 @@ function! Test_CloseOutput_Early()
         \ ] ],
         \ winlayout( g:vimspector_session_windows.tabpage ) )
 
+  " Open it again!
+  let g:vimspector_bottombar_height = 5
+  VimspectorShowOutput Console
+  call assert_equal(
+        \ [ 'col', [
+        \   [ 'row', [
+        \     [ 'col', [
+        \       [ 'leaf', g:vimspector_session_windows.variables ],
+        \       [ 'leaf', g:vimspector_session_windows.watches ],
+        \       [ 'leaf', g:vimspector_session_windows.stack_trace ],
+        \     ] ],
+        \     [ 'leaf', g:vimspector_session_windows.code ],
+        \     [ 'leaf', g:vimspector_session_windows.terminal ],
+        \   ] ],
+        \   [ 'leaf', g:vimspector_session_windows.output ]
+        \ ] ],
+        \ winlayout( g:vimspector_session_windows.tabpage ) )
+
+  " The actual height reported is the number of lines visible. The WinBar takes
+  " 1 screen row, so g:vimspector_bottombar_height -1
+  call assert_equal( 4, winheight( g:vimspector_session_windows.output ) )
+
   au! TestCustomUI
   call vimspector#test#setup#Reset()
   %bwipe!
