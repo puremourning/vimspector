@@ -9,7 +9,9 @@ function! vimspector#test#signs#AssertCursorIsAtLineInBuffer( buffer,
   call WaitForAssert( {->
         \ assert_equal( a:line, line( '.' ), 'Current line' )
         \ }, 10000 )
-  call assert_equal( a:column, col( '.' ), 'Current column' )
+  if a:column isnot v:null
+    call assert_equal( a:column, col( '.' ), 'Current column' )
+  endif
 endfunction
 
 function! vimspector#test#signs#AssertPCIsAtLineInBuffer( buffer, line ) abort
