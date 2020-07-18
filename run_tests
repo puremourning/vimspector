@@ -1,50 +1,75 @@
 #!/usr/bin/env bash
 
-if [ "$1" == "--help" ]; then
-  echo "$(basename $0) [--basedir <basedir>] [--install] <optional list of tests in form file:func>"
-  echo ""
-  echo " --basedir <basedir> path to runtime directory like the optino to install_gadget.py"
-  echo " --install           run install_gadget.py, useful with --basedir"
-  echo "e.g.: "
-  echo " - run all tests: $0"
-  echo " - run specific tests script: $0 signature_help.test.vim"
-  echo " - run specific tests fun: $0 signature_help.test.vim:Test_signatures_TopLine\(\)"
-  echo " - run all tests in a clean env: $0 --basedir \$(mktemp -d) --install"
-  exit 0
-fi
-
-
 BASEDIR=$(dirname $0)
 INSTALL=0
 RUN_VIM="vim -N --clean --not-a-term"
 RUN_TEST="${RUN_VIM} -S lib/run_test.vim"
 BASEDIR_CMD='py3 pass'
 
+# 1 is stdout
+out_fd=1
+
 while [ -n "$1" ]; do
   case "$1" in
     "--basedir")
-      BASEDIR=$2
+      shift
+      BASEDIR=$1
+      shift
       if [[ ! $BASEDIR = /* ]]; then
         # Relative
         BASEDIR=$(pwd)/${BASEDIR}
       fi
       BASEDIR_CMD="let g:vimspector_base_dir='${BASEDIR}'"
-      shift
-      shift
       ;;
     "--install")
       INSTALL=1
       shift
       ;;
+    "--report")
+      shift
+      VIMSPECTOR_TEST_STDOUT=$1
+      shift
+      ;;
+    "--quiet")
+      shift
+      # send the output to /dev/null
+      # https://stackoverflow.com/a/47553900
+      # Note we can't use {out_fd} here because the bash version in CI is too
+      # old on macOS
+      out_fd=3
+      exec 3>/dev/null
+      ;;
     "--")
       shift
       break
+      ;;
+    "--help")
+      shift
+      echo "$(basename $0) [--basedir <basedir>] [--report output] [--quiet] [--install] <optional list of tests in form file:func>"
+      echo ""
+      echo " --basedir <basedir>     path to runtime directory like the optino to install_gadget.py"
+      echo " --install               run install_gadget.py, useful with --basedir"
+      echo " --report <messages|all> which logs to dump to stdout after a test"
+      echo " --quiet                 suppress vim's stdout"
+      echo "e.g.: "
+      echo " - run all tests: $0"
+      echo " - run specific tests script: $0 signature_help.test.vim"
+      echo " - run specific tests fun: $0 signature_help.test.vim:Test_signatures_TopLine\(\)"
+      echo " - run all tests in a clean env: $0 --basedir \$(mktemp -d) --install"
+      exit 0
       ;;
     *)
       break
       ;;
   esac
 done
+
+# We use fd 3 for vim's output. Send it to stdout if not already redirected
+# Note: can't use ${out_fd} in a redirect because redirects happen before
+# variable substitution
+if [ "${out_fd}" = "1" ]; then
+  exec 3>&1
+fi
 
 if [ $INSTALL = 1 ]; then
   python3 $(dirname $0)/install_gadget.py --basedir ${BASEDIR} --all
@@ -71,7 +96,7 @@ echo " * BASEDIR_CMD=$BASEDIR_CMD"
 echo "%SETUP - Building test programs..."
 set -e
   pushd tests/testdata/cpp/simple
-    make clean simple
+    make clean all
   popd
 set +e
 echo "%DONE - built test programs"
@@ -99,6 +124,7 @@ for t in ${TESTS}; do
 
   if ${RUN_TEST} --cmd "${BASEDIR_CMD}" \
                  --cmd 'au SwapExists * let v:swapchoice = "e"' $t $T \
+                 >&3\
      && [ -f $t.res ];  then
     echo "%PASS: $t PASSED"
   else
@@ -109,10 +135,22 @@ for t in ${TESTS}; do
   rm -rf $TESTLOGDIR
   mkdir -p $TESTLOGDIR
   ${RUN_VIM} --version > ${TESTLOGDIR}/vimversion
+  if [ "$VIMSPECTOR_TEST_STDOUT" = "messages" ]; then
+    if [ -f messages ]; then
+      echo "%MESSAGES"
+      cat messages
+      echo "%END"
+    else
+      echo "%MESSAGES"
+      echo "No messages found"
+      echo "%END"
+    fi
+  fi
+
   for l in messages debuglog test.log *.testlog; do
     # In CI we can't view the output files, so we just have to cat them
     if [ -f $l ]; then
-      if [ "$VIMSPECTOR_TEST_STDOUT" ]; then
+      if [ "$VIMSPECTOR_TEST_STDOUT" = "all" ]; then
         echo ""
         echo ""
         echo "*** START: $l ***"
@@ -126,11 +164,14 @@ for t in ${TESTS}; do
   rm -f $t.res
 done
 
+# close out_fd if it's not stdout/stderr/
+(( out_fd > 2 )) && exec 3>&-
+
+
 echo "Done running tests"
 popd > /dev/null
 
 echo ""
-echo "All done."
-
+echo "All done. Exit with ${RESULT}"
 
 exit $RESULT

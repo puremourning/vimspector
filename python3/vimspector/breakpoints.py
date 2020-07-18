@@ -342,11 +342,14 @@ class ProjectBreakpoints( object ):
                 f"Invalid value for exception breakpoint filter '{f}': "
                 f"'{result}'. Must be boolean, 'Y', 'N' or '' (default)" )
           else:
-            result = utils.AskForInput(
-              "{}: Break on {} (Y/N/default: {})? ".format( f[ 'filter' ],
-                                                            f[ 'label' ],
-                                                            default_value ),
-              default_value )
+            try:
+              result = utils.AskForInput(
+                "{}: Break on {} (Y/N/default: {})? ".format( f[ 'filter' ],
+                                                              f[ 'label' ],
+                                                              default_value ),
+                default_value )
+            except KeyboardInterrupt:
+              result = ''
 
           if result == 'Y':
             exception_filters.append( f[ 'filter' ] )

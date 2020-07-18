@@ -20,7 +20,7 @@ set cpoptions&vim
 " }}}
 
 function! vimspector#internal#term#Start( cmd, opts ) abort
-  return term_start( a:cmd, a:opts )
+  rightbelow return term_start( a:cmd, a:opts )
 endfunction
 
 function! vimspector#internal#term#IsFinished( bufno ) abort

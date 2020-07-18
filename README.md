@@ -6,69 +6,74 @@ For a tutorial and usage overview, take a look at the
 [![Build Status](https://dev.azure.com/puremouron/Vimspector/_apis/build/status/puremourning.vimspector?branchName=master)](https://dev.azure.com/puremouron/Vimspector/_build/latest?definitionId=1&branchName=master) [![Gitter](https://badges.gitter.im/vimspector/Lobby.svg)](https://gitter.im/vimspector/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 <!--ts-->
-   * [Features and Usage](#features-and-usage)
-      * [Supported debugging features](#supported-debugging-features)
-      * [Supported languages:](#supported-languages)
-      * [Languages known to work](#languages-known-to-work)
-      * [Languages known not to work](#languages-known-not-to-work)
-      * [Other languages](#other-languages)
-   * [Installation](#installation)
-      * [Dependencies](#dependencies)
-      * [Neovim differences](#neovim-differences)
-      * [Windows differences](#windows-differences)
-      * [Language dependencies](#language-dependencies)
-      * [Clone the plugin](#clone-the-plugin)
-      * [Install some gadgets](#install-some-gadgets)
-      * [Manual gadget installation](#manual-gadget-installation)
-         * [The gadget directory](#the-gadget-directory)
-      * [Trying it out](#trying-it-out)
-   * [About](#about)
-      * [Background](#background)
-      * [Status](#status)
-         * [Experimental](#experimental)
-   * [Mappings](#mappings)
-      * [Visual Studio / VSCode](#visual-studio--vscode)
-      * [Human Mode](#human-mode)
-   * [Usage](#usage)
-      * [Launch and attach by PID:](#launch-and-attach-by-pid)
-         * [Launch with options](#launch-with-options)
-      * [Breakpoints](#breakpoints)
-         * [Exception breakpoints](#exception-breakpoints)
-         * [Clear breakpoints](#clear-breakpoints)
-      * [Stepping](#stepping)
-      * [Variables and scopes](#variables-and-scopes)
-      * [Watches](#watches)
-      * [Stack Traces](#stack-traces)
-      * [Program Output](#program-output)
-         * [Console](#console)
-      * [Closing debugger](#closing-debugger)
-   * [Debug adapter configuration](#debug-adapter-configuration)
-      * [C, C  , Rust, etc.](#c-c-rust-etc)
-         * [Remote debugging](#remote-debugging)
-         * [Remote launch and attach](#remote-launch-and-attach)
-      * [Python](#python)
-         * [Remote Debugging](#remote-debugging-1)
-         * [Remote launch and attach](#remote-launch-and-attach-1)
-         * [Legacy: vscode-python](#legacy-vscode-python)
-      * [TCL](#tcl)
-      * [C♯](#c)
-      * [Go](#go)
-      * [PHP](#php)
-         * [Debug web application](#debug-web-application)
-         * [Debug cli application](#debug-cli-application)
-      * [JavaScript, TypeScript, etc.](#javascript-typescript-etc)
-      * [Java](#java)
-         * [Usage with YouCompleteMe](#usage-with-youcompleteme)
-         * [Other LSP clients](#other-lsp-clients)
-      * [Rust](#rust)
-      * [Other servers](#other-servers)
-   * [Customisation](#customisation)
-      * [Changing the default signs](#changing-the-default-signs)
-   * [FAQ](#faq)
-   * [Motivation](#motivation)
-   * [License](#license)
+ * [Features and Usage](#features-and-usage)
+    * [Supported debugging features](#supported-debugging-features)
+    * [Supported languages:](#supported-languages)
+    * [Languages known to work](#languages-known-to-work)
+    * [Languages known not to work](#languages-known-not-to-work)
+    * [Other languages](#other-languages)
+ * [Installation](#installation)
+    * [Dependencies](#dependencies)
+    * [Neovim differences](#neovim-differences)
+    * [Windows differences](#windows-differences)
+    * [Language dependencies](#language-dependencies)
+    * [Clone the plugin](#clone-the-plugin)
+    * [Install some gadgets](#install-some-gadgets)
+    * [Manual gadget installation](#manual-gadget-installation)
+       * [The gadget directory](#the-gadget-directory)
+    * [Trying it out](#trying-it-out)
+ * [About](#about)
+    * [Background](#background)
+    * [Status](#status)
+       * [Experimental](#experimental)
+ * [Mappings](#mappings)
+    * [Visual Studio / VSCode](#visual-studio--vscode)
+    * [Human Mode](#human-mode)
+ * [Usage](#usage)
+    * [Launch and attach by PID:](#launch-and-attach-by-pid)
+       * [Launch with options](#launch-with-options)
+       * [Debug configuration selection](#debug-configuration-selection)
+    * [Breakpoints](#breakpoints)
+       * [Exception breakpoints](#exception-breakpoints)
+       * [Clear breakpoints](#clear-breakpoints)
+    * [Stepping](#stepping)
+    * [Variables and scopes](#variables-and-scopes)
+    * [Watches](#watches)
+    * [Stack Traces](#stack-traces)
+    * [Program Output](#program-output)
+       * [Console](#console)
+    * [Closing debugger](#closing-debugger)
+ * [Debug adapter configuration](#debug-adapter-configuration)
+    * [C, C  , Rust, etc.](#c-c-rust-etc)
+       * [Remote debugging](#remote-debugging)
+       * [Remote launch and attach](#remote-launch-and-attach)
+    * [Python](#python)
+       * [Remote Debugging](#remote-debugging-1)
+       * [Remote launch and attach](#remote-launch-and-attach-1)
+       * [Legacy: vscode-python](#legacy-vscode-python)
+    * [TCL](#tcl)
+    * [C♯](#c)
+    * [Go](#go)
+    * [PHP](#php)
+       * [Debug web application](#debug-web-application)
+       * [Debug cli application](#debug-cli-application)
+    * [JavaScript, TypeScript, etc.](#javascript-typescript-etc)
+    * [Java](#java)
+       * [Usage with YouCompleteMe](#usage-with-youcompleteme)
+       * [Other LSP clients](#other-lsp-clients)
+    * [Rust](#rust)
+    * [Other servers](#other-servers)
+ * [Customisation](#customisation)
+    * [Changing the default signs](#changing-the-default-signs)
+    * [Changing the default window sizes](#changing-the-default-window-sizes)
+       * [Changing the terminal size](#changing-the-terminal-size)
+    * [Advanced UI customisation](#advanced-ui-customisation)
+    * [Example](#example)
+ * [FAQ](#faq)
+ * [Motivation](#motivation)
+ * [License](#license)
 
-<!-- Added by: ben, at: Thu  9 Jul 2020 18:19:20 BST -->
+<!-- Added by: ben, at: Sat 18 Jul 2020 12:58:35 BST -->
 
 <!--te-->
 
@@ -601,6 +606,19 @@ See [our YouCompleteMe integration guide](#usage-with-youcompleteme) for
 another example where it can be used to specify the port to connect the [java
 debugger](#java---partially-supported)
 
+### Debug configuration selection
+
+Vimspector uses the following logic to choose a configuration to launch:
+
+1. If a configuration was specified in the launch options (as above), use that.
+2. Otherwise if there's only one configuration and it doesn't have `autoselect`
+   set to `false`, use that.
+3. Otherwise if there's exactly one configuration with `default` set to `true`
+   and without `autoselect` set to `false`, use that.
+4. Otherwise, prompt the user to select a configuration.
+
+See [the reference guide][vimspector-ref-config-selection] for details.
+
 ## Breakpoints
 
 * Use `vimspector#ToggleBreakpoint([ { 'condition': '<condition expr>' } ])`
@@ -659,6 +677,8 @@ You can configure your choices in the `.vimspector.json`. See
 
 ![locals window](https://puremourning.github.io/vimspector-web/img/vimspector-locals-window.png)
 
+Scopes and variables are represented by the buffer `vimspector.Variables`.
+
 ## Watches
 
 The watches window is a prompt buffer, where that's available. Enter insert mode
@@ -673,12 +693,16 @@ to add a new watch expression.
 
 ![watch window](https://puremourning.github.io/vimspector-web/img/vimspector-watch-window.png)
 
+The watches are represented by the buffer `vimspector.StackTrace`.
+
 ## Stack Traces
 
 * In the threads window, use `<CR>` to expand/collapse.
 * Use `<CR>` on a stack frame to jump to it.
 
 ![stack trace](https://puremourning.github.io/vimspector-web/img/vimspector-callstack-window.png)
+
+The stack trace is represented by the buffer `vimspector.StackTrace`.
 
 ## Program Output
 
@@ -689,6 +713,10 @@ to add a new watch expression.
 * Other channels may be useful for debugging.
 
 ![output window](https://puremourning.github.io/vimspector-web/img/vimspector-output-window.png)
+
+If the output window is closed, a new one can be opened with
+`:VimspectorShowOutput <category>` (use tab-completion - `wildmenu` to see the
+options).
 
 ### Console
 
@@ -703,6 +731,9 @@ adapters.
 * The request and subsequent result are printed.
 
 NOTE: See also [Watches](#watches) above.
+
+If the output window is closed, a new one can be opened with
+`:VimspectorShowOutput Console`.
 
 ## Closing debugger
 
@@ -1284,6 +1315,145 @@ sign define vimspectorBPDisabled text=🔵 texthl=Normal
 sign define vimspectorPC text=🔶 texthl=SpellBad
 ```
 
+## Changing the default window sizes
+
+> ***Please Note***: This cusomiation API is ***unstable***, meaning that it may
+change at any time. I will endeavour to reduce the impact of this and annouce
+changes in Gitter.
+
+The following options control the default sizes of the UI windows (all of them
+are numbers)
+
+- `g:vimspector_sidebar_width` (default: 50 columns):
+   The width in columns of the left utility windows (variables, watches, stack
+   trace)
+- `g:vimspector_bottombar_height` (default 10 lines):
+   The height in rows of the output window below the code window.
+
+Example:
+
+```viml
+let g:vimspector_sidebar_width = 75
+let g:vimspector_bottombar_height = 15
+```
+
+## Changing the terminal size
+
+The terminal is typically created as a vertical split to the righ of the code
+window, and that window is re-used for subsequent terminal buffers.
+The following control the sizing of the terminal window used
+for debuggee input/output when using Vim's built-in terminal.
+
+- `g:vimspector_code_minwidth` (default: 82 columns):
+  Minimum number of columns to try and maintain for the code window when
+  splitting to create the terminal window.
+- `g:vimspector_terminal_maxwidth` (default: 80 columns):
+  Maximum number of columns to use for the terminal.
+- `g:vimspector_terminal_minwidth` (default: 10 columns):
+  Minimum number of columns to use when it is not possible to fit
+  `g:vimspector_terminal_maxwidth` columns for the terminal.
+
+That's a lot of options, but essentially we try to make sure that there are at
+least `g:vimspector_code_minwidth` columns for the main code window and that the
+terminal is no wider than `g:vimspector_terminal_maxwidth` columns.
+`g:vimspector_terminal_minwidth` is there to ensure that there's a reasonable
+number of columns for the terminal even when there isn't enough horizontal space
+to satisfy the other contraints.
+
+Example:
+
+```viml
+let g:vimspector_code_minwidth = 90
+let g:vimspector_terminal_maxwidth = 75
+let g:vimspector_terminal_minwidth = 20
+```
+
+## Advanced UI customisation
+
+> ***Please Note***: This cusomiation API is ***unstable***, meaning that it may
+change at any time. I will endeavour to reduce the impact of this and annouce
+changes in Gitter.
+
+The above customisation of window sizes is limited intentionally to keep things
+simple. Vimspector also provides a way for you to customise the UI without
+restrictions, by running a `User` autocommand just after creating the UI or
+opening the terminal. This requires you to write some vimscript, but allows you
+to do things like:
+
+* Hide a particular window or windows
+* Move a particular window or windows
+* Resize windows
+* Have multiple windows for a particular buffer (say, you want 2 watch windows)
+* etc.
+
+You can essentially do anything you could do manually by writing a little
+vimscript code.
+
+The `User` autocommand is raised with `pattern` set with the following values:
+
+* `VimspectorUICreated`: Just after setting up the UI for a debug session
+* `VimspectorTerminalOpened`: Just after opening the terminal window for program
+  input/output.
+
+The following global variable is set up for you to get access to the UI
+elements: `g:vimspector_session_windows`. This is a `dict` with the following
+keys:
+
+* `g:vimspector_session_windows.tagpage`: The tab page for the session
+* `g:vimspector_session_windows.variables`: Window ID of the variables window,
+  containing the `vimspector.Variables` buffer.
+* `g:vimspector_session_windows.watches`: Window ID of the watches window,
+  containng the `vimspector.Watches` buffer.
+* `g:vimspector_session_windows.stack_trace`: Window ID of the stack trade
+  window containing the `vimspector.StackTrace` buffer.
+* `g:vimspector_session_windows.code`: Window ID of the code window.
+* `g:vimspector_session_windows.output`: Window ID of the output window.
+
+In addition, the following key is added when triggering the
+`VimspectorTerminalOpened` event:
+
+* `g:vimspector_session_windows.terminal`: Window ID of the terminal window
+
+## Example
+
+There is some example code in `support/custom_ui_vimrc` showing how you can use
+the window IDs to modify various aspects of the UI using some basic vim
+commands, primarily `win_gotoid` funciton and the `wincmd` ex command.
+
+To try this out `vim -Nu support/custom_ui_vimrc <some file>`.
+
+Here's a rather smaller example. A simple way to use this is to drop it into a
+file named `my_vimspector_ui.vim` in `~/.vim/plugin` (or paste into your
+`vimrc`):
+
+```viml
+" Set the basic sizes
+let g:vimspector_sidebar_width = 80
+let g:vimspector_code_minwidth = 85
+let g:vimspector_terminal_minwidth = 75
+
+function! s:CustomiseUI()
+  " Customise the basic UI...
+
+  " Close the output window
+  call win_gotoid( g:vimspector_session_windows.output )
+  q
+endfunction
+
+function s:SetUpTerminal()
+  " Customise the terminal window size/position
+  " For some reasons terminal buffers in Neovim have line numbers
+  call win_gotoid( g:vimspector_session_windows.terminal )
+  set norelativenumber nonumber
+endfunction
+
+augroup MyVimspectorUICustomistaion
+  autocmd!
+  autocmd User VimspectorUICreated call s:CustomiseUI()
+  autocmd User VimspectorTerminalOpened call s:SetUpTerminal()
+augroup END
+```
+
 # FAQ
 
 1. Q: Does it work? A: Yeah. It's a bit unpolished.
@@ -1366,6 +1536,7 @@ Copyright © 2018 Ben Jackson
 [vimspector-ref]: https://puremourning.github.io/vimspector/configuration.html
 [vimspector-ref-var]: https://puremourning.github.io/vimspector/configuration.html#replacements-and-variables
 [vimspector-ref-exception]: https://puremourning.github.io/vimspector/configuration.html#exception-breakpoints
+[vimspector-ref-config-selection]: https://puremourning.github.io/vimspector/configuration.html#configuration-selection
 [debugpy]: https://github.com/microsoft/debugpy
 [YouCompleteMe]: https://github.com/ycm-core/YouCompleteMe#java-semantic-completion
 [remote-debugging]: https://puremourning.github.io/vimspector/configuration.html#remote-debugging-support

@@ -137,14 +137,16 @@ function! vimspector#ListBreakpoints() abort
 endfunction
 
 function! vimspector#CompleteOutput( ArgLead, CmdLine, CursorPos ) abort
-  let buffers = py3eval( '_vimspector_session.GetOutputBuffers()' )
+  let buffers = py3eval( '_vimspector_session.GetOutputBuffers() '
+                       \ . ' if _vimspector_session else []' )
   return join( buffers, "\n" )
 endfunction
 
 function! vimspector#CompleteExpr( ArgLead, CmdLine, CursorPos ) abort
   return join( py3eval( '_vimspector_session.GetCompletionsSync( '
                       \.'  vim.eval( "a:CmdLine" ),'
-                      \.'  int( vim.eval( "a:CursorPos" ) ) )' ),
+                      \.'  int( vim.eval( "a:CursorPos" ) ) )'
+                      \. '   if _vimspector_session else []' ),
              \ "\n" )
 endfunction
 

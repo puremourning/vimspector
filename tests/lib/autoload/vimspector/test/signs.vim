@@ -2,7 +2,9 @@ function! vimspector#test#signs#AssertCursorIsAtLineInBuffer( buffer,
                                                             \ line,
                                                             \ column ) abort
   call WaitForAssert( {->
-        \ assert_equal( a:buffer, bufname( '%' ), 'Current buffer' )
+        \ assert_equal( fnamemodify( a:buffer, ':p' ),
+        \               fnamemodify( bufname( '%' ), ':p' ),
+        \               'Current buffer' )
         \ }, 10000 )
   call WaitForAssert( {->
         \ assert_equal( a:line, line( '.' ), 'Current line' )

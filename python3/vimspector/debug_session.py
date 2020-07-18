@@ -29,7 +29,8 @@ from vimspector import ( breakpoints,
                          output,
                          stack_trace,
                          utils,
-                         variables )
+                         variables,
+                         settings )
 from vimspector.vendor.json_minify import minify
 
 # We cache this once, and don't allow it to change (FIXME?)
@@ -125,9 +126,17 @@ class DebugSession( object ):
            next( iter( configurations.values() ) ).get( "autoselect", True ) ):
       configuration_name = next( iter( configurations.keys() ) )
     else:
-      configuration_name = utils.SelectFromList(
-        'Which launch configuration?',
-        sorted( configurations.keys() ) )
+      # Find a single configuration with 'default' True and autoselect not False
+      defaults = { n: c for n, c in configurations.items()
+                   if c.get( 'default', False ) is True
+                   and c.get( 'autoselect', True ) is not False }
+
+      if len( defaults ) == 1:
+        configuration_name = next( iter( defaults.keys() ) )
+      else:
+        configuration_name = utils.SelectFromList(
+          'Which launch configuration?',
+          sorted( configurations.keys() ) )
 
     if not configuration_name or configuration_name not in configurations:
       return
@@ -206,26 +215,30 @@ class DebugSession( object ):
     USER_CHOICES.update( launch_variables )
     variables.update( launch_variables )
 
-    variables.update(
-      utils.ParseVariables( adapter.get( 'variables', {} ),
-                            variables,
-                            calculus,
-                            USER_CHOICES ) )
-    variables.update(
-      utils.ParseVariables( configuration.get( 'variables', {} ),
-                            variables,
-                            calculus,
-                            USER_CHOICES ) )
+    try:
+      variables.update(
+        utils.ParseVariables( adapter.get( 'variables', {} ),
+                              variables,
+                              calculus,
+                              USER_CHOICES ) )
+      variables.update(
+        utils.ParseVariables( configuration.get( 'variables', {} ),
+                              variables,
+                              calculus,
+                              USER_CHOICES ) )
 
 
-    utils.ExpandReferencesInDict( configuration,
-                                  variables,
-                                  calculus,
-                                  USER_CHOICES )
-    utils.ExpandReferencesInDict( adapter,
-                                  variables,
-                                  calculus,
-                                  USER_CHOICES )
+      utils.ExpandReferencesInDict( configuration,
+                                    variables,
+                                    calculus,
+                                    USER_CHOICES )
+      utils.ExpandReferencesInDict( adapter,
+                                    variables,
+                                    calculus,
+                                    USER_CHOICES )
+    except KeyboardInterrupt:
+      self._Reset()
+      return
 
     if not adapter:
       utils.UserMessage( 'No adapter configured for {}'.format(
@@ -285,18 +298,35 @@ class DebugSession( object ):
 
     self._StartWithConfiguration( self._configuration, self._adapter )
 
-  def IfConnected( fct ):
+  def IfConnected( otherwise=None ):
+    def decorator( fct ):
+      """Decorator, call fct if self._connected else echo warning"""
+      @functools.wraps( fct )
+      def wrapper( self, *args, **kwargs ):
+        if not self._connection:
+          utils.UserMessage(
+            'Vimspector not connected, start a debug session first',
+            persist=False,
+            error=True )
+          return otherwise
+        return fct( self, *args, **kwargs )
+      return wrapper
+    return decorator
+
+  def RequiresUI( otherwise=None ):
     """Decorator, call fct if self._connected else echo warning"""
-    @functools.wraps( fct )
-    def wrapper( self, *args, **kwargs ):
-      if not self._connection:
-        utils.UserMessage(
-          'Vimspector not connected, start a debug session first',
-          persist=True,
-          error=True )
-        return
-      return fct( self, *args, **kwargs )
-    return wrapper
+    def decorator( fct ):
+      @functools.wraps( fct )
+      def wrapper( self, *args, **kwargs ):
+        if not self._uiTab or not self._uiTab.valid:
+          utils.UserMessage(
+            'Vimspector is not active',
+            persist=False,
+            error=True )
+          return otherwise
+        return fct( self, *args, **kwargs )
+      return wrapper
+    return decorator
 
   def OnChannelData( self, data ):
     if self._connection is None:
@@ -319,7 +349,7 @@ class DebugSession( object ):
     # TODO: Not calld
     self._connection = None
 
-  @IfConnected
+  @IfConnected()
   def Stop( self ):
     self._logger.debug( "Stop debug adapter with no callback" )
     self._StopDebugAdapter()
@@ -335,6 +365,8 @@ class DebugSession( object ):
     self._logger.info( "Debugging complete." )
     if self._uiTab:
       self._logger.debug( "Clearing down UI" )
+
+      del vim.vars[ 'vimspector_session_windows' ]
       vim.current.tabpage = self._uiTab
 
       self._splash_screen = utils.HideSplash( self._api_prefix,
@@ -354,7 +386,7 @@ class DebugSession( object ):
     # make sure that we're displaying signs in any still-open buffers
     self._breakpoints.UpdateUI()
 
-  @IfConnected
+  @IfConnected()
   def StepOver( self ):
     if self._stackTraceView.GetCurrentThreadId() is None:
       return
@@ -366,7 +398,7 @@ class DebugSession( object ):
       },
     } )
 
-  @IfConnected
+  @IfConnected()
   def StepInto( self ):
     if self._stackTraceView.GetCurrentThreadId() is None:
       return
@@ -378,7 +410,7 @@ class DebugSession( object ):
       },
     } )
 
-  @IfConnected
+  @IfConnected()
   def StepOut( self ):
     if self._stackTraceView.GetCurrentThreadId() is None:
       return
@@ -396,29 +428,29 @@ class DebugSession( object ):
     else:
       self.Start()
 
-  @IfConnected
+  @IfConnected()
   def Pause( self ):
     self._stackTraceView.Pause()
 
-  @IfConnected
+  @IfConnected()
   def ExpandVariable( self ):
     self._variablesView.ExpandVariable()
 
-  @IfConnected
+  @IfConnected()
   def AddWatch( self, expression ):
     self._variablesView.AddWatch( self._stackTraceView.GetCurrentFrame(),
                                   expression )
 
-  @IfConnected
+  @IfConnected()
   def EvaluateConsole( self, expression ):
     self._outputView.Evaluate( self._stackTraceView.GetCurrentFrame(),
                                expression )
 
-  @IfConnected
+  @IfConnected()
   def DeleteWatch( self ):
     self._variablesView.DeleteWatch()
 
-  @IfConnected
+  @IfConnected()
   def ShowBalloon( self, winnr, expression ):
     """Proxy: ballonexpr -> variables.ShowBallon"""
     frame = self._stackTraceView.GetCurrentFrame()
@@ -437,17 +469,32 @@ class DebugSession( object ):
     # Return variable aware function
     return self._variablesView.ShowBalloon( frame, expression )
 
-  @IfConnected
+  @IfConnected()
   def ExpandFrameOrThread( self ):
     self._stackTraceView.ExpandFrameOrThread()
 
+  @RequiresUI()
   def ShowOutput( self, category ):
+    if not self._outputView.WindowIsValid():
+      # TODO: The UI code is too scattered. Re-organise into a UI class that
+      # just deals with these thigns like window layout and custmisattion.
+      # currently, this class and the CodeView share some responsiblity for this
+      # and poking into each View class to check its window is valid also feels
+      # wrong.
+      with utils.LetCurrentTabpage( self._uiTab ):
+        vim.command( f'botright { settings.Int( "bottombar_height", 10 ) }new' )
+        self._outputView.UseWindow( vim.current.window )
+        vim.vars[ 'vimspector_session_windows' ][ 'output' ] = utils.WindowID(
+          vim.current.window,
+          self._uiTab )
+
     self._outputView.ShowOutput( category )
 
+  @RequiresUI( otherwise=[] )
   def GetOutputBuffers( self ):
     return self._outputView.GetCategories()
 
-  @IfConnected
+  @IfConnected( otherwise=[] )
   def GetCompletionsSync( self, text_line, column_in_bytes ):
     if not self._server_capabilities.get( 'supportsCompletionsRequest' ):
       return []
@@ -473,49 +520,66 @@ class DebugSession( object ):
     self._uiTab = vim.current.tabpage
 
     # Code window
-    self._codeView = code.CodeView( vim.current.window,
-                                    self._api_prefix )
+    code_window = vim.current.window
+    self._codeView = code.CodeView( code_window, self._api_prefix )
 
     # Call stack
-    with utils.TemporaryVimOptions( { 'splitright':  False,
-                                      'equalalways': False, } ):
-      vim.command( 'topleft 50vspl' )
-      vim.command( 'enew' )
-      self._stackTraceView = stack_trace.StackTraceView( self,
-                                                         self._connection,
-                                                         vim.current.buffer )
+    vim.command(
+      f'topleft vertical { settings.Int( "sidebar_width", 50 ) }new' )
+    stack_trace_window = vim.current.window
+    one_third = int( vim.eval( 'winheight( 0 )' ) ) / 3
+    self._stackTraceView = stack_trace.StackTraceView( self,
+                                                       self._connection,
+                                                       stack_trace_window )
 
-    with utils.TemporaryVimOptions( { 'splitbelow':  False,
-                                      'eadirection': 'ver',
-                                      'equalalways': True } ):
-      # Watches
-      vim.command( 'spl' )
-      vim.command( 'enew' )
-      watch_win = vim.current.window
+    # Watches
+    vim.command( 'leftabove new' )
+    watch_window = vim.current.window
 
-      # Variables
-      vim.command( 'spl' )
-      vim.command( 'enew' )
-      vars_win = vim.current.window
+    # Variables
+    vim.command( 'leftabove new' )
+    vars_window = vim.current.window
 
-      self._variablesView = variables.VariablesView( self._connection,
-                                                     vars_win,
-                                                     watch_win )
+    with utils.LetCurrentWindow( vars_window ):
+      vim.command( f'{ one_third }wincmd _' )
+    with utils.LetCurrentWindow( watch_window ):
+      vim.command( f'{ one_third }wincmd _' )
+    with utils.LetCurrentWindow( stack_trace_window ):
+      vim.command( f'{ one_third }wincmd _' )
+
+    self._variablesView = variables.VariablesView( self._connection,
+                                                   vars_window,
+                                                   watch_window )
+
+    # Output/logging
+    vim.current.window = code_window
+    vim.command( f'rightbelow { settings.Int( "bottombar_height", 10 ) }new' )
+    output_window = vim.current.window
+    self._outputView = output.OutputView( self._connection,
+                                          output_window,
+                                          self._api_prefix )
+
+    # TODO: If/when we support multiple sessions, we'll need some way to
+    # indicate which tab was created and store all the tabs
+    vim.vars[ 'vimspector_session_windows' ] = {
+      'tabpage': self._uiTab.number,
+      'code': utils.WindowID( code_window, self._uiTab ),
+      'stack_trace': utils.WindowID( stack_trace_window, self._uiTab ),
+      'variables': utils.WindowID( vars_window, self._uiTab ),
+      'watches': utils.WindowID( watch_window, self._uiTab ),
+      'output': utils.WindowID( output_window, self._uiTab ),
+    }
+    with utils.RestoreCursorPosition():
+      with utils.RestoreCurrentWindow():
+        with utils.RestoreCurrentBuffer( vim.current.window ):
+          vim.command( 'doautocmd User VimspectorUICreated' )
 
 
-    with utils.TemporaryVimOption( 'splitbelow', True ):
-      vim.current.window = self._codeView._window
-
-      # Output/logging
-      vim.command( '10spl' )
-      vim.command( 'enew' )
-      self._outputView = output.OutputView( self._connection,
-                                            vim.current.window,
-                                            self._api_prefix )
-
+  @RequiresUI()
   def ClearCurrentFrame( self ):
     self.SetCurrentFrame( None )
 
+  @RequiresUI()
   def SetCurrentFrame( self, frame ):
     if not frame:
       self._stackTraceView.Clear()
@@ -557,6 +621,9 @@ class DebugSession( object ):
 
       if self._adapter[ 'port' ] == 'ask':
         port = utils.AskForInput( 'Enter port to connect to: ' )
+        if port is None:
+          self._Reset()
+          return
         self._adapter[ 'port' ] = port
 
     self._connection_type = self._api_prefix + self._connection_type
@@ -666,6 +733,8 @@ class DebugSession( object ):
         prop = atttach_config[ 'pidProperty' ]
         if prop not in launch_config:
           pid = utils.AskForInput( 'Enter PID to attach to: ' )
+          if pid is None:
+            return
           launch_config[ prop ] = pid
         return
       elif atttach_config[ 'pidSelect' ] == 'none':

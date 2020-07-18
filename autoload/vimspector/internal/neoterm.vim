@@ -48,7 +48,7 @@ endfunction
 function! vimspector#internal#neoterm#Start( cmd, opts ) abort
   " Prepare current buffer to be turned into a term if curwin is not set
   if ! get( a:opts, 'curwin', 0 )
-    let mods = ''
+    let mods = 'rightbelow '
     if get( a:opts, 'vertical', 0 )
       let mods .= 'vertical '
       let mods .= get( a:opts, 'term_cols', '' )

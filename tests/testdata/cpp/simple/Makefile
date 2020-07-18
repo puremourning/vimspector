@@ -2,7 +2,7 @@ CXXFLAGS=-g -O0 -std=c++17
 
 .PHONY: all
 
-TARGETS=simple variables
+TARGETS=simple variables struct
 
 all: $(TARGETS)
 
