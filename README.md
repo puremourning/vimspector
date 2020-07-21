@@ -1535,6 +1535,7 @@ If you like Vimspector so much that you're wiling to part with your hard-earned 
 * [Greyhound Rescue Wales](https://greyhoundrescuewales.co.uk)
 * [Cancer Research UK](https://www.cancerresearchuk.org)
 * [ICCF Holland](https://iccf.nl)
+* Any charity of your choosing.
 
 [ycmd]: https://github.com/Valloric/ycmd
 [gitter]: https://gitter.im/vimspector/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link
