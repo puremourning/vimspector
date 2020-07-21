@@ -198,14 +198,12 @@ function! vimspector#internal#neojob#StartCommandWithLog( cmd, category ) abort
     let s:commands[ a:category ] = {}
   endif
 
-  let stdout_buf = bufnr( '_vimspector_log_' . a:category . '_out', v:true )
-  let stderr_buf = bufnr( '_vimspector_log_' . a:category . '_err', v:true )
+  let buf = bufnr( '_vimspector_log_' . a:category, v:true )
 
   " FIXME: This largely duplicates the same stuff in the python layer, but we
   " don't want to potentially mess up Vim behaviour where the job output is
   " attached to a buffer set up by Vim. So we sort o mimic that here.
-  call s:SetUpHiddenBuffer( stdout_buf )
-  call s:SetUpHiddenBuffer( stderr_buf )
+  call s:SetUpHiddenBuffer( buf )
 
   let id = jobstart(a:cmd,
         \          {
@@ -216,11 +214,11 @@ function! vimspector#internal#neojob#StartCommandWithLog( cmd, category ) abort
         \          } )
 
   let s:commands[ a:category ][ id ] = {
-        \ 'stdout': stdout_buf,
-        \ 'stderr': stderr_buf
+        \ 'stdout': buf,
+        \ 'stderr': buf
         \ }
 
-  return [ stdout_buf, stderr_buf ]
+  return buf
 endfunction
 
 function! vimspector#internal#neojob#CleanUpCommand( category ) abort

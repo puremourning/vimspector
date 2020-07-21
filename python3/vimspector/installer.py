@@ -36,7 +36,9 @@ import traceback
 import zipfile
 import json
 
-from vimspector import install, gadgets
+from vimspector import install
+
+OUTPUT_VIEW = None
 
 
 class Options:
@@ -52,31 +54,94 @@ def Configure( **kwargs ):
     setattr( options, k, v )
 
 
-def Install( languages, force ):
-  all_enabled = 'all' in languages
-  force_all = all_enabled and force
+def PathToAnyWorkingPython3():
+  # We can't rely on sys.executable because it's usually 'vim' (fixme, not with
+  # neovim?)
+  paths = os.environ[ 'PATH' ].split( os.pathsep )
 
-  install.MakeInstallDirs( options.vimspector_base )
-  all_adapters = ReadAdapters()
-  failed = []
+  if install.GetOS() == 'windows':
+    paths.insert( 0, os.getcwd() )
+    candidates = [ os.path.join( sys.exec_prefix, 'python.exe' ),
+                   'python.exe' ]
+  else:
+    candidates = [ os.path.join( sys.exec_prefix, 'bin', 'python3' ),
+                   'python3',
+                   'python' ]
 
-  for name, gadget in gadgets.GADGETS.items():
-    if not gadget.get( 'enabled', True ):
-      if ( not force_all
-           and not ( force and gadget[ 'language' ] in languages ) ):
+  for candidate in candidates:
+    for path in paths:
+      filename = os.path.abspath( os.path.join( path, candidate ) )
+      if not os.path.isfile( filename ):
         continue
-    else:
-      if not all_enabled and not gadget[ 'language' ] in languages:
+      if not os.access( filename, os.F_OK | os.X_OK ):
         continue
 
-    InstallGagdet( name,
-                   gadget,
-                   failed,
-                   all_adapters )
+      return filename
 
-  WriteAdapters( all_adapters )
+  raise RuntimeError( "Unable to find a working python3" )
 
-  return failed
+
+def RunInstaller( api_prefix, *args ):
+  from vimspector import utils, output, settings
+  import vim
+
+  vimspector_home = utils.GetVimString( vim.vars, 'vimspector_home' )
+  vimspector_base_dir = utils.GetVimspectorBase()
+
+  # TODO: Translate the arguments to something more user-friendly than -- args
+  global OUTPUT_VIEW
+
+  if OUTPUT_VIEW:
+    OUTPUT_VIEW.Reset()
+    OUTPUT_VIEW = None
+
+  with utils.RestoreCurrentWindow():
+    vim.command( f'botright { settings.Int( "bottombar_height", 10 ) }new' )
+    win = vim.current.window
+    OUTPUT_VIEW = output.OutputView( win, api_prefix )
+
+  cmd = [
+    PathToAnyWorkingPython3(),
+    '-u',
+    os.path.join( vimspector_home, 'install_gadget.py' ),
+    '--update-gadget-config',
+  ]
+  if not vimspector_base_dir == vimspector_home:
+    cmd.extend( '--basedir', vimspector_base_dir )
+  cmd.extend( args )
+
+  OUTPUT_VIEW.RunJobWithOutput( 'Installer', cmd )
+  OUTPUT_VIEW.ShowOutput( 'Installer' )
+
+
+# def Install( languages, force ):
+#   all_enabled = 'all' in languages
+#   force_all = all_enabled and force
+#
+#   install.MakeInstallDirs( options.vimspector_base )
+#   all_adapters = ReadAdapters()
+#   succeeded = []
+#   failed = []
+#
+#   for name, gadget in gadgets.GADGETS.items():
+#     if not gadget.get( 'enabled', True ):
+#       if ( not force_all
+#            and not ( force and gadget[ 'language' ] in languages ) ):
+#         continue
+#     else:
+#       if not all_enabled and not gadget[ 'language' ] in languages:
+#         continue
+#
+#     InstallGagdet( name,
+#                    gadget,
+#                    succeeded,
+#                    failed,
+#                    all_adapters )
+#
+#   WriteAdapters( all_adapters )
+#
+#   return succeeded, failed
+
 
 
 def InstallGeneric( name, root, gadget ):
@@ -182,7 +247,7 @@ def InstallNodeDebug( name, root, gadget ):
   MakeSymlink( name, root )
 
 
-def InstallGagdet( name, gadget, failed, all_adapters ):
+def InstallGagdet( name, gadget, succeeded, failed, all_adapters ):
   try:
     v = {}
     v.update( gadget.get( 'all', {} ) )
@@ -235,6 +300,7 @@ def InstallGagdet( name, gadget, failed, all_adapters ):
     # Add any other "all" adapters
     all_adapters.update( gadget.get( 'adapters', {} ) )
 
+    succeeded.append( name )
     print( "Done installing {}".format( name ) )
   except Exception as e:
     traceback.print_exc()

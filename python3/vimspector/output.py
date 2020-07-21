@@ -25,7 +25,6 @@ class TabBuffer( object ):
     self.index = index
     self.flag = False
     self.is_job = False
-    self.job_category = None
 
 
 BUFFER_MAP = {
@@ -40,18 +39,24 @@ def CategoryToBuffer( category ):
   return BUFFER_MAP.get( category, category )
 
 
+VIEWS = set()
+
+
+def ShowOutputInWindow( win_id, category ):
+  for view in VIEWS:
+    if view._window.valid and utils.WindowID( view._window ) == win_id:
+      view.ShowOutput( category )
+      return
+
+  raise ValueError( f'Unable to find output object for win id {win_id}!' )
+
+
 class OutputView( object ):
-  def __init__( self, connection, window, api_prefix ):
+  def __init__( self, window, api_prefix ):
     self._window = window
-    self._connection = connection
     self._buffers = {}
     self._api_prefix = api_prefix
-
-    for b in set( BUFFER_MAP.values() ):
-      self._CreateBuffer( b )
-
-    self._CreateBuffer( 'Vimspector', file_name = utils.LOG_FILE )
-    self._ShowOutput( 'Console' )
+    VIEWS.add( self )
 
   def Print( self, categroy, text ):
     self._Print( 'server', text.splitlines() )
@@ -82,22 +87,23 @@ class OutputView( object ):
         with utils.RestoreCurrentBuffer( self._window ):
           self._ShowOutput( category )
 
-  def ConnectionUp( self, connection ):
-    self._connection = connection
-
-  def ConnectionClosed( self ):
-    # Don't clear because output is probably still useful
-    self._connection = None
-
   def Reset( self ):
     self.Clear()
+    VIEWS.remove( self )
+
+
+  def _CleanUpBuffer( self, category, tab_buffer = None ):
+    if tab_buffer is None:
+      tab_buffer = self._buffers[ category ]
+
+    if tab_buffer.is_job:
+      utils.CleanUpCommand( category, self._api_prefix )
+    utils.CleanUpHiddenBuffer( tab_buffer.buf )
+
 
   def Clear( self ):
     for category, tab_buffer in self._buffers.items():
-      if tab_buffer.is_job:
-        utils.CleanUpCommand( tab_buffer.job_category or category,
-                              self._api_prefix )
-      utils.CleanUpHiddenBuffer( tab_buffer.buf )
+      self._CleanUpBuffer( category, tab_buffer )
 
     # FIXME: nunmenu the WinBar ?
     self._buffers = {}
@@ -124,28 +130,6 @@ class OutputView( object ):
   def ShowOutput( self, category ):
     self._ToggleFlag( category, False )
     self._ShowOutput( category )
-
-  def Evaluate( self, frame, expression ):
-    self._Print( 'Console', [ 'Evaluating: ' + expression ] )
-
-    def print_result( message ):
-      result = message[ 'body' ][ 'result' ]
-      if result is None:
-        result = '<no result>'
-      self._Print( 'Console', f'  Result: { result }' )
-
-    request = {
-      'command': 'evaluate',
-      'arguments': {
-        'expression': expression,
-        'context': 'repl',
-      }
-    }
-
-    if frame:
-      request[ 'arguments' ][ 'frameId' ] = frame[ 'id' ]
-
-    self._connection.DoRequest( print_result, request )
 
   def _ToggleFlag( self, category, flag ):
     if self._buffers[ category ].flag != flag:
@@ -178,16 +162,10 @@ class OutputView( object ):
           cmd = [ 'tail', '-F', '-n', '+1', '--', file_name ]
 
         if cmd is not None:
-          out, err = utils.SetUpCommandBuffer( cmd, category, self._api_prefix )
-          self._buffers[ category + '-out' ] = TabBuffer( out,
-                                                          len( self._buffers ) )
-          self._buffers[ category + '-out' ].is_job = True
-          self._buffers[ category + '-out' ].job_category = category
-          self._buffers[ category + '-err' ] = TabBuffer( err,
-                                                          len( self._buffers ) )
-          self._buffers[ category + '-err' ].is_job = False
-          self._RenderWinBar( category + '-out' )
-          self._RenderWinBar( category + '-err' )
+          out = utils.SetUpCommandBuffer( cmd, category, self._api_prefix )
+          self._buffers[ category ] = TabBuffer( out, len( self._buffers ) )
+          self._buffers[ category ].is_job = True
+          self._RenderWinBar( category )
         else:
           vim.command( 'enew' )
           tab_buffer = TabBuffer( vim.current.buffer, len( self._buffers ) )
@@ -218,10 +196,52 @@ class OutputView( object ):
         raise
 
     vim.command( "nnoremenu  1.{0} WinBar.{1}{2} "
-                 ":call vimspector#ShowOutput( '{1}' )<CR>".format(
+                 ":call vimspector#ShowOutputInWindow( {3}, '{1}' )<CR>".format(
                    tab_buffer.index,
                    utils.Escape( category ),
-                   '*' if tab_buffer.flag else '' ) )
+                   '*' if tab_buffer.flag else '',
+                   utils.WindowID( self._window ) ) )
 
   def GetCategories( self ):
     return list( self._buffers.keys() )
+
+
+class DAPOutputView( OutputView ):
+  def __init__( self, *args ):
+    super().__init__( *args )
+
+    self._connection = None
+    for b in set( BUFFER_MAP.values() ):
+      self._CreateBuffer( b )
+
+    self._CreateBuffer( 'Vimspector', file_name = utils.LOG_FILE )
+    self._ShowOutput( 'Console' )
+
+  def ConnectionUp( self, connection ):
+    self._connection = connection
+
+  def ConnectionClosed( self ):
+    # Don't clear because output is probably still useful
+    self._connection = None
+
+  def Evaluate( self, frame, expression ):
+    self._Print( 'Console', [ 'Evaluating: ' + expression ] )
+
+    def print_result( message ):
+      result = message[ 'body' ][ 'result' ]
+      if result is None:
+        result = '<no result>'
+      self._Print( 'Console', f'  Result: { result }' )
+
+    request = {
+      'command': 'evaluate',
+      'arguments': {
+        'expression': expression,
+        'context': 'repl',
+      }
+    }
+
+    if frame:
+      request[ 'arguments' ][ 'frameId' ] = frame[ 'id' ]
+
+    self._connection.DoRequest( print_result, request )

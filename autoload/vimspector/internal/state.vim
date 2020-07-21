@@ -19,18 +19,21 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 " }}}
 
-let s:is_neovim = has( 'nvim' )
+let s:prefix = ''
+if has( 'nvim' )
+  let s:prefix='neo'
+endif
 
 function! vimspector#internal#state#Reset() abort
-  let prefix = ''
-  if s:is_neovim
-    let prefix='neo'
-  endif
     py3 << EOF
 import vim
 from vimspector import debug_session
-_vimspector_session = debug_session.DebugSession( vim.eval( 'prefix' ) )
+_vimspector_session = debug_session.DebugSession( vim.eval( 's:prefix' ) )
 EOF
+endfunction
+
+function! vimspector#internal#state#GetAPIPrefix() abort
+  return s:prefix
 endfunction
 
 " Boilerplate {{{

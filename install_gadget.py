@@ -163,6 +163,7 @@ for custom_file_name in functools.reduce( operator.add,
 
 
 failed = []
+succeeded = []
 all_adapters = installer.ReadAdapters(
   read_existing = args.update_gadget_config )
 
@@ -179,12 +180,13 @@ for name, gadget in gadgets.GADGETS.items():
 
   installer.InstallGagdet( name,
                            gadget,
+                           succeeded,
                            failed,
                            all_adapters )
 
 
 for name, gadget in CUSTOM_GADGETS.items():
-  installer.InstallGagdet( name, gadget, failed, all_adapters )
+  installer.InstallGagdet( name, gadget, succeeded, failed, all_adapters )
 
 if args.no_gadget_config:
   print( "" )
@@ -193,12 +195,15 @@ if args.no_gadget_config:
 else:
   installer.WriteAdapters( all_adapters )
 
-if failed:
-  raise RuntimeError( 'Failed to install gadgets: {}'.format(
-    ','.join( failed ) ) )
-
 if args.basedir:
   print( "" )
   print( "***NOTE***: You set --basedir to " + args.basedir +
          ". Therefore you _must_ ensure this is in your vimrc:\n"
          "let g:vimspector_base_dir='" + vimspector_base + "'" )
+
+if succeeded:
+  print( "The following adapters were installed successfully: {}".format(
+    ','.join( succeeded ) ) )
+
+if failed:
+  sys.exit( 'Failed to install adapters: {}'.format( ','.join( failed ) ) )

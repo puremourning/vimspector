@@ -157,14 +157,16 @@ function! vimspector#internal#job#StartCommandWithLog( cmd, category ) abort
 
   let l:index = len( s:commands[ a:category ] )
 
+  let buf = '_vimspector_log_' . a:category
+
   call add( s:commands[ a:category ], job_start(
         \ a:cmd,
         \ {
         \   'out_io': 'buffer',
         \   'in_io': 'null',
         \   'err_io': 'buffer',
-        \   'out_name': '_vimspector_log_' . a:category . '_out',
-        \   'err_name': '_vimspector_log_' . a:category . '_err',
+        \   'out_name': buf,
+        \   'err_name': buf,
         \   'out_modifiable': 0,
         \   'err_modifiable': 0,
         \   'stoponexit': 'kill'
@@ -176,12 +178,7 @@ function! vimspector#internal#job#StartCommandWithLog( cmd, category ) abort
     return v:none
   endif
 
-  let l:stdout = ch_getbufnr(
-        \ job_getchannel( s:commands[ a:category ][ index ] ), 'out' )
-  let l:stderr = ch_getbufnr(
-        \ job_getchannel( s:commands[ a:category ][ index ] ), 'err' )
-
-  return [ l:stdout, l:stderr ]
+  return bufnr( buf )
 endfunction
 
 

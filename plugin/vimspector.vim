@@ -34,6 +34,7 @@ endif
 "   - Add commands/mappings/menus?
 
 let g:loaded_vimpector = 1
+let g:vimspector_home = expand( '<sfile>:p:h:h' )
 
 let s:mappings = get( g:, 'vimspector_enable_mappings', '' )
 
@@ -98,7 +99,7 @@ command! -bar
       \ call vimspector#Reset()
 
 " Installer commands
-command! -bar -nargs=* -complete=custom,vimspector#CompleteInstall
+command! -bar -nargs=*
       \ VimspectorInstall
       \ call vimspector#Install( <f-args> )
 

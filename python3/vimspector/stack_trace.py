@@ -21,13 +21,13 @@ from vimspector import utils
 
 
 class StackTraceView( object ):
-  def __init__( self, session, connection, win ):
+  def __init__( self, session, win ):
     self._logger = logging.getLogger( __name__ )
     utils.SetUpLogging( self._logger )
 
     self._buf = win.buffer
     self._session = session
-    self._connection = connection
+    self._connection = None
 
     self._current_thread = None
     self._current_frame = None

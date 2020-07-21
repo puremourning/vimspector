@@ -528,7 +528,6 @@ class DebugSession( object ):
     stack_trace_window = vim.current.window
     one_third = int( vim.eval( 'winheight( 0 )' ) ) / 3
     self._stackTraceView = stack_trace.StackTraceView( self,
-                                                       self._connection,
                                                        stack_trace_window )
 
     # Watches
@@ -546,17 +545,15 @@ class DebugSession( object ):
     with utils.LetCurrentWindow( stack_trace_window ):
       vim.command( f'{ one_third }wincmd _' )
 
-    self._variablesView = variables.VariablesView( self._connection,
-                                                   vars_window,
+    self._variablesView = variables.VariablesView( vars_window,
                                                    watch_window )
 
     # Output/logging
     vim.current.window = code_window
     vim.command( f'rightbelow { settings.Int( "bottombar_height", 10 ) }new' )
     output_window = vim.current.window
-    self._outputView = output.OutputView( self._connection,
-                                          output_window,
-                                          self._api_prefix )
+    self._outputView = output.DAPOutputView( output_window,
+                                             self._api_prefix )
 
     # TODO: If/when we support multiple sessions, we'll need some way to
     # indicate which tab was created and store all the tabs

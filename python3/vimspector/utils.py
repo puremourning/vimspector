@@ -72,20 +72,18 @@ def OpenFileInCurrentWindow( file_name ):
 
 
 def SetUpCommandBuffer( cmd, name, api_prefix ):
-  bufs = vim.eval(
-    'vimspector#internal#{}job#StartCommandWithLog( {}, "{}" )'.format(
-      api_prefix,
-      json.dumps( cmd ),
-      name ) )
+  buf = Call( f'vimspector#internal#{api_prefix}job#StartCommandWithLog',
+              cmd,
+              name )
 
-  if bufs is None:
+  if buf is None:
     raise RuntimeError( "Unable to start job {}: {}".format( cmd, name ) )
-  elif not all( int( b ) > 0 for b in bufs ):
+  elif int( buf ) <= 0:
     raise RuntimeError( "Unable to get all streams for job {}: {}".format(
       name,
       cmd ) )
 
-  return [ vim.buffers[ int( b ) ] for b in bufs ]
+  return vim.buffers[ int( buf ) ]
 
 
 def CleanUpCommand( name, api_prefix ):
@@ -558,7 +556,6 @@ def Call( vimscript_function, *args ):
     call += 'g:' + arg_name
 
   call += ')'
-  _logger.debug( 'Calling: {}'.format( call ) )
   return vim.eval( call )
 
 
@@ -633,16 +630,26 @@ def HideSplash( api_prefix, splash ):
   return None
 
 
+def GetVimString( vim_dict, name, default=None ):
+
+  # FIXME: use 'encoding' ?
+  try:
+    value = vim_dict[ name ]
+  except KeyError:
+    return default
+
+  if isinstance( value, bytes ):
+    return value.decode( 'utf-8' )
+  return value
+
+
 def GetVimspectorBase():
-  base = vim.vars.get( 'vimspector_base_dir' )
-  if base is None:
-    return os.path.abspath( os.path.join( os.path.dirname( __file__ ),
-                                          '..',
-                                          '..' ) )
-  elif isinstance( base, bytes ):
-    return base.decode( 'utf-8' )
-  else:
-    return base
+  return GetVimString( vim.vars,
+                       'vimspector_base_dir',
+                       os.path.abspath(
+                         os.path.join( os.path.dirname( __file__ ),
+                                       '..',
+                                       '..' ) ) )
 
 
 def GetUnusedLocalPort():
@@ -655,5 +662,7 @@ def GetUnusedLocalPort():
   return port
 
 
-def WindowID( window, tab ):
+def WindowID( window, tab=None ):
+  if tab is None:
+    tab = window.tabpage
   return int( Call( 'win_getid', window.number, tab.number ) )
