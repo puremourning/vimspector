@@ -30,7 +30,8 @@ from vimspector import ( breakpoints,
                          stack_trace,
                          utils,
                          variables,
-                         settings )
+                         settings,
+                         installer )
 from vimspector.vendor.json_minify import minify
 
 # We cache this once, and don't allow it to change (FIXME?)
@@ -151,6 +152,24 @@ class DebugSession( object ):
       adapter_dict = adapters.get( adapter )
 
       if adapter_dict is None:
+        suggested_gadgets = installer.FindGadgetForAdapter( adapter )
+        if suggested_gadgets:
+          response = utils.AskForInput(
+            f"The specified adapter '{adapter}' is not "
+            "installed. Would you like to install the following gadgets? ",
+            ' '.join( suggested_gadgets ) )
+          if response:
+            new_launch_variables = dict( launch_variables )
+            new_launch_variables[ 'configuration' ] = configuration_name
+
+            installer.RunInstaller(
+              self._api_prefix,
+              *shlex.split( response ),
+              then = lambda: self.Start( new_launch_variables ) )
+            return
+          elif response is None:
+            return
+
         utils.UserMessage( f"The specified adapter '{adapter}' is not "
                            "available. Did you forget to run "
                            "'install_gadget.py'?",

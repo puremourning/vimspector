@@ -36,7 +36,7 @@ import traceback
 import zipfile
 import json
 
-from vimspector import install
+from vimspector import install, gadgets
 
 OUTPUT_VIEW = None
 
@@ -81,7 +81,7 @@ def PathToAnyWorkingPython3():
   raise RuntimeError( "Unable to find a working python3" )
 
 
-def RunInstaller( api_prefix, *args ):
+def RunInstaller( api_prefix, *args, **kwargs ):
   from vimspector import utils, output, settings
   import vim
 
@@ -119,6 +119,8 @@ def RunInstaller( api_prefix, *args ):
         OUTPUT_VIEW = None
       utils.UserMessage( "Vimspector gadget installation complete!" )
       vim.command( 'silent doautocmd User VimspectorInstallSuccess' )
+      if 'then' in kwargs:
+        kwargs[ 'then' ]()
     else:
       utils.UserMessage( 'Vimspector gadget installation reported errors',
                          error = True )
@@ -133,7 +135,6 @@ def RunInstaller( api_prefix, *args ):
 
 def GadgetListToInstallerArgs( *gadget_list ):
   installer_args = []
-  from vimspector import gadgets
   for name in gadget_list:
     if name.startswith( '-' ):
       installer_args.append( name )
@@ -152,34 +153,21 @@ def GadgetListToInstallerArgs( *gadget_list ):
   return installer_args
 
 
-# def Install( languages, force ):
-#   all_enabled = 'all' in languages
-#   force_all = all_enabled and force
-#
-#   install.MakeInstallDirs( options.vimspector_base )
-#   all_adapters = ReadAdapters()
-#   succeeded = []
-#   failed = []
-#
-#   for name, gadget in gadgets.GADGETS.items():
-#     if not gadget.get( 'enabled', True ):
-#       if ( not force_all
-#            and not ( force and gadget[ 'language' ] in languages ) ):
-#         continue
-#     else:
-#       if not all_enabled and not gadget[ 'language' ] in languages:
-#         continue
-#
-#     InstallGagdet( name,
-#                    gadget,
-#                    succeeded,
-#                    failed,
-#                    all_adapters )
-#
-#   WriteAdapters( all_adapters )
-#
-#   return succeeded, failed
+def FindGadgetForAdapter( adapter_name ):
+  candidates = []
+  for name, gadget in gadgets.GADGETS.items():
+    v = {}
+    v.update( gadget.get( 'all', {} ) )
+    v.update( gadget.get( install.GetOS(), {} ) )
 
+    adapters = {}
+    adapters.update( v.get( 'adapters', {} ) )
+    adapters.update( gadget.get( 'adapters', {} ) )
+
+    if adapter_name in adapters:
+      candidates.append( name )
+
+  return candidates
 
 
 def InstallGeneric( name, root, gadget ):
