@@ -133,11 +133,10 @@ function! vimspector#ShowOutput( category ) abort
 endfunction
 
 function! vimspector#ShowOutputInWindow( win_id, category ) abort
-  py3 <<EOF
-from vimspector import output as vimspector_output
-vimspector_output.ShowOutputInWindow( int( vim.eval( 'a:win_id' ) ),
-                                      vim.eval( 'a:category' ) )
-EOF
+  py3 __import__( 'vimspector',
+        \         fromlist = [ 'output' ] ).output.ShowOutputInWindow(
+        \           int( vim.eval( 'a:win_id' ) ),
+        \           vim.eval( 'a:category' ) )
 endfunction
 
 function! vimspector#ListBreakpoints() abort
@@ -163,10 +162,17 @@ function! vimspector#Install( ... ) abort
     return
   endif
   let prefix = vimspector#internal#state#GetAPIPrefix()
-  py3 << EOF
-from vimspector import installer as vimspector_installer
-vimspector_installer.RunInstaller( vim.eval( 'prefix' ), *vim.eval( 'a:000' ) )
-EOF
+  py3 __import__( 'vimspector',
+        \         fromlist = [ 'installer' ] ).installer.RunInstaller(
+        \           vim.eval( 'prefix' ),
+        \           *vim.eval( 'a:000' ) )
+endfunction
+
+function! vimspector#CompleteInstall( ArgLead, CmdLine, CursorPos ) abort
+  return py3eval( '"\n".join('
+                \ .   '__import__( "vimspector", fromlist = [ "gadgets" ] )'
+                \ .   '.gadgets.GADGETS.keys() '
+                \ . ')' )
 endfunction
 
 " Boilerplate {{{

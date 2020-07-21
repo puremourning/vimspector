@@ -85,12 +85,13 @@ def RunInstaller( api_prefix, *args ):
   from vimspector import utils, output, settings
   import vim
 
+  args = GadgetListToInstallerArgs( *args )
+
   vimspector_home = utils.GetVimString( vim.vars, 'vimspector_home' )
   vimspector_base_dir = utils.GetVimspectorBase()
 
   # TODO: Translate the arguments to something more user-friendly than -- args
   global OUTPUT_VIEW
-
   if OUTPUT_VIEW:
     OUTPUT_VIEW.Reset()
     OUTPUT_VIEW = None
@@ -112,10 +113,14 @@ def RunInstaller( api_prefix, *args ):
 
   def handler( exit_code ):
     if exit_code == 0:
-      utils.UserMessage( "Vimspector installation complete!" )
-      vim.command( 'doautocmd User VimspectorInstallSuccess' )
+      global OUTPUT_VIEW
+      if OUTPUT_VIEW:
+        OUTPUT_VIEW.Reset()
+        OUTPUT_VIEW = None
+      utils.UserMessage( "Vimspector gadget installation complete!" )
+      vim.command( 'silent doautocmd User VimspectorInstallSuccess' )
     else:
-      utils.UserMessage( 'Vimspector installation reported errors',
+      utils.UserMessage( 'Vimspector gadget installation reported errors',
                          error = True )
       vim.command( 'silent doautocmd User VimspectorInstallFailed' )
 
@@ -124,6 +129,27 @@ def RunInstaller( api_prefix, *args ):
                                 cmd,
                                 completion_handler = handler )
   OUTPUT_VIEW.ShowOutput( 'Installer' )
+
+
+def GadgetListToInstallerArgs( *gadget_list ):
+  installer_args = []
+  from vimspector import gadgets
+  for name in gadget_list:
+    if name.startswith( '-' ):
+      installer_args.append( name )
+      continue
+
+    try:
+      gadget = gadgets.GADGETS[ name ]
+    except KeyError:
+      continue
+
+    if not gadget.get( 'enabled', True ):
+      installer_args.append( f'--force-enable-{ gadget[ "language" ] }' )
+    else:
+      installer_args.append( f'--enable-{ gadget[ "language" ] }' )
+
+  return installer_args
 
 
 # def Install( languages, force ):
