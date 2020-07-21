@@ -116,58 +116,65 @@ function! s:_OnCommandEvent( category, id, data, event ) abort
     return
   endif
 
-  if a:data == ['']
-    return
-  endif
-
-  if !has_key( s:commands, a:category )
-    return
-  endif
-
-  if !has_key( s:commands[ a:category ], a:id )
-    return
-  endif
-
-  if a:event ==# 'stdout'
-    let buffer = s:commands[ a:category ][ a:id ].stdout
-  elseif a:event ==# 'stderr'
-    let buffer = s:commands[ a:category ][ a:id ].stderr
-  endif
-
-  try
-    call bufload( buffer )
-  catch /E325/
-    " Ignore E325/ATTENTION
-  endtry
-
-
-  let numlines = py3eval( "len( vim.buffers[ int( vim.eval( 'buffer' ) ) ] )" )
-  let last_line = getbufline( buffer, '$' )[ 0 ]
-
-  call s:MakeBufferWritable( buffer )
-  try
-    if numlines == 1 && last_line ==# ''
-      call setbufline( buffer, 1, a:data[ 0 ] )
-    else
-      call setbufline( buffer, '$', last_line . a:data[ 0 ] )
+  if a:event ==# 'stdout' || a:event ==# 'stderr'
+    if a:data == ['']
+      return
     endif
 
-    call appendbufline( buffer, '$', a:data[ 1: ] )
-  finally
-    call s:MakeBufferReadOnly( buffer )
-    call setbufvar( buffer, '&modified', 0 )
-  endtry
+    if !has_key( s:commands, a:category )
+      return
+    endif
 
-  " if the buffer is visible, scroll it
-  let w = bufwinnr( buffer )
-  if w > 0
-    let cw = winnr()
+    if !has_key( s:commands[ a:category ], a:id )
+      return
+    endif
+
+    if a:event ==# 'stdout'
+      let buffer = s:commands[ a:category ][ a:id ].stdout
+    elseif a:event ==# 'stderr'
+      let buffer = s:commands[ a:category ][ a:id ].stderr
+    endif
+
     try
-      execute w . 'wincmd w'
-      normal! Gz.
-    finally
-      execute cw . 'wincmd w'
+      call bufload( buffer )
+    catch /E325/
+      " Ignore E325/ATTENTION
     endtry
+
+
+    let numlines = py3eval( "len( vim.buffers[ int( vim.eval( 'buffer' ) ) ] )" )
+    let last_line = getbufline( buffer, '$' )[ 0 ]
+
+    call s:MakeBufferWritable( buffer )
+    try
+      if numlines == 1 && last_line ==# ''
+        call setbufline( buffer, 1, a:data[ 0 ] )
+      else
+        call setbufline( buffer, '$', last_line . a:data[ 0 ] )
+      endif
+
+      call appendbufline( buffer, '$', a:data[ 1: ] )
+    finally
+      call s:MakeBufferReadOnly( buffer )
+      call setbufvar( buffer, '&modified', 0 )
+    endtry
+
+    " if the buffer is visible, scroll it
+    let w = bufwinnr( buffer )
+    if w > 0
+      let cw = winnr()
+      try
+        execute w . 'wincmd w'
+        normal! Gz-
+      finally
+        execute cw . 'wincmd w'
+      endtry
+    endif
+  elseif a:event ==# 'exit'
+    py3 __import__( "vimspector",
+          \         fromlist = [ "utils" ] ).utils.OnCommandWithLogComplete(
+          \           vim.eval( 'a:category' ),
+          \           int( vim.eval( 'a:data' ) ) )
   endif
 endfunction
 
@@ -210,7 +217,9 @@ function! vimspector#internal#neojob#StartCommandWithLog( cmd, category ) abort
         \            'on_stdout': funcref( 's:_OnCommandEvent',
         \                                  [ a:category ] ),
         \            'on_stderr': funcref( 's:_OnCommandEvent',
-        \                                  [ a:category ] )
+        \                                  [ a:category ] ),
+        \            'on_exit': funcref( 's:_OnCommandEvent',
+        \                                [ a:category ] ),
         \          } )
 
   let s:commands[ a:category ][ id ] = {
@@ -227,8 +236,11 @@ function! vimspector#internal#neojob#CleanUpCommand( category ) abort
   endif
 
   for id in keys( s:commands[ a:category ] )
-    call jobstop( str2nr( id ) )
-    call jobwait( [ str2nr( id ) ] )
+    let id = str2nr( id )
+    if jobwait( [ id ], 0 )[ 0 ] == -1
+      call jobstop( id )
+    endif
+    call jobwait( [ id ], -1 )
   endfor
   unlet! s:commands[ a:category ]
 endfunction

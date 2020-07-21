@@ -147,11 +147,10 @@ function! vimspector#internal#job#Reset() abort
 endfunction
 
 function! s:_OnCommandExit( category, ch, code ) abort
-  py3 << EOF
-from vimspector import utils as vimspector_utils
-vimspector_utils.OnCommandWithLogComplete( vim.eval( 'a:category' ),
-                                           int( vim.eval( 'a:code' ) ) )
-EOF
+  py3 __import__( "vimspector",
+        \         fromlist = [ "utils" ] ).utils.OnCommandWithLogComplete(
+        \           vim.eval( 'a:category' ),
+        \           int( vim.eval( 'a:code' ) ) )
 endfunction
 
 function! vimspector#internal#job#StartCommandWithLog( cmd, category ) abort
