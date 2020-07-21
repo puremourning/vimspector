@@ -72,6 +72,7 @@ For a tutorial and usage overview, take a look at the
  * [FAQ](#faq)
  * [Motivation](#motivation)
  * [License](#license)
+ * [Sponsorship](#sponsorship)
 
 <!-- Added by: ben, at: Sat 18 Jul 2020 12:58:35 BST -->
 
@@ -1526,6 +1527,14 @@ A message from the author about the motivation for this plugin:
 [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
 Copyright © 2018 Ben Jackson
+
+# Sponsorship
+
+If you like Vimspector so much that you're wiling to part with your hard-earned cash, please consider donating to one of the following charities, which are meaningful to the author of Vimspector (in order of prefernce):
+
+* [Greyhound Rescue Wales](https://greyhoundrescuewales.co.uk)
+* [Cancer Research UK](https://www.cancerresearchuk.org)
+* [ICCF Holland](https://iccf.nl)
 
 [ycmd]: https://github.com/Valloric/ycmd
 [gitter]: https://gitter.im/vimspector/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link
