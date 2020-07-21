@@ -186,6 +186,9 @@ class OutputView( object ):
           self._RenderWinBar( category )
 
   def _RenderWinBar( self, category ):
+    if not self._window.valid:
+      return
+
     tab_buffer = self._buffers[ category ]
 
     try:

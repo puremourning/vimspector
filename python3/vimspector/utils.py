@@ -195,9 +195,8 @@ def RestoreCurrentWindow():
   try:
     yield
   finally:
-    if old_tabpage.valid:
+    if old_tabpage.valid and old_window.valid:
       vim.current.tabpage = old_tabpage
-    if old_window.valid:
       vim.current.window = old_window
 
 
