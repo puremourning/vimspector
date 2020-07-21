@@ -107,10 +107,22 @@ def RunInstaller( api_prefix, *args ):
     '--update-gadget-config',
   ]
   if not vimspector_base_dir == vimspector_home:
-    cmd.extend( '--basedir', vimspector_base_dir )
+    cmd.extend( [ '--basedir', vimspector_base_dir ] )
   cmd.extend( args )
 
-  OUTPUT_VIEW.RunJobWithOutput( 'Installer', cmd )
+  def handler( exit_code ):
+    if exit_code == 0:
+      utils.UserMessage( "Vimspector installation complete!" )
+      vim.command( 'doautocmd User VimspectorInstallSuccess' )
+    else:
+      utils.UserMessage( 'Vimspector installation reported errors',
+                         error = True )
+      vim.command( 'silent doautocmd User VimspectorInstallFailed' )
+
+
+  OUTPUT_VIEW.RunJobWithOutput( 'Installer',
+                                cmd,
+                                completion_handler = handler )
   OUTPUT_VIEW.ShowOutput( 'Installer' )
 
 
@@ -309,12 +321,14 @@ def InstallGagdet( name, gadget, succeeded, failed, all_adapters ):
 
 
 def ReadAdapters( read_existing = True ):
+  all_adapters = {}
   if read_existing:
-    with open( install.GetGadgetConfigFile( options.vimspector_base ),
-               'r' ) as f:
-      all_adapters = json.load( f ).get( 'adapters', {} )
-  else:
-    all_adapters = {}
+    try:
+      with open( install.GetGadgetConfigFile( options.vimspector_base ),
+                 'r' ) as f:
+        all_adapters = json.load( f ).get( 'adapters', {} )
+    except OSError:
+      pass
 
   # Include "built-in" adapter for multi-session mode
   all_adapters.update( {

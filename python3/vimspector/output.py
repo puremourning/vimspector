@@ -92,18 +92,11 @@ class OutputView( object ):
     VIEWS.remove( self )
 
 
-  def _CleanUpBuffer( self, category, tab_buffer = None ):
-    if tab_buffer is None:
-      tab_buffer = self._buffers[ category ]
-
-    if tab_buffer.is_job:
-      utils.CleanUpCommand( category, self._api_prefix )
-    utils.CleanUpHiddenBuffer( tab_buffer.buf )
-
-
   def Clear( self ):
     for category, tab_buffer in self._buffers.items():
-      self._CleanUpBuffer( category, tab_buffer )
+      if tab_buffer.is_job:
+        utils.CleanUpCommand( category, self._api_prefix )
+      utils.CleanUpHiddenBuffer( tab_buffer.buf )
 
     # FIXME: nunmenu the WinBar ?
     self._buffers = {}
@@ -140,11 +133,17 @@ class OutputView( object ):
           self._RenderWinBar( category )
 
 
-  def RunJobWithOutput( self, category, cmd ):
-    self._CreateBuffer( category, cmd = cmd )
+  def RunJobWithOutput( self, category, cmd, completion_handler = None ):
+    self._CreateBuffer( category,
+                        cmd = cmd,
+                        completion_handler = completion_handler )
 
 
-  def _CreateBuffer( self, category, file_name = None, cmd = None ):
+  def _CreateBuffer( self,
+                     category,
+                     file_name = None,
+                     cmd = None,
+                     completion_handler = None ):
     win = self._window
     if not win.valid:
       # We need to borrow the current window
@@ -162,7 +161,11 @@ class OutputView( object ):
           cmd = [ 'tail', '-F', '-n', '+1', '--', file_name ]
 
         if cmd is not None:
-          out = utils.SetUpCommandBuffer( cmd, category, self._api_prefix )
+          out = utils.SetUpCommandBuffer(
+            cmd,
+            category,
+            self._api_prefix,
+            completion_handler = completion_handler )
           self._buffers[ category ] = TabBuffer( out, len( self._buffers ) )
           self._buffers[ category ].is_job = True
           self._RenderWinBar( category )

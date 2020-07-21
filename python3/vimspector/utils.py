@@ -71,7 +71,20 @@ def OpenFileInCurrentWindow( file_name ):
   return vim.buffers[ buffer_number ]
 
 
-def SetUpCommandBuffer( cmd, name, api_prefix ):
+COMMAND_HANDLERS = {}
+
+
+def OnCommandWithLogComplete( name, exit_code ):
+  cb = COMMAND_HANDLERS.get( name )
+  if cb:
+    cb( exit_code )
+  else:
+    UserMessage( f'Job complete: { name } (exit status: { exit_code })' )
+
+
+def SetUpCommandBuffer( cmd, name, api_prefix, completion_handler = None ):
+  COMMAND_HANDLERS[ name ] = completion_handler
+
   buf = Call( f'vimspector#internal#{api_prefix}job#StartCommandWithLog',
               cmd,
               name )
