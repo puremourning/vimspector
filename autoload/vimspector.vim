@@ -256,7 +256,7 @@ function! vimspector#CompleteInstall( ArgLead, CmdLine, CursorPos ) abort
                 \ . ')' )
 endfunction
 
-function! vimspector#Update() abort
+function! vimspector#Update( ... ) abort
   if !s:enabled
     return
   endif
@@ -264,8 +264,19 @@ function! vimspector#Update() abort
   let prefix = vimspector#internal#state#GetAPIPrefix()
   py3 __import__( 'vimspector',
         \         fromlist = [ 'installer' ] ).installer.RunUpdate(
-        \           vim.eval( 'prefix' ) )
+        \           vim.eval( 'prefix' ),
+        \           *vim.eval( 'a:000' ) )
 endfunction
+
+function! vimspector#AbortInstall() abort
+  if !s:enabled
+    return
+  endif
+
+  let prefix = vimspector#internal#state#GetAPIPrefix()
+  py3 __import__( 'vimspector', fromlist = [ 'installer' ] ).installer.Abort()
+endfunction
+
 
 " Boilerplate {{{
 let &cpoptions=s:save_cpo

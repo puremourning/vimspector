@@ -44,6 +44,7 @@ OUTPUT_VIEW = None
 class Options:
   vimspector_base = None
   no_check_certificate = False
+  quiet = False
 
 
 options = Options()
@@ -52,6 +53,23 @@ options = Options()
 def Configure( **kwargs ):
   for k, v in kwargs.items():
     setattr( options, k, v )
+
+
+def Print( *args, **kwargs ):
+  if not options.quiet:
+    print( *args, **kwargs )
+
+
+def CheckCall( *args, **kwargs ):
+  if options.quiet:
+    out = subprocess.PIPE
+  else:
+    out = sys.stdout
+
+  kwargs[ 'stdout' ] = out
+  kwargs[ 'stderr' ] = subprocess.STDOUT
+
+  subprocess.check_call( *args, **kwargs )
 
 
 def PathToAnyWorkingPython3():
@@ -91,9 +109,7 @@ def RunInstaller( api_prefix, *args, **kwargs ):
   vimspector_base_dir = utils.GetVimspectorBase()
 
   global OUTPUT_VIEW
-  if OUTPUT_VIEW:
-    OUTPUT_VIEW.Reset()
-    OUTPUT_VIEW = None
+  _ResetInstaller()
 
   with utils.RestoreCurrentWindow():
     vim.command( f'botright { settings.Int( "bottombar_height", 10 ) }new' )
@@ -104,6 +120,7 @@ def RunInstaller( api_prefix, *args, **kwargs ):
     PathToAnyWorkingPython3(),
     '-u',
     os.path.join( vimspector_home, 'install_gadget.py' ),
+    '--quiet',
     '--update-gadget-config',
   ]
   if not vimspector_base_dir == vimspector_home:
@@ -112,10 +129,7 @@ def RunInstaller( api_prefix, *args, **kwargs ):
 
   def handler( exit_code ):
     if exit_code == 0:
-      global OUTPUT_VIEW
-      if OUTPUT_VIEW:
-        OUTPUT_VIEW.Reset()
-        OUTPUT_VIEW = None
+      _ResetInstaller()
       utils.UserMessage( "Vimspector gadget installation complete!" )
       vim.command( 'silent doautocmd User VimspectorInstallSuccess' )
       if 'then' in kwargs:
@@ -128,21 +142,37 @@ def RunInstaller( api_prefix, *args, **kwargs ):
 
   OUTPUT_VIEW.RunJobWithOutput( 'Installer',
                                 cmd,
-                                completion_handler = handler )
+                                completion_handler = handler,
+                                syntax = 'vimspector-installer' )
   OUTPUT_VIEW.ShowOutput( 'Installer' )
 
 
-def RunUpdate( api_prefix ):
+def RunUpdate( api_prefix, *args ):
   from vimspector import utils
   Configure( vimspector_base = utils.GetVimspectorBase() )
 
+  args = list( args )
   current_adapters = ReadAdapters( read_existing = True )
-  adapters = []
   for adapter_name in current_adapters.keys():
-    adapters.extend( FindGadgetForAdapter( adapter_name ) )
+    args.extend( FindGadgetForAdapter( adapter_name ) )
 
-  if adapters:
-    RunInstaller( api_prefix, *adapters )
+  if args:
+    RunInstaller( api_prefix, *args )
+
+
+def _ResetInstaller():
+  global OUTPUT_VIEW
+  if OUTPUT_VIEW:
+    OUTPUT_VIEW.Reset()
+    OUTPUT_VIEW = None
+
+
+def Abort():
+  _ResetInstaller()
+  from vimspector import utils
+  utils.UserMessage( 'Vimspector installation aborted',
+                     persist = True,
+                     error = True )
 
 
 def GadgetListToInstallerArgs( *gadget_list ):
@@ -222,7 +252,7 @@ def InstallDebugpy( name, root, gadget ):
   root = os.path.join( root, 'debugpy-{}'.format( gadget[ 'version' ] ) )
   os.chdir( root )
   try:
-    subprocess.check_call( [ sys.executable, 'setup.py', 'build' ] )
+    CheckCall( [ sys.executable, 'setup.py', 'build' ] )
   finally:
     os.chdir( wd )
 
@@ -258,8 +288,8 @@ def InstallTclProDebug( name, root, gadget ):
 
 
   with CurrentWorkingDir( os.path.join( root, 'lib', 'tclparser' ) ):
-    subprocess.check_call( configure )
-    subprocess.check_call( [ 'make' ] )
+    CheckCall( configure )
+    CheckCall( [ 'make' ] )
 
   MakeSymlink( name, root )
 
@@ -267,26 +297,27 @@ def InstallTclProDebug( name, root, gadget ):
 def InstallNodeDebug( name, root, gadget ):
   node_version = subprocess.check_output( [ 'node', '--version' ],
                                           universal_newlines=True ).strip()
-  print( "Node.js version: {}".format( node_version ) )
+  Print( "Node.js version: {}".format( node_version ) )
   if list( map( int, node_version[ 1: ].split( '.' ) ) ) >= [ 12, 0, 0 ]:
-    print( "Can't install vscode-debug-node2:" )
-    print( "Sorry, you appear to be running node 12 or later. That's not "
+    Print( "Can't install vscode-debug-node2:" )
+    Print( "Sorry, you appear to be running node 12 or later. That's not "
            "compatible with the build system for this extension, and as far as "
            "we know, there isn't a pre-built independent package." )
-    print( "My advice is to install nvm, then do:" )
-    print( "  $ nvm install --lts 10" )
-    print( "  $ nvm use --lts 10" )
-    print( "  $ ./install_gadget.py --enable-node ..." )
-    raise RuntimeError( 'Invalid node environent for node debugger' )
+    Print( "My advice is to install nvm, then do:" )
+    Print( "  $ nvm install --lts 10" )
+    Print( "  $ nvm use --lts 10" )
+    Print( "  $ ./install_gadget.py --enable-node ..." )
+    raise RuntimeError( 'Node 10 is required to install node debugger (sadly)' )
 
   with CurrentWorkingDir( root ):
-    subprocess.check_call( [ 'npm', 'install' ] )
-    subprocess.check_call( [ 'npm', 'run', 'build' ] )
+    CheckCall( [ 'npm', 'install' ] )
+    CheckCall( [ 'npm', 'run', 'build' ] )
   MakeSymlink( name, root )
 
 
 def InstallGagdet( name, gadget, succeeded, failed, all_adapters ):
   try:
+    print( f"Installing {name}..." )
     v = {}
     v.update( gadget.get( 'all', {} ) )
     v.update( gadget.get( install.GetOS(), {} ) )
@@ -339,11 +370,12 @@ def InstallGagdet( name, gadget, succeeded, failed, all_adapters ):
     all_adapters.update( gadget.get( 'adapters', {} ) )
 
     succeeded.append( name )
-    print( "Done installing {}".format( name ) )
+    print( f" - Done installing {name}" )
   except Exception as e:
-    traceback.print_exc()
+    if not options.quiet:
+      traceback.print_exc()
     failed.append( name )
-    print( "FAILED installing {}: {}".format( name, e ) )
+    print( f" - FAILED installing {name}: {e}".format( name, e ) )
 
 
 def ReadAdapters( read_existing = True ):
@@ -392,7 +424,7 @@ def CurrentWorkingDir( d ):
 
 def MakeExecutable( file_path ):
   # TODO: import stat and use them by _just_ adding the X bit.
-  print( 'Making executable: {}'.format( file_path ) )
+  Print( 'Making executable: {}'.format( file_path ) )
   os.chmod( file_path, 0o755 )
 
 
@@ -409,7 +441,7 @@ def WithRetry( f ):
         return f( *args, **kwargs )
       except Exception as e:
         thrown = e
-        print( "Failed - {}, will retry in {} seconds".format( e, timeout ) )
+        Print( "Failed - {}, will retry in {} seconds".format( e, timeout ) )
         time.sleep( timeout )
     raise thrown
 
@@ -437,13 +469,13 @@ def DownloadFileTo( url,
   if os.path.exists( file_path ):
     if checksum:
       if ValidateCheckSumSHA256( file_path, checksum ):
-        print( "Checksum matches for {}, using it".format( file_path ) )
+        Print( "Checksum matches for {}, using it".format( file_path ) )
         return file_path
       else:
-        print( "Checksum doesn't match for {}, removing it".format(
+        Print( "Checksum doesn't match for {}, removing it".format(
           file_path ) )
 
-    print( "Removing existing {}".format( file_path ) )
+    Print( "Removing existing {}".format( file_path ) )
     os.remove( file_path )
 
   r = request.Request( url, headers = { 'User-Agent': 'Vimspector' } )
@@ -470,7 +502,7 @@ def DownloadFileTo( url,
           GetChecksumSHA254( file_path ),
           checksum ) )
   else:
-    print( "Checksum for {}: {}".format( file_path,
+    Print( "Checksum for {}: {}".format( file_path,
                                          GetChecksumSHA254( file_path ) ) )
 
   return file_path
@@ -488,7 +520,7 @@ def ValidateCheckSumSHA256( file_path, checksum ):
 
 def RemoveIfExists( destination ):
   if os.path.islink( destination ):
-    print( "Removing file {}".format( destination ) )
+    Print( "Removing file {}".format( destination ) )
     os.remove( destination )
     return
 
@@ -499,21 +531,21 @@ def RemoveIfExists( destination ):
     return "{}.{}".format( destination, N )
 
   while os.path.isdir( BackupDir() ):
-    print( "Removing old dir {}".format( BackupDir() ) )
+    Print( "Removing old dir {}".format( BackupDir() ) )
     try:
       shutil.rmtree( BackupDir() )
-      print ( "OK, removed it" )
+      Print ( "OK, removed it" )
       break
     except OSError:
-      print ( "FAILED" )
+      Print ( "FAILED" )
       N = N + 1
 
   if os.path.exists( destination ):
-    print( "Removing dir {}".format( destination ) )
+    Print( "Removing dir {}".format( destination ) )
     try:
       shutil.rmtree( destination )
     except OSError:
-      print( "FAILED, moving {} to dir {}".format( destination, BackupDir() ) )
+      Print( "FAILED, moving {} to dir {}".format( destination, BackupDir() ) )
       os.rename( destination, BackupDir() )
 
 
@@ -534,7 +566,7 @@ class ModePreservingZipFile( zipfile.ZipFile ):
 
 
 def ExtractZipTo( file_path, destination, format ):
-  print( "Extracting {} to {}".format( file_path, destination ) )
+  Print( "Extracting {} to {}".format( file_path, destination ) )
   RemoveIfExists( destination )
 
   if format == 'zip':
@@ -556,7 +588,7 @@ def ExtractZipTo( file_path, destination, format ):
       # windows-generated tar files
       os.makedirs( destination )
       with CurrentWorkingDir( destination ):
-        subprocess.check_call( [ 'tar', 'zxvf', file_path ] )
+        CheckCall( [ 'tar', 'zxvf', file_path ] )
 
 
 def MakeExtensionSymlink( name, root ):
@@ -580,12 +612,7 @@ def MakeSymlink( link, pointing_to, in_folder = None ):
     link_path = os.path.abspath( link_path )
     if os.path.isdir( link_path ):
       os.rmdir( link_path )
-    subprocess.check_call( [ 'cmd.exe',
-                             '/c',
-                             'mklink',
-                             '/J',
-                             link_path,
-                             pointing_to ] )
+    CheckCall( [ 'cmd.exe', '/c', 'mklink', '/J', link_path, pointing_to ] )
   else:
     os.symlink( pointing_to_relative, link_path )
 
@@ -593,13 +620,10 @@ def MakeSymlink( link, pointing_to, in_folder = None ):
 def CloneRepoTo( url, ref, destination ):
   RemoveIfExists( destination )
   git_in_repo = [ 'git', '-C', destination ]
-  subprocess.check_call( [ 'git', 'clone', url, destination ] )
-  subprocess.check_call( git_in_repo + [ 'checkout', ref ] )
-  subprocess.check_call( git_in_repo + [ 'submodule', 'sync', '--recursive' ] )
-  subprocess.check_call( git_in_repo + [ 'submodule',
-                                         'update',
-                                         '--init',
-                                         '--recursive' ] )
+  CheckCall( [ 'git', 'clone', url, destination ] )
+  CheckCall( git_in_repo + [ 'checkout', ref ] )
+  CheckCall( git_in_repo + [ 'submodule', 'sync', '--recursive' ] )
+  CheckCall( git_in_repo + [ 'submodule', 'update', '--init', '--recursive' ] )
 
 
 def AbortIfSUperUser( force_sudo ):
@@ -613,4 +637,5 @@ def AbortIfSUperUser( force_sudo ):
       print( "*** RUNNING AS SUPER USER DUE TO force_sudo! "
              "    All bets are off. ***" )
     else:
-      sys.exit( "This script should *not* be run as super user. Aborting." )
+      raise RuntimeError(
+        "This script should *not* be run as super user. Aborting." )

@@ -268,13 +268,16 @@ There are a few ways to do this:
 
 * Using `:VimspectorInstall <adapter> <args...>` (use TAB `wildmenu` to see the
   options, also accepts any `install_gadget.py` option)
-* Using `python3 install_gadget.py <args>` (use `--help` to see all options)
+* Alternatively, using `python3 install_gadget.py <args>` (use `--help` to see
+  all options)
 * When attempting to launch a debug configuration, if the configured adapter
   can't be found, vimspector might suggest installing one.
+* Use `:VimspectorUpdate` to install the latest supported versions of the
+  gadgets.
 
-Here's a demo:
+Here's a demo of doing somee installs and an upgrade:
 
-[![asciicast](https://asciinema.org/a/M3kShmfAZ8I5YewTCCKezzrr9.svg)](https://asciinema.org/a/M3kShmfAZ8I5YewTCCKezzrr9)
+[![asciicast](https://asciinema.org/a/Hfu4ZvuyTZun8THNen9FQbTay.svg)](https://asciinema.org/a/Hfu4ZvuyTZun8THNen9FQbTay)
 
 Both `install_gadget.py` and `:VimspectorInstall` do the same set of things,
 though the default behaviours are slightly different.  For supported languages,
@@ -304,10 +307,6 @@ To install the tested debug adapter for a language, run:
 
 `"VimspectorInstall` runs `install_gadget.py` in the background with some of
 the options defaulted.
-
-Here's a demo:
-
-[![asciicast](https://asciinema.org/a/mJQmMAuQG4rOp5DWq1IhDvQty.svg)](https://asciinema.org/a/mJQmMAuQG4rOp5DWq1IhDvQty)
 
 By default `install_gadget.py` will overwrite your `.gadgets.json` with the set
 of adapters just installed, whereas `:VimspectorInstall` will _update_ it,

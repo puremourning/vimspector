@@ -621,8 +621,7 @@ def SetSyntax( current_syntax, syntax, *args ):
   # doesn't actually trigger the Syntax autocommand, and i'm not sure that
   # 'doautocmd Syntax' is the right solution or not
   for buf in args:
-    with AnyWindowForBuffer( buf ):
-      vim.command( 'set syntax={}'.format( Escape( syntax ) ) )
+    Call( 'setbufvar', buf.number, '&syntax', syntax )
 
   return syntax
 

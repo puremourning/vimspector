@@ -69,6 +69,14 @@ parser.add_argument( '--force-all',
                      action = 'store_true',
                      help = 'Enable all unsupported completers' )
 
+parser.add_argument( '--quiet',
+                     action = 'store_true',
+                     help = 'Suppress installation output' )
+
+parser.add_argument( '--verbose',
+                     action = 'store_true',
+                     help = 'Force installation output' )
+
 parser.add_argument( '--basedir',
                      action = 'store',
                      help = 'Advanced option. '
@@ -145,6 +153,7 @@ if args.basedir:
 
 install.MakeInstallDirs( vimspector_base )
 installer.Configure( vimspector_base = vimspector_base,
+                     quiet = args.quiet and not args.verbose,
                      no_check_certificate = args.no_check_certificate )
 
 if args.force_all and not args.all:
@@ -202,8 +211,11 @@ if args.basedir:
          "let g:vimspector_base_dir='" + vimspector_base + "'" )
 
 if succeeded:
-  print( "The following adapters were installed successfully: {}".format(
-    ','.join( succeeded ) ) )
+  print( "Done. The following adapters were installed successfully:\n - {}".format(
+    '\n - '.join( succeeded ) ) )
 
 if failed:
-  sys.exit( 'Failed to install adapters: {}'.format( ','.join( failed ) ) )
+  sys.exit( 'Failed to install adapters:\n * {}{}'.format(
+    '\n * '.join( failed ),
+    "\nRe-run with --verbose for more info on failures"
+       if args.quiet and not args.verbose else '' ) )

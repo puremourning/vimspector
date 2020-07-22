@@ -25,6 +25,7 @@ class TabBuffer( object ):
     self.index = index
     self.flag = False
     self.is_job = False
+    self.syntax = None
 
 
 BUFFER_MAP = {
@@ -135,17 +136,16 @@ class OutputView( object ):
           self._RenderWinBar( category )
 
 
-  def RunJobWithOutput( self, category, cmd, completion_handler = None ):
-    self._CreateBuffer( category,
-                        cmd = cmd,
-                        completion_handler = completion_handler )
+  def RunJobWithOutput( self, category, cmd, **kwargs ):
+    self._CreateBuffer( category, cmd = cmd, **kwargs )
 
 
   def _CreateBuffer( self,
                      category,
                      file_name = None,
                      cmd = None,
-                     completion_handler = None ):
+                     completion_handler = None,
+                     syntax = None ):
     if file_name is not None:
       assert cmd is None
       if install.GetOS() == "windows":
@@ -181,6 +181,12 @@ class OutputView( object ):
         utils.SetUpHiddenBuffer( tab_buffer.buf, name )
 
       self._RenderWinBar( category )
+
+    self._buffers[ category ].syntax = utils.SetSyntax(
+      self._buffers[ category ].syntax,
+      syntax,
+      self._buffers[ category ].buf )
+
 
   def _RenderWinBar( self, category ):
     if not self._window.valid:
