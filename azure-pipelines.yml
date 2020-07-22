@@ -28,7 +28,7 @@ stages:
      - bash: pip3 install -r dev_requirements.txt
        displayName: "Install requirements"
 
-     - bash: $HOME/.local/bin/vint autoload/ compiler/ plugin/ tests/
+     - bash: $HOME/.local/bin/vint autoload/ compiler/ plugin/ tests/ syntax/
        displayName: "Run vint"
 
   - job: 'linux'
