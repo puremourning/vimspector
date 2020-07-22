@@ -8,15 +8,12 @@ For a tutorial and usage overview, take a look at the
 <!--ts-->
  * [Features and Usage](#features-and-usage)
     * [Supported debugging features](#supported-debugging-features)
-    * [Supported languages:](#supported-languages)
-    * [Languages known to work](#languages-known-to-work)
-    * [Languages known not to work](#languages-known-not-to-work)
+    * [Supported languages](#supported-languages)
     * [Other languages](#other-languages)
  * [Installation](#installation)
     * [Dependencies](#dependencies)
     * [Neovim differences](#neovim-differences)
     * [Windows differences](#windows-differences)
-    * [Language dependencies](#language-dependencies)
     * [Clone the plugin](#clone-the-plugin)
     * [Install some gadgets](#install-some-gadgets)
     * [Manual gadget installation](#manual-gadget-installation)
@@ -66,7 +63,7 @@ For a tutorial and usage overview, take a look at the
  * [Customisation](#customisation)
     * [Changing the default signs](#changing-the-default-signs)
     * [Changing the default window sizes](#changing-the-default-window-sizes)
-       * [Changing the terminal size](#changing-the-terminal-size)
+    * [Changing the terminal size](#changing-the-terminal-size)
     * [Advanced UI customisation](#advanced-ui-customisation)
     * [Example](#example)
  * [FAQ](#faq)
@@ -74,7 +71,7 @@ For a tutorial and usage overview, take a look at the
  * [License](#license)
  * [Sponsorship](#sponsorship)
 
-<!-- Added by: ben, at: Sat 18 Jul 2020 12:58:35 BST -->
+<!-- Added by: ben, at: Wed 22 Jul 2020 12:38:39 BST -->
 
 <!--te-->
 
@@ -90,6 +87,12 @@ instructions for configuration and setup.
 But for now, here's a (rather old) screenshot of Vimsepctor debugging Vim:
 
 ![vimspector-vim-screenshot](https://puremourning.github.io/vimspector-web/img/vimspector-overview.png)
+
+And a couple of brief demos:
+
+[![asciicast](https://asciinema.org/a/VmptWmFHTNLPfK3DVsrR2bv8S.svg)](https://asciinema.org/a/VmptWmFHTNLPfK3DVsrR2bv8S)
+
+[![asciicast](https://asciinema.org/a/1wZJSoCgs3AvjkhKwetJOJhDh.svg)](https://asciinema.org/a/1wZJSoCgs3AvjkhKwetJOJhDh)
 
 ## Supported debugging features
 
@@ -108,31 +111,32 @@ But for now, here's a (rather old) screenshot of Vimsepctor debugging Vim:
 - logging/stdout display
 - simple stable API for custom tooling (e.g. integrate with language server)
 
-## Supported languages:
+For other languages, you'll need some other way to install the gadget.
 
-The following languages are used frequently by the author and are known to work
-with little effort, and are supported as first-class languages.
+## Supported languages
 
-- C, C++, etc. (languages supported by gdb or lldb)
-- Python 2 and Python 3
-- TCL
-- Bash scripts
-- Java
+The following table lists the languages that are "built-in" (along with their
+runtime dependencies). They are categorised by their level of support:
 
-## Languages known to work
+* `Tested` : Fully supported, Vimspector regression tests cover them
+* `Supported` : Fully supported, frequently used and manually tested
+* `Experimental`: Working, but not frequently used and rarely tested
+* `Legacy`: No longer supported, please migrate your config
 
-The following languages are used frequently by the author, but require some sort
-of hackery that makes it challenging to support generally. These languages are
-on a best-efforts basis:
-
-- C# (c-sharp) using dotnet core
-- Go (requires separate installation of [Delve][])
-- Node.js (requires node <12 for installation)
-- Anything running in chrome (i.e. javascript).
-
-## Languages known not to work
-
-- C# (c-sharp) using mono debug adapter (vimspector unable to set breakpoints)
+| Language         | Status       | Switch (for `install_gadget.py`) | Adapter (for `:VimspectorInstall`) | Dependencies                               |
+|------------------|--------------|----------------------------------|------------------------------------|--------------------------------------------|
+| C, C++, etc.     | Tested       | `--all` or `--enable-c`          | vscode-cpptools                    | mono-core                                  |
+| Python           | Tested       | `--all` or `--enable-python`     | debugpy                            | Python 2.7 or Python 3                     |
+| Go               | Tested       | `--enable-go`                    | vscode-go                          | Go, [Delve][]                              |
+| TCL              | Supported    | `--all` or `--enable-tcl`        | tclpro                             | TCL 8.5                                    |
+| Bourne Shell     | Supported    | `--all` or `--enable-bash`       | vscode-bash-debug                  | Bash v??                                   |
+| Node.js          | Supported    | `--force-enable-node`            | vscode-node-debug2                 | 6 < Node < 12, Npm                         |
+| Javascript       | Supported    | `--force-enable-chrome`          | debugger-for-chrome                | Chrome                                     |
+| Java             | Supported    | `--force-enable-java  `          | vscode-java-debug                  | Compatible LSP plugin (see [later](#java)) |
+| C# (dotnet core) | Experimental | `--force-enable-csharp`          | netcoredbg                         | DotNet core                                |
+| C# (mono)        | Experimental | `--force-enable-csharp`          | vscode-mono-debug                  | Mono                                       |
+| Rust (CodeLLDB)  | Experimental | `--force-enable-rust`            | CodeLLDB                           | Python 3                                   |
+| Python.legacy    | Legacy       | `--force-enable-python.legacy`   | vscode-python                      | Node 10, Python 2.7 or Python 3            |
 
 ## Other languages
 
@@ -224,33 +228,6 @@ The following features are not implemented for Windows:
 
 * Tailing the vimspector log in the Output Window.
 
-## Language dependencies
-
-The debug adapters themselves have certain runtime dependencies. They are
-categorised as follows:
-
-* `Tested` : Fully supported, Vimspector regression tests cover them
-* `Supported` : Fully supported, frequently used and manually tested
-* `Experimental`: Working, but not frequently used and rarely tested
-* `Legacy`: No longer supported, please migrate your config
-
-| Language         | Status       | Switch                         | Adapter             | Dependencies                               |
-|------------------|--------------|--------------------------------|---------------------|--------------------------------------------|
-| C, C++, etc.     | Tested       | `--all` or `--enable-c`        | vscode-cpptools     | mono-core                                  |
-| Python           | Tested       | `--all` or `--enable-python`   | debugpy             | Python 2.7 or Python 3                     |
-| Go               | Tested       | `--enable-go`                  | vscode-go           | Go, [Delve][]                              |
-| TCL              | Supported    | `--all` or `--enable-tcl`      | tclpro              | TCL 8.5                                    |
-| Bourne Shell     | Supported    | `--all` or `--enable-bash`     | vscode-bash-debug   | Bash v??                                   |
-| Node.js          | Supported    | `--force-enable-node`          | vscode-node-debug2  | 6 < Node < 12, Npm                         |
-| Javascript       | Supported    | `--force-enable-chrome`        | debugger-for-chrome | Chrome                                     |
-| Java             | Supported    | `--force-enable-java  `        | vscode-java-debug   | Compatible LSP plugin (see [later](#java)) |
-| C# (dotnet core) | Experimental | `--force-enable-csharp`        | netcoredbg          | DotNet core                                |
-| C# (mono)        | Experimental | `--force-enable-csharp`        | vscode-mono-debug   | Mono                                       |
-| Rust (CodeLLDB)  | Experimental | `--force-enable-rust`          | CodeLLDB            | Python 3                                   |
-| Python.legacy    | Legacy       | `--force-enable-python.legacy` | vscode-python       | Node 10, Python 2.7 or Python 3            |
-
-For other languages, you'll need some other way to install the gadget.
-
 ## Clone the plugin
 
 There are many Vim plugin managers, and I'm not going to state a particular
@@ -281,10 +258,32 @@ See support/doc/example_vimrc.vim.
 
 ## Install some gadgets
 
-There are a couple of ways of doing this, but ***using `install_gadget.py` is
-highly recommended*** where that's an option.
+Vimspector is a generic client for Debug Adapters. Debug Adapters (referred to
+as 'gadgets' or 'adapters') are what actually do the work of talking to the real
+debugers.
 
-For supported languages, `install_gadget.py` will:
+In order for Vimspector to be useful, you need to have some adapters installed.
+
+There are a few ways to do this:
+
+* If you downloaded a tarball, gadgets for main supported langauges are already
+  installed for you.
+* Using `:VimspectorInstall <adapter> <args...>` (use TAB `wildmenu` to see the
+  options, also accepts any `install_gadget.py` option)
+* Alternatively, using `python3 install_gadget.py <args>` (use `--help` to see
+  all options)
+* When attempting to launch a debug configuration, if the configured adapter
+  can't be found, vimspector might suggest installing one.
+* Use `:VimspectorUpdate` to install the latest supported versions of the
+  gadgets.
+
+Here's a demo of doing somee installs and an upgrade:
+
+[![asciicast](https://asciinema.org/a/Hfu4ZvuyTZun8THNen9FQbTay.svg)](https://asciinema.org/a/Hfu4ZvuyTZun8THNen9FQbTay)
+
+Both `install_gadget.py` and `:VimspectorInstall` do the same set of things,
+though the default behaviours are slightly different.  For supported languages,
+they will:
 
 * Download the relevant debug adapter at a version that's been tested from the
   internet, either as a 'vsix' (Visusal Studio plugin), or clone from GitHub. If
@@ -298,25 +297,25 @@ For supported languages, `install_gadget.py` will:
 
 To install the tested debug adapter for a language, run:
 
-```
-./install_gadget.py --enable-<language>
-```
+| To install                          | Script                                        | Command                                         |
+| ---                                 | ---                                           | ---                                             |
+| `<adapter>`                         |                                               | `:VimspectorInstall <adapter>`                  |
+| `<adapter1>`, `<adapter2>`, ...     |                                               | `:VimspectorInstall <adapter1> <adapter2> ...`  |
+| `<language>`                        | `./install_gadget.py --enable-<language> ...` | `:VimspectorInstall --enable-<language> ...`    |
+| Supported adapters                  | `./install_gadget.py --all`                   | `:VimspectorInstall --all`                      |
+| Supported adapters, but not TCL     | `./install_gadget.py --all --disable-tcl`     | `:VimspectorInstall --all --disable-tcl`        |
+| Supported and experimental adapters | `./install_gadget.py --all --force-all`       | `:VimspectorInstall --all`                      |
+| Adapter for specific debug config   |                                               | Suggested by Vimspector when starting debugging |
 
-Or to install all supported gagtets:
+`"VimspectorInstall` runs `install_gadget.py` in the background with some of
+the options defaulted.
 
-```
-./install_gadget.py --all
-```
+By default `install_gadget.py` will overwrite your `.gadgets.json` with the set
+of adapters just installed, whereas `:VimspectorInstall` will _update_ it,
+overwriting only newly changed or installed adapters.
 
-To install everything other than TCL (because TCL is sadly not as popular as it
-should be):
-
-```
-./install_gadget.py --all --disable-tcl
-```
-
-If you want to just add a new adapter without destroying the exisitng ones, add
-`--update-gadget-config`, as in:
+If you want to just add a new adapter using the script without destroying the
+exisitng ones, add `--update-gadget-config`, as in:
 
 ```bash
 $ ./install_gadget.py --enable-tcl
@@ -339,9 +338,15 @@ Then add this to your `.vimrc`:
 let g:vimspector_base_dir=expand( '$HOME/.vim/vimspector-config' )
 ```
 
-See `--help` for more info.
+When usnig `:VimspectorInstall`, the `g:vimspector_base_dir` setting is
+respected unless `--basedir` is manually added (not recommended).
+
+See `--help` for more info on the various options.
 
 ## Manual gadget installation
+
+If the language you want to debug is not in the supported list above, you can
+probably still make it work, but it's more effort.
 
 You essentially need to get a working installation of the debug adapter, find
 out how to start it, and configure that in an `adapters` entry in either your
@@ -352,7 +357,9 @@ its extension manager to install the relevant extension. You can then configure
 the adapter manually in the `adapters` section of your `.vimspector.json` or in
 a `gadgets.json`.
 
-PRs are always welcome to add configuration to do this to `install_gadget.py`.
+PRs are always welcome to add supported languages (which roughly translates to
+updating `python/vimspector/gadgets.py` and testing it).
+
 
 ### The gadget directory
 
@@ -415,7 +422,8 @@ Example:
 }
 ```
 
-The gadget file is automatically written by `install_gadget.py`.
+The gadget file is automatically written by `install_gadget.py` (or
+`:VimspectorInstall`).
 
 Vimspector will also load any fies matching:
 `</path/to/vimspector>/gadgets/<os>/.gadgets.d/*.json`. These have the same
@@ -445,6 +453,11 @@ There's also a C++ project in `tests/testdata/cpp/simple/` with a `Makefile`
 which can be used to check everything is working. This is used by the regression
 tests in CI so should always work, and is a good way to check if the problem is
 your configuration rather than a bug.
+
+## Upgrade
+
+After updating the Vimspector code (either via `git pull` or whatever pacakge
+manager), run `:VimspectorUpdate` to update any already-installed gadets.
 
 # About
 
@@ -865,9 +878,9 @@ an example of getting Vimspector to remotely launch and attach.
 ## Python
 
 * Python: [debugpy][]
-* Requires `install_gadget.py --enable-python`, ideally requires a working
-  compiler and the python development headers/libs to build a C python extension
-  for performance.
+* Install with `install_gadget.py --enable-python` or `:VimspectorInstall
+  debugpy`, ideally requires a working compiler and the python development
+  headers/libs to build a C python extension for performance.
 * Full options: https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
 
 
@@ -978,7 +991,8 @@ See [my fork of TclProDebug](https://github.com/puremourning/TclProDebug) for in
 
 * C# - dotnet core
 
-Requires `install_gadget.py --force-enable-csharp`
+Install with `install_gadget.py --force-enable-csharp` or `:VimspectorInstall
+netcoredbg`
 
 ```json
 {
@@ -998,7 +1012,8 @@ Requires `install_gadget.py --force-enable-csharp`
 
 * C# - mono
 
-Requires `install_gadget.py --force-enable-csharp`.
+Install with `install_gadget.py --force-enable-csharp` or `:VimspectorInstall
+vscode-mono-debug`.
 
 ***Known not to work.***
 
@@ -1029,7 +1044,7 @@ Requires `install_gadget.py --force-enable-csharp`.
 
 Requires:
 
-* `install_gadget.py --enable-go`
+* `install_gadget.py --enable-go` or `:VimspectorInstall vscode-go`
 * [Delve][delve-install] installed, e.g. `go get -u github.com/go-delve/delve/cmd/dlv`
 * Delve to be in your PATH, or specify the `dlvToolPath` launch option
 
@@ -1057,7 +1072,8 @@ https://marketplace.visualstudio.com/items?itemName=felixfbecker.php-debug
 Requires:
 
 * (optional) Xdebug helper for chrome https://chrome.google.com/webstore/detail/xdebug-helper/eadndfjplgieldjbigjakmdgkmoaaaoc
-* `install_gadget.py --force-enable-php`
+* `install_gadget.py --force-enable-php` or `:VimspectorInstall
+  vscode-php-debug`
 * configured php xdebug extension
 ```ini
 zend_extension=xdebug.so
@@ -1161,7 +1177,8 @@ https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome
 
 It allows you to debug scripts running inside chrome from within Vim.
 
-* `./install_gadget.py --force-enable-chrome`
+* `./install_gadget.py --force-enable-chrome` or `:VimspectorInstall 
+  debugger-for-chrome`
 * Example: `support/test/chrome`
 
 ```json
@@ -1195,7 +1212,8 @@ use it with Vimspector.
 
 * Set up [YCM for java][YcmJava].
 * Get Vimspector to download the java debug plugin:
-   `install_gadget.py --force-enable-java <other options...>`
+   `install_gadget.py --force-enable-java <other options...>` or
+   `:VimspectorInstall java-debug-adapter` 
 * Configure Vimspector for your project using the `vscode-java` adapter, e.g.:
 
 ```json
@@ -1266,7 +1284,7 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
 `vscode-cpptools` and `lldb-vscode` above. However, support for rust is best in
 [`CodeLLDB`](https://github.com/vadimcn/vscode-lldb#features).
 
-* `./install_gadget.py --force-enable-rust`
+* `./install_gadget.py --force-enable-rust` or `:VimspectorInstall CodeLLDB`
 * Example: `support/test/rust/vimspector_test`
 
 ```json
@@ -1477,6 +1495,14 @@ syn region jsonComment start="/\*" end="\*/"
 hi link jsonCommentError Comment
 hi link jsonComment Comment
 ```
+
+7. What is the difference between a `gadget` and an `adapter`? A gadget is
+   somethin you install with `:VimspectorInstall` or `install_gadget.py`, an
+   `adapter` is something that Vimspector talks to (actually it's the Vimsepctor
+   config describing that thing). These are _usually_ one-to-one,
+   but in theory a single gadget can supply multiple `adapter` configs.
+   Typically this happens when a `gadget` supplies different `adapter` config
+   for, say remote debugging, or debugging in a container, etc.
 
 # Motivation
 

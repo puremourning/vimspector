@@ -20,29 +20,47 @@ set cpoptions&vim
 " }}}
 
 
-call vimspector#internal#state#Reset()
+let s:enabled = vimspector#internal#state#Reset()
 
 function! vimspector#Launch() abort
+  if !s:enabled
+    return
+  endif
   py3 _vimspector_session.Start()
 endfunction
 
 function! vimspector#LaunchWithSettings( settings ) abort
+  if !s:enabled
+    return
+  endif
   py3 _vimspector_session.Start( launch_variables = vim.eval( 'a:settings' ) )
 endfunction
 
 function! vimspector#Reset() abort
+  if !s:enabled
+    return
+  endif
   py3 _vimspector_session.Reset()
 endfunction
 
 function! vimspector#Restart() abort
+  if !s:enabled
+    return
+  endif
   py3 _vimspector_session.Restart()
 endfunction
 
 function! vimspector#ClearBreakpoints() abort
+  if !s:enabled
+    return
+  endif
   py3 _vimspector_session.ClearBreakpoints()
 endfunction
 
 function! vimspector#ToggleBreakpoint( ... ) abort
+  if !s:enabled
+    return
+  endif
   if a:0 == 0
     let options = {}
   else
@@ -52,6 +70,9 @@ function! vimspector#ToggleBreakpoint( ... ) abort
 endfunction
 
 function! vimspector#AddFunctionBreakpoint( function, ... ) abort
+  if !s:enabled
+    return
+  endif
   if a:0 == 0
     let options = {}
   else
@@ -62,42 +83,72 @@ function! vimspector#AddFunctionBreakpoint( function, ... ) abort
 endfunction
 
 function! vimspector#StepOver() abort
+  if !s:enabled
+    return
+  endif
   py3 _vimspector_session.StepOver()
 endfunction
 
 function! vimspector#StepInto() abort
+  if !s:enabled
+    return
+  endif
   py3 _vimspector_session.StepInto()
 endfunction
 
 function! vimspector#StepOut() abort
+  if !s:enabled
+    return
+  endif
   py3 _vimspector_session.StepOut()
 endfunction
 
 function! vimspector#Continue() abort
+  if !s:enabled
+    return
+  endif
   py3 _vimspector_session.Continue()
 endfunction
 
 function! vimspector#Pause() abort
+  if !s:enabled
+    return
+  endif
   py3 _vimspector_session.Pause()
 endfunction
 
 function! vimspector#Stop() abort
+  if !s:enabled
+    return
+  endif
   py3 _vimspector_session.Stop()
 endfunction
 
 function! vimspector#ExpandVariable() abort
+  if !s:enabled
+    return
+  endif
   py3 _vimspector_session.ExpandVariable()
 endfunction
 
 function! vimspector#DeleteWatch() abort
+  if !s:enabled
+    return
+  endif
   py3 _vimspector_session.DeleteWatch()
 endfunction
 
 function! vimspector#GoToFrame() abort
+  if !s:enabled
+    return
+  endif
   py3 _vimspector_session.ExpandFrameOrThread()
 endfunction
 
 function! vimspector#AddWatch( ... ) abort
+  if !s:enabled
+    return
+  endif
   if a:0 == 0
     let expr = input( 'Enter watch expression: ' )
   else
@@ -112,43 +163,120 @@ function! vimspector#AddWatch( ... ) abort
 endfunction
 
 function! vimspector#AddWatchPrompt( expr ) abort
+  if !s:enabled
+    return
+  endif
   stopinsert
   setlocal nomodified
   call vimspector#AddWatch( a:expr )
 endfunction
 
 function! vimspector#Evaluate( expr ) abort
+  if !s:enabled
+    return
+  endif
   py3 _vimspector_session.ShowOutput( 'Console' )
   py3 _vimspector_session.EvaluateConsole( vim.eval( 'a:expr' ) )
 endfunction
 
 function! vimspector#EvaluateConsole( expr ) abort
+  if !s:enabled
+    return
+  endif
   stopinsert
   setlocal nomodified
   py3 _vimspector_session.EvaluateConsole( vim.eval( 'a:expr' ) )
 endfunction
 
 function! vimspector#ShowOutput( category ) abort
+  if !s:enabled
+    return
+  endif
   py3 _vimspector_session.ShowOutput( vim.eval( 'a:category' ) )
 endfunction
 
+function! vimspector#ShowOutputInWindow( win_id, category ) abort
+  if !s:enabled
+    return
+  endif
+  py3 __import__( 'vimspector',
+        \         fromlist = [ 'output' ] ).output.ShowOutputInWindow(
+        \           int( vim.eval( 'a:win_id' ) ),
+        \           vim.eval( 'a:category' ) )
+endfunction
+
 function! vimspector#ListBreakpoints() abort
+  if !s:enabled
+    return
+  endif
   py3 _vimspector_session.ListBreakpoints()
 endfunction
 
 function! vimspector#CompleteOutput( ArgLead, CmdLine, CursorPos ) abort
+  if !s:enabled
+    return
+  endif
   let buffers = py3eval( '_vimspector_session.GetOutputBuffers() '
                        \ . ' if _vimspector_session else []' )
   return join( buffers, "\n" )
 endfunction
 
 function! vimspector#CompleteExpr( ArgLead, CmdLine, CursorPos ) abort
+  if !s:enabled
+    return
+  endif
   return join( py3eval( '_vimspector_session.GetCompletionsSync( '
                       \.'  vim.eval( "a:CmdLine" ),'
                       \.'  int( vim.eval( "a:CursorPos" ) ) )'
                       \. '   if _vimspector_session else []' ),
              \ "\n" )
 endfunction
+
+function! vimspector#Install( ... ) abort
+  if !s:enabled
+    return
+  endif
+  if a:0 < 1
+    return
+  endif
+  let prefix = vimspector#internal#state#GetAPIPrefix()
+  py3 __import__( 'vimspector',
+        \         fromlist = [ 'installer' ] ).installer.RunInstaller(
+        \           vim.eval( 'prefix' ),
+        \           *vim.eval( 'a:000' ) )
+endfunction
+
+function! vimspector#CompleteInstall( ArgLead, CmdLine, CursorPos ) abort
+  if !s:enabled
+    return
+  endif
+  return py3eval( '"\n".join('
+                \ .   '__import__( "vimspector", fromlist = [ "gadgets" ] )'
+                \ .   '.gadgets.GADGETS.keys() '
+                \ . ')' )
+endfunction
+
+function! vimspector#Update( ... ) abort
+  if !s:enabled
+    return
+  endif
+
+  let prefix = vimspector#internal#state#GetAPIPrefix()
+  py3 __import__( 'vimspector',
+        \         fromlist = [ 'installer' ] ).installer.RunUpdate(
+        \           vim.eval( 'prefix' ),
+        \           *vim.eval( 'a:000' ) )
+endfunction
+
+function! vimspector#AbortInstall() abort
+  if !s:enabled
+    return
+  endif
+
+  let prefix = vimspector#internal#state#GetAPIPrefix()
+  py3 __import__( 'vimspector', fromlist = [ 'installer' ] ).installer.Abort()
+endfunction
+
 
 " Boilerplate {{{
 let &cpoptions=s:save_cpo

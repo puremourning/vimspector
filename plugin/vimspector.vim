@@ -34,6 +34,7 @@ endif
 "   - Add commands/mappings/menus?
 
 let g:loaded_vimpector = 1
+let g:vimspector_home = expand( '<sfile>:p:h:h' )
 
 let s:mappings = get( g:, 'vimspector_enable_mappings', '' )
 
@@ -96,6 +97,19 @@ command! -bar -nargs=1 -complete=custom,vimspector#CompleteExpr
 command! -bar
       \ VimspectorReset
       \ call vimspector#Reset()
+
+" Installer commands
+command! -bar -nargs=* -complete=custom,vimspector#CompleteInstall
+      \ VimspectorInstall
+      \ call vimspector#Install( <f-args> )
+command! -bar -nargs=*
+      \ VimspectorUpdate
+      \ call vimspector#Update( <f-args> )
+command! -bar -nargs=0
+      \ VimspectorAbortInstall
+      \ call vimspector#AbortInstall()
+
+
 
 " Dummy autocommands so that we can call this whenever
 augroup VimspectorUserAutoCmds

@@ -19,18 +19,31 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 " }}}
 
-let s:is_neovim = has( 'nvim' )
+let s:prefix = ''
+if has( 'nvim' )
+  let s:prefix='neo'
+endif
 
 function! vimspector#internal#state#Reset() abort
-  let prefix = ''
-  if s:is_neovim
-    let prefix='neo'
-  endif
-    py3 << EOF
-import vim
-from vimspector import debug_session
-_vimspector_session = debug_session.DebugSession( vim.eval( 'prefix' ) )
-EOF
+  try
+    py3 import vim
+    py3 _vimspector_session = __import__(
+          \ "vimspector",
+          \ fromlist=[ "debug_session" ] ).debug_session.DebugSession(
+          \   vim.eval( 's:prefix' ) )
+  catch /.*/
+    echohl WarningMsg
+    echom 'Exception while loading vimspector:' v:exception
+    echom 'Vimspector unavailable: Requires Vim compiled with Python 3.6'
+    echohl None
+    return v:false
+  endtry
+
+  return v:true
+endfunction
+
+function! vimspector#internal#state#GetAPIPrefix() abort
+  return s:prefix
 endfunction
 
 " Boilerplate {{{

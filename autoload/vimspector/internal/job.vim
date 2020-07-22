@@ -146,6 +146,13 @@ function! vimspector#internal#job#Reset() abort
   call vimspector#internal#job#StopDebugSession()
 endfunction
 
+function! s:_OnCommandExit( category, ch, code ) abort
+  py3 __import__( "vimspector",
+        \         fromlist = [ "utils" ] ).utils.OnCommandWithLogComplete(
+        \           vim.eval( 'a:category' ),
+        \           int( vim.eval( 'a:code' ) ) )
+endfunction
+
 function! vimspector#internal#job#StartCommandWithLog( cmd, category ) abort
   if ! exists( 's:commands' )
     let s:commands = {}
@@ -157,14 +164,19 @@ function! vimspector#internal#job#StartCommandWithLog( cmd, category ) abort
 
   let l:index = len( s:commands[ a:category ] )
 
+  let buf = '_vimspector_log_' . a:category
+
   call add( s:commands[ a:category ], job_start(
         \ a:cmd,
         \ {
         \   'out_io': 'buffer',
         \   'in_io': 'null',
         \   'err_io': 'buffer',
-        \   'out_name': '_vimspector_log_' . a:category . '_out',
-        \   'err_name': '_vimspector_log_' . a:category . '_err',
+        \   'out_msg': 0,
+        \   'err_msg': 0,
+        \   'out_name': buf,
+        \   'err_name': buf,
+        \   'exit_cb': funcref( 's:_OnCommandExit', [ a:category ] ),
         \   'out_modifiable': 0,
         \   'err_modifiable': 0,
         \   'stoponexit': 'kill'
@@ -176,12 +188,7 @@ function! vimspector#internal#job#StartCommandWithLog( cmd, category ) abort
     return v:none
   endif
 
-  let l:stdout = ch_getbufnr(
-        \ job_getchannel( s:commands[ a:category ][ index ] ), 'out' )
-  let l:stderr = ch_getbufnr(
-        \ job_getchannel( s:commands[ a:category ][ index ] ), 'err' )
-
-  return [ l:stdout, l:stderr ]
+  return bufnr( buf )
 endfunction
 
 

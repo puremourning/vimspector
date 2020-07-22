@@ -124,11 +124,11 @@ class View:
 
 
 class VariablesView( object ):
-  def __init__( self, connection, variables_win, watches_win ):
+  def __init__( self, variables_win, watches_win ):
     self._logger = logging.getLogger( __name__ )
     utils.SetUpLogging( self._logger )
 
-    self._connection = connection
+    self._connection = None
     self._current_syntax = ''
 
     # Set up the "Variables" buffer in the variables_win

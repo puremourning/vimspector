@@ -30,7 +30,8 @@ from vimspector import ( breakpoints,
                          stack_trace,
                          utils,
                          variables,
-                         settings )
+                         settings,
+                         installer )
 from vimspector.vendor.json_minify import minify
 
 # We cache this once, and don't allow it to change (FIXME?)
@@ -51,8 +52,7 @@ class DebugSession( object ):
     self._logger.info( "API is: {}".format( api_prefix ) )
     self._logger.info( 'VIMSPECTOR_HOME = %s', VIMSPECTOR_HOME )
     self._logger.info( 'gadgetDir = %s',
-                       install.GetGadgetDir( VIMSPECTOR_HOME,
-                                             install.GetOS() ) )
+                       install.GetGadgetDir( VIMSPECTOR_HOME ) )
 
     self._uiTab = None
     self._stackTraceView = None
@@ -91,7 +91,7 @@ class DebugSession( object ):
     configurations = {}
     adapters = {}
 
-    glob.glob( install.GetGadgetDir( VIMSPECTOR_HOME, install.GetOS() ) )
+    glob.glob( install.GetGadgetDir( VIMSPECTOR_HOME ) )
     for gadget_config_file in PathsToAllGadgetConfigs( VIMSPECTOR_HOME,
                                                        current_file ):
       self._logger.debug( f'Reading gadget config: {gadget_config_file}' )
@@ -152,6 +152,24 @@ class DebugSession( object ):
       adapter_dict = adapters.get( adapter )
 
       if adapter_dict is None:
+        suggested_gadgets = installer.FindGadgetForAdapter( adapter )
+        if suggested_gadgets:
+          response = utils.AskForInput(
+            f"The specified adapter '{adapter}' is not "
+            "installed. Would you like to install the following gadgets? ",
+            ' '.join( suggested_gadgets ) )
+          if response:
+            new_launch_variables = dict( launch_variables )
+            new_launch_variables[ 'configuration' ] = configuration_name
+
+            installer.RunInstaller(
+              self._api_prefix,
+              *shlex.split( response ),
+              then = lambda: self.Start( new_launch_variables ) )
+            return
+          elif response is None:
+            return
+
         utils.UserMessage( f"The specified adapter '{adapter}' is not "
                            "available. Did you forget to run "
                            "'install_gadget.py'?",
@@ -192,7 +210,7 @@ class DebugSession( object ):
       'dollar': '$', # HACK. Hote '$$' also works.
       'workspaceRoot': self._workspace_root,
       'workspaceFolder': self._workspace_root,
-      'gadgetDir': install.GetGadgetDir( VIMSPECTOR_HOME, install.GetOS() ),
+      'gadgetDir': install.GetGadgetDir( VIMSPECTOR_HOME ),
       'file': current_file,
     }
 
@@ -529,7 +547,6 @@ class DebugSession( object ):
     stack_trace_window = vim.current.window
     one_third = int( vim.eval( 'winheight( 0 )' ) ) / 3
     self._stackTraceView = stack_trace.StackTraceView( self,
-                                                       self._connection,
                                                        stack_trace_window )
 
     # Watches
@@ -547,17 +564,15 @@ class DebugSession( object ):
     with utils.LetCurrentWindow( stack_trace_window ):
       vim.command( f'{ one_third }wincmd _' )
 
-    self._variablesView = variables.VariablesView( self._connection,
-                                                   vars_window,
+    self._variablesView = variables.VariablesView( vars_window,
                                                    watch_window )
 
     # Output/logging
     vim.current.window = code_window
     vim.command( f'rightbelow { settings.Int( "bottombar_height", 10 ) }new' )
     output_window = vim.current.window
-    self._outputView = output.OutputView( self._connection,
-                                          output_window,
-                                          self._api_prefix )
+    self._outputView = output.DAPOutputView( output_window,
+                                             self._api_prefix )
 
     # TODO: If/when we support multiple sessions, we'll need some way to
     # indicate which tab was created and store all the tabs

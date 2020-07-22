@@ -52,6 +52,12 @@ def BufferForFile( file_name ):
   return vim.buffers[ BufferNumberForFile( file_name ) ]
 
 
+def NewEmptyBuffer():
+  bufnr = int( vim.eval( 'bufadd("")' ) )
+  Call( 'bufload', bufnr )
+  return vim.buffers[ bufnr ]
+
+
 def WindowForBuffer( buf ):
   for w in vim.current.tabpage.windows:
     if w.buffer == buf:
@@ -71,21 +77,30 @@ def OpenFileInCurrentWindow( file_name ):
   return vim.buffers[ buffer_number ]
 
 
-def SetUpCommandBuffer( cmd, name, api_prefix ):
-  bufs = vim.eval(
-    'vimspector#internal#{}job#StartCommandWithLog( {}, "{}" )'.format(
-      api_prefix,
-      json.dumps( cmd ),
-      name ) )
+COMMAND_HANDLERS = {}
 
-  if bufs is None:
+
+def OnCommandWithLogComplete( name, exit_code ):
+  cb = COMMAND_HANDLERS.get( name )
+  if cb:
+    cb( exit_code )
+
+
+def SetUpCommandBuffer( cmd, name, api_prefix, completion_handler = None ):
+  COMMAND_HANDLERS[ name ] = completion_handler
+
+  buf = Call( f'vimspector#internal#{api_prefix}job#StartCommandWithLog',
+              cmd,
+              name )
+
+  if buf is None:
     raise RuntimeError( "Unable to start job {}: {}".format( cmd, name ) )
-  elif not all( int( b ) > 0 for b in bufs ):
+  elif int( buf ) <= 0:
     raise RuntimeError( "Unable to get all streams for job {}: {}".format(
       name,
       cmd ) )
 
-  return [ vim.buffers[ int( b ) ] for b in bufs ]
+  return vim.buffers[ int( buf ) ]
 
 
 def CleanUpCommand( name, api_prefix ):
@@ -184,9 +199,8 @@ def RestoreCurrentWindow():
   try:
     yield
   finally:
-    if old_tabpage.valid:
+    if old_tabpage.valid and old_window.valid:
       vim.current.tabpage = old_tabpage
-    if old_window.valid:
       vim.current.window = old_window
 
 
@@ -343,6 +357,7 @@ def AskForInput( prompt, default_value = None ):
 
 
 def AppendToBuffer( buf, line_or_lines, modified=False ):
+  line = 1
   try:
     # After clearing the buffer (using buf[:] = None) there is always a single
     # empty line in the buffer object and no "is empty" method.
@@ -558,7 +573,6 @@ def Call( vimscript_function, *args ):
     call += 'g:' + arg_name
 
   call += ')'
-  _logger.debug( 'Calling: {}'.format( call ) )
   return vim.eval( call )
 
 
@@ -605,8 +619,7 @@ def SetSyntax( current_syntax, syntax, *args ):
   # doesn't actually trigger the Syntax autocommand, and i'm not sure that
   # 'doautocmd Syntax' is the right solution or not
   for buf in args:
-    with AnyWindowForBuffer( buf ):
-      vim.command( 'set syntax={}'.format( Escape( syntax ) ) )
+    Call( 'setbufvar', buf.number, '&syntax', syntax )
 
   return syntax
 
@@ -633,16 +646,26 @@ def HideSplash( api_prefix, splash ):
   return None
 
 
+def GetVimString( vim_dict, name, default=None ):
+
+  # FIXME: use 'encoding' ?
+  try:
+    value = vim_dict[ name ]
+  except KeyError:
+    return default
+
+  if isinstance( value, bytes ):
+    return value.decode( 'utf-8' )
+  return value
+
+
 def GetVimspectorBase():
-  base = vim.vars.get( 'vimspector_base_dir' )
-  if base is None:
-    return os.path.abspath( os.path.join( os.path.dirname( __file__ ),
-                                          '..',
-                                          '..' ) )
-  elif isinstance( base, bytes ):
-    return base.decode( 'utf-8' )
-  else:
-    return base
+  return GetVimString( vim.vars,
+                       'vimspector_base_dir',
+                       os.path.abspath(
+                         os.path.join( os.path.dirname( __file__ ),
+                                       '..',
+                                       '..' ) ) )
 
 
 def GetUnusedLocalPort():
@@ -655,5 +678,7 @@ def GetUnusedLocalPort():
   return port
 
 
-def WindowID( window, tab ):
+def WindowID( window, tab=None ):
+  if tab is None:
+    tab = window.tabpage
   return int( Call( 'win_getid', window.number, tab.number ) )
