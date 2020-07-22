@@ -170,7 +170,6 @@ function! vimspector#internal#job#StartCommandWithLog( cmd, category ) abort
         \ a:cmd,
         \ {
         \   'out_io': 'buffer',
-        \   'in_io': 'null',
         \   'err_io': 'buffer',
         \   'out_msg': 0,
         \   'err_msg': 0,

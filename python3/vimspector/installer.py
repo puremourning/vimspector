@@ -59,14 +59,13 @@ def Print( *args, **kwargs ):
 
 def CheckCall( *args, **kwargs ):
   if options.quiet:
-    out = subprocess.PIPE
+    try:
+      subprocess.check_output( *args, stderr=subprocess.STDOUT, **kwargs )
+    except subprocess.CalledProcessError as e:
+      print( e.output.decode( 'utf-8' ) )
+      raise
   else:
-    out = sys.stdout
-
-  kwargs[ 'stdout' ] = out
-  kwargs[ 'stderr' ] = subprocess.STDOUT
-
-  subprocess.check_call( *args, **kwargs )
+    subprocess.check_call( *args, **kwargs )
 
 
 def PathToAnyWorkingPython3():
@@ -477,7 +476,7 @@ def DownloadFileTo( url,
 
   r = request.Request( url, headers = { 'User-Agent': 'Vimspector' } )
 
-  print( "Downloading {} to {}/{}".format( url, destination, file_name ) )
+  Print( "Downloading {} to {}/{}".format( url, destination, file_name ) )
 
   if not check_certificate:
     context = ssl.create_default_context()
@@ -517,7 +516,7 @@ def ValidateCheckSumSHA256( file_path, checksum ):
 
 def RemoveIfExists( destination ):
   if os.path.islink( destination ):
-    Print( "Removing file {}".format( destination ) )
+    Print( "Removing link {}".format( destination ) )
     os.remove( destination )
     return
 
@@ -533,8 +532,8 @@ def RemoveIfExists( destination ):
       shutil.rmtree( BackupDir() )
       Print ( "OK, removed it" )
       break
-    except OSError:
-      Print ( "FAILED" )
+    except OSError as e:
+      Print ( f"FAILED to remove {BackupDir()}: {e}" )
       N = N + 1
 
   if os.path.exists( destination ):
@@ -609,7 +608,7 @@ def MakeSymlink( link, pointing_to, in_folder = None ):
     link_path = os.path.abspath( link_path )
     if os.path.isdir( link_path ):
       os.rmdir( link_path )
-    CheckCall( [ 'cmd.exe', '/c', 'mklink', '/J', link_path, pointing_to ] )
+    CheckCall( [ 'cmd.exe', '/c', 'mklink', '/D', link_path, pointing_to ] )
   else:
     os.symlink( pointing_to_relative, link_path )
 
