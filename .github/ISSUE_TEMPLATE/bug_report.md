@@ -54,7 +54,7 @@ paste here
 paste here
 ```
 
-* Output of `:py3 pass`:
+* Output of `:py3 print( __import__( 'sys' ).version )`:
 
 ```
 paste here
@@ -65,6 +65,13 @@ paste here
 ```
 paste here
 ```
+
+* Output of `:py3 import vimspector`:
+
+```
+paste here
+```
+
 
 * For neovim: output of `:checkhealth`
 
