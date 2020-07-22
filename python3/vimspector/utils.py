@@ -52,6 +52,12 @@ def BufferForFile( file_name ):
   return vim.buffers[ BufferNumberForFile( file_name ) ]
 
 
+def NewEmptyBuffer():
+  bufnr = int( vim.eval( 'bufadd("")' ) )
+  Call( 'bufload', bufnr )
+  return vim.buffers[ bufnr ]
+
+
 def WindowForBuffer( buf ):
   for w in vim.current.tabpage.windows:
     if w.buffer == buf:
@@ -353,6 +359,7 @@ def AskForInput( prompt, default_value = None ):
 
 
 def AppendToBuffer( buf, line_or_lines, modified=False ):
+  line = 1
   try:
     # After clearing the buffer (using buf[:] = None) there is always a single
     # empty line in the buffer object and no "is empty" method.

@@ -90,7 +90,6 @@ def RunInstaller( api_prefix, *args, **kwargs ):
   vimspector_home = utils.GetVimString( vim.vars, 'vimspector_home' )
   vimspector_base_dir = utils.GetVimspectorBase()
 
-  # TODO: Translate the arguments to something more user-friendly than -- args
   global OUTPUT_VIEW
   if OUTPUT_VIEW:
     OUTPUT_VIEW.Reset()

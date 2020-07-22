@@ -52,6 +52,8 @@ def ShowOutputInWindow( win_id, category ):
 
 
 class OutputView( object ):
+  """Container for a 'tabbed' window of buffers that can be used to display
+  files or the output of commands."""
   def __init__( self, window, api_prefix ):
     self._window = window
     self._buffers = {}
@@ -144,75 +146,73 @@ class OutputView( object ):
                      file_name = None,
                      cmd = None,
                      completion_handler = None ):
-    win = self._window
-    if not win.valid:
-      # We need to borrow the current window
-      win = vim.current.window
+    if file_name is not None:
+      assert cmd is None
+      if install.GetOS() == "windows":
+        # FIXME: Can't display fiels in windows (yet?)
+        return
 
-    with utils.LetCurrentWindow( win ):
-      with utils.RestoreCurrentBuffer( win ):
+      cmd = [ 'tail', '-F', '-n', '+1', '--', file_name ]
 
-        if file_name is not None:
-          assert cmd is None
-          if install.GetOS() == "windows":
-            # FIXME: Can't display fiels in windows (yet?)
-            return
+    if cmd is not None:
+      out = utils.SetUpCommandBuffer(
+        cmd,
+        category,
+        self._api_prefix,
+        completion_handler = completion_handler )
+      self._buffers[ category ] = TabBuffer( out, len( self._buffers ) )
+      self._buffers[ category ].is_job = True
+      self._RenderWinBar( category )
+    else:
+      if category == 'Console':
+        name = 'vimspector.Console'
+      else:
+        name = 'vimspector.Output:{0}'.format( category )
 
-          cmd = [ 'tail', '-F', '-n', '+1', '--', file_name ]
+      tab_buffer = TabBuffer( utils.NewEmptyBuffer(), len( self._buffers ) )
+      self._buffers[ category ] = tab_buffer
 
-        if cmd is not None:
-          out = utils.SetUpCommandBuffer(
-            cmd,
-            category,
-            self._api_prefix,
-            completion_handler = completion_handler )
-          self._buffers[ category ] = TabBuffer( out, len( self._buffers ) )
-          self._buffers[ category ].is_job = True
-          self._RenderWinBar( category )
-        else:
-          vim.command( 'enew' )
-          tab_buffer = TabBuffer( vim.current.buffer, len( self._buffers ) )
-          self._buffers[ category ] = tab_buffer
-          if category == 'Console':
-            utils.SetUpPromptBuffer( tab_buffer.buf,
-                                     'vimspector.Console',
-                                     '> ',
-                                     'vimspector#EvaluateConsole' )
-          else:
-            utils.SetUpHiddenBuffer(
-              tab_buffer.buf,
-              'vimspector.Output:{0}'.format( category ) )
+      if category == 'Console':
+        utils.SetUpPromptBuffer( tab_buffer.buf,
+                                 name,
+                                 '> ',
+                                 'vimspector#EvaluateConsole' )
+      else:
+        utils.SetUpHiddenBuffer( tab_buffer.buf, name )
 
-          self._RenderWinBar( category )
+      self._RenderWinBar( category )
 
   def _RenderWinBar( self, category ):
     if not self._window.valid:
       return
 
-    tab_buffer = self._buffers[ category ]
+    with utils.LetCurrentWindow( self._window ):
+      tab_buffer = self._buffers[ category ]
 
-    try:
-      if tab_buffer.flag:
-        vim.command( 'nunmenu WinBar.{}'.format( utils.Escape( category ) ) )
-      else:
-        vim.command( 'nunmenu WinBar.{}*'.format( utils.Escape( category ) ) )
-    except vim.error as e:
-      # E329 means the menu doesn't exist; ignore that.
-      if 'E329' not in str( e ):
-        raise
+      try:
+        if tab_buffer.flag:
+          vim.command( 'nunmenu WinBar.{}'.format( utils.Escape( category ) ) )
+        else:
+          vim.command( 'nunmenu WinBar.{}*'.format( utils.Escape( category ) ) )
+      except vim.error as e:
+        # E329 means the menu doesn't exist; ignore that.
+        if 'E329' not in str( e ):
+          raise
 
-    vim.command( "nnoremenu  1.{0} WinBar.{1}{2} "
-                 ":call vimspector#ShowOutputInWindow( {3}, '{1}' )<CR>".format(
-                   tab_buffer.index,
-                   utils.Escape( category ),
-                   '*' if tab_buffer.flag else '',
-                   utils.WindowID( self._window ) ) )
+      vim.command(
+        "nnoremenu  1.{0} WinBar.{1}{2} "
+        ":call vimspector#ShowOutputInWindow( {3}, '{1}' )<CR>".format(
+          tab_buffer.index,
+          utils.Escape( category ),
+          '*' if tab_buffer.flag else '',
+          utils.WindowID( self._window ) ) )
 
   def GetCategories( self ):
     return list( self._buffers.keys() )
 
 
 class DAPOutputView( OutputView ):
+  """Specialised OutputView which adds the DAP Console (REPL)"""
   def __init__( self, *args ):
     super().__init__( *args )
 
