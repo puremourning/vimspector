@@ -55,7 +55,7 @@ stages:
     - bash: |
         eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
         export GOPATH=$HOME/go
-        ./run_tests --install --report messages --quiet
+        ./run_tests --install --update --report messages --quiet
       displayName: 'Run the tests'
       env:
         VIMSPECTOR_MIMODE: gdb
@@ -96,7 +96,7 @@ stages:
     - bash: vim --version
       displayName: 'Print vim version information'
 
-    - bash: ./run_tests --install --report messages --quiet
+    - bash: ./run_tests --install --update --report messages --quiet
       displayName: 'Run the tests'
       env:
         VIMSPECTOR_MIMODE: lldb

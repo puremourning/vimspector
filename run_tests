@@ -2,6 +2,7 @@
 
 BASEDIR=$(dirname $0)
 INSTALL=0
+UPDATE=0
 RUN_VIM="vim -N --clean --not-a-term"
 RUN_TEST="${RUN_VIM} -S lib/run_test.vim"
 BASEDIR_CMD='py3 pass'
@@ -28,6 +29,10 @@ while [ -n "$1" ]; do
     "--install-method")
       shift
       INSTALL=$1
+      shift
+      ;;
+    "--update")
+      UPDATE=1
       shift
       ;;
     "--report")
@@ -93,6 +98,18 @@ if [ "$INSTALL" = "1" ] || [ "$INSTALL" = "vim" ]; then
     exit 1
   fi
 fi
+
+if [ "$UPDATE" = "1" ]; then
+  if ! $RUN_VIM -u $(dirname $0)/tests/vimrc \
+               --cmd "${BASEDIR_CMD}" \
+               -c 'autocmd User VimspectorInstallSuccess qa!' \
+               -c 'autocmd User VimspectorInstallFailed cquit!' \
+               -c "VimspectorUpdate"; then
+    echo "Vim update reported errors" >&2
+    exit 1
+  fi
+fi
+
 
 if [ -z "$VIMSPECTOR_MIMODE" ]; then
   if which lldb >/dev/null 2>&1; then
