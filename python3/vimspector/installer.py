@@ -95,7 +95,7 @@ def PathToAnyWorkingPython3():
   raise RuntimeError( "Unable to find a working python3" )
 
 
-def RunInstaller( api_prefix, *args, **kwargs ):
+def RunInstaller( api_prefix, leave_open, *args, **kwargs ):
   from vimspector import utils, output, settings
   import vim
 
@@ -125,7 +125,8 @@ def RunInstaller( api_prefix, *args, **kwargs ):
 
   def handler( exit_code ):
     if exit_code == 0:
-      _ResetInstaller()
+      if not leave_open:
+        _ResetInstaller()
       utils.UserMessage( "Vimspector gadget installation complete!" )
       vim.command( 'silent doautocmd User VimspectorInstallSuccess' )
       if 'then' in kwargs:
@@ -143,7 +144,7 @@ def RunInstaller( api_prefix, *args, **kwargs ):
   OUTPUT_VIEW.ShowOutput( 'Installer' )
 
 
-def RunUpdate( api_prefix, *args ):
+def RunUpdate( api_prefix, leave_open, *args ):
   from vimspector import utils
   Configure( vimspector_base = utils.GetVimspectorBase() )
 
@@ -153,7 +154,7 @@ def RunUpdate( api_prefix, *args ):
     args.extend( FindGadgetForAdapter( adapter_name ) )
 
   if args:
-    RunInstaller( api_prefix, *args )
+    RunInstaller( api_prefix, leave_open, *args )
 
 
 def _ResetInstaller():

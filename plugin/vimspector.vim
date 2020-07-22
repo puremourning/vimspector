@@ -99,12 +99,12 @@ command! -bar
       \ call vimspector#Reset()
 
 " Installer commands
-command! -bar -nargs=* -complete=custom,vimspector#CompleteInstall
+command! -bar -bang -nargs=* -complete=custom,vimspector#CompleteInstall
       \ VimspectorInstall
-      \ call vimspector#Install( <f-args> )
-command! -bar -nargs=*
+      \ call vimspector#Install( <q-bang>, <f-args> )
+command! -bar -bang -nargs=*
       \ VimspectorUpdate
-      \ call vimspector#Update( <f-args> )
+      \ call vimspector#Update( <q-bang>, <f-args> )
 command! -bar -nargs=0
       \ VimspectorAbortInstall
       \ call vimspector#AbortInstall()
