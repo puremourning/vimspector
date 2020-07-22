@@ -45,7 +45,7 @@ stages:
 
     - task: CacheBeta@0
       inputs:
-        key: v2 | gadgets | $(Agent.OS) | python3/vimspector/gagdets.py
+        key: v2 | gadgets | $(Agent.OS) | python3/vimspector/gadgets.py
         path: gadgets/linux/download
       displayName: Cache gadgets
 
@@ -89,7 +89,7 @@ stages:
 
     - task: CacheBeta@0
       inputs:
-        key: v2 | gadgets | $(Agent.OS) | python3/vimspector/gagdets.py
+        key: v2 | gadgets | $(Agent.OS) | python3/vimspector/gadgets.py
         path: gadgets/macos/download
       displayName: Cache gadgets
 
