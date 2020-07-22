@@ -164,6 +164,7 @@ class DebugSession( object ):
 
             installer.RunInstaller(
               self._api_prefix,
+              False, # Don't leave open
               *shlex.split( response ),
               then = lambda: self.Start( new_launch_variables ) )
             return
