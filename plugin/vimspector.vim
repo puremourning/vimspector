@@ -102,6 +102,10 @@ command! -bar
 command! -bar -nargs=* -complete=custom,vimspector#CompleteInstall
       \ VimspectorInstall
       \ call vimspector#Install( <f-args> )
+command! -bar -nargs=0
+      \ VimspectorUpdate
+      \ call vimspector#Update()
+
 
 
 " Dummy autocommands so that we can call this whenever

@@ -132,6 +132,19 @@ def RunInstaller( api_prefix, *args, **kwargs ):
   OUTPUT_VIEW.ShowOutput( 'Installer' )
 
 
+def RunUpdate( api_prefix ):
+  from vimspector import utils
+  Configure( vimspector_base = utils.GetVimspectorBase() )
+
+  current_adapters = ReadAdapters( read_existing = True )
+  adapters = []
+  for adapter_name in current_adapters.keys():
+    adapters.extend( FindGadgetForAdapter( adapter_name ) )
+
+  if adapters:
+    RunInstaller( api_prefix, *adapters )
+
+
 def GadgetListToInstallerArgs( *gadget_list ):
   installer_args = []
   for name in gadget_list:

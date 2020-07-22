@@ -453,6 +453,11 @@ which can be used to check everything is working. This is used by the regression
 tests in CI so should always work, and is a good way to check if the problem is
 your configuration rather than a bug.
 
+## Upgrade
+
+After updating the Vimspector code (either via `git pull` or whatever pacakge
+manager), run `:VimspectorUpdate` to update any already-installed gadets.
+
 # About
 
 ## Background
