@@ -211,7 +211,8 @@ if args.basedir:
          "let g:vimspector_base_dir='" + vimspector_base + "'" )
 
 if succeeded:
-  print( "Done. The following adapters were installed successfully:\n - {}".format(
+  print( "Done" )
+  print( "The following adapters were installed successfully:\n - {}".format(
     '\n - '.join( succeeded ) ) )
 
 if failed:
