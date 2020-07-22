@@ -84,8 +84,6 @@ def OnCommandWithLogComplete( name, exit_code ):
   cb = COMMAND_HANDLERS.get( name )
   if cb:
     cb( exit_code )
-  else:
-    UserMessage( f'Job complete: { name } (exit status: { exit_code })' )
 
 
 def SetUpCommandBuffer( cmd, name, api_prefix, completion_handler = None ):

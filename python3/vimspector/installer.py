@@ -15,9 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO: Chnage `print` to some other mechanism that can be displayed in a vim
-# buffer?
-
 from urllib import request
 import contextlib
 import functools
@@ -637,5 +634,4 @@ def AbortIfSUperUser( force_sudo ):
       print( "*** RUNNING AS SUPER USER DUE TO force_sudo! "
              "    All bets are off. ***" )
     else:
-      raise RuntimeError(
-        "This script should *not* be run as super user. Aborting." )
+      sys.exit( "This script should *not* be run as super user. Aborting." )
