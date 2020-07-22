@@ -473,7 +473,7 @@ your configuration rather than a bug.
 
 ## Upgrade
 
-After updating the Vimspector code (either via `git pull` or whatever pacakge
+After updating the Vimspector code (either via `git pull` or whatever package
 manager), run `:VimspectorUpdate` to update any already-installed gadets.
 
 # About
