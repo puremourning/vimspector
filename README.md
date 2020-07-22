@@ -266,6 +266,8 @@ In order for Vimspector to be useful, you need to have some adapters installed.
 
 There are a few ways to do this:
 
+* If you downloaded a tarball, gadgets for main supported langauges are already
+  installed for you.
 * Using `:VimspectorInstall <adapter> <args...>` (use TAB `wildmenu` to see the
   options, also accepts any `install_gadget.py` option)
 * Alternatively, using `python3 install_gadget.py <args>` (use `--help` to see
