@@ -105,9 +105,9 @@ command! -bar -nargs=* -complete=custom,vimspector#CompleteInstall
 command! -bar -nargs=*
       \ VimspectorUpdate
       \ call vimspector#Update( <f-args> )
-command! -bar -nargs=*
+command! -bar -nargs=0
       \ VimspectorAbortInstall
-      \ call vimspector#AbortInstall( <f-args> )
+      \ call vimspector#AbortInstall()
 
 
 
