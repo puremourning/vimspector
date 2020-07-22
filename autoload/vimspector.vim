@@ -232,7 +232,7 @@ function! vimspector#CompleteExpr( ArgLead, CmdLine, CursorPos ) abort
              \ "\n" )
 endfunction
 
-function! vimspector#Install( ... ) abort
+function! vimspector#Install( bang, ... ) abort
   if !s:enabled
     return
   endif
@@ -243,6 +243,7 @@ function! vimspector#Install( ... ) abort
   py3 __import__( 'vimspector',
         \         fromlist = [ 'installer' ] ).installer.RunInstaller(
         \           vim.eval( 'prefix' ),
+        \           vim.eval( 'a:bang' ) == '!',
         \           *vim.eval( 'a:000' ) )
 endfunction
 
@@ -256,7 +257,7 @@ function! vimspector#CompleteInstall( ArgLead, CmdLine, CursorPos ) abort
                 \ . ')' )
 endfunction
 
-function! vimspector#Update( ... ) abort
+function! vimspector#Update( bang, ... ) abort
   if !s:enabled
     return
   endif
@@ -265,6 +266,7 @@ function! vimspector#Update( ... ) abort
   py3 __import__( 'vimspector',
         \         fromlist = [ 'installer' ] ).installer.RunUpdate(
         \           vim.eval( 'prefix' ),
+        \           vim.eval( 'a:bang' ) == '!',
         \           *vim.eval( 'a:000' ) )
 endfunction
 

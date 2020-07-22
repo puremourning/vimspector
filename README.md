@@ -16,9 +16,12 @@ For a tutorial and usage overview, take a look at the
     * [Windows differences](#windows-differences)
     * [Clone the plugin](#clone-the-plugin)
     * [Install some gadgets](#install-some-gadgets)
+       * [VimspectorInstall and VimspectorUpdate commands](#vimspectorinstall-and-vimspectorupdate-commands)
+       * [install_gadget.py](#install_gadgetpy)
     * [Manual gadget installation](#manual-gadget-installation)
        * [The gadget directory](#the-gadget-directory)
     * [Trying it out](#trying-it-out)
+    * [Upgrade](#upgrade)
  * [About](#about)
     * [Background](#background)
     * [Status](#status)
@@ -71,7 +74,7 @@ For a tutorial and usage overview, take a look at the
  * [License](#license)
  * [Sponsorship](#sponsorship)
 
-<!-- Added by: ben, at: Wed 22 Jul 2020 12:38:39 BST -->
+<!-- Added by: ben, at: Wed 22 Jul 2020 22:10:50 BST -->
 
 <!--te-->
 
@@ -307,8 +310,22 @@ To install the tested debug adapter for a language, run:
 | Supported and experimental adapters | `./install_gadget.py --all --force-all`       | `:VimspectorInstall --all`                      |
 | Adapter for specific debug config   |                                               | Suggested by Vimspector when starting debugging |
 
-`"VimspectorInstall` runs `install_gadget.py` in the background with some of
+### VimspectorInstall and VimspectorUpdate commands
+
+`:VimspectorInstall` runs `install_gadget.py` in the background with some of
 the options defaulted.
+
+`:VimspectorUpdate` runs `install_gadget.py` to re-install (i.e. update) any
+gadgets already installed in your `.gadgets.json`.
+
+The output is minimal, to see the full output add `--verbose` to the command, as
+in `:VimspectorInstall --verbose ...`  or `:VimspectorUpdate --verbose ...`.
+
+If the installation is successful, the output window is closed (and the output
+lost forever). Use a `!` to keep it open (e.g. `:VimspectorInstall! --verbose
+--all` or `:VimspectorUpdate!` (etc.).
+
+### install\_gadget.py
 
 By default `install_gadget.py` will overwrite your `.gadgets.json` with the set
 of adapters just installed, whereas `:VimspectorInstall` will _update_ it,
