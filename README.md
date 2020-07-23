@@ -325,6 +325,19 @@ If the installation is successful, the output window is closed (and the output
 lost forever). Use a `!` to keep it open (e.g. `:VimspectorInstall! --verbose
 --all` or `:VimspectorUpdate!` (etc.).
 
+If you know in advance which gadgets you want to install, for example so that
+you can reproduce your config from source control, you can set
+`g:vimspector_install_gadgets` to a list of gadgets. This will be used when:
+
+* Running `:VimspectorInstall` with no arguments, or
+* Running `:VimspectorUpdate`
+
+For example:
+
+```viml
+let g:vimspector_install_gadgets = [ 'debugpy', 'vscode-cpptools', 'CodeLLDB' ]
+```
+
 ### install\_gadget.py
 
 By default `install_gadget.py` will overwrite your `.gadgets.json` with the set

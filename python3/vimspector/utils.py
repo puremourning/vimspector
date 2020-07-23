@@ -23,7 +23,7 @@ import string
 import functools
 import subprocess
 import shlex
-
+import collections
 
 
 LOG_FILE = os.path.expanduser( os.path.join( '~', '.vimspector.log' ) )
@@ -646,7 +646,7 @@ def HideSplash( api_prefix, splash ):
   return None
 
 
-def GetVimString( vim_dict, name, default=None ):
+def GetVimValue( vim_dict, name, default=None ):
 
   # FIXME: use 'encoding' ?
   try:
@@ -659,13 +659,27 @@ def GetVimString( vim_dict, name, default=None ):
   return value
 
 
+def GetVimList( vim_dict, name, default=None ):
+  try:
+    value = vim_dict[ name ]
+  except KeyError:
+    return default
+
+  if not isinstance( value, collections.abc.Iterable ):
+    raise ValueError( f"Expected a list for { name }, but found "
+                      f"{ type( value ) }" )
+
+  return [ i.decode( 'utf-8' ) if isinstance( i, bytes ) else i for i in value ]
+
+
+
 def GetVimspectorBase():
-  return GetVimString( vim.vars,
-                       'vimspector_base_dir',
-                       os.path.abspath(
-                         os.path.join( os.path.dirname( __file__ ),
-                                       '..',
-                                       '..' ) ) )
+  return GetVimValue( vim.vars,
+                     'vimspector_base_dir',
+                      os.path.abspath(
+                        os.path.join( os.path.dirname( __file__ ),
+                                      '..',
+                                      '..' ) ) )
 
 
 def GetUnusedLocalPort():
