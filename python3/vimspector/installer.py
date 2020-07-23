@@ -99,9 +99,15 @@ def RunInstaller( api_prefix, leave_open, *args, **kwargs ):
   from vimspector import utils, output, settings
   import vim
 
+  if not args:
+    args = settings.List( 'install_gadgets' )
+
+  if not args:
+    return
+
   args = GadgetListToInstallerArgs( *args )
 
-  vimspector_home = utils.GetVimString( vim.vars, 'vimspector_home' )
+  vimspector_home = utils.GetVimValue( vim.vars, 'vimspector_home' )
   vimspector_base_dir = utils.GetVimspectorBase()
 
   global OUTPUT_VIEW
@@ -145,16 +151,18 @@ def RunInstaller( api_prefix, leave_open, *args, **kwargs ):
 
 
 def RunUpdate( api_prefix, leave_open, *args ):
-  from vimspector import utils
+  from vimspector import utils, settings
   Configure( vimspector_base = utils.GetVimspectorBase() )
 
-  args = list( args )
+  insatller_args = list( args )
+  insatller_args.extend( settings.List( 'install_gadgets' ) )
+
   current_adapters = ReadAdapters( read_existing = True )
   for adapter_name in current_adapters.keys():
-    args.extend( FindGadgetForAdapter( adapter_name ) )
+    insatller_args.extend( FindGadgetForAdapter( adapter_name ) )
 
-  if args:
-    RunInstaller( api_prefix, leave_open, *args )
+  if insatller_args:
+    RunInstaller( api_prefix, leave_open, *insatller_args )
 
 
 def _ResetInstaller():
