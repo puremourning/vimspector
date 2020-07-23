@@ -236,9 +236,6 @@ function! vimspector#Install( bang, ... ) abort
   if !s:enabled
     return
   endif
-  if a:0 < 1
-    return
-  endif
   let prefix = vimspector#internal#state#GetAPIPrefix()
   py3 __import__( 'vimspector',
         \         fromlist = [ 'installer' ] ).installer.RunInstaller(

@@ -16,11 +16,18 @@
 
 import vim
 import builtins
+from vimspector import utils
 
 
 def Get( option: str, default=None, cls=str ):
-  return cls( vim.vars.get( f'vimspector_{ option }', default ) )
+  return cls( utils.GetVimValue( vim.vars,
+                                 f'vimspector_{ option }',
+                                 default ) )
 
 
 def Int( option: str, default=0 ):
   return Get( option, default=default, cls=builtins.int )
+
+
+def List( option: str, default=[] ):
+  return utils.GetVimList( vim.vars, f'vimspector_{ option }', default )
