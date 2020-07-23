@@ -3,6 +3,7 @@
 BASEDIR=$(dirname $0)
 INSTALL=0
 UPDATE=0
+INSTALLER_ARGS=''
 RUN_VIM="vim -N --clean --not-a-term"
 RUN_TEST="${RUN_VIM} -S lib/run_test.vim"
 BASEDIR_CMD='py3 pass'
@@ -48,6 +49,7 @@ while [ -n "$1" ]; do
       # old on macOS
       out_fd=3
       exec 3>/dev/null
+      INSTALLER_ARGS="${INSTALLER_ARGS} --quiet"
       ;;
     "--")
       shift
@@ -82,7 +84,10 @@ if [ "${out_fd}" = "1" ]; then
 fi
 
 if [ "$INSTALL" = "1" ] || [ "$INSTALL" = "script" ]; then
-  if ! python3 $(dirname $0)/install_gadget.py --basedir ${BASEDIR} --all; then
+  if ! python3 $(dirname $0)/install_gadget.py \
+               --basedir ${BASEDIR} \
+               ${INSTALLER_ARGS} \
+               --all; then
     echo "Script installation reported errors" >&2
     exit 1
   fi
