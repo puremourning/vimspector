@@ -17,7 +17,7 @@
 import sys
 import os
 
-from vimspector import install, utils
+from vimspector import install, utils, installer
 
 
 def SetUpDebugpy( wait=False, port=5678 ):
@@ -32,7 +32,7 @@ def SetUpDebugpy( wait=False, port=5678 ):
   exe = sys.executable
   try:
     # debugpy uses sys.executable (which is `vim`, so we hack it)
-    sys.executable = 'python3'
+    sys.executable = installer.PathToAnyWorkingPython3()
     debugpy.listen( port )
   finally:
     sys.executable = exe
