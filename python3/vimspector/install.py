@@ -42,6 +42,11 @@ def GetGadgetDir( vimspector_base ):
   return os.path.join( os.path.abspath( vimspector_base ), 'gadgets', GetOS() )
 
 
+def GetManifestFile( vimspector_base ):
+  return os.path.join( GetGadgetDir( vimspector_base ),
+                       '.gadgets.manifest.json' )
+
+
 def GetGadgetConfigFile( vimspector_base ):
   return os.path.join( GetGadgetDir( vimspector_base ), '.gadgets.json' )
 
