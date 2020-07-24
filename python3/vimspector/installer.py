@@ -162,6 +162,7 @@ def RunUpdate( api_prefix, leave_open, *args ):
     insatller_args.extend( FindGadgetForAdapter( adapter_name ) )
 
   if insatller_args:
+    insatller_args.append( '--upgrade' )
     RunInstaller( api_prefix, leave_open, *insatller_args )
 
 
@@ -215,6 +216,91 @@ def FindGadgetForAdapter( adapter_name ):
       candidates.append( name )
 
   return candidates
+
+
+class Manifest:
+  manifest: dict
+
+  def __init__( self ):
+    self.manifest = {}
+    self.Read()
+
+  def Read( self ):
+    try:
+      with open( install.GetManifestFile( options.vimspector_base ), 'r' ) as f:
+        self.manifest = json.load( f )
+    except OSError:
+      pass
+
+  def Write( self ):
+    with open( install.GetManifestFile( options.vimspector_base ), 'w' ) as f:
+      json.dump( self.manifest, f )
+
+
+  def Clear( self, name: str ):
+    try:
+      del self.manifest[ name ]
+    except KeyError:
+      pass
+
+
+  def Update( self, name: str,  gadget_spec: dict ):
+    self.manifest[ name ] = gadget_spec
+
+
+  def RequiresUpdate( self, name: str, gadget_spec: dict ):
+    try:
+      current_spec = self.manifest[ name ]
+    except KeyError:
+      # It's new.
+      return True
+
+    # If anything changed in the spec, update
+    if not current_spec == gadget_spec:
+      return True
+
+    # Always update if the version string is 'master'. Probably a git repo
+    # that pulls master (which tbh we shouldn't have)
+    if current_spec.get( 'version' ) in ( 'master', '' ):
+      return True
+    if current_spec.get( 'repo', {} ).get( 'ref' ) == 'master':
+      return True
+
+    return False
+
+
+def ReadAdapters( read_existing = True ):
+  all_adapters = {}
+  if read_existing:
+    try:
+      with open( install.GetGadgetConfigFile( options.vimspector_base ),
+                 'r' ) as f:
+        all_adapters = json.load( f ).get( 'adapters', {} )
+    except OSError:
+      pass
+
+  # Include "built-in" adapter for multi-session mode
+  all_adapters.update( {
+    'multi-session': {
+      'port': '${port}',
+      'host': '${host}'
+    },
+  } )
+
+  return all_adapters
+
+
+def WriteAdapters( all_adapters, to_file=None ):
+  adapter_config = json.dumps ( { 'adapters': all_adapters },
+                                indent=2,
+                                sort_keys=True )
+
+  if to_file:
+    to_file.write( adapter_config )
+  else:
+    with open( install.GetGadgetConfigFile( options.vimspector_base ),
+               'w' ) as f:
+      f.write( adapter_config )
 
 
 def InstallGeneric( name, root, gadget ):
@@ -300,52 +386,57 @@ def InstallTclProDebug( name, root, gadget ):
 
 
 def InstallNodeDebug( name, root, gadget ):
-  node_version = subprocess.check_output( [ 'node', '--version' ],
-                                          universal_newlines=True ).strip()
-  Print( "Node.js version: {}".format( node_version ) )
-  if list( map( int, node_version[ 1: ].split( '.' ) ) ) >= [ 12, 0, 0 ]:
-    Print( "Can't install vscode-debug-node2:" )
-    Print( "Sorry, you appear to be running node 12 or later. That's not "
-           "compatible with the build system for this extension, and as far as "
-           "we know, there isn't a pre-built independent package." )
-    Print( "My advice is to install nvm, then do:" )
-    Print( "  $ nvm install --lts 10" )
-    Print( "  $ nvm use --lts 10" )
-    Print( "  $ ./install_gadget.py --enable-node ..." )
-    raise RuntimeError( 'Node 10 is required to install node debugger (sadly)' )
-
   with CurrentWorkingDir( root ):
     CheckCall( [ 'npm', 'install' ] )
     CheckCall( [ 'npm', 'run', 'build' ] )
   MakeSymlink( name, root )
 
 
-def InstallGagdet( name, gadget, succeeded, failed, all_adapters ):
+def InstallGagdet( name: str,
+                   gadget: dict,
+                   manifest: Manifest,
+                   succeeded: list,
+                   failed: list,
+                   all_adapters: dict ):
+
   try:
-    print( f"Installing {name}..." )
-    v = {}
-    v.update( gadget.get( 'all', {} ) )
-    v.update( gadget.get( install.GetOS(), {} ) )
+    # Spec is an os-specific definition of the gadget
+    spec = {}
+    spec.update( gadget.get( 'all', {} ) )
+    spec.update( gadget.get( install.GetOS(), {} ) )
+
+    def save_adapters():
+      # allow per-os adapter overrides. v already did that for us...
+      all_adapters.update( spec.get( 'adapters', {} ) )
+      # add any other "all" adapters
+      all_adapters.update( gadget.get( 'adapters', {} ) )
 
     if 'download' in gadget:
-      if 'file_name' not in v:
+      if 'file_name' not in spec:
         raise RuntimeError( "Unsupported OS {} for gadget {}".format(
           install.GetOS(),
           name ) )
+
+      print( f"Installing {name}@{spec[ 'version' ]}..." )
+      spec[ 'download' ] = gadget[ 'download' ]
+      if not manifest.RequiresUpdate( name, spec ):
+        save_adapters()
+        print( " - Skip - up to date" )
+        return
 
       destination = os.path.join(
         install.GetGadgetDir( options.vimspector_base ),
         'download',
         name,
-        v[ 'version' ] )
+        spec[ 'version' ] )
 
-      url = string.Template( gadget[ 'download' ][ 'url' ] ).substitute( v )
+      url = string.Template( gadget[ 'download' ][ 'url' ] ).substitute( spec )
 
       file_path = DownloadFileTo(
         url,
         destination,
         file_name = gadget[ 'download' ].get( 'target' ),
-        checksum = v.get( 'checksum' ),
+        checksum = spec.get( 'checksum' ),
         check_certificate = not options.no_check_certificate )
 
       root = os.path.join( destination, 'root' )
@@ -354,8 +445,15 @@ def InstallGagdet( name, gadget, succeeded, failed, all_adapters ):
         root,
         format = gadget[ 'download' ].get( 'format', 'zip' ) )
     elif 'repo' in gadget:
-      url = string.Template( gadget[ 'repo' ][ 'url' ] ).substitute( v )
-      ref = string.Template( gadget[ 'repo' ][ 'ref' ] ).substitute( v )
+      url = string.Template( gadget[ 'repo' ][ 'url' ] ).substitute( spec )
+      ref = string.Template( gadget[ 'repo' ][ 'ref' ] ).substitute( spec )
+
+      print( f"Installing {name}@{gadget[ 'repo' ][ 'ref' ]}..." )
+      spec[ 'repo' ] = gadget[ 'repo' ]
+      if not manifest.RequiresUpdate( name, spec ):
+        save_adapters()
+        print( " - Skip - up to date" )
+        return
 
       destination = os.path.join(
         install.GetGadgetDir( options.vimspector_base ),
@@ -365,15 +463,12 @@ def InstallGagdet( name, gadget, succeeded, failed, all_adapters ):
       root = destination
 
     if 'do' in gadget:
-      gadget[ 'do' ]( name, root, v )
+      gadget[ 'do' ]( name, root, spec )
     else:
-      InstallGeneric( name, root, v )
+      InstallGeneric( name, root, spec )
 
-    # Allow per-OS adapter overrides. v already did that for us...
-    all_adapters.update( v.get( 'adapters', {} ) )
-    # Add any other "all" adapters
-    all_adapters.update( gadget.get( 'adapters', {} ) )
-
+    save_adapters()
+    manifest.Update( name, spec )
     succeeded.append( name )
     print( f" - Done installing {name}" )
   except Exception as e:
@@ -381,40 +476,6 @@ def InstallGagdet( name, gadget, succeeded, failed, all_adapters ):
       traceback.print_exc()
     failed.append( name )
     print( f" - FAILED installing {name}: {e}".format( name, e ) )
-
-
-def ReadAdapters( read_existing = True ):
-  all_adapters = {}
-  if read_existing:
-    try:
-      with open( install.GetGadgetConfigFile( options.vimspector_base ),
-                 'r' ) as f:
-        all_adapters = json.load( f ).get( 'adapters', {} )
-    except OSError:
-      pass
-
-  # Include "built-in" adapter for multi-session mode
-  all_adapters.update( {
-    'multi-session': {
-      'port': '${port}',
-      'host': '${host}'
-    },
-  } )
-
-  return all_adapters
-
-
-def WriteAdapters( all_adapters, to_file=None ):
-  adapter_config = json.dumps ( { 'adapters': all_adapters },
-                                indent=2,
-                                sort_keys=True )
-
-  if to_file:
-    to_file.write( adapter_config )
-  else:
-    with open( install.GetGadgetConfigFile( options.vimspector_base ),
-               'w' ) as f:
-      f.write( adapter_config )
 
 
 @contextlib.contextmanager
