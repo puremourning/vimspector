@@ -234,8 +234,7 @@ GADGETS = {
     },
     'macos': {
       'file_name': 'netcoredbg-osx-master.tar.gz',
-      'checksum':
-        'c1dc6ed58c3f5b0473cfb4985a96552999360ceb9795e42d9c9be64af054f821',
+      'checksum': '',
     },
     'linux': {
       'file_name': 'netcoredbg-linux-master.tar.gz',
@@ -385,7 +384,7 @@ GADGETS = {
     'enabled': False,
     'repo': {
       'url': 'https://github.com/microsoft/vscode-node-debug2',
-      'ref': 'v1.42.0',
+      'ref': 'v1.42.5'
     },
     'do': lambda name, root, gadget: installer.InstallNodeDebug( name,
                                                                  root,

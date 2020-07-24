@@ -69,6 +69,10 @@ parser.add_argument( '--force-all',
                      action = 'store_true',
                      help = 'Enable all unsupported completers' )
 
+parser.add_argument( '--upgrade',
+                     action = 'store_true',
+                     help = 'Only update adapters changed from the manifest' )
+
 parser.add_argument( '--quiet',
                      action = 'store_true',
                      help = 'Suppress installation output' )
@@ -175,6 +179,7 @@ failed = []
 succeeded = []
 all_adapters = installer.ReadAdapters(
   read_existing = args.update_gadget_config )
+manifest = installer.Manifest()
 
 for name, gadget in gadgets.GADGETS.items():
   if not gadget.get( 'enabled', True ):
@@ -187,15 +192,27 @@ for name, gadget in gadgets.GADGETS.items():
     if getattr( args, 'disable_' + gadget[ 'language' ] ):
       continue
 
+  if not args.upgrade:
+    manifest.Clear( name )
+
   installer.InstallGagdet( name,
                            gadget,
+                           manifest,
                            succeeded,
                            failed,
                            all_adapters )
 
 
 for name, gadget in CUSTOM_GADGETS.items():
-  installer.InstallGagdet( name, gadget, succeeded, failed, all_adapters )
+  if not args.upgrade:
+    manifest.Clear( name )
+
+  installer.InstallGagdet( name,
+                           gadget,
+                           manifest,
+                           succeeded,
+                           failed,
+                           all_adapters )
 
 if args.no_gadget_config:
   print( "" )
@@ -203,6 +220,8 @@ if args.no_gadget_config:
   installer.WriteAdapters( all_adapters, to_file = sys.stdout )
 else:
   installer.WriteAdapters( all_adapters )
+
+manifest.Write()
 
 if args.basedir:
   print( "" )
