@@ -378,3 +378,52 @@ function! Test_CustomUI()
   call vimspector#test#setup#Reset()
   %bwipe!
 endfunction
+
+
+function! s:CustomWinBar()
+    call win_gotoid( g:vimspector_session_windows.code)
+    aunmenu WinBar
+    nnoremenu WinBar.▷\ ᶠ⁵ :call vimspector#Continue()<CR>
+    nnoremenu WinBar.↷\ ᶠ¹⁰ :call vimspector#StepOver()<CR>
+    nnoremenu WinBar.↓\ ᶠ¹¹ :call vimspector#StepInto()<CR>
+    nnoremenu WinBar.↑\ ˢᶠ¹¹ :call vimspector#StepOut()<CR>
+    nnoremenu WinBar.❘❘\ ᶠ⁶ :call vimspector#Pause()<CR>
+    nnoremenu WinBar.□\ ˢᶠ⁵ :call vimspector#Stop()<CR>
+    nnoremenu WinBar.⟲\ ᶜˢᶠ⁵ :call vimspector#Restart()<CR>
+    nnoremenu WinBar.✕\ ᶠ⁸ :call vimspector#Reset()<CR>
+endfunction
+
+
+function! Test_CustomWinBar()
+  augroup TestCustomWinBar
+    au!
+    au User VimspectorUICreated
+          \ call win_execute( g:vimspector_session_windows.watches, 'q' )
+    au User VimspectorUICreated call s:CustomWinBar()
+  augroup END
+
+  call s:StartDebugging()
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 25, 1 )
+
+  call assert_equal(
+        \ [ 'row', [
+        \   [ 'col', [
+        \     [ 'leaf', g:vimspector_session_windows.variables ],
+        \     [ 'leaf', g:vimspector_session_windows.stack_trace ],
+        \   ] ],
+        \   [ 'col', [
+        \     [ 'row', [
+        \       [ 'leaf', g:vimspector_session_windows.code ],
+        \       [ 'leaf', g:vimspector_session_windows.terminal ],
+        \     ] ],
+        \     [ 'leaf', g:vimspector_session_windows.output ],
+        \   ] ]
+        \ ] ],
+        \ winlayout( g:vimspector_session_windows.tabpage ) )
+
+  au! TestCustomWinBar
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction

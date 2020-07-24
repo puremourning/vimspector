@@ -46,8 +46,22 @@ function s:SetUpTerminal()
   execute cols . 'wincmd |'
 endfunction
 
+function! s:CustomiseWinBar()
+    call win_gotoid( g:vimspector_session_windows.code)
+    aunmenu WinBar
+    nnoremenu WinBar.▷\ ᶠ⁵ :call vimspector#Continue()<CR>
+    nnoremenu WinBar.↷\ ᶠ¹⁰ :call vimspector#StepOver()<CR>
+    nnoremenu WinBar.↓\ ᶠ¹¹ :call vimspector#StepInto()<CR>
+    nnoremenu WinBar.↑\ ˢᶠ¹¹ :call vimspector#StepOut()<CR>
+    nnoremenu WinBar.❘❘\ ᶠ⁶ :call vimspector#Pause()<CR>
+    nnoremenu WinBar.□\ ˢᶠ⁵ :call vimspector#Stop()<CR>
+    nnoremenu WinBar.⟲\ ᶜˢᶠ⁵ :call vimspector#Restart()<CR>
+    nnoremenu WinBar.✕\ ᶠ⁸ :call vimspector#Reset()<CR>
+endfunction
+
 augroup TestUICustomistaion
   autocmd!
   autocmd User VimspectorUICreated call s:CustomiseUI()
   autocmd User VimspectorTerminalOpened call s:SetUpTerminal()
+  autocmd User VimspectorUICreated call s:CustomiseWinBar()
 augroup END
