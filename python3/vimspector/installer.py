@@ -331,10 +331,7 @@ def InstallCppTools( name, root, gadget ):
 
 
 def InstallBashDebug( name, root, gadget ):
-  MakeExecutable( os.path.join( root,
-                                          'extension',
-                                          'bashdb_dir',
-                                          'bashdb' ) )
+  MakeExecutable( os.path.join( root, 'extension', 'bashdb_dir', 'bashdb' ) )
   MakeExtensionSymlink( name, root )
 
 
@@ -585,10 +582,12 @@ def ValidateCheckSumSHA256( file_path, checksum ):
 
 
 def RemoveIfExists( destination ):
-  if os.path.islink( destination ):
-    Print( "Removing link {}".format( destination ) )
+  try:
     os.remove( destination )
+    Print( "Removed file {}".format( destination ) )
     return
+  except OSError:
+    pass
 
   N = 1
 
@@ -678,7 +677,7 @@ def MakeSymlink( link, pointing_to, in_folder = None ):
     link_path = os.path.abspath( link_path )
     if os.path.isdir( link_path ):
       os.rmdir( link_path )
-    CheckCall( [ 'cmd.exe', '/c', 'mklink', '/D', link_path, pointing_to ] )
+    CheckCall( [ 'cmd.exe', '/c', 'mklink', '/J', link_path, pointing_to ] )
   else:
     os.symlink( pointing_to_relative, link_path )
 
