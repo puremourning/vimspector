@@ -378,3 +378,34 @@ function! Test_CustomUI()
   call vimspector#test#setup#Reset()
   %bwipe!
 endfunction
+
+
+function! s:CustomWinBar()
+    call win_gotoid( g:vimspector_session_windows.code)
+    aunmenu WinBar
+    nnoremenu WinBar.▷\ ᶠ⁵ :call vimspector#Continue()<CR>
+    nnoremenu WinBar.↷\ ᶠ¹⁰ :call vimspector#StepOver()<CR>
+    nnoremenu WinBar.↓\ ᶠ¹¹ :call vimspector#StepInto()<CR>
+    nnoremenu WinBar.↑\ ˢᶠ¹¹ :call vimspector#StepOut()<CR>
+    nnoremenu WinBar.❘❘\ ᶠ⁶ :call vimspector#Pause()<CR>
+    nnoremenu WinBar.□\ ˢᶠ⁵ :call vimspector#Stop()<CR>
+    nnoremenu WinBar.⟲\ ᶜˢᶠ⁵ :call vimspector#Restart()<CR>
+    nnoremenu WinBar.✕\ ᶠ⁸ :call vimspector#Reset()<CR>
+endfunction
+
+
+function! Test_CustomWinBar()
+  augroup TestCustomWinBar
+    au!
+    au User VimspectorUICreated call s:CustomWinBar()
+  augroup END
+
+  call s:StartDebugging()
+  call assert_equal(
+        \ ['▷ ᶠ⁵', '↷ ᶠ¹⁰', '↓ ᶠ¹¹', '↑ ˢᶠ¹¹', '❘❘ ᶠ⁶', '□ ˢᶠ⁵', '⟲ ᶜˢᶠ⁵', '✕ ᶠ⁸'],
+        \ menu_info( 'WinBar' ).submenus )
+
+  au! TestCustomWinBar
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
