@@ -397,31 +397,13 @@ endfunction
 function! Test_CustomWinBar()
   augroup TestCustomWinBar
     au!
-    au User VimspectorUICreated
-          \ call win_execute( g:vimspector_session_windows.watches, 'q' )
     au User VimspectorUICreated call s:CustomWinBar()
   augroup END
 
   call s:StartDebugging()
-
-  call vimspector#StepOver()
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 25, 1 )
-
   call assert_equal(
-        \ [ 'row', [
-        \   [ 'col', [
-        \     [ 'leaf', g:vimspector_session_windows.variables ],
-        \     [ 'leaf', g:vimspector_session_windows.stack_trace ],
-        \   ] ],
-        \   [ 'col', [
-        \     [ 'row', [
-        \       [ 'leaf', g:vimspector_session_windows.code ],
-        \       [ 'leaf', g:vimspector_session_windows.terminal ],
-        \     ] ],
-        \     [ 'leaf', g:vimspector_session_windows.output ],
-        \   ] ]
-        \ ] ],
-        \ winlayout( g:vimspector_session_windows.tabpage ) )
+        \ ['▷ ᶠ⁵', '↷ ᶠ¹⁰', '↓ ᶠ¹¹', '↑ ˢᶠ¹¹', '❘❘ ᶠ⁶', '□ ˢᶠ⁵', '⟲ ᶜˢᶠ⁵', '✕ ᶠ⁸'],
+        \ menu_info( 'WinBar' ).submenus )
 
   au! TestCustomWinBar
   call vimspector#test#setup#Reset()
