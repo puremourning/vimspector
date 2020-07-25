@@ -41,17 +41,17 @@ class CodeView( object ):
     }
 
     with utils.LetCurrentWindow( self._window ):
-      vim.command( 'nnoremenu WinBar.Continue :call vimspector#Continue()<CR>' )
-      vim.command( 'nnoremenu WinBar.Next :call vimspector#StepOver()<CR>' )
-      vim.command( 'nnoremenu WinBar.Step :call vimspector#StepInto()<CR>' )
-      vim.command( 'nnoremenu WinBar.Finish :call vimspector#StepOut()<CR>' )
-      vim.command( 'nnoremenu WinBar.Pause :call vimspector#Pause()<CR>' )
-      vim.command( 'nnoremenu WinBar.Stop :call vimspector#Stop()<CR>' )
-      vim.command( 'nnoremenu WinBar.Restart :call vimspector#Restart()<CR>' )
-      vim.command( 'nnoremenu WinBar.Reset :call vimspector#Reset()<CR>' )
+      vim.command( 'nnoremenu WinBar.■\\ Stop :call vimspector#Stop()<CR>' )
+      vim.command( 'nnoremenu WinBar.▶\\ Cont :call vimspector#Continue()<CR>' )
+      vim.command( 'nnoremenu WinBar.▷\\ Pause :call vimspector#Pause()<CR>' )
+      vim.command( 'nnoremenu WinBar.↷\\ Next :call vimspector#StepOver()<CR>' )
+      vim.command( 'nnoremenu WinBar.→\\ Step :call vimspector#StepInto()<CR>' )
+      vim.command( 'nnoremenu WinBar.←\\ Out :call vimspector#StepOut()<CR>' )
+      vim.command( 'nnoremenu WinBar.⟲: :call vimspector#Restart()<CR>' )
+      vim.command( 'nnoremenu WinBar.✕ :call vimspector#Reset()<CR>' )
 
       if not utils.SignDefined( 'vimspectorPC' ):
-        vim.command( 'sign define vimspectorPC text=-> texthl=Search' )
+        vim.command( 'sign define vimspectorPC text=\\ ▶ texthl=MatchParen' )
 
 
   def SetCurrentFrame( self, frame ):
