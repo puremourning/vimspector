@@ -514,7 +514,7 @@ def ExpandReferencesInString( orig_s,
         default_value = user_choices.get( key )
         # Allow _one_ level of additional substitution. This allows a very real
         # use case of "program": ${prgram:${file\\}}
-        if default_value is None:
+        if default_value is None and e.default_value is not None:
           try:
             default_value = _Substitute( e.default_value, mapping )
           except MissingSubstitution:
