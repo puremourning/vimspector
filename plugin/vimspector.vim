@@ -88,7 +88,7 @@ endif
 command! -bar -nargs=1 -complete=custom,vimspector#CompleteExpr
       \ VimspectorWatch
       \ call vimspector#AddWatch( <f-args> )
-command! -bar -nargs=1 -complete=custom,vimspector#CompleteOutput
+command! -bar -nargs=? -complete=custom,vimspector#CompleteOutput
       \ VimspectorShowOutput
       \ call vimspector#ShowOutput( <f-args> )
 command! -bar -nargs=1 -complete=custom,vimspector#CompleteExpr

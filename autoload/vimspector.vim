@@ -188,11 +188,15 @@ function! vimspector#EvaluateConsole( expr ) abort
   py3 _vimspector_session.EvaluateConsole( vim.eval( 'a:expr' ) )
 endfunction
 
-function! vimspector#ShowOutput( category ) abort
+function! vimspector#ShowOutput( ... ) abort
   if !s:enabled
     return
   endif
-  py3 _vimspector_session.ShowOutput( vim.eval( 'a:category' ) )
+  if a:0 == 1
+    py3 _vimspector_session.ShowOutput( vim.eval( 'a:1' ) )
+  else
+    py3 _vimspector_session.ShowOutput( 'Console' )
+  endif
 endfunction
 
 function! vimspector#ShowOutputInWindow( win_id, category ) abort

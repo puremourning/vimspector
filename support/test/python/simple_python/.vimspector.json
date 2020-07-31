@@ -50,6 +50,24 @@
         }
       }
     },
+    "run - default": {
+      "adapter": "debugpy",
+      "configuration": {
+        "request": "launch",
+        "type": "python",
+        "cwd": "${workspaceRoot}",
+        "program": "${program:${file\\}}",
+        "stopOnEntry": false,
+        "console": "integratedTerminal"
+      },
+      "breakpoints": {
+        "exception": {
+          "raised": "N",
+          "uncaught": "",
+          "userUnhandled": ""
+        }
+      }
+    },
     "run - main.py": {
       "adapter": "debugpy",
       "configuration": {

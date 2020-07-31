@@ -106,6 +106,7 @@ class Watch:
   """Holds a user watch expression (DAP request) and the result (WatchResult)"""
   def __init__( self, expression: dict ):
     self.result: WatchResult
+    self.line = None
 
     self.expression = expression
     self.result = None

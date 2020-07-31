@@ -12,6 +12,7 @@ for Vimspector.
      * [Debug profile configuration](#debug-profile-configuration)
      * [Replacements and variables](#replacements-and-variables)
      * [The splat operator](#the-splat-operator)
+     * [Default values](#default-values)
   * [Configuration Format](#configuration-format)
   * [Files and locations](#files-and-locations)
   * [Adapter configurations](#adapter-configurations)
@@ -28,7 +29,7 @@ for Vimspector.
   * [Appendix: Configuration file format](#appendix-configuration-file-format)
   * [Appendix: Editor configuration](#appendix-editor-configuration)
 
-<!-- Added by: ben, at: Sun 12 Jul 2020 16:46:18 BST -->
+<!-- Added by: ben, at: Fri 31 Jul 2020 22:13:39 BST -->
 
 <!--te-->
 
@@ -203,6 +204,37 @@ You can also combine with static values:
 
 This would yield the intuitive result:
 `[ "First",  "one", "two three", "four", "Last" ]`
+
+### Default values
+
+You can specify replacesments with default values. In this case if the user has
+not specified a value, they are prompted but with the default value
+pre-populated, allowing them to just press return to accept the default.
+
+The syntax is `${variableName:default value}`. The default value can contain any
+character, but to include a `}` you must escape it with a backslash. To include
+a backslash in the JSON you must write `\\`, as in:
+
+```json
+  { "key": "${value:default {\\} stuff}" }
+```
+
+The default value can also be a replacement variable. However, this _must_ be a
+veriable that's already defined, such as one of the [predefined
+variables](#predefined-variables), or one speified in a `variables` block. In
+order to reference them, you _must_ use `${var}` syntax and you _must_ escape
+the closing `}`. For example, the is a common and useful case:
+
+```json
+  {
+    "configuration": {
+      "program": "${script:${file\\}}"
+    }
+  }
+```
+
+This will prompt the user to specify `script`, but it will default to the path
+to the current file.
 
 ## Configuration Format
 

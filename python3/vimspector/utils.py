@@ -19,11 +19,11 @@ import os
 import contextlib
 import vim
 import json
-import string
 import functools
 import subprocess
 import shlex
 import collections
+import re
 
 
 LOG_FILE = os.path.expanduser( os.path.join( '~', '.vimspector.log' ) )
@@ -435,6 +435,60 @@ def ExpandReferencesInObject( obj, mapping, calculus, user_choices ):
   return obj
 
 
+# Based on the python standard library string.Template().substitue, enhanced to
+# add ${name:default} parsing, and to remove the unnecessary generality.
+VAR_MATCH = re.compile(
+  r"""
+    \$(?:                               # A dollar, followed by...
+      (?P<escaped>\$)                |  # Another doller = escaped
+      (?P<named>[_a-z][_a-z0-9]*)    |  # or An identifier - named param
+      {(?P<braced>[_a-z][_a-z0-9]*)} |  # or An {identifier} - braced param
+      {(?P<braceddefault>               # or An {id:default} - default param, as
+        (?P<defname>[_a-z][a-z0-9]*)    #   an ID
+        :                               #   then a colon
+        (?P<default>(?:[^}]|\})*)       #   then anything up to }, or a \}
+      )}                             |  #
+      (?P<invalid>)                     # or Something else - invalid
+    )
+  """,
+  re.IGNORECASE | re.VERBOSE )
+
+
+class MissingSubstitution( Exception ):
+  def __init__( self, name, default_value = None ):
+    self.name = name
+    self.default_value = default_value
+
+
+def _Substitute( template, mapping ):
+  def convert( mo ):
+    # Check the most common path first.
+    named = mo.group( 'named' ) or mo.group( 'braced' )
+    if named is not None:
+      if named not in mapping:
+        raise MissingSubstitution( named )
+      return str( mapping[ named ] )
+
+    if mo.group( 'escaped' ) is not None:
+      return '$'
+
+    if mo.group( 'braceddefault' ) is not None:
+      named = mo.group( 'defname' )
+      if named not in mapping:
+        ''
+        raise MissingSubstitution(
+          named,
+          mo.group( 'default' ).replace( '\\}', '}' ) )
+      return str( mapping[ named ] )
+
+    if mo.group( 'invalid' ) is not None:
+      raise ValueError( f"Invalid placeholder in string { template }" )
+
+    raise ValueError( 'Unrecognized named group in pattern', VAR_MATCH )
+
+  return VAR_MATCH.sub( convert, template )
+
+
 def ExpandReferencesInString( orig_s,
                               mapping,
                               calculus,
@@ -449,17 +503,23 @@ def ExpandReferencesInString( orig_s,
     ++bug_catcher
 
     try:
-      s = string.Template( s ).substitute( mapping )
+      s = _Substitute( s, mapping )
       break
-    except KeyError as e:
-      # HACK: This is seemingly the only way to get the key. str( e ) returns
-      # the key surrounded by '' for unknowable reasons.
-      key = e.args[ 0 ]
+    except MissingSubstitution as e:
+      key = e.name
 
       if key in calculus:
         mapping[ key ] = calculus[ key ]()
       else:
-        default_value = user_choices.get( key, None )
+        default_value = user_choices.get( key )
+        # Allow _one_ level of additional substitution. This allows a very real
+        # use case of "program": ${prgram:${file\\}}
+        if default_value is None and e.default_value is not None:
+          try:
+            default_value = _Substitute( e.default_value, mapping )
+          except MissingSubstitution:
+            default_value = e.default_value
+
         mapping[ key ] = AskForInput( 'Enter value for {}: '.format( key ),
                                       default_value )
 

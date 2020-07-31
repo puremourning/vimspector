@@ -53,13 +53,13 @@ class ProjectBreakpoints( object ):
     self._next_sign_id = 1
 
     if not utils.SignDefined( 'vimspectorBP' ):
-      vim.command( 'sign define vimspectorBP text==> texthl=Error' )
+      vim.command( 'sign define vimspectorBP text=\\ ● texthl=WarningMsg' )
 
     if not utils.SignDefined( 'vimspectorBPCond' ):
-      vim.command( 'sign define vimspectorBPCond text=?> texthl=Error' )
+      vim.command( 'sign define vimspectorBPCond text=\\ ◆ texthl=WarningMsg' )
 
     if not utils.SignDefined( 'vimspectorBPDisabled' ):
-      vim.command( 'sign define vimspectorBPDisabled text=!> texthl=Warning' )
+      vim.command( 'sign define vimspectorBPDisabled text=\\ ● texthl=LineNr' )
 
 
   def ConnectionUp( self, connection ):
