@@ -45,6 +45,7 @@ of the following reasons:
 * The [issue template][issue-template] was not completed
 * The issue or comment is off-topic
 * The issue does not represent a Vimspector bug or feature request
+* The issue cannot be reasonably reproduced using the minimal vimrc
 * etc.
 
 Issue titles are important. It's not usually helpful to write a title like
@@ -59,6 +60,24 @@ maintainer(s) can quickly cross-check theories by inspecting the provided
 diagnostics without having to spend time asking for them, and waiting for the
 response. This means *you get a better answer, faster*. So it's worth it,
 honestly.
+
+### Reproduce your issue with the minimal vimrc
+
+Many problems can be caused by unexpected configuration or other plugins. 
+Therefore when raising an issue, you must attempt to reproduce your issue
+with the minimal vimrc provided, and to provide any additional changes required
+to that file in order to reproduce it. The purpose of this is to ensure that
+the issue is not a conflict with another plugin, or a problem unique to your
+configuration.
+
+If your issue does _not_ reproduce with the minimal vimrc, then you must say so
+in the issue report.
+
+The minimal vimrc is in `support/test/minimal_vimrc` and can be used as follows:
+
+```
+vim -Nu /path/to/vimspector/support/minimal_vimrc
+```
 
 ## Pull Requests
 
