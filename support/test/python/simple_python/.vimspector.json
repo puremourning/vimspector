@@ -57,8 +57,10 @@
         "type": "python",
         "cwd": "${workspaceRoot}",
         "program": "${program:${file\\}}",
-        "stopOnEntry": false,
-        "console": "integratedTerminal"
+        "stopOnEntry#json": "${StopOnEntry:true}",
+        "console": "integratedTerminal",
+        "args#json": "${args:[]}",
+        "env#json": "${env:{\\}}"
       },
       "breakpoints": {
         "exception": {

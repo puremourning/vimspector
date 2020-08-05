@@ -24,6 +24,7 @@ import subprocess
 import shlex
 import collections
 import re
+import typing
 
 
 LOG_FILE = os.path.expanduser( os.path.join( '~', '.vimspector.log' ) )
@@ -540,14 +541,30 @@ def ExpandReferencesInString( orig_s,
   return s
 
 
+def CoerceType( mapping: typing.Dict[ str, typing.Any ], key: str ):
+  DICT_TYPES = {
+    'json': json.loads,
+  }
+
+  parts = key.split( '#' )
+  if len( parts ) > 1 and parts[ -1 ] in DICT_TYPES.keys():
+    value = mapping.pop( key )
+
+    new_type = parts[ -1 ]
+    key = '#'.join( parts[ 0 : -1 ] )
+
+    mapping[ key ] = DICT_TYPES[ new_type ]( value )
+
+
 # TODO: Should we just run the substitution on the whole JSON string instead?
 # That woul dallow expansion in bool and number values, such as ports etc. ?
 def ExpandReferencesInDict( obj, mapping, calculus, user_choices ):
-  for k in obj.keys():
+  for k in list( obj.keys() ):
     obj[ k ] = ExpandReferencesInObject( obj[ k ],
                                          mapping,
                                          calculus,
                                          user_choices )
+    CoerceType( obj, k )
 
 
 def ParseVariables( variables_list,
@@ -560,9 +577,10 @@ def ParseVariables( variables_list,
   if not isinstance( variables_list, list ):
     variables_list = [ variables_list ]
 
+  variables: typing.Dict[ str, typing.Any ]
   for variables in variables_list:
     new_mapping.update( new_variables )
-    for n, v in variables.items():
+    for n, v in list( variables.items() ):
       if isinstance( v, dict ):
         if 'shell' in v:
           new_v = v.copy()
@@ -596,6 +614,8 @@ def ParseVariables( variables_list,
                                                        mapping,
                                                        calculus,
                                                        user_choices )
+
+      CoerceType( new_variables, n )
 
   return new_variables
 
