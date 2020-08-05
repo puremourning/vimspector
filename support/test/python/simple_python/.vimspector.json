@@ -60,7 +60,8 @@
         "stopOnEntry#json": "${StopOnEntry:true}",
         "console": "integratedTerminal",
         "args#json": "${args:[]}",
-        "env#json": "${env:{\\}}"
+        "env#json": "${env:{\\}}",
+        "igored#json#s": "string not json"
       },
       "breakpoints": {
         "exception": {

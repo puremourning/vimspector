@@ -544,6 +544,7 @@ def ExpandReferencesInString( orig_s,
 def CoerceType( mapping: typing.Dict[ str, typing.Any ], key: str ):
   DICT_TYPES = {
     'json': json.loads,
+    's': str
   }
 
   parts = key.split( '#' )
