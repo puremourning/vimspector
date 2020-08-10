@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import glob
 import json
 import logging
 import os
@@ -32,14 +31,11 @@ from vimspector import ( breakpoints,
                          variables,
                          settings,
                          terminal,
-                         installer )
-from vimspector.vendor.json_minify import minify
+                         installer,
+                         launch )
 
 # We cache this once, and don't allow it to change (FIXME?)
 VIMSPECTOR_HOME = utils.GetVimspectorBase()
-
-# cache of what the user entered for any option we ask them
-USER_CHOICES = {}
 
 
 class DebugSession( object ):
@@ -83,21 +79,8 @@ class DebugSession( object ):
   def GetConfigurations( self, adapters ):
     current_file = utils.GetBufferFilepath( vim.current.buffer )
     filetypes = utils.GetBufferFiletypes( vim.current.buffer )
-    configurations = {}
+    return launch.GetConfigurations( adapters, current_file, filetypes )
 
-    for launch_config_file in PathsToAllConfigFiles( VIMSPECTOR_HOME,
-                                                     current_file,
-                                                     filetypes ):
-      self._logger.debug( f'Reading configurations from: {launch_config_file}' )
-      if not launch_config_file or not os.path.exists( launch_config_file ):
-        continue
-
-      with open( launch_config_file, 'r' ) as f:
-        database = json.loads( minify( f.read() ) )
-        configurations.update( database.get( 'configurations' ) or {} )
-        adapters.update( database.get( 'adapters' ) or {} )
-
-    return launch_config_file, configurations
 
   def Start( self, launch_variables = None ):
     # We mutate launch_variables, so don't mutate the default argument.
@@ -112,8 +95,11 @@ class DebugSession( object ):
     self._launch_config = None
 
     current_file = utils.GetBufferFilepath( vim.current.buffer )
-    adapters = {}
-    launch_config_file, configurations = self.GetConfigurations( adapters )
+    filetypes = utils.GetBufferFiletypes( vim.current.buffer )
+    adapters = launch.GetAdapters( current_file, filetypes )
+    launch_config_file, configurations = launch.GetConfigurations( adapters,
+                                                                   current_file,
+                                                                   filetypes )
 
     if not configurations:
       utils.UserMessage( 'Unable to find any debug configurations. '
@@ -121,152 +107,28 @@ class DebugSession( object ):
                          'application.' )
       return
 
-    glob.glob( install.GetGadgetDir( VIMSPECTOR_HOME ) )
-    for gadget_config_file in PathsToAllGadgetConfigs( VIMSPECTOR_HOME,
-                                                       current_file ):
-      self._logger.debug( f'Reading gadget config: {gadget_config_file}' )
-      if not gadget_config_file or not os.path.exists( gadget_config_file ):
-        continue
-
-      with open( gadget_config_file, 'r' ) as f:
-        a =  json.loads( minify( f.read() ) ).get( 'adapters' ) or {}
-        adapters.update( a )
-
-    if 'configuration' in launch_variables:
-      configuration_name = launch_variables.pop( 'configuration' )
-    elif ( len( configurations ) == 1 and
-           next( iter( configurations.values() ) ).get( "autoselect", True ) ):
-      configuration_name = next( iter( configurations.keys() ) )
-    else:
-      # Find a single configuration with 'default' True and autoselect not False
-      defaults = { n: c for n, c in configurations.items()
-                   if c.get( 'default', False ) is True
-                   and c.get( 'autoselect', True ) is not False }
-
-      if len( defaults ) == 1:
-        configuration_name = next( iter( defaults.keys() ) )
-      else:
-        configuration_name = utils.SelectFromList(
-          'Which launch configuration?',
-          sorted( configurations.keys() ) )
-
-    if not configuration_name or configuration_name not in configurations:
-      return
-
     if launch_config_file:
       self._workspace_root = os.path.dirname( launch_config_file )
     else:
       self._workspace_root = os.path.dirname( current_file )
 
-    configuration = configurations[ configuration_name ]
-    adapter = configuration.get( 'adapter' )
-    if isinstance( adapter, str ):
-      adapter_dict = adapters.get( adapter )
-
-      if adapter_dict is None:
-        suggested_gadgets = installer.FindGadgetForAdapter( adapter )
-        if suggested_gadgets:
-          response = utils.AskForInput(
-            f"The specified adapter '{adapter}' is not "
-            "installed. Would you like to install the following gadgets? ",
-            ' '.join( suggested_gadgets ) )
-          if response:
-            new_launch_variables = dict( launch_variables )
-            new_launch_variables[ 'configuration' ] = configuration_name
-
-            installer.RunInstaller(
-              self._api_prefix,
-              False, # Don't leave open
-              *shlex.split( response ),
-              then = lambda: self.Start( new_launch_variables ) )
-            return
-          elif response is None:
-            return
-
-        utils.UserMessage( f"The specified adapter '{adapter}' is not "
-                           "available. Did you forget to run "
-                           "'install_gadget.py'?",
-                           persist = True,
-                           error = True )
-        return
-
-      adapter = adapter_dict
-
-    # Additional vars as defined by VSCode:
-    #
-    # ${workspaceFolder} - the path of the folder opened in VS Code
-    # ${workspaceFolderBasename} - the name of the folder opened in VS Code
-    #                              without any slashes (/)
-    # ${file} - the current opened file
-    # ${relativeFile} - the current opened file relative to workspaceFolder
-    # ${fileBasename} - the current opened file's basename
-    # ${fileBasenameNoExtension} - the current opened file's basename with no
-    #                              file extension
-    # ${fileDirname} - the current opened file's dirname
-    # ${fileExtname} - the current opened file's extension
-    # ${cwd} - the task runner's current working directory on startup
-    # ${lineNumber} - the current selected line number in the active file
-    # ${selectedText} - the current selected text in the active file
-    # ${execPath} - the path to the running VS Code executable
-
-    def relpath( p, relative_to ):
-      if not p:
-        return ''
-      return os.path.relpath( p, relative_to )
-
-    def splitext( p ):
-      if not p:
-        return [ '', '' ]
-      return os.path.splitext( p )
-
-    variables = {
-      'dollar': '$', # HACK. Hote '$$' also works.
-      'workspaceRoot': self._workspace_root,
-      'workspaceFolder': self._workspace_root,
-      'gadgetDir': install.GetGadgetDir( VIMSPECTOR_HOME ),
-      'file': current_file,
-    }
-
-    calculus = {
-      'relativeFile': lambda: relpath( current_file,
-                                       self._workspace_root ),
-      'fileBasename': lambda: os.path.basename( current_file ),
-      'fileBasenameNoExtension':
-        lambda: splitext( os.path.basename( current_file ) )[ 0 ],
-      'fileDirname': lambda: os.path.dirname( current_file ),
-      'fileExtname': lambda: splitext( os.path.basename( current_file ) )[ 1 ],
-      # NOTE: this is the window-local cwd for the current window, *not* Vim's
-      # working directory.
-      'cwd': os.getcwd,
-      'unusedLocalPort': utils.GetUnusedLocalPort,
-    }
-
-    # Pretend that vars passed to the launch command were typed in by the user
-    # (they may have been in theory)
-    USER_CHOICES.update( launch_variables )
-    variables.update( launch_variables )
-
+    configuration_name, configuration = launch.SelectConfiguration(
+      launch_variables,
+      configurations )
+    adapter = launch.SelectAdapter( self._api_prefix,
+                                    configuration_name,
+                                    configuration,
+                                    adapters,
+                                    launch_variables,
+                                    self )
+    if not adapter:
+      return
     try:
-      variables.update(
-        utils.ParseVariables( adapter.get( 'variables', {} ),
-                              variables,
-                              calculus,
-                              USER_CHOICES ) )
-      variables.update(
-        utils.ParseVariables( configuration.get( 'variables', {} ),
-                              variables,
-                              calculus,
-                              USER_CHOICES ) )
-
-
-      utils.ExpandReferencesInDict( configuration,
-                                    variables,
-                                    calculus,
-                                    USER_CHOICES )
-      utils.ExpandReferencesInDict( adapter,
-                                    variables,
-                                    calculus,
-                                    USER_CHOICES )
+      launch.ResolveConfiguration( adapter,
+                                   configuration,
+                                   launch_variables,
+                                   self._workspace_root,
+                                   current_file )
     except KeyboardInterrupt:
       self._Reset()
       return
@@ -1277,29 +1139,3 @@ class DebugSession( object ):
 
   def AddFunctionBreakpoint( self, function, options ):
     return self._breakpoints.AddFunctionBreakpoint( function, options )
-
-
-def PathsToAllGadgetConfigs( vimspector_base, current_file ):
-  yield install.GetGadgetConfigFile( vimspector_base )
-  for p in sorted( glob.glob(
-    os.path.join( install.GetGadgetConfigDir( vimspector_base ),
-                  '*.json' ) ) ):
-    yield p
-
-  yield utils.PathToConfigFile( '.gadgets.json',
-                                os.path.dirname( current_file ) )
-
-
-def PathsToAllConfigFiles( vimspector_base, current_file, filetypes ):
-  for ft in filetypes + [ '_all' ]:
-    for p in sorted( glob.glob(
-      os.path.join( install.GetConfigDirForFiletype( vimspector_base, ft ),
-                    '*.json' ) ) ):
-      yield p
-
-  for ft in filetypes:
-    yield utils.PathToConfigFile( f'.vimspector.{ft}.json',
-                                  os.path.dirname( current_file ) )
-
-  yield utils.PathToConfigFile( '.vimspector.json',
-                                os.path.dirname( current_file ) )
