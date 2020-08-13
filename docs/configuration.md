@@ -36,7 +36,7 @@ for Vimspector.
 ## Concepts
 
 As Vimspector supports debugging arbitrary projects, you need to tell it a few
-deatils about what you want to debug, and how to go about doing that.
+details about what you want to debug, and how to go about doing that.
 
 In order to debug things, Vimspector requires a Debug Adapter which bridges
 between Vimspector and the actual debugger tool. Vimspector can be used with any
@@ -160,7 +160,7 @@ the following variable substitutions:
   provide a value interactively when starting debugging. Vimspector remembers
   what they said and provides it as the default should they debug again.
 * `${SecretToken}` - this variable is provided by the configuration's
-  `variables` block. Its value is taken from the `strip`ped result of running
+  `variables` block. Its value is taken from the `strip`'d result of running
   the shell command. Note these variables can be supplied by both the debug and
   adapter configurations and can be either static strings or shell commands.
 
@@ -177,8 +177,8 @@ example:
     "args": [ "one", "two three", "four" ],
 ```
 
-To help with this sort of case, vimspector supports a 'splat' operator for
-replacement variables apperaing within lists. The syntax is: `"*${var}`, which
+To help with this sort of case, Vimspector supports a 'splat' operator for
+replacement variables operating within lists. The syntax is: `"*${var}`, which
 means roughly "splice the contents of `${var}` into the list at this position".
 `${var}` is parsed like a shell command (using python's `shlex` parser) and each
 word is added as a list item.
@@ -207,7 +207,7 @@ This would yield the intuitive result:
 
 ### Default values
 
-You can specify replacesments with default values. In this case if the user has
+You can specify replacements with default values. In this case if the user has
 not specified a value, they are prompted but with the default value
 pre-populated, allowing them to just press return to accept the default.
 
@@ -220,8 +220,8 @@ a backslash in the JSON you must write `\\`, as in:
 ```
 
 The default value can also be a replacement variable. However, this _must_ be a
-veriable that's already defined, such as one of the [predefined
-variables](#predefined-variables), or one speified in a `variables` block. In
+variable that's already defined, such as one of the [predefined
+variables](#predefined-variables), or one specified in a `variables` block. In
 order to reference them, you _must_ use `${var}` syntax and you _must_ escape
 the closing `}`. For example, the is a common and useful case:
 
@@ -235,6 +235,76 @@ the closing `}`. For example, the is a common and useful case:
 
 This will prompt the user to specify `script`, but it will default to the path
 to the current file.
+
+### Coercing Types
+
+Sometimes, you want to provide an option for a boolean parameter, or want to
+allow the user to specify more than just strings. Vimspector allows you to do
+this, ensuring that the resulting JSON is valid. This is done by interpreting a
+value as a JSON string and substituting the resulting JSON value in its place.
+
+This is easier to explain with an example. Let's say we want to offer the
+ability to break on entry, as an option for the user. The launch configuration
+requires `stopOnEntry` to be a bool. This doesn't work:
+
+```json
+  "stopOnEntry": "${StopOnEntry}"
+```
+
+The reason is that if the user types `true`, the resulting object is:
+
+```json
+  "stopOnEntry": "true"
+```
+
+The problem being that is a string, not a boolean. So Vimspector allows you to
+re-interpret the string as a JSON value and use that instead. To do this, add
+`#json` to the key's name. You can even add a default, like this:
+
+```json
+  "stopOnEntry#json": "${stopOnEntry:true}"
+```
+
+If the user accepts the default, the resulting string `"true"` is coerced to a
+JSON value `true`, and the suffix is stripped fom the key, resulting in the
+following:
+
+```json
+  "stopOnEntry#json": true
+```
+
+Which is what we need.
+
+If you happen to have a key that already ends in `#json` (unlikely!), then you
+can force Vimspector to treat the value as a string by appending `#s`, as in:
+
+```json
+  "unlikelyKeyName#json#s": "this is a string, not JSON data"
+```
+
+#### Advanced usage
+
+The most common usage for this is for number and bool types, but it works for
+objects too. If you want to be able to specify a whole object (e.g. a whole
+`env` dict), then you can do that too:
+
+```json
+  "env#json": "${Environment:{\\}}"
+```
+
+The default value here is `{}` (note the `}` must be escaped!). The user can
+then enter something like `{ "MYVAR": "MyValue", "OTHER": "Other" }` and the
+resulting object would be:
+
+```json
+  "env": {
+    "MYVAR": "MyValue",
+    "OTHER": "Other"
+  }
+```
+
+It also works for lists, though [the splat operator](#the-splat-operator)
+is usually more convenient for that.
 
 ## Configuration Format
 
@@ -268,7 +338,7 @@ abbreviations:
 * `<vimspector home>` means the path to the Vimspector installation (such as
   `$HOME/.vim/pack/vimspector/start/vimspector`)
 * `<OS>` is either `macos` or `linux` depending on the host operating system.
-* `<filetype>` is the Vim fileytype. Where multiple filetypes are in effect,
+* `<filetype>` is the Vim filetype. Where multiple filetypes are in effect,
   typically all filetypes are checked.
 
 ## Adapter configurations
@@ -323,7 +393,7 @@ read and no further searching is done.
 Only a single `.vimspector.json` is read. If one is found, the location of this
 file is used for `${workspaceRoot}` and other workspace-relative paths.
 
-In addition, users can create filetype-specific configurations in the vimspector
+In addition, users can create filetype-specific configurations in the Vimspector
 installation directory. This can be useful where the parameters for the debug
 session for a particular filetype are always known in advance, or can always be
 entered by the user. This allows for debugging to "just work" without any
@@ -389,7 +459,7 @@ As noted, you can specify a default configuration with `"default": true`:
 }
 ```
 
-If multiple conifigurations are found with `default` set to `true`, then the
+If multiple configurations are found with `default` set to `true`, then the
 user is prompted anyway.
 
 #### Preventing automatic selection
@@ -412,10 +482,10 @@ central (as opposed to project-local) directory. For example:
 
 Setting `autoselect` to `false` overrides setting `default` to `true`.
 
-### Exception breakpionts
+### Exception Breakpoints
 
 Debug adapters have arbitrary configuration for exception breakpoints. Normally
-this is presented as a series of question to the user on startnig the debug
+this is presented as a series of question to the user on starting the debug
 session. The question includes the name of the exception breakpoint option,
 the default and the list of valid responses (usually `Y` or `N`).
 
@@ -425,7 +495,7 @@ and configure the response `exception` mapping in the `breakpoints` mapping.  If
 the configured response is empty string, the debug adapter default will be used.
 
 Referring to the above example, the following tells the debug adapter to use the
-default value for `caught` exceptoins and to break on `uncaught` exception:
+default value for `caught` exceptions and to break on `uncaught` exception:
 
 ```json
 {
@@ -458,7 +528,7 @@ cpp_catch: Break on C++: on catch (Y/N/default: N)?
 
 The exception breakpoint "type" is `cpp_catch` and the default is `N`.
 
-Use the following to set the values in config and not get asked:
+Use the following to set the values in configuration and not get asked:
 
 ```json
   "configurations": {
@@ -497,26 +567,26 @@ The following variables are provided:
   found
 * `${workspaceFolder}` - the path of the folder where `.vimspector.json` was
   found
-* `${gadgetDir}` - path to the OS-specifc gadget dir (`<vimspector
+* `${gadgetDir}` - path to the OS-specific gadget dir (`<vimspector
   home>/gadgets/<OS>`)
 * `${file}` - the current opened file
-* `${relativeFile}` - the current opened file relative to workspaceRoot
-* `${fileBasename}` - the current opened file's basename
-* `${fileBasenameNoExtension}` - the current opened file's basename with no
+* `${relativeFile}` - the current opened file relative to `workspaceRoot`
+* `${fileBasename}` - the current opened file's `basename`
+* `${fileBasenameNoExtension}` - the current opened file's `basename` with no
   file extension
-* `${fileDirname}` - the current opened file's dirname
+* `${fileDirname}` - the current opened file's `dirname`
 * `${fileExtname}` - the current opened file's extension
 * `${cwd}` - the current working directory of the active window on launch
 * `${unusedLocalPort}` - an unused local TCP port
 
 ## Remote Debugging Support
 
-Vimspector has in-built support for exectuting remote debuggers (such as
+Vimspector has in-built support for executing remote debuggers (such as
 `gdbserver`, `debugpy`, `llvm-server` etc.). This is useful for environments
 where the development is done on one host and the runtime is
 some other host, account, container, etc.
 
-In order for it to work, you have to set up passwordless SSH between the local
+In order for it to work, you have to set up paswordless SSH between the local
 and remote machines/accounts. Then just tell Vimspector how to remotely launch
 and/or attach to the app.
 
@@ -527,12 +597,12 @@ research that.
 
 Vimspector's tools are intended to automate your existing process for setting
 this up rather than to offer batteries-included approach. Ultimately, all
-vimspector is going to do is run your commands over SSH, or docker, and 
+Vimspector is going to do is run your commands over SSH, or docker, and 
 co-ordinate with the adapter.
 
 ### Python (debugpy) Example
 
-Here is some examples using the vimspector built-in
+Here is some examples using the Vimspector built-in
 remote support (using SSH) to remotely launch and attach a python application
 and connect to it using debugpy.
 
@@ -662,10 +732,10 @@ Vimspector then orchestrates the various tools to set you up.
 
 ### C-family (gdbserver) Example
 
-This example uses vimspector to remotely launch or attach to a binary using
+This example uses Vimspector to remotely launch or attach to a binary using
 `gdbserver` and then instructs vscode-cpptools to attach to that `gdbserver`.
 
-The appraoch is very similar to the above for python, just that we use gdbserver
+The approach is very similar to the above for python, just that we use gdbserver
 and have to tell cpptools a few more options.
 
 ```json
@@ -752,7 +822,7 @@ and have to tell cpptools a few more options.
 
 ### Docker Example
 
-This example uses vimspector to remotely launch or attach to a docker container
+This example uses Vimspector to remotely launch or attach to a docker container
 port.
 
 ``` json
