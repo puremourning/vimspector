@@ -74,13 +74,19 @@ stages:
     pool:
       vmImage: 'macOS-10.14'
     steps:
+    # Node.js tool installer
+    # Finds or downloads and caches the specified version spec of Node.js and adds it to the PATH
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '>=12.0.0' 
+        
     - bash: |
         brew update
-        for p in macvim node tcl-tk llvm; do
+        brew doctor
+        for p in macvim tcl-tk llvm; do
           brew install $p
           brew outdated $p || brew upgrade $p
         done
-        find /usr/local/include/node -type d -exec chmod +w {} \;
         brew link --force --overwrite node
       displayName: 'Install vim and node'
 
