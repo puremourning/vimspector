@@ -76,7 +76,8 @@ stages:
     steps:
     # Node.js tool installer
     # Finds or downloads and caches the specified version spec of Node.js and adds it to the PATH
-    - task: NodeTool@0
+    - displayName: Install node
+      task: NodeTool@0
       inputs:
         versionSpec: '>=12.0.0' 
         
@@ -87,8 +88,7 @@ stages:
           brew install $p
           brew outdated $p || brew upgrade $p
         done
-        brew link --force --overwrite node
-      displayName: 'Install vim and node'
+      displayName: 'Install vim and deps'
 
     - bash: go get -u github.com/go-delve/delve/cmd/dlv
       displayName: 'Install Delve for Go'
