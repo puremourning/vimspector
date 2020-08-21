@@ -80,6 +80,7 @@ stages:
           brew install $p
           brew outdated $p || brew upgrade $p
         done
+        find /usr/local/include/node -type d -exec chmod +w {} \;
         brew link --force --overwrite node
       displayName: 'Install vim and node'
 
