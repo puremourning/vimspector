@@ -79,7 +79,7 @@ stages:
         brew update
         for p in macvim node@10 tcl-tk llvm; do
           brew install $p
-          brew outdated $p || brew install $p
+          brew outdated $p || brew upgrade $p
         done
         brew link --force --overwrite node@10
       displayName: 'Install vim and node'
