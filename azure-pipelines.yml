@@ -75,9 +75,8 @@ stages:
       vmImage: 'macOS-10.14'
     steps:
     - bash: |
-        brew unlink node@6
         brew update
-        for p in macvim node@10 tcl-tk llvm; do
+        for p in macvim node tcl-tk llvm; do
           brew install $p
           brew outdated $p || brew upgrade $p
         done
