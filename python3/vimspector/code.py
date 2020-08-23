@@ -51,7 +51,9 @@ class CodeView( object ):
       vim.command( 'nnoremenu WinBar.✕ :call vimspector#Reset()<CR>' )
 
       if not utils.SignDefined( 'vimspectorPC' ):
-        vim.command( 'sign define vimspectorPC text=\\ ▶ texthl=MatchParen' )
+        utils.DefineSign( 'vimspectorPC',
+                          text = '▶',
+                          texthl = 'MatchParen' )
 
 
   def SetCurrentFrame( self, frame ):
