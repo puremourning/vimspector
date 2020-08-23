@@ -777,3 +777,13 @@ def WindowID( window, tab=None ):
   if tab is None:
     tab = window.tabpage
   return int( Call( 'win_getid', window.number, tab.number ) )
+
+
+def DefineSign( name, text, texthl, col = 'right' ):
+  if col == 'right':
+    if int( Call( 'strdisplaywidth', text ) ) < 2:
+      text = ' ' + text
+
+  text = text.replace( ' ', r'\ ' )
+
+  vim.command( f'sign define { name } text={ text } texthl={ texthl }' )

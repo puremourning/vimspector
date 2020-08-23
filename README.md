@@ -1353,16 +1353,30 @@ Vimsector uses them, they will not be replaced. So to customise the signs,
 define them in your `vimrc`.
 
 * `vimspectorBP`: A breakpoint.
+* `vimspectorBPCond`: A conditional breakpoint.
 * `vimspectorBPDisabled`: A disabled breakpoint
 * `vimspectorPC` The program counter, i.e. current line.
 
-For example, to use some unicode symbols, you could put this in your `vimrc`:
+The default symbols are the equivalent of something like the following:
 
 ```viml
-sign define vimspectorBP text=🔴 texthl=Normal
-sign define vimspectorBPDisabled text=🔵 texthl=Normal
-sign define vimspectorPC text=🔶 texthl=SpellBad
+sign define vimspectorBP         text=\ ● texthl=WarningMsg
+sign define vimspectorBPCond     text=\ ◆ texthl=WarningMsg
+sign define vimspectorBPDisabled text=\ ● texthl=LineNr
+sign define vimspectorPC         text=\ ▶ texthl=MatchParen
 ```
+
+If the signs don't display properly, your font probably doesn't contain these
+glyphs. You can easily change them by deifining the sign in your vimrc. For
+example, you could put this in your `vimrc` to use some simple ASCII symbols:
+
+```viml
+sign define vimspectorBP text=>>         texthl=WarningMsg
+sign define vimspectorBPCond text=>>     texthl=WarningMsg
+sign define vimspectorBPDisabled text=>> texthl=LIneNr
+sign define vimspectorPC text=->         texthl=MatchParen
+```
+
 
 ## Changing the default window sizes
 
@@ -1463,6 +1477,50 @@ In addition, the following key is added when triggering the
 
 * `g:vimspector_session_windows.terminal`: Window ID of the terminal window
 
+## Customising the WinBar
+
+You can even customise the WinBar buttons by simply running the usual `menu`
+(and `unmanu`) commands.
+
+By default, Vimspector uses something a bit like this:
+
+```viml
+nnoremenu WinBar.■\ Stop :call vimspector#Stop()<CR>
+nnoremenu WinBar.▶\ Cont :call vimspector#Continue()<CR>
+nnoremenu WinBar.▷\ Pause :call vimspector#Pause()<CR>
+nnoremenu WinBar.↷\ Next :call vimspector#StepOver()<CR>
+nnoremenu WinBar.→\ Step :call vimspector#StepInto()<CR>
+nnoremenu WinBar.←\ Out :call vimspector#StepOut()<CR>
+nnoremenu WinBar.⟲: :call vimspector#Restart()<CR>
+nnoremenu WinBar.✕ :call vimspector#Reset()<CR>
+```
+
+If you prefer a different layout or if the unicode symbols don't render
+correctly in your font, you can customise this in the `VimspectorUICreated`
+autocommand, for example:
+
+```viml
+func! CustomiseUI()
+  call win_gotoid( g:vimspector_session_windows.code )
+  " Clear the existing WinBar created by Vimspector
+  nunmenu WinBar
+  " Cretae our own WinBar
+  nnoremenu WinBar.Kill :call vimspector#Stop()<CR>
+  nnoremenu WinBar.Continue :call vimspector#Continue()<CR>
+  nnoremenu WinBar.Pause :call vimspector#Pause()<CR>
+  nnoremenu WinBar.Step\ Over  :call vimspector#StepOver()<CR>
+  nnoremenu WinBar.Step\ In :call vimspector#StepInto()<CR>
+  nnoremenu WinBar.Step\ Out :call vimspector#StepOut()<CR>
+  nnoremenu WinBar.Restart :call vimspector#Restart()<CR>
+  nnoremenu WinBar.Exit :call vimspector#Reset()<CR>
+endfunction
+
+augroup MyVimspectorUICustomistaion
+  autocmd!
+  autocmd User VimspectorUICreated call s:CustomiseUI()
+augroup END
+```
+
 ## Example
 
 There is some example code in `support/custom_ui_vimrc` showing how you can use
@@ -1533,6 +1591,8 @@ hi link jsonComment Comment
    but in theory a single gadget can supply multiple `adapter` configs.
    Typically this happens when a `gadget` supplies different `adapter` config
    for, say remote debugging, or debugging in a container, etc.
+8. The signs and winbar display funny symbols. How do i fix them? See
+   [this](#changing-the-default-signs) and [this](#customising-the-winbar)
 
 # Motivation
 
