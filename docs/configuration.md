@@ -1012,8 +1012,8 @@ This configuration can be adapted to any other LSP-based editor configuration
 and is provided just as an example.
 
 [dap]: https://microsoft.github.io/debug-adapter-protocol/
-[schema]: http://puremourning.github.io/vimspector/vimspector.schema.json
-[gadget-schema]: http://puremourning.github.io/vimspector/gadgets.schema.json
+[schema]: http://puremourning.github.io/vimspector/schema/vimspector.schema.json
+[gadget-schema]: http://puremourning.github.io/vimspector/schema/gadgets.schema.json
 [YouCompleteMe]: https://github.com/ycm-core/YouCompleteMe
 [lsp-examples]: https://github.com/ycm-core/lsp-examples
 [vscode-json]: https://github.com/vscode-langservers/vscode-json-languageserver
