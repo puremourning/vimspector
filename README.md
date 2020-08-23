@@ -1371,9 +1371,9 @@ glyphs. You can easily change them by deifining the sign in your vimrc. For
 example, you could put this in your `vimrc` to use some simple ASCII symbols:
 
 ```viml
-sign define vimspectorBP text=>>         texthl=WarningMsg
-sign define vimspectorBPCond text=>>     texthl=WarningMsg
-sign define vimspectorBPDisabled text=>> texthl=LIneNr
+sign define vimspectorBP text==>         texthl=WarningMsg
+sign define vimspectorBPCond text=?>     texthl=WarningMsg
+sign define vimspectorBPDisabled text=!> texthl=LineNr
 sign define vimspectorPC text=->         texthl=MatchParen
 ```
 
