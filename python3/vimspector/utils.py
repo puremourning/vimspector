@@ -333,25 +333,41 @@ def UserMessage( msg, persist=False, error=False ):
 
 
 @contextlib.contextmanager
-def InputSave():
+def AskingForUserInput():
   vim.eval( 'inputsave()' )
   try:
     yield
   finally:
     vim.eval( 'inputrestore()' )
+    # Clear the command line so that subsequent
+    vim.command( 'redraw' )
 
 
-def SelectFromList( prompt, options ):
-  with InputSave():
+def SelectFromList( prompt,
+                    options,
+                    ret = 'text',
+                    default_index = None ):
+  with AskingForUserInput():
     display_options = [ prompt ]
-    display_options.extend( [ '{0}: {1}'.format( i + 1, v )
-                              for i, v in enumerate( options ) ] )
+    display_options.extend( [
+      '{0}{1}: {2}'.format( '*' if i == default_index else ' ',
+                            i + 1,
+                            v )
+      for i, v in enumerate( options )
+    ] )
     try:
       selection = int( vim.eval(
         'inputlist( ' + json.dumps( display_options ) + ' )' ) ) - 1
       if selection < 0 or selection >= len( options ):
-        return None
-      return options[ selection ]
+        if default_index is not None:
+          selection = default_index
+        else:
+          return None
+
+      if ret == 'text':
+        return options[ selection ]
+      else:
+        return selection
     except ( KeyboardInterrupt, vim.error ):
       return None
 
@@ -362,7 +378,7 @@ def AskForInput( prompt, default_value = None ):
   else:
     default_option = ", '{}'".format( Escape( default_value ) )
 
-  with InputSave():
+  with AskingForUserInput():
     try:
       return vim.eval( "input( '{}' {} )".format( Escape( prompt ),
                                                   default_option ) )
@@ -531,11 +547,25 @@ def ExpandReferencesInString( orig_s,
         if default_value is None and e.default_value is not None:
           try:
             default_value = _Substitute( e.default_value, mapping )
-          except MissingSubstitution:
-            default_value = e.default_value
+          except MissingSubstitution as f:
+            if f.name in calculus:
+              default_value = calculus[ f.name ]()
+            else:
+              default_value = e.default_value
 
-        mapping[ key ] = AskForInput( 'Enter value for {}: '.format( key ),
-                                      default_value )
+        value_list = None
+        if default_value:
+          default_value_list = default_value.split( '\n' )
+          if len( default_value_list ) > 1:
+            value_list = default_value_list
+
+        if value_list:
+          mapping[ key ] = SelectFromList( f'Select value for { key }: ',
+                                           default_value_list,
+                                           default_index = 0 )
+        else:
+          mapping[ key ] = AskForInput( 'Enter value for {}: '.format( key ),
+                                        default_value )
 
         if mapping[ key ] is None:
           raise KeyboardInterrupt

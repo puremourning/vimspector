@@ -296,7 +296,7 @@ function! vimspector#GetConfigurations() abort
     return
   endif
   let configurations = py3eval(
-        \ 'list( _vimspector_session.GetConfigurations( {} )[ 1 ].keys() )'
+        \ 'list( _vimspector_session.GetConfigurations().keys() )'
         \ . ' if _vimspector_session else []' )
   return configurations
 endfunction

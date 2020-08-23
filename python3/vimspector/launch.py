@@ -19,7 +19,7 @@ import json
 import glob
 import shlex
 
-from vimspector import install, installer, utils
+from vimspector import install, installer, utils, gadgets
 from vimspector.vendor.json_minify import minify
 
 _logger = logging.getLogger( __name__ )
@@ -33,7 +33,7 @@ USER_CHOICES = {}
 
 
 
-def GetAdapters( current_file, filetypes ):
+def GetAdapters( current_file ):
   adapters = {}
   for gadget_config_file in PathsToAllGadgetConfigs( VIMSPECTOR_HOME,
                                                      current_file ):
@@ -120,13 +120,57 @@ def SelectConfiguration( launch_variables, configurations ):
   return configuration_name, configuration
 
 
+def SuggestConfiguration( filetypes ):
+  nothing = None, None
+  templates = []
+  filetypes = set( filetypes )
+
+  for gadget_name, gadget in gadgets.GADGETS.items():
+    spec = {}
+    spec.update( gadget.get( 'all', {} ) )
+    spec.update( gadget.get( install.GetOS(), {} ) )
+
+    for template in spec.get( 'templates', [] ):
+      if filetypes.intersection( template.get( 'filetypes', set() ) ):
+        templates.append( template )
+
+  if not templates:
+    return nothing
+
+  template_idx = utils.SelectFromList(
+    'No debug configurations were found for this project, '
+    'Would you like to use one of the following templates?',
+    [ t[ 'description' ] for t in templates ],
+    ret = 'index' )
+
+  if template_idx is None:
+    return nothing
+
+  template = templates[ template_idx ]
+
+  config_index = utils.SelectFromList(
+    'Which configuration?',
+    [ c[ 'description' ] for c in template[ 'configurations' ] ],
+    ret = 'index' )
+
+  if config_index is None:
+    return nothing
+
+  configuration = template[ 'configurations' ][ config_index ]
+  configuration_name = utils.AskForInput( 'Give the config a name: ',
+                                          configuration[ 'description' ] )
+
+
+  return configuration_name, configuration[ 'launch_configuration' ]
+
+
 def SelectAdapter( api_prefix,
+                   debug_session,
                    configuration_name,
                    configuration,
                    adapters,
-                   launch_variables,
-                   debug_session ):
-  adapter =  configuration.get( 'adapter' )
+                   launch_variables ):
+  adapter = configuration.get( 'adapter' )
 
   if isinstance( adapter, str ):
     adapter_dict = adapters.get( adapter )
@@ -136,7 +180,7 @@ def SelectAdapter( api_prefix,
       if suggested_gadgets:
         response = utils.AskForInput(
           f"The specified adapter '{adapter}' is not "
-          "installed. Would you like to install the following gadgets? ",
+           "installed. Would you like to install the following gadgets? ",
           ' '.join( suggested_gadgets ) )
         if response:
           new_launch_variables = dict( launch_variables )
@@ -147,7 +191,7 @@ def SelectAdapter( api_prefix,
             False, # Don't leave open
             *shlex.split( response ),
             then = debug_session.Start( new_launch_variables ) )
-          return
+          return None
         elif response is None:
           return None
 

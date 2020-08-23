@@ -76,10 +76,10 @@ class DebugSession( object ):
     self._server_capabilities = {}
     self.ClearTemporaryBreakpoints()
 
-  def GetConfigurations( self, adapters ):
+  def GetConfigurations( self ):
     current_file = utils.GetBufferFilepath( vim.current.buffer )
     filetypes = utils.GetBufferFiletypes( vim.current.buffer )
-    return launch.GetConfigurations( adapters, current_file, filetypes )
+    return launch.GetConfigurations( {}, current_file, filetypes )[ 1 ]
 
 
   def Start( self, launch_variables = None ):
@@ -96,33 +96,40 @@ class DebugSession( object ):
 
     current_file = utils.GetBufferFilepath( vim.current.buffer )
     filetypes = utils.GetBufferFiletypes( vim.current.buffer )
-    adapters = launch.GetAdapters( current_file, filetypes )
+    adapters = launch.GetAdapters( current_file )
     launch_config_file, configurations = launch.GetConfigurations( adapters,
                                                                    current_file,
                                                                    filetypes )
-
-    if not configurations:
-      utils.UserMessage( 'Unable to find any debug configurations. '
-                         'You need to tell vimspector how to launch your '
-                         'application.' )
-      return
 
     if launch_config_file:
       self._workspace_root = os.path.dirname( launch_config_file )
     else:
       self._workspace_root = os.path.dirname( current_file )
 
-    configuration_name, configuration = launch.SelectConfiguration(
-      launch_variables,
-      configurations )
+
+    if not configurations:
+      configuration_name, configuration = launch.SuggestConfiguration(
+        filetypes )
+    else:
+      configuration_name, configuration = launch.SelectConfiguration(
+        launch_variables,
+        configurations )
+
+    if not configuration:
+      utils.UserMessage( 'Unable to find any debug configurations. '
+                         'You need to tell vimspector how to launch your '
+                         'application.' )
+      return
+
     adapter = launch.SelectAdapter( self._api_prefix,
+                                    self,
                                     configuration_name,
                                     configuration,
                                     adapters,
-                                    launch_variables,
-                                    self )
+                                    launch_variables )
     if not adapter:
       return
+
     try:
       launch.ResolveConfiguration( adapter,
                                    configuration,
