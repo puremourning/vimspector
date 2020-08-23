@@ -51,7 +51,8 @@ class CodeView( object ):
       vim.command( 'nnoremenu WinBar.✕ :call vimspector#Reset()<CR>' )
 
       if not utils.SignDefined( 'vimspectorPC' ):
-        vim.command( 'sign define vimspectorPC text=\\ ▶ texthl=MatchParen' )
+        sign = "▶" if int(vim.eval('strdisplaywidth(" ▶")')) > 2 else r"\\ ▶"
+        vim.command( f'sign define vimspectorPC text={sign} texthl=MatchParen' )
 
 
   def SetCurrentFrame( self, frame ):
