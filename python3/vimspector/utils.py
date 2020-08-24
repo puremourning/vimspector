@@ -339,7 +339,7 @@ def SelectFromList( prompt, options ):
       if selection < 0 or selection >= len( options ):
         return None
       return options[ selection ]
-    except KeyboardInterrupt:
+    except ( KeyboardInterrupt, vim.error ):
       return None
 
 
@@ -353,7 +353,7 @@ def AskForInput( prompt, default_value = None ):
     try:
       return vim.eval( "input( '{}' {} )".format( Escape( prompt ),
                                                   default_option ) )
-    except KeyboardInterrupt:
+    except ( KeyboardInterrupt, vim.error ):
       return None
 
 
@@ -732,7 +732,7 @@ def GetVimValue( vim_dict, name, default=None ):
   # FIXME: use 'encoding' ?
   try:
     value = vim_dict[ name ]
-  except KeyError:
+  except ( KeyError, vim.error ):
     return default
 
   if isinstance( value, bytes ):
@@ -743,7 +743,7 @@ def GetVimValue( vim_dict, name, default=None ):
 def GetVimList( vim_dict, name, default=None ):
   try:
     value = vim_dict[ name ]
-  except KeyError:
+  except ( KeyError, vim.error ):
     return default
 
   if not isinstance( value, collections.abc.Iterable ):
