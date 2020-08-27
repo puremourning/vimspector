@@ -55,6 +55,7 @@ class DebugSession( object ):
                        install.GetGadgetDir( VIMSPECTOR_HOME ) )
 
     self._uiTab = None
+    self._logView = None
     self._stackTraceView = None
     self._variablesView = None
     self._outputView = None
@@ -332,12 +333,15 @@ class DebugSession( object ):
       return wrapper
     return decorator
 
+  def _HasUI( self ):
+    return self._uiTab and self._uiTab.valid
+
   def RequiresUI( otherwise=None ):
     """Decorator, call fct if self._connected else echo warning"""
     def decorator( fct ):
       @functools.wraps( fct )
       def wrapper( self, *args, **kwargs ):
-        if not self._uiTab or not self._uiTab.valid:
+        if not self._HasUI():
           utils.UserMessage(
             'Vimspector is not active',
             persist=False,
@@ -491,6 +495,26 @@ class DebugSession( object ):
   @IfConnected()
   def ExpandFrameOrThread( self ):
     self._stackTraceView.ExpandFrameOrThread()
+
+  def ToggleLog( self ):
+    if self._HasUI():
+      return self.ShowOutput( 'Vimspector' )
+
+    if self._logView and self._logView.WindowIsValid():
+      self._logView.Reset()
+      self._logView = None
+      return
+
+    if self._logView:
+      self._logView.Reset()
+
+    # TODO: The UI code is too scattered. Re-organise into a UI class that
+    # just deals with these thigns like window layout and custmisattion.
+    vim.command( f'botright { settings.Int( "bottombar_height", 10 ) }new' )
+    win = vim.current.window
+    self._logView = output.OutputView( win, self._api_prefix )
+    self._logView.AddLogFileView()
+    self._logView.ShowOutput( 'Vimspector' )
 
   @RequiresUI()
   def ShowOutput( self, category ):

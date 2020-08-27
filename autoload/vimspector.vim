@@ -209,6 +209,13 @@ function! vimspector#ShowOutputInWindow( win_id, category ) abort
         \           vim.eval( 'a:category' ) )
 endfunction
 
+function! vimspector#ToggleLog() abort
+  if !s:enabled
+    return
+  endif
+  py3 _vimspector_session.ToggleLog()
+endfunction
+
 function! vimspector#ListBreakpoints() abort
   if !s:enabled
     return
