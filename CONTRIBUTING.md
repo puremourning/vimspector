@@ -33,6 +33,13 @@ work, please always include _all_ of the diagnostics requested in the
 [issue template][issue-template]. Please do not be offended if your request
 is ignored if it does not include the requested diagnostics.
 
+The Vimspector log file contains a full trace of the communication between
+Vimspector and the debug adapter. This is the primary source of diagnostic
+information when something goes wrong that's not a clear Vim traceback.
+
+If you just want to see the Vimspector log file, use `:VimspectorToggleLog`,
+which will tail it in a little window (doesn't work on Windows).
+
 ## Issues
 
 The GitHub issue tracker is for *bug reports* and *features requests* for the

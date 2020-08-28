@@ -42,6 +42,7 @@ For a tutorial and usage overview, take a look at the
     * [Stack Traces](#stack-traces)
     * [Program Output](#program-output)
        * [Console](#console)
+       * [Log View](#log-view)
     * [Closing debugger](#closing-debugger)
  * [Debug adapter configuration](#debug-adapter-configuration)
     * [C, C  , Rust, etc.](#c-c-rust-etc)
@@ -778,6 +779,15 @@ NOTE: See also [Watches](#watches) above.
 
 If the output window is closed, a new one can be opened with
 `:VimspectorShowOutput Console`.
+
+### Log View
+
+The Vimspector log file contains a full trace of the communication between
+Vimspector and the debug adapter. This is the primary source of diagnostic
+information when something goes wrong that's not a Vim traceback.
+
+If you just want to see the Vimspector log file, use `:VimspectorToggleLog`,
+which will tail it in a little window (doesn't work on Windows).
 
 ## Closing debugger
 

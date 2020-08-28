@@ -187,7 +187,6 @@ class OutputView( object ):
       syntax,
       self._buffers[ category ].buf )
 
-
   def _RenderWinBar( self, category ):
     if not self._window.valid:
       return
@@ -216,6 +215,9 @@ class OutputView( object ):
   def GetCategories( self ):
     return list( self._buffers.keys() )
 
+  def AddLogFileView( self, file_name = utils.LOG_FILE ):
+    self._CreateBuffer( 'Vimspector', file_name = file_name )
+
 
 class DAPOutputView( OutputView ):
   """Specialised OutputView which adds the DAP Console (REPL)"""
@@ -226,7 +228,7 @@ class DAPOutputView( OutputView ):
     for b in set( BUFFER_MAP.values() ):
       self._CreateBuffer( b )
 
-    self._CreateBuffer( 'Vimspector', file_name = utils.LOG_FILE )
+    self.AddLogFileView()
     self._ShowOutput( 'Console' )
 
   def ConnectionUp( self, connection ):
