@@ -626,7 +626,7 @@ def DisplayBaloon( is_term, display ):
     display = '\n'.join( display )
 
   # Remove balloon
-  vim.eval( "balloon_show( '' )")
+  vim.eval( "balloon_show( '' )" )
 
   vim.eval( "balloon_show( {0} )".format(
     json.dumps( display ) ) )
