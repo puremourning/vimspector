@@ -624,9 +624,9 @@ def ParseVariables( variables_list,
 def DisplayBaloon( is_term, display ):
   if not is_term:
     display = '\n'.join( display )
-
-  # Remove balloon
-  vim.eval( "balloon_show( '' )" )
+    # To enable the Windows GUI to display the balloon correctly
+    # Refer https://github.com/vim/vim/issues/1512#issuecomment-492070685
+    vim.eval( "balloon_show( '' )" )
 
   vim.eval( "balloon_show( {0} )".format(
     json.dumps( display ) ) )
