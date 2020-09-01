@@ -23,7 +23,8 @@ function! Test_Python_Simple()
   call feedkeys( "\<F9>", 'xt' )
   call vimspector#test#signs#AssertSignGroupSingletonAtLine( 'VimspectorBP',
                                                            \ 6,
-                                                           \ 'vimspectorBP' )
+                                                           \ 'vimspectorBP',
+                                                           \ 9 )
 
   call setpos( '.', [ 0, 1, 1 ] )
 
@@ -79,7 +80,8 @@ function! Test_Python_Remote_Attach()
   call feedkeys( "\<F9>", 'xt' )
   call vimspector#test#signs#AssertSignGroupSingletonAtLine( 'VimspectorBP',
                                                            \ 6,
-                                                           \ 'vimspectorBP' )
+                                                           \ 'vimspectorBP',
+                                                           \ 9 )
 
   call setpos( '.', [ 0, 1, 1 ] )
 

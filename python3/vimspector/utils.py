@@ -660,13 +660,6 @@ def Call( vimscript_function, *args ):
   return vim.eval( call )
 
 
-def SignDefined( name ):
-  if Exists( "*sign_getdefined" ):
-    return int( vim.eval( f"len( sign_getdefined( '{ Escape( name ) }' ) )" ) )
-
-  return False
-
-
 MEMO = {}
 
 
@@ -780,13 +773,3 @@ def WindowID( window, tab=None ):
   if tab is None:
     tab = window.tabpage
   return int( Call( 'win_getid', window.number, tab.number ) )
-
-
-def DefineSign( name, text, texthl, col = 'right' ):
-  if col == 'right':
-    if int( Call( 'strdisplaywidth', text ) ) < 2:
-      text = ' ' + text
-
-  text = text.replace( ' ', r'\ ' )
-
-  vim.command( f'sign define { name } text={ text } texthl={ texthl }' )

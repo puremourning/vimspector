@@ -65,3 +65,10 @@ augroup TestUICustomistaion
   autocmd User VimspectorTerminalOpened call s:SetUpTerminal()
   autocmd User VimspectorUICreated call s:CustomiseWinBar()
 augroup END
+
+let g:vimspector_sign_priority = {
+  \    'vimspectorBP':         3,
+  \    'vimspectorBPCond':     2,
+  \    'vimspectorBPDisabled': 1,
+  \    'vimspectorPC':         999,
+  \ }

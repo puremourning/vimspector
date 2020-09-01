@@ -18,7 +18,7 @@ import logging
 import json
 from collections import defaultdict
 
-from vimspector import utils, settings
+from vimspector import utils, settings, signs
 
 
 class CodeView( object ):
@@ -50,8 +50,8 @@ class CodeView( object ):
       vim.command( 'nnoremenu WinBar.⟲: :call vimspector#Restart()<CR>' )
       vim.command( 'nnoremenu WinBar.✕ :call vimspector#Reset()<CR>' )
 
-      if not utils.SignDefined( 'vimspectorPC' ):
-        utils.DefineSign( 'vimspectorPC',
+      if not signs.SignDefined( 'vimspectorPC' ):
+        signs.DefineSign( 'vimspectorPC',
                           text = '▶',
                           texthl = 'MatchParen' )
 
@@ -62,8 +62,7 @@ class CodeView( object ):
     (or don't have the data) or the code window no longer exits."""
 
     if self._signs[ 'vimspectorPC' ]:
-      vim.command( 'sign unplace {} group=VimspectorCode'.format(
-        self._signs[ 'vimspectorPC' ] ) )
+      signs.UnplaceSign( self._signs[ 'vimspectorPC' ], 'VimspectorCode' )
       self._signs[ 'vimspectorPC' ] = None
 
     if not frame or not frame.get( 'source' ):
@@ -76,12 +75,12 @@ class CodeView( object ):
     self._next_sign_id += 1
 
     try:
-      vim.command( 'sign place {0} group=VimspectorCode priority=20 '
-                                   'line={1} name=vimspectorPC '
-                                   'file={2}'.format(
-                                     self._signs[ 'vimspectorPC' ],
-                                     frame[ 'line' ],
-                                     frame[ 'source' ][ 'path' ] ) )
+      signs.PlaceSign( self._signs[ 'vimspectorPC' ],
+                       'VimspectorCode',
+                       'vimspectorPC',
+                       20,
+                       frame[ 'source' ][ 'path' ],
+                       frame[ 'line' ] )
     except vim.error as e:
       # Ignore 'invalid buffer name'
       if 'E158' not in str( e ):
@@ -118,8 +117,7 @@ class CodeView( object ):
 
   def Clear( self ):
     if self._signs[ 'vimspectorPC' ]:
-      vim.command( 'sign unplace {} group=VimspectorCode'.format(
-        self._signs[ 'vimspectorPC' ] ) )
+      signs.UnplaceSign( self._signs[ 'vimspectorPC' ], 'VimspectorCode' )
       self._signs[ 'vimspectorPC' ] = None
 
     self._UndisplaySigns()
@@ -163,7 +161,7 @@ class CodeView( object ):
 
   def _UndisplaySigns( self ):
     for sign_id in self._signs[ 'breakpoints' ]:
-      vim.command( 'sign unplace {} group=VimspectorCode'.format( sign_id ) )
+      signs.UnplaceSign( sign_id, 'VimspectorCode' )
 
     self._signs[ 'breakpoints' ] = []
 
@@ -182,16 +180,13 @@ class CodeView( object ):
         sign_id = self._next_sign_id
         self._next_sign_id += 1
         self._signs[ 'breakpoints' ].append( sign_id )
-        vim.command(
-          'sign place {0} group=VimspectorCode priority=9 '
-                          'line={1} '
-                          'name={2} '
-                          'file={3}'.format(
-                            sign_id,
-                            breakpoint[ 'line' ],
-                            'vimspectorBP' if breakpoint[ 'verified' ]
-                                           else 'vimspectorBPDisabled',
-                            file_name ) )
+        signs.PlaceSign( sign_id,
+                         'VimspectorCode',
+                         'vimspectorBP' if breakpoint[ 'verified' ]
+                                        else 'vimspectorBPDisabled',
+                         9,
+                         file_name,
+                         breakpoint[ 'line' ] )
 
 
   def BreakpointsAsQuickFix( self ):
