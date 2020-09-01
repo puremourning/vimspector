@@ -66,16 +66,18 @@ For a tutorial and usage overview, take a look at the
     * [Other servers](#other-servers)
  * [Customisation](#customisation)
     * [Changing the default signs](#changing-the-default-signs)
+    * [Sign priority](#sign-priority)
     * [Changing the default window sizes](#changing-the-default-window-sizes)
     * [Changing the terminal size](#changing-the-terminal-size)
     * [Advanced UI customisation](#advanced-ui-customisation)
+    * [Customising the WinBar](#customising-the-winbar)
     * [Example](#example)
  * [FAQ](#faq)
  * [Motivation](#motivation)
  * [License](#license)
  * [Sponsorship](#sponsorship)
 
-<!-- Added by: ben, at: Wed 22 Jul 2020 22:10:50 BST -->
+<!-- Added by: ben, at: Tue  1 Sep 2020 13:42:32 BST -->
 
 <!--te-->
 
@@ -1362,10 +1364,13 @@ Vimsector uses the following signs internally. If they are defined before
 Vimsector uses them, they will not be replaced. So to customise the signs,
 define them in your `vimrc`.
 
-* `vimspectorBP`: A breakpoint.
-* `vimspectorBPCond`: A conditional breakpoint.
-* `vimspectorBPDisabled`: A disabled breakpoint
-* `vimspectorPC` The program counter, i.e. current line.
+
+| Sign                   | Description                         | Priority |
+|------------------------|-------------------------------------|----------|
+| `vimspectorBP`         | Line breakpoint                     | 9        |
+| `vimspectorBPCond`     | Conditional line breakpiont         | 9        |
+| `vimspectorBPDisabled` | Disabled breakpoint                 | 9        |
+| `vimspectorPC`         | Program counter (i.e. current line) | 20       |
 
 The default symbols are the equivalent of something like the following:
 
@@ -1387,6 +1392,37 @@ sign define vimspectorBPDisabled text=!> texthl=LineNr
 sign define vimspectorPC text=->         texthl=MatchParen
 ```
 
+## Sign priority
+
+Many different plugins provide signs for various purposes. Examples include
+diagnostic signs for code errors, etc. Vim provides only a single priority to
+determine which sign should be displayed when multiple signs are placed at a
+single line. If you are finding that other signs are interfering with
+vimspector's (or vice-versa), you can customise the priority used by vimspector
+by setting the following dictionary:
+
+```viml
+let g:vimspector_sign_priority = {
+  \   '<sign-name>': <priority>,
+  \ }
+```
+
+For example:
+
+```viml
+let g:vimspector_sign_priority = {
+  \    'vimspectorBP':         3,
+  \    'vimspectorBPCond':     2,
+  \    'vimspectorBPDisabled': 1,
+  \    'vimspectorPC':         999,
+  \ }
+```
+
+All keys are optional. If a sign is not customised, the default priority it used
+(as shown above).
+
+See `:help sign-priority`. The default priority is 10, larger numbers override
+smaller ones.
 
 ## Changing the default window sizes
 

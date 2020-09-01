@@ -31,3 +31,9 @@ def Int( option: str, default=0 ):
 
 def List( option: str, default=[] ):
   return utils.GetVimList( vim.vars, f'vimspector_{ option }', default )
+
+
+def Dict( option: str, default={} ):
+  return utils.GetVimValue( vim.vars,
+                            f'vimspector_{ option }',
+                            default )

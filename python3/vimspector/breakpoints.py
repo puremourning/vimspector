@@ -21,7 +21,7 @@ import os
 import logging
 
 import json
-from vimspector import utils
+from vimspector import utils, signs
 
 
 class ServerBreakpointHandler( object ):
@@ -52,18 +52,18 @@ class ProjectBreakpoints( object ):
 
     self._next_sign_id = 1
 
-    if not utils.SignDefined( 'vimspectorBP' ):
-      utils.DefineSign( 'vimspectorBP',
+    if not signs.SignDefined( 'vimspectorBP' ):
+      signs.DefineSign( 'vimspectorBP',
                         text = '●',
                         texthl = 'WarningMsg' )
 
-    if not utils.SignDefined( 'vimspectorBPCond' ):
-      utils.DefineSign( 'vimspectorBPCond',
+    if not signs.SignDefined( 'vimspectorBPCond' ):
+      signs.DefineSign( 'vimspectorBPCond',
                         text = '◆',
                         texthl = 'WarningMsg' )
 
-    if not utils.SignDefined( 'vimspectorBPDisabled' ):
-      utils.DefineSign( 'vimspectorBPDisabled',
+    if not signs.SignDefined( 'vimspectorBPDisabled' ):
+      signs.DefineSign( 'vimspectorBPDisabled',
                         text = '●',
                         texthl = 'LineNr' )
 
@@ -130,8 +130,7 @@ class ProjectBreakpoints( object ):
       for bp in breakpoints:
         self._SignToLine( file_name, bp )
         if 'sign_id' in bp:
-          vim.command( 'sign unplace {0} group=VimspectorBP'.format(
-            bp[ 'sign_id' ] ) )
+          signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
 
     self._line_breakpoints = defaultdict( list )
     self._func_breakpoints = []
@@ -157,8 +156,7 @@ class ProjectBreakpoints( object ):
           action = 'Disable'
         else:
           if 'sign_id' in bp:
-            vim.command( 'sign unplace {0} group=VimspectorBP'.format(
-              bp[ 'sign_id' ] ) )
+            signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
           del self._line_breakpoints[ file_name ][ index ]
           action = 'Delete'
         break
@@ -249,8 +247,7 @@ class ProjectBreakpoints( object ):
       for bp in line_breakpoints:
         self._SignToLine( file_name, bp )
         if 'sign_id' in bp:
-          vim.command( 'sign unplace {0} group=VimspectorBP'.format(
-            bp[ 'sign_id' ] ) )
+          signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
           del bp[ 'sign_id' ]
 
         if bp[ 'state' ] != 'ENABLED':
@@ -374,8 +371,7 @@ class ProjectBreakpoints( object ):
       for bp in line_breakpoints:
         self._SignToLine( file_name, bp )
         if 'sign_id' in bp:
-          vim.command( 'sign unplace {0} group=VimspectorBP '.format(
-            bp[ 'sign_id' ] ) )
+          signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
         else:
           bp[ 'sign_id' ] = self._next_sign_id
           self._next_sign_id += 1
@@ -384,12 +380,12 @@ class ProjectBreakpoints( object ):
                  else 'vimspectorBPCond' if 'condition' in bp[ 'options' ]
                  else 'vimspectorBP' )
 
-        vim.command(
-          'sign place {0} group=VimspectorBP line={1} name={2} file={3}'.format(
-            bp[ 'sign_id' ] ,
-            bp[ 'line' ],
-            sign,
-            file_name ) )
+        signs.PlaceSign( bp[ 'sign_id' ],
+                         'VimspectorBP',
+                         sign,
+                         9,
+                         file_name,
+                         bp[ 'line' ] )
 
 
   def _SignToLine( self, file_name, bp ):
@@ -398,7 +394,7 @@ class ProjectBreakpoints( object ):
 
     signs = vim.eval( "sign_getplaced( '{}', {} )".format(
       utils.Escape( file_name ),
-      json.dumps( { 'id': file_name, 'group': 'VimspectorBP', } ) ) )
+      json.dumps( { 'id': bp[ 'sign_id' ], 'group': 'VimspectorBP', } ) ) )
 
     if len( signs ) == 1 and len( signs[ 0 ][ 'signs' ] ) == 1:
       bp[ 'line' ] = int( signs[ 0 ][ 'signs' ][ 0 ][ 'lnum' ] )

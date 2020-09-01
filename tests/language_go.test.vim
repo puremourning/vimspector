@@ -23,7 +23,8 @@ function! Test_Go_Simple()
   call feedkeys( "\<F9>", 'xt' )
   call vimspector#test#signs#AssertSignGroupSingletonAtLine( 'VimspectorBP',
                                                            \ 4,
-                                                           \ 'vimspectorBP' )
+                                                           \ 'vimspectorBP',
+                                                           \ 9 )
 
   call setpos( '.', [ 0, 1, 1 ] )
 
