@@ -71,7 +71,12 @@ function! Test_All_Buffers_Deleted_NoHidden()
 
   let buffers_after = getbufinfo( opts )
 
-  call assert_equal( len( buffers_before ), len( buffers_after ) )
+  if assert_equal( len( buffers_before ), len( buffers_after ) )
+    call assert_report( 'Expected '
+                      \ . string( buffers_before )
+                      \ . ' but found '
+                      \ . string( buffers_after ) )
+  endif
 
   set hidden&
   lcd -
@@ -101,7 +106,12 @@ function! Test_All_Buffers_Deleted_Hidden()
 
   let buffers_after = getbufinfo( opts )
 
-  call assert_equal( len( buffers_before ), len( buffers_after ) )
+  if assert_equal( len( buffers_before ), len( buffers_after ) )
+    call assert_report( 'Expected '
+                      \ . string( buffers_before )
+                      \ . ' but found '
+                      \ . string( buffers_after ) )
+  endif
 
   set hidden&
   lcd -
@@ -115,7 +125,13 @@ function! Test_All_Buffers_Deleted_ToggleLog()
   VimspectorToggleLog
   VimspectorToggleLog
   let buffers_after = getbufinfo( #{ buflisted: 1 } )
-  call assert_equal( len( buffers_before ), len( buffers_after ) )
+
+  if assert_equal( len( buffers_before ), len( buffers_after ) )
+    call assert_report( 'Expected '
+                      \ . string( buffers_before )
+                      \ . ' but found '
+                      \ . string( buffers_after ) )
+  endif
 
   call vimspector#test#setup#Reset()
   set hidden&
@@ -142,7 +158,12 @@ function! Test_All_Buffers_Deleted_Installer()
         \ 120000 )
 
   let buffers_after = getbufinfo( #{ buflisted: 1 } )
-  call assert_equal( len( buffers_before ), len( buffers_after ) )
+  if assert_equal( len( buffers_before ), len( buffers_after ) )
+    call assert_report( 'Expected '
+                      \ . string( buffers_before )
+                      \ . ' but found '
+                      \ . string( buffers_after ) )
+  endif
 
   call vimspector#test#setup#Reset()
   set hidden&

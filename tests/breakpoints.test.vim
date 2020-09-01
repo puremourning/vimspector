@@ -631,6 +631,7 @@ function! Test_Custom_Breakpoint_Priority()
   call vimspector#test#setup#Reset()
   lcd -
   %bwipeout!
+  unlet! g:vimspector_sign_priority
 endfunction
 
 function! Test_Custom_Breakpoint_Priority_Partial()
@@ -717,8 +718,5 @@ function! Test_Custom_Breakpoint_Priority_Partial()
   call vimspector#test#setup#Reset()
   lcd -
   %bwipeout!
-endfunction
-
-function! TearDown_Test_Custom_Breakpoint_Priority()
   unlet! g:vimspector_sign_priority
 endfunction
