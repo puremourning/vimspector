@@ -22,8 +22,8 @@ def DefineSign( name, text, texthl, col = 'right' ):
   vim.command( f'sign define { name } text={ text } texthl={ texthl }' )
 
 
-def PlaceSign( sign_id, group, name, priority, file, line ):
-  priority = settings.Dict( 'sign_priority' ).get( name, priority )
+def PlaceSign( sign_id, group, name, file, line ):
+  priority = settings.Dict( 'sign_priority' )[ name ]
 
   cmd = ( f'sign place { sign_id } '
           f'group={ group } '

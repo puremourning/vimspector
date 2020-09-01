@@ -510,7 +510,7 @@ class DebugSession( object ):
 
     # TODO: The UI code is too scattered. Re-organise into a UI class that
     # just deals with these thigns like window layout and custmisattion.
-    vim.command( f'botright { settings.Int( "bottombar_height", 10 ) }new' )
+    vim.command( f'botright { settings.Int( "bottombar_height" ) }new' )
     win = vim.current.window
     self._logView = output.OutputView( win, self._api_prefix )
     self._logView.AddLogFileView()
@@ -525,7 +525,7 @@ class DebugSession( object ):
       # and poking into each View class to check its window is valid also feels
       # wrong.
       with utils.LetCurrentTabpage( self._uiTab ):
-        vim.command( f'botright { settings.Int( "bottombar_height", 10 ) }new' )
+        vim.command( f'botright { settings.Int( "bottombar_height" ) }new' )
         self._outputView.UseWindow( vim.current.window )
         vim.vars[ 'vimspector_session_windows' ][ 'output' ] = utils.WindowID(
           vim.current.window,
@@ -568,7 +568,7 @@ class DebugSession( object ):
 
     # Call stack
     vim.command(
-      f'topleft vertical { settings.Int( "sidebar_width", 50 ) }new' )
+      f'topleft vertical { settings.Int( "sidebar_width" ) }new' )
     stack_trace_window = vim.current.window
     one_third = int( vim.eval( 'winheight( 0 )' ) ) / 3
     self._stackTraceView = stack_trace.StackTraceView( self,
@@ -594,7 +594,7 @@ class DebugSession( object ):
 
     # Output/logging
     vim.current.window = code_window
-    vim.command( f'rightbelow { settings.Int( "bottombar_height", 10 ) }new' )
+    vim.command( f'rightbelow { settings.Int( "bottombar_height" ) }new' )
     output_window = vim.current.window
     self._outputView = output.DAPOutputView( output_window,
                                              self._api_prefix )

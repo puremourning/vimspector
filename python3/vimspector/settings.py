@@ -18,22 +18,58 @@ import vim
 import builtins
 from vimspector import utils
 
+DEFAULTS = {
+  # UI
+  'bottombar_height':  10,
+  'sidebar_width':     50,
+  'code_minwidth':     82,
+  'terminal_maxwidth': 80,
+  'terminal_minwidth': 10,
+
+  # Signs
+  'sign_priority': {
+    'vimspectorPC':         20,
+    'vimspectorBP':         9,
+    'vimspectorBPCond':     9,
+    'vimspectorBPDisabled': 9,
+  },
+
+  # Installer
+  'install_gadgets': [],
+}
+
 
 def Get( option: str, default=None, cls=str ):
   return cls( utils.GetVimValue( vim.vars,
                                  f'vimspector_{ option }',
-                                 default ) )
+                                 DEFAULTS.get( option, cls() ) ) )
 
 
-def Int( option: str, default=0 ):
-  return Get( option, default=default, cls=builtins.int )
+def Int( option: str ):
+  return Get( option, cls=builtins.int )
 
 
-def List( option: str, default=[] ):
-  return utils.GetVimList( vim.vars, f'vimspector_{ option }', default )
+def List( option: str ):
+  return utils.GetVimList( vim.vars,
+                           f'vimspector_{ option }',
+                           DEFAULTS.get( option, [] ) )
 
 
-def Dict( option: str, default={} ):
-  return utils.GetVimValue( vim.vars,
-                            f'vimspector_{ option }',
-                            default )
+# FIXME:
+# In Vim, we must use vim.Dictionary because this sorts out the annoying
+# keys-as-bytes discrepancy, making things awkward. That said, we still have the
+# problem where the _values_ are potentially bytes. It's very tempting to just
+# make a deep copy to antive str type here.
+# Of course in neovim, it's totally different and you actually get a dict type
+# back (though for once, neovim is making life somewhat easier for a change).
+DICT_TYPE = dict
+if hasattr( vim, 'Dictionary' ):
+  DICT_TYPE = vim.Dictionary
+
+
+def Dict( option: str ):
+  d = DICT_TYPE( DEFAULTS.get( option, {} ) )
+  d.update( utils.GetVimValue( vim.vars,
+                               f'vimspector_{ option }',
+                               {} ) )
+  return d

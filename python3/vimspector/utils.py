@@ -749,7 +749,6 @@ def GetVimList( vim_dict, name, default=None ):
   return [ i.decode( 'utf-8' ) if isinstance( i, bytes ) else i for i in value ]
 
 
-
 def GetVimspectorBase():
   return GetVimValue( vim.vars,
                      'vimspector_base_dir',

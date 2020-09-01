@@ -383,7 +383,6 @@ class ProjectBreakpoints( object ):
         signs.PlaceSign( bp[ 'sign_id' ],
                          'VimspectorBP',
                          sign,
-                         9,
                          file_name,
                          bp[ 'line' ] )
 
