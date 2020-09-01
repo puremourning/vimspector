@@ -1370,7 +1370,7 @@ define them in your `vimrc`.
 | `vimspectorBP`         | Line breakpoint                     | 9        |
 | `vimspectorBPCond`     | Conditional line breakpiont         | 9        |
 | `vimspectorBPDisabled` | Disabled breakpoint                 | 9        |
-| `vimspectorPC`         | Program counter (i.e. current line) | 20       |
+| `vimspectorPC`         | Program counter (i.e. current line) | 200      |
 
 The default symbols are the equivalent of something like the following:
 
@@ -1378,7 +1378,7 @@ The default symbols are the equivalent of something like the following:
 sign define vimspectorBP         text=\ ● texthl=WarningMsg
 sign define vimspectorBPCond     text=\ ◆ texthl=WarningMsg
 sign define vimspectorBPDisabled text=\ ● texthl=LineNr
-sign define vimspectorPC         text=\ ▶ texthl=MatchParen
+sign define vimspectorPC         text=\ ▶ texthl=MatchParen linehl=CursorLine
 ```
 
 If the signs don't display properly, your font probably doesn't contain these

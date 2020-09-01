@@ -53,7 +53,8 @@ class CodeView( object ):
       if not signs.SignDefined( 'vimspectorPC' ):
         signs.DefineSign( 'vimspectorPC',
                           text = '▶',
-                          texthl = 'MatchParen' )
+                          texthl = 'MatchParen',
+                          linehl = 'CursorLine' )
 
 
   def SetCurrentFrame( self, frame ):
@@ -78,7 +79,6 @@ class CodeView( object ):
       signs.PlaceSign( self._signs[ 'vimspectorPC' ],
                        'VimspectorCode',
                        'vimspectorPC',
-                       20,
                        frame[ 'source' ][ 'path' ],
                        frame[ 'line' ] )
     except vim.error as e:
@@ -184,7 +184,6 @@ class CodeView( object ):
                          'VimspectorCode',
                          'vimspectorBP' if breakpoint[ 'verified' ]
                                         else 'vimspectorBPDisabled',
-                         9,
                          file_name,
                          breakpoint[ 'line' ] )
 
@@ -248,9 +247,9 @@ class CodeView( object ):
       if term_options[ 'vertical' ] and not term_options.get( 'curwin', 0 ):
         term_options[ 'term_cols' ] = max(
           min ( int( vim.eval( 'winwidth( 0 )' ) )
-                     - settings.Int( 'code_minwidth', 82 ),
-                settings.Int( 'terminal_maxwidth', 80 ) ),
-          settings.Int( 'terminal_minwidth' , 10 )
+                     - settings.Int( 'code_minwidth' ),
+                settings.Int( 'terminal_maxwidth' ) ),
+          settings.Int( 'terminal_minwidth' )
         )
 
       buffer_number = int(

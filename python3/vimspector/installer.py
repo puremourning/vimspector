@@ -114,7 +114,7 @@ def RunInstaller( api_prefix, leave_open, *args, **kwargs ):
   _ResetInstaller()
 
   with utils.RestoreCurrentWindow():
-    vim.command( f'botright { settings.Int( "bottombar_height", 10 ) }new' )
+    vim.command( f'botright { settings.Int( "bottombar_height" ) }new' )
     win = vim.current.window
     OUTPUT_VIEW = output.OutputView( win, api_prefix )
 
