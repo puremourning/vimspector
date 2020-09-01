@@ -53,7 +53,8 @@ class CodeView( object ):
       if not signs.SignDefined( 'vimspectorPC' ):
         signs.DefineSign( 'vimspectorPC',
                           text = '▶',
-                          texthl = 'MatchParen' )
+                          texthl = 'MatchParen',
+                          linehl = 'CursorLine' )
 
 
   def SetCurrentFrame( self, frame ):
