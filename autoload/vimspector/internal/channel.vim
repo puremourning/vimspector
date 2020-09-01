@@ -94,6 +94,16 @@ _vimspector_session.OnRequestTimeout( vim.eval( 'a:id' ) )
 EOF
 endfunction
 
+function! s:KillJob() abort
+  if exists( 's:job' )
+    if job_status( s:job ) ==# 'run'
+      call job_stop( s:job, 'kill' )
+    endif
+    unlet s:job
+    sleep 500m
+  endif
+endfunction
+
 function! vimspector#internal#channel#StopDebugSession() abort
   if exists( 's:ch' ) && ch_status( s:ch ) ==# 'open'
     " channel is open, close it and trigger the callback. The callback is _not_
@@ -101,15 +111,17 @@ function! vimspector#internal#channel#StopDebugSession() abort
     " is not open, then we there is a _OnClose callback waiting for us, so do
     " nothing.
     call ch_close( s:ch )
+    while ch_status( s:ch ) ==# 'buffered'
+      let data = ch_read( s:ch, {'timeout': 0} )
+      if data == ''
+        continue
+      endif
+      call s:_OnServerData( s:ch, data )
+    endwhile
     call s:_OnClose( s:ch )
   endif
 
-  if exists( 's:job' )
-    if job_status( s:job ) ==# 'run'
-      call job_stop( s:job, 'kill' )
-    endif
-    unlet s:job
-  endif
+  call s:KillJob()
 endfunction
 
 function! vimspector#internal#channel#Reset() abort
