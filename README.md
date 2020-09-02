@@ -668,7 +668,7 @@ See [the reference guide][vimspector-ref-config-selection] for details.
 
 ## Breakpoints
 
-* Use `vimspector#ToggleBreakpoint([ { 'condition': '<condition expr>' } ])`
+* Use `vimspector#ToggleBreakpoint( { 'condition': '<condition expr>' } )`
   to set/disable/delete a line breakpoint, with optional condition.
 * Use `vimspector#AddFunctionBreakpoint( '<name>' [, { 'condition': '<condition expr>' } ] )`
   to add a function breakpoint with optional condition.
