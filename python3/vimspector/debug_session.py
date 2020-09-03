@@ -940,13 +940,26 @@ class DebugSession( object ):
     if 'name' not in launch_config:
       launch_config[ 'name' ] = 'test'
 
+    def failure_handler( reason, msg ):
+      text = [
+        'Launch Failed',
+        '',
+        reason,
+        '',
+        'Use :VimspectorReset to close'
+      ]
+      self._splash_screen = utils.DisplaySplash( self._api_prefix,
+                                                 self._splash_screen,
+                                                 text )
+
+
     self._connection.DoRequest(
       lambda msg: self._OnLaunchComplete(),
       {
         'command': launch_config[ 'request' ],
         'arguments': launch_config
-      }
-    )
+      },
+      failure_handler )
 
 
   def _OnLaunchComplete( self ):

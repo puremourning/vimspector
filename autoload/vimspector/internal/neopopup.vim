@@ -26,24 +26,39 @@ set cpoptions&vim
 let s:db = {}
 let s:next_id = 0
 
+
+function! s:MessageToList( message ) abort
+  if type( a:message ) == type( [] )
+    let message = a:message
+  else
+    let message = [ a:message ]
+  endif
+  return message
+endfunction
+
+function! s:GetSplashConfig( message ) abort
+  let l = max( map( a:message, 'len( v:val )' ) )
+  let h = len( a:message )
+
+  return { 'relative':   'editor',
+         \ 'width':      l,
+         \ 'height':     h,
+         \ 'col':        ( &columns / 2 ) - ( l / 2 ),
+         \ 'row':        ( &lines / 2 ) - h / 2,
+         \ 'anchor':     'NW',
+         \ 'style':      'minimal',
+         \ 'focusable':  v:false,
+         \ }
+endfunction
+
 function! vimspector#internal#neopopup#DisplaySplash( message ) abort
+  let message = s:MessageToList( a:message )
   let buf = nvim_create_buf(v:false, v:true)
-  call nvim_buf_set_lines(buf, 0, -1, v:true, [ a:message ] )
+  call nvim_buf_set_lines(buf, 0, -1, v:true, message )
 
-  let l = len( a:message )
-
-  let opts = {
-        \ 'relative':   'editor',
-        \ 'width':      l,
-        \ 'height':     1,
-        \ 'col':        ( &columns / 2 ) - ( l / 2 ),
-        \ 'row':        &lines / 2,
-        \ 'anchor':     'NW',
-        \ 'style':      'minimal',
-        \ 'focusable':  v:false,
-        \ }
-  let win = nvim_open_win(buf, 0, opts)
+  let win = nvim_open_win(buf, 0, s:GetSplashConfig( message ) )
   call nvim_win_set_option(win, 'wrap', v:false)
+  call nvim_win_set_option(win, 'colorcolumn', '')
 
   let id = s:next_id
   let s:next_id += 1
@@ -53,7 +68,9 @@ endfunction
 
 function! vimspector#internal#neopopup#UpdateSplash( id, message ) abort
   let splash = s:db[ a:id ]
-  call nvim_buf_set_lines(splash.buf, 0, -1, v:true, [ a:message ] )
+  let message = s:MessageToList( a:message )
+  call nvim_buf_set_lines( splash.buf, 0, -1, v:true, message )
+  call nvim_win_set_config( splash.win, s:GetSplashConfig( message ) )
   return a:id
 endfunction
 
