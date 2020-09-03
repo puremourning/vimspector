@@ -19,7 +19,7 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 " }}}
 
-function! s:Debug( ... )
+function! s:Debug( ... ) abort
   py3 <<EOF
 if _vimspector_session is not None:
   _vimspector_session._logger.debug( *vim.eval( 'a:000' ) )
