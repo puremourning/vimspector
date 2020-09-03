@@ -266,14 +266,17 @@ let s:latest_completion_request = {}
 
 function! vimspector#CompleteFuncSync( prompt, find_start, query ) abort
   if py3eval( 'not _vimspector_session' )
-    return []
+    if a:find_start
+      return -3
+    endif
+    return v:none
   endif
 
   if a:find_start
 
     " We're busy
     if !empty( s:latest_completion_request )
-      return -1
+      return -3
     endif
 
     let line = getline( line( '.' ) )[ len( a:prompt ) : ]
