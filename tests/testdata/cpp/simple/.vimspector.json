@@ -1,4 +1,5 @@
 {
+  "$schema": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json",
   "configurations": {
     "run-to-entry": {
       "adapter": "vscode-cpptools",
@@ -43,6 +44,29 @@
           "swift_catch": "",
           "swift_throw": ""
         }
+      }
+    },
+    "calculate-some-variable": {
+      "adapter": "vscode-cpptools",
+      "variables": {
+        "SIMPLE": "This is some text containing: $HOME",
+        "CALCULATED_LIST": {
+          "shell": [ "uuidgen" ]
+        },
+        "CALCULATED_STR": {
+          "shell": [ "uuidgen" ]
+        }
+      },
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/${fileBasenameNoExtension}",
+        "MImode": "${VIMSPECTOR_MIMODE}",
+        "externalConsole": false,
+        "args": [
+          "CALCULATED_LIST", "${CALCULATED_LIST}",
+          "SIMPLE", "${SIMPLE}",
+          "CALCULATED_STR", "${CALCULATED_STR}"
+        ]
       }
     }
   }
