@@ -147,7 +147,8 @@ class VariablesView( object ):
     utils.SetUpPromptBuffer( self._watch.buf,
                              'vimspector.Watches',
                              'Expression: ',
-                             'vimspector#AddWatchPrompt' )
+                             'vimspector#AddWatchPrompt',
+                             'vimspector#OmniFuncWatch' )
     with utils.LetCurrentWindow( watches_win ):
       vim.command(
         'nnoremap <buffer> <CR> :call vimspector#ExpandVariable()<CR>' )

@@ -232,15 +232,112 @@ function! vimspector#CompleteOutput( ArgLead, CmdLine, CursorPos ) abort
   return join( buffers, "\n" )
 endfunction
 
+py3 <<EOF
+def _vimspector_GetExprCompletions( CmdLine, CursorPos ):
+  if not _vimspector_session:
+    return []
+
+  # FIXME
+  # Curiously, it seems that CursorPos is 0-based here and that's actually what
+  # the servers want/need ?
+  return [ i.get( 'text' ) or i[ 'label' ]
+           for i in _vimspector_session.GetCompletionsSync( CmdLine,
+                                                            CursorPos ) ]
+EOF
+
 function! vimspector#CompleteExpr( ArgLead, CmdLine, CursorPos ) abort
   if !s:enabled
     return
   endif
-  return join( py3eval( '_vimspector_session.GetCompletionsSync( '
+  return join( py3eval( '_vimspector_GetExprCompletions( '
                       \.'  vim.eval( "a:CmdLine" ),'
-                      \.'  int( vim.eval( "a:CursorPos" ) ) )'
-                      \. '   if _vimspector_session else []' ),
+                      \.'  int( vim.eval( "a:CursorPos" ) ) + 1 )' ),
              \ "\n" )
+endfunction
+
+let s:latest_completion_request = {}
+
+function! vimspector#CompleteFuncSync( prompt, find_start, query ) abort
+  if py3eval( 'not _vimspector_session' )
+    return []
+  endif
+
+  if a:find_start
+
+    " We're busy
+    if !empty( s:latest_completion_request )
+      return -1
+    endif
+
+    let line = getline( line( '.' ) )[ len( a:prompt ) : ]
+    let col = col( '.' ) - len( a:prompt )
+    let s:latest_completion_request.items =
+          \ py3eval( '_vimspector_session.GetCompletionsSync( '
+                   \.'  vim.eval( "line" ), '
+                   \.'  int( vim.eval( "col" ) ) )' )
+    let s:latest_completion_request.line = line
+    let s:latest_completion_request.col = col
+
+    let start_pos = col
+    for item in s:latest_completion_request.items
+      if !has_key( item, 'start' )
+        let item.start = col
+      else
+        " For some reason, the returned start value is 0-indexed even though we
+        " use columnsStartAt1
+        " TODO need to check this with the other servers that exist
+        let item.start += 1
+      endif
+      " TODO/FIXME. I don't think it's possible to implement the 'length'
+      " parameter, using vim's completion system
+      " if !has_key( item, 'length' )
+      "   let item.length = 0
+      " endif
+      if !has_key( item, 'text' )
+        let item.text = item.label
+      endif
+
+      if item.start < start_pos
+        let start_pos = item.start
+      endif
+    endfor
+
+    let s:latest_completion_request.start_pos = start_pos
+    let s:latest_completion_request.prompt = a:prompt
+
+    " start_pos is 1-based and the return of findstart is 0-based
+    return ( start_pos + len( a:prompt ) ) - 1
+  else
+    let items = []
+    let pfxlen = len( s:latest_completion_request.prompt )
+    for item in s:latest_completion_request.items
+      if item.start > s:latest_completion_request.start_pos
+        " fix up the text (insert anything that is already present in the line
+        " that would be erased by the fixed-up earlier start position)
+        "
+        " both start_pos and item.start are 1-based
+        let item.text = s:latest_completion_request.text[
+              \ s:latest_completion_request.start_pos + pfxlen - 1 :
+              \  item.start + pfxlen - 1 ] . item.text
+      endif
+
+      call add( items, { 'word': item.text,
+                       \ 'abbr': item.label,
+                       \ 'menu': get( item, 'type', '' ),
+                       \ 'icase': 1,
+                       \ } )
+    endfor
+    let s:latest_completion_request = {}
+    return { 'words': items, 'refresh': 'always' }
+  endif
+endfunction
+
+function! vimspector#OmniFuncWatch( find_start, query ) abort
+  return vimspector#CompleteFuncSync( 'Expression: ', a:find_start, a:query )
+endfunction
+
+function! vimspector#OmniFuncConsole( find_start, query ) abort
+  return vimspector#CompleteFuncSync( '> ', a:find_start, a:query )
 endfunction
 
 function! vimspector#Install( bang, ... ) abort

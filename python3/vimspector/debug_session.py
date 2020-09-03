@@ -554,8 +554,7 @@ class DebugSession( object ):
     # TODO:
     #  - start / length
     #  - sortText
-    return [ i.get( 'text' ) or i[ 'label' ]
-             for i in response[ 'body' ][ 'targets' ] ]
+    return response[ 'body' ][ 'targets' ]
 
 
   def _SetUpUI( self ):
