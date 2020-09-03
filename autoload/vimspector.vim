@@ -324,13 +324,13 @@ function! vimspector#CompleteFuncSync( prompt, find_start, query ) abort
     let s:latest_completion_request.start_pos = start_pos
     let s:latest_completion_request.prompt = a:prompt
 
-    call s:Debug( 'FindStart: %s', {
-          \ 'line': line,
-          \ 'col': col,
-          \ 'prompt': len( a:prompt ),
-          \ 'start_pos': start_pos,
-          \ 'returning': ( start_pos + len( a:prompt ) ) - 1,
-          \ } )
+    " call s:Debug( 'FindStart: %s', {
+    "       \ 'line': line,
+    "       \ 'col': col,
+    "       \ 'prompt': len( a:prompt ),
+    "       \ 'start_pos': start_pos,
+    "       \ 'returning': ( start_pos + len( a:prompt ) ) - 1,
+    "       \ } )
 
     " start_pos is 1-based and the return of findstart is 0-based
     return ( start_pos + len( a:prompt ) ) - 1
@@ -349,9 +349,9 @@ function! vimspector#CompleteFuncSync( prompt, find_start, query ) abort
       endif
 
       if item.length > len( a:query )
-        call s:Debug( 'Rejecting %s, length is greater than %s',
-              \ item,
-              \ len( a:query ) )
+        " call s:Debug( 'Rejecting %s, length is greater than %s',
+        "       \ item,
+        "       \ len( a:query ) )
         continue
       endif
 
@@ -363,7 +363,7 @@ function! vimspector#CompleteFuncSync( prompt, find_start, query ) abort
     endfor
     let s:latest_completion_request = {}
 
-    call s:Debug( 'Items: %s', items )
+    " call s:Debug( 'Items: %s', items )
     return { 'words': items, 'refresh': 'always' }
   endif
 endfunction
