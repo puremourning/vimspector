@@ -19,6 +19,13 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 " }}}
 
+function! s:Debug( ... )
+  py3 <<EOF
+if _vimspector_session is not None:
+  _vimspector_session._logger.debug( *vim.eval( 'a:000' ) )
+EOF
+endfunction
+
 
 let s:enabled = vimspector#internal#state#Reset()
 
@@ -271,28 +278,37 @@ function! vimspector#CompleteFuncSync( prompt, find_start, query ) abort
 
     let line = getline( line( '.' ) )[ len( a:prompt ) : ]
     let col = col( '.' ) - len( a:prompt )
+
+    " It seems that most servers don't implement the 'start' parameter, which is
+    " clearly necessary, as they all seem to assume a specific behaviour, which
+    " is undocumented.
+
     let s:latest_completion_request.items =
           \ py3eval( '_vimspector_session.GetCompletionsSync( '
                    \.'  vim.eval( "line" ), '
                    \.'  int( vim.eval( "col" ) ) )' )
+
     let s:latest_completion_request.line = line
     let s:latest_completion_request.col = col
 
+    let prev_non_keyword_char = match( line[ 0 : col - 1 ], '\k*$' ) + 1
+    let query_len = col - prev_non_keyword_char
+
     let start_pos = col
     for item in s:latest_completion_request.items
-      if !has_key( item, 'start' )
-        let item.start = col
+      if !has_key( item, 'start' ) || !has_key( item, 'length' )
+        " The specification states that if start is not supplied, isertion
+        " should be at the requested column. But about 0 of the servers actually
+        " implement that
+        " (https://github.com/microsoft/debug-adapter-protocol/issues/138)
+        let item.start = prev_non_keyword_char
+        let item.length = query_len
       else
         " For some reason, the returned start value is 0-indexed even though we
         " use columnsStartAt1
-        " TODO need to check this with the other servers that exist
         let item.start += 1
       endif
-      " TODO/FIXME. I don't think it's possible to implement the 'length'
-      " parameter, using vim's completion system
-      " if !has_key( item, 'length' )
-      "   let item.length = 0
-      " endif
+
       if !has_key( item, 'text' )
         let item.text = item.label
       endif
@@ -305,6 +321,14 @@ function! vimspector#CompleteFuncSync( prompt, find_start, query ) abort
     let s:latest_completion_request.start_pos = start_pos
     let s:latest_completion_request.prompt = a:prompt
 
+    call s:Debug( 'FindStart: %s', {
+          \ 'line': line,
+          \ 'col': col,
+          \ 'prompt': len( a:prompt ),
+          \ 'start_pos': start_pos,
+          \ 'returning': ( start_pos + len( a:prompt ) ) - 1,
+          \ } )
+
     " start_pos is 1-based and the return of findstart is 0-based
     return ( start_pos + len( a:prompt ) ) - 1
   else
@@ -316,9 +340,16 @@ function! vimspector#CompleteFuncSync( prompt, find_start, query ) abort
         " that would be erased by the fixed-up earlier start position)
         "
         " both start_pos and item.start are 1-based
-        let item.text = s:latest_completion_request.text[
+        let item.text = s:latest_completion_request.line[
               \ s:latest_completion_request.start_pos + pfxlen - 1 :
               \  item.start + pfxlen - 1 ] . item.text
+      endif
+
+      if item.length > len( a:query )
+        call s:Debug( 'Rejecting %s, length is greater than %s',
+              \ item,
+              \ len( a:query ) )
+        continue
       endif
 
       call add( items, { 'word': item.text,
@@ -328,6 +359,8 @@ function! vimspector#CompleteFuncSync( prompt, find_start, query ) abort
                        \ } )
     endfor
     let s:latest_completion_request = {}
+
+    call s:Debug( 'Items: %s', items )
     return { 'words': items, 'refresh': 'always' }
   endif
 endfunction
