@@ -16,17 +16,142 @@ jobs:
     runs-on: ubuntu-16.04
     container: 'puremourning/vimspector:test'
     steps:
-      - uses: actions/checkout@v2
-      - name: 'Insatll requirements'
-        run: pip3 install --user -r dev_requirements.txt
-      - name: 'Run flake8'
-        run: '$HOME/.local/bin/flake8 python3/ *.py'
+    - uses: actions/checkout@v2
+    - name: 'Insatll requirements'
+      run: pip3 install --user -r dev_requirements.txt
+    - name: 'Run flake8'
+      run: '$HOME/.local/bin/flake8 python3/ *.py'
   VimscriptLint:
     runs-on: 'ubuntu-16.04'
     container: 'puremourning/vimspector:test'
     steps:
-      - uses: actions/checkout@v2
-      - name: 'Install requirements'
-        run: pip3 install --user -r dev_requirements.txt
-      - name: 'Run vint'
-        run: $HOME/.local/bin/vint autoload/ compiler/ plugin/ tests/ syntax/
+    - uses: actions/checkout@v2
+    - name: 'Install requirements'
+      run: pip3 install --user -r dev_requirements.txt
+    - name: 'Run vint'
+      run: $HOME/.local/bin/vint autoload/ compiler/ plugin/ tests/ syntax/
+
+  Linux:
+    runs-on: 'ubuntu-16.04'
+    container:
+      image: 'puremourning/vimspector:test'
+      options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined
+    steps:
+    - uses: actions/checkout@v2
+    - run: |
+        eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+        go get -u github.com/go-delve/delve/cmd/dlv
+      name: 'Install Delve for Go'
+
+    - uses: actions/cache@v2
+      with:
+        key: v1-gadgets-${{ runner.os }}-${{ hashFiles( 'python3/vimspector/gadgets.py' ) }}
+        path: gadgets/linux/download
+      name: Cache gadgets
+
+    - run: vim --version
+      name: 'Print vim version information'
+
+    - run: |
+        eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+        export GOPATH=$HOME/go
+        ./run_tests --install --update --report messages --quiet
+      name: 'Run the tests'
+      env:
+        VIMSPECTOR_MIMODE: gdb
+
+    - run: ./make_package linux ${{ github.run_id }}
+      name: 'Package'
+
+    # TODO: test the tarball
+
+    - name: "Upload package"
+      uses: actions/upload-artifact@v2
+      with:
+        name: 'package-linux'
+        path: 'package/linux-${{ github.run_id }}.tar.gz'
+
+  MacOS:
+    runs-on: 'macos-10.15'
+    steps:
+    - uses: actions/checkout@v2
+    - run: |
+        brew update
+        brew doctor || true
+        for p in macvim tcl-tk llvm; do
+          brew install $p
+          brew outdated $p || brew upgrade $p
+        done
+      name: 'Install vim and deps'
+
+    - run: go get -u github.com/go-delve/delve/cmd/dlv
+      name: 'Install Delve for Go'
+
+    - uses: actions/cache@v2
+      with:
+        key: v1-gadgets-${{ runner.os }}-${{ hashFiles( 'python3/vimspector/gadgets.py' ) }}
+        path: gadgets/macos/download
+      name: Cache gadgets
+
+    - run: vim --version
+      name: 'Print vim version information'
+
+    - run: ./run_tests --install --update --report messages --quiet
+      name: 'Run the tests'
+      env:
+        VIMSPECTOR_MIMODE: lldb
+
+    - run: ./make_package macos ${{ github.run_id }}
+      name: 'Package'
+
+    # TODO: test the tarball
+
+    - name: "Upload package"
+      uses: actions/upload-artifact@v2
+      with:
+        name: 'package-macos'
+        path: 'package/macos-${{ github.run_id }}.tar.gz'
+
+  PublishRelease:
+    runs-on: 'ubuntu-16.04'
+    needs:
+      - Linux
+      - MacOS
+    if: github.ref == 'refs/heads/master'
+    steps:
+    - name: 'Download artifacts'
+      id: download_artifacts
+      uses: actions/download-artifact@v2
+
+    - name: 'Create Release'
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Build ${{ github.run_id }}
+        draft: false
+        prerelease: true
+
+    - name: 'Upload Linux Package'
+      id: upload-release-asset-linux
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ steps.download_artifacts.outputs.download-path }}/package-linux
+        asset_name: linux-${{ github.run_id }}.tar.gz
+        asset_content_type: application/gzip
+
+    - name: 'Upload MacOS Package'
+      id: upload-release-asset-macos
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ steps.download_artifacts.outputs.download-path }}/package-macos
+        asset_name: macos-${{ github.run_id }}.tar.gz
+        asset_content_type: application/gzip
