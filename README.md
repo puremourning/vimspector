@@ -39,9 +39,11 @@ For a tutorial and usage overview, take a look at the
     * [Stepping](#stepping)
     * [Variables and scopes](#variables-and-scopes)
     * [Watches](#watches)
+       * [Watch autocompletion](#watch-autocompletion)
     * [Stack Traces](#stack-traces)
     * [Program Output](#program-output)
        * [Console](#console)
+       * [Console autocompletion](#console-autocompletion)
        * [Log View](#log-view)
     * [Closing debugger](#closing-debugger)
  * [Debug adapter configuration](#debug-adapter-configuration)
@@ -77,7 +79,7 @@ For a tutorial and usage overview, take a look at the
  * [License](#license)
  * [Sponsorship](#sponsorship)
 
-<!-- Added by: ben, at: Tue  1 Sep 2020 13:42:32 BST -->
+<!-- Added by: ben, at: Fri  4 Sep 2020 00:48:17 BST -->
 
 <!--te-->
 
@@ -109,10 +111,10 @@ And a couple of brief demos:
 - launch and attach
 - remote launch, remote attach
 - locals and globals display
-- watch expressions
+- watch expressions with autocompletion
 - call stack display and navigation
 - variable value display hover
-- interactive debug console
+- interactive debug console with autocompletion
 - launch debugee within Vim's embedded terminal
 - logging/stdout display
 - simple stable API for custom tooling (e.g. integrate with language server)
@@ -742,6 +744,22 @@ to add a new watch expression.
 
 The watches are represented by the buffer `vimspector.StackTrace`.
 
+### Watch autocompletion
+
+The watch prompt buffer  has its `omnifunc` set to a function that will
+calcualte completion for the current expression. This is trivailly used with
+`<Ctrl-x><Ctrl-o>` (see `:help ins-completion`), or integrated with your
+favourite completion system. The filetype in the buffer is set to
+`VimspectorPrompt`.
+
+For YouCompleteMe, the following config works well:
+
+```viml
+let g:ycm_semantic_triggers =  {
+  \   'VimspectorPrompt': [ '.', '->', ':', '<' ]
+}
+```
+
 ## Stack Traces
 
 * In the threads window, use `<CR>` to expand/collapse.
@@ -781,6 +799,22 @@ NOTE: See also [Watches](#watches) above.
 
 If the output window is closed, a new one can be opened with
 `:VimspectorShowOutput Console`.
+
+### Console autocompletion
+
+The console prompt buffer has its `omnifunc` set to a function that will
+calcualte completion for the current command/expression. This is trivailly used
+with `<Ctrl-x><Ctrl-o>` (see `:help ins-completion`), or integrated with your
+favourite completion system. The filetype in the buffer is set to
+`VimspectorPrompt`.
+
+For YouCompleteMe, the following config works well:
+
+```viml
+let g:ycm_semantic_triggers =  {
+  \   'VimspectorPrompt': [ '.', '->', ':', '<' ]
+}
+```
 
 ### Log View
 

@@ -19,6 +19,13 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 " }}}
 
+function! s:Debug( ... ) abort
+  py3 <<EOF
+if _vimspector_session is not None:
+  _vimspector_session._logger.debug( *vim.eval( 'a:000' ) )
+EOF
+endfunction
+
 
 let s:enabled = vimspector#internal#state#Reset()
 
@@ -232,15 +239,154 @@ function! vimspector#CompleteOutput( ArgLead, CmdLine, CursorPos ) abort
   return join( buffers, "\n" )
 endfunction
 
+py3 <<EOF
+def _vimspector_GetExprCompletions( ArgLead, prev_non_keyword_char ):
+  if not _vimspector_session:
+    return []
+
+  items = []
+  for candidate in _vimspector_session.GetCompletionsSync(
+    ArgLead,
+    prev_non_keyword_char ):
+
+    label = candidate.get( 'text', candidate[ 'label' ] )
+
+    start = prev_non_keyword_char - 1
+
+    if 'start' in candidate and 'length' in candidate:
+      start = candidate[ 'start' ]
+
+    items.append( ArgLead[ 0 : start ] + label )
+
+  return items
+EOF
+
 function! vimspector#CompleteExpr( ArgLead, CmdLine, CursorPos ) abort
   if !s:enabled
     return
   endif
-  return join( py3eval( '_vimspector_session.GetCompletionsSync( '
-                      \.'  vim.eval( "a:CmdLine" ),'
-                      \.'  int( vim.eval( "a:CursorPos" ) ) )'
-                      \. '   if _vimspector_session else []' ),
+
+  let col = len( a:ArgLead )
+  let prev_non_keyword_char = match( a:ArgLead[ 0 : col - 1 ], '\k*$' ) + 1
+
+  return join( py3eval( '_vimspector_GetExprCompletions( '
+                      \ . 'vim.eval( "a:ArgLead" ), '
+                      \ . 'int( vim.eval( "prev_non_keyword_char" ) ) )' ),
              \ "\n" )
+endfunction
+
+let s:latest_completion_request = {}
+
+function! vimspector#CompleteFuncSync( prompt, find_start, query ) abort
+  if py3eval( 'not _vimspector_session' )
+    if a:find_start
+      return -3
+    endif
+    return v:none
+  endif
+
+  if a:find_start
+
+    " We're busy
+    if !empty( s:latest_completion_request )
+      return -3
+    endif
+
+    let line = getline( line( '.' ) )[ len( a:prompt ) : ]
+    let col = col( '.' ) - len( a:prompt )
+
+    " It seems that most servers don't implement the 'start' parameter, which is
+    " clearly necessary, as they all seem to assume a specific behaviour, which
+    " is undocumented.
+
+    let s:latest_completion_request.items =
+          \ py3eval( '_vimspector_session.GetCompletionsSync( '
+                   \.'  vim.eval( "line" ), '
+                   \.'  int( vim.eval( "col" ) ) )' )
+
+    let s:latest_completion_request.line = line
+    let s:latest_completion_request.col = col
+
+    let prev_non_keyword_char = match( line[ 0 : col - 1 ], '\k*$' ) + 1
+    let query_len = col - prev_non_keyword_char
+
+    let start_pos = col
+    for item in s:latest_completion_request.items
+      if !has_key( item, 'start' ) || !has_key( item, 'length' )
+        " The specification states that if start is not supplied, isertion
+        " should be at the requested column. But about 0 of the servers actually
+        " implement that
+        " (https://github.com/microsoft/debug-adapter-protocol/issues/138)
+        let item.start = prev_non_keyword_char
+        let item.length = query_len
+      else
+        " For some reason, the returned start value is 0-indexed even though we
+        " use columnsStartAt1
+        let item.start += 1
+      endif
+
+      if !has_key( item, 'text' )
+        let item.text = item.label
+      endif
+
+      if item.start < start_pos
+        let start_pos = item.start
+      endif
+    endfor
+
+    let s:latest_completion_request.start_pos = start_pos
+    let s:latest_completion_request.prompt = a:prompt
+
+    " call s:Debug( 'FindStart: %s', {
+    "       \ 'line': line,
+    "       \ 'col': col,
+    "       \ 'prompt': len( a:prompt ),
+    "       \ 'start_pos': start_pos,
+    "       \ 'returning': ( start_pos + len( a:prompt ) ) - 1,
+    "       \ } )
+
+    " start_pos is 1-based and the return of findstart is 0-based
+    return ( start_pos + len( a:prompt ) ) - 1
+  else
+    let items = []
+    let pfxlen = len( s:latest_completion_request.prompt )
+    for item in s:latest_completion_request.items
+      if item.start > s:latest_completion_request.start_pos
+        " fix up the text (insert anything that is already present in the line
+        " that would be erased by the fixed-up earlier start position)
+        "
+        " both start_pos and item.start are 1-based
+        let item.text = s:latest_completion_request.line[
+              \ s:latest_completion_request.start_pos + pfxlen - 1 :
+              \  item.start + pfxlen - 1 ] . item.text
+      endif
+
+      if item.length > len( a:query )
+        " call s:Debug( 'Rejecting %s, length is greater than %s',
+        "       \ item,
+        "       \ len( a:query ) )
+        continue
+      endif
+
+      call add( items, { 'word': item.text,
+                       \ 'abbr': item.label,
+                       \ 'menu': get( item, 'type', '' ),
+                       \ 'icase': 1,
+                       \ } )
+    endfor
+    let s:latest_completion_request = {}
+
+    " call s:Debug( 'Items: %s', items )
+    return { 'words': items, 'refresh': 'always' }
+  endif
+endfunction
+
+function! vimspector#OmniFuncWatch( find_start, query ) abort
+  return vimspector#CompleteFuncSync( 'Expression: ', a:find_start, a:query )
+endfunction
+
+function! vimspector#OmniFuncConsole( find_start, query ) abort
+  return vimspector#CompleteFuncSync( '> ', a:find_start, a:query )
 endfunction
 
 function! vimspector#Install( bang, ... ) abort

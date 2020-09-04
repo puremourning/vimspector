@@ -1,3 +1,10 @@
 var msg = 'Hello, world!'
 
-console.log( "OK stuff happened" )
+var obj = {
+  test: 'testing',
+  toast: function() {
+    return 'toasty' . this.test;
+  }
+}
+
+console.log( "OK stuff happened " + obj.toast() )

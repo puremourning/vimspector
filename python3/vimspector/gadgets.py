@@ -407,14 +407,14 @@ GADGETS = {
       'url': 'https://marketplace.visualstudio.com/_apis/public/gallery/'
              'publishers/msjsdiag/vsextensions/'
              'debugger-for-chrome/${version}/vspackage',
-      'target': 'msjsdiag.debugger-for-chrome-4.12.0.vsix.gz',
+      'target': 'msjsdiag.debugger-for-chrome-4.12.10.vsix.gz',
       'format': 'zip.gz',
     },
     'all': {
-      'version': '4.12.0',
-      'file_name': 'msjsdiag.debugger-for-chrome-4.12.0.vsix',
+      'version': '4.12.10',
+      'file_name': 'msjsdiag.debugger-for-chrome-4.12.10.vsix',
       'checksum':
-        '0df2fe96d059a002ebb0936b0003e6569e5a5c35260dc3791e1657d27d82ccf5'
+        ''
     },
     'adapters': {
       'chrome': {

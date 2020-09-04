@@ -135,7 +135,7 @@ def SetUpHiddenBuffer( buf, name ):
   buf.name = name
 
 
-def SetUpPromptBuffer( buf, name, prompt, callback ):
+def SetUpPromptBuffer( buf, name, prompt, callback, omnifunc ):
   # This feature is _super_ new, so only enable when available
   if not Exists( '*prompt_setprompt' ):
     return SetUpHiddenBuffer( buf, name )
@@ -148,6 +148,7 @@ def SetUpPromptBuffer( buf, name, prompt, callback ):
   buf.options[ 'buflisted' ] = False
   buf.options[ 'bufhidden' ] = 'hide'
   buf.options[ 'textwidth' ] = 0
+  buf.options[ 'omnifunc' ] = omnifunc
   buf.name = name
 
   vim.eval( "prompt_setprompt( {0}, '{1}' )".format( buf.number,
@@ -155,6 +156,12 @@ def SetUpPromptBuffer( buf, name, prompt, callback ):
   vim.eval( "prompt_setcallback( {0}, function( '{1}' ) )".format(
     buf.number,
     Escape( callback ) ) )
+
+  # This serves a few purposes, mainly to ensure that completion systems have
+  # something to work with. In particular it makes YCM use its identifier engine
+  # and you can config ycm to trigger semantic (annoyingly, synchronously) using
+  # some let g:ycm_auto_trggier
+  Call( 'setbufvar', buf.number, '&filetype', 'VimspectorPrompt' )
 
 
 def SetUpUIWindow( win ):

@@ -192,7 +192,8 @@ class OutputView( object ):
         utils.SetUpPromptBuffer( tab_buffer.buf,
                                  name,
                                  '> ',
-                                 'vimspector#EvaluateConsole' )
+                                 'vimspector#EvaluateConsole',
+                                 'vimspector#OmniFuncConsole' )
       else:
         utils.SetUpHiddenBuffer( tab_buffer.buf, name )
 

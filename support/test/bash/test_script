@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+function Test() {
+  echo $1
+}
+
+for i in "$@"; do
+  Test $i
+done
