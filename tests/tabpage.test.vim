@@ -69,10 +69,8 @@ function! Test_All_Buffers_Deleted_NoHidden()
   call vimspector#Reset()
   call vimspector#test#setup#WaitForReset()
 
-  let buffers_after = getbufinfo( opts )
-
   call WaitForAssert( {->
-        \ assert_equal( len( buffers_before ), len( buffers_after ) ) } )
+        \ assert_equal( len( buffers_before ), len( getbufinfo( opts ) ) ) } )
 
   set hidden&
   lcd -
@@ -100,10 +98,8 @@ function! Test_All_Buffers_Deleted_Hidden()
   call vimspector#Reset()
   call vimspector#test#setup#WaitForReset()
 
-  let buffers_after = getbufinfo( opts )
-
   call WaitForAssert( {->
-        \ assert_equal( len( buffers_before ), len( buffers_after ) ) } )
+        \ assert_equal( len( buffers_before ), len( getbufinfo( opts ) ) ) } )
 
   set hidden&
   lcd -
@@ -116,10 +112,10 @@ function! Test_All_Buffers_Deleted_ToggleLog()
   let buffers_before = getbufinfo( #{ buflisted: 1 } )
   VimspectorToggleLog
   VimspectorToggleLog
-  let buffers_after = getbufinfo( #{ buflisted: 1 } )
 
   call WaitForAssert( {->
-        \ assert_equal( len( buffers_before ), len( buffers_after ) ) } )
+        \ assert_equal( len( buffers_before ),
+        \               len( getbufinfo( #{ buflisted: 1 } ) ) ) } )
 
   call vimspector#test#setup#Reset()
   set hidden&
@@ -145,9 +141,9 @@ function! Test_All_Buffers_Deleted_Installer()
         \ { -> assert_equal( 1, g:vimspector_test_install_done ) },
         \ 120000 )
 
-  let buffers_after = getbufinfo( #{ buflisted: 1 } )
   call WaitForAssert( {->
-        \ assert_equal( len( buffers_before ), len( buffers_after ) ) } )
+        \ assert_equal( len( buffers_before ),
+        \               len( getbufinfo( #{ buflisted: 1 } ) ) ) } )
 
   call vimspector#test#setup#Reset()
   set hidden&
