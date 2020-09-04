@@ -240,25 +240,38 @@ function! vimspector#CompleteOutput( ArgLead, CmdLine, CursorPos ) abort
 endfunction
 
 py3 <<EOF
-def _vimspector_GetExprCompletions( CmdLine, CursorPos ):
+def _vimspector_GetExprCompletions( ArgLead, prev_non_keyword_char ):
   if not _vimspector_session:
     return []
 
-  # FIXME
-  # Curiously, it seems that CursorPos is 0-based here and that's actually what
-  # the servers want/need ?
-  return [ i.get( 'text' ) or i[ 'label' ]
-           for i in _vimspector_session.GetCompletionsSync( CmdLine,
-                                                            CursorPos ) ]
+  items = []
+  for candidate in _vimspector_session.GetCompletionsSync(
+    ArgLead,
+    prev_non_keyword_char ):
+
+    label = candidate.get( 'text', candidate[ 'label' ] )
+
+    start = prev_non_keyword_char - 1
+
+    if 'start' in candidate and 'length' in candidate:
+      start = candidate[ 'start' ]
+
+    items.append( ArgLead[ 0 : start ] + label )
+
+  return items
 EOF
 
 function! vimspector#CompleteExpr( ArgLead, CmdLine, CursorPos ) abort
   if !s:enabled
     return
   endif
+
+  let col = len( a:ArgLead )
+  let prev_non_keyword_char = match( a:ArgLead[ 0 : col - 1 ], '\k*$' ) + 1
+
   return join( py3eval( '_vimspector_GetExprCompletions( '
-                      \.'  vim.eval( "a:CmdLine" ),'
-                      \.'  int( vim.eval( "a:CursorPos" ) ) + 1 )' ),
+                      \ . 'vim.eval( "a:ArgLead" ), '
+                      \ . 'int( vim.eval( "prev_non_keyword_char" ) ) )' ),
              \ "\n" )
 endfunction
 
