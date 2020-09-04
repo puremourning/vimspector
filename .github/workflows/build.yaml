@@ -1,0 +1,32 @@
+name: Build
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  PythonLint:
+    runs-on: ubuntu-16.04
+    container: 'puremourning/vimspector:test'
+    steps:
+      - uses: actions/checkout@v2
+      - name: 'Insatll requirements'
+        run: pip3 install --user -r dev_requirements.txt
+      - name: 'Run flake8'
+        run: '$HOME/.local/bin/flake8 python3/ *.py'
+  VimscriptLint:
+    runs-on: 'ubuntu-16.04'
+    container: 'puremourning/vimspector:test'
+    steps:
+      - uses: actions/checkout@v2
+      - name: 'Install requirements'
+        run: pip3 install --user -r dev_requirements.txt
+      - name: 'Run vint'
+        run: $HOME/.local/bin/vint autoload/ compiler/ plugin/ tests/ syntax/
