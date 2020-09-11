@@ -57,8 +57,16 @@ jobs:
         export GOPATH=$HOME/go
         ./run_tests --install --update --report messages --quiet
       name: 'Run the tests'
+      id: run_tests
       env:
         VIMSPECTOR_MIMODE: gdb
+
+    - name: "Upload test logs"
+      uses: actions/upload-artifact@v2
+      if: steps.run_tests.outcome == 'failure'
+      with:
+        name: 'test-logs-${{ runner.os }}'
+        path: 'tests/logs'
 
     - run: ./make_package linux ${{ github.run_id }}
       name: 'Package'
@@ -98,8 +106,16 @@ jobs:
 
     - run: ./run_tests --install --update --report messages --quiet
       name: 'Run the tests'
+      id: run_tests
       env:
         VIMSPECTOR_MIMODE: lldb
+
+    - name: "Upload test logs"
+      uses: actions/upload-artifact@v2
+      if: steps.run_tests.outcome == 'failure'
+      with:
+        name: 'test-logs-${{ runner.os }}'
+        path: 'tests/logs'
 
     - run: ./make_package macos ${{ github.run_id }}
       name: 'Package'
