@@ -66,7 +66,7 @@ jobs:
       if: failure()
       with:
         name: 'test-logs-${{ runner.os }}'
-        path: 'tests/logs'
+        path: 'tests/logs/**'
 
     - run: ./make_package linux ${{ github.run_id }}
       name: 'Package'
@@ -115,7 +115,7 @@ jobs:
       if: failure()
       with:
         name: 'test-logs-${{ runner.os }}'
-        path: 'tests/logs'
+        path: 'tests/logs/**'
 
     - run: ./make_package macos ${{ github.run_id }}
       name: 'Package'
