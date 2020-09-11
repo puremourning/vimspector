@@ -157,8 +157,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ steps.download_artifacts.outputs.download-path }}/package-linux
-        asset_name: linux-${{ github.run_id }}.tar.gz
+        asset_path: ${{ steps.download_artifacts.outputs.download-path }}/package-linux/linux-${{ github.run_id }}.tar.gz
+        asset_name: vimspector-linux-${{ github.run_id }}.tar.gz
         asset_content_type: application/gzip
 
     - name: 'Upload MacOS Package'
@@ -168,6 +168,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ steps.download_artifacts.outputs.download-path }}/package-macos
-        asset_name: macos-${{ github.run_id }}.tar.gz
+        asset_path: ${{ steps.download_artifacts.outputs.download-path }}/package-macos/macos-${{ github.run_id }}.tar.gz
+        asset_name: vimspector-macos-${{ github.run_id }}.tar.gz
         asset_content_type: application/gzip
