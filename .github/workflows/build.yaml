@@ -63,7 +63,7 @@ jobs:
 
     - name: "Upload test logs"
       uses: actions/upload-artifact@v2
-      if: steps.run_tests.outcome == 'failure'
+      if: failure()
       with:
         name: 'test-logs-${{ runner.os }}'
         path: 'tests/logs'
@@ -112,7 +112,7 @@ jobs:
 
     - name: "Upload test logs"
       uses: actions/upload-artifact@v2
-      if: steps.run_tests.outcome == 'failure'
+      if: failure()
       with:
         name: 'test-logs-${{ runner.os }}'
         path: 'tests/logs'
