@@ -115,7 +115,7 @@ class DebugSession( object ):
           database = json.loads( minify( f.read() ) )
           adapters.update( database.get( 'adapters' ) or {} )
           configurations.update( database.get( 'configurations' or {} ) )
-      except:
+      except json.decoder.JSONDecodeError:
         if not configurations:
           utils.UserMessage( 'Unable to find any debug configurations, maybe you .vimspector.json is broken.'
                            'You need to tell vimspector how to launch your '
