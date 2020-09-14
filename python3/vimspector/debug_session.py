@@ -110,16 +110,18 @@ class DebugSession( object ):
       if not launch_config_file or not os.path.exists( launch_config_file ):
         continue
 
-      with open( launch_config_file, 'r' ) as f:
-        database = json.loads( minify( f.read() ) )
-        adapters.update( database.get( 'adapters' ) or {} )
-        configurations.update( database.get( 'configurations' or {} ) )
-
-    if not configurations:
-      utils.UserMessage( 'Unable to find any debug configurations. '
-                         'You need to tell vimspector how to launch your '
-                         'application.' )
-      return
+      try:
+        with open( launch_config_file, 'r' ) as f:
+          database = json.loads( minify( f.read() ) )
+          adapters.update( database.get( 'adapters' ) or {} )
+          configurations.update( database.get( 'configurations' or {} ) )
+      except:
+        if not configurations:
+          utils.UserMessage( 'Unable to find any debug configurations, maybe you .vimspector.json is broken.'
+                           'You need to tell vimspector how to launch your '
+                           'application.' )
+          return
+        return
 
     if 'configuration' in launch_variables:
       configuration_name = launch_variables.pop( 'configuration' )
