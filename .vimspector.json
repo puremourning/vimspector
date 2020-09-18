@@ -9,6 +9,15 @@
       "configuration": {
         "request": "attach"
       }
+    },
+    "Python: Run current script": {
+      "adapter": "debugpy",
+      "configuration": {
+        "request": "launch",
+        "program": "${file}",
+        "args": [ "*${args:--update-gadget-config}" ],
+        "justMyCode#json": "${justMyCode:true}"
+      }
     }
   }
 }
