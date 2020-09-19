@@ -50,6 +50,8 @@ function! Test_Step_With_Different_Tabpage()
 endfunction
 
 function! Test_All_Buffers_Deleted_NoHidden()
+  call ThisTestIsFlaky()
+
   set nohidden
   lcd testdata/cpp/simple
   edit simple.cpp
@@ -79,6 +81,8 @@ function! Test_All_Buffers_Deleted_NoHidden()
 endfunction
 
 function! Test_All_Buffers_Deleted_Hidden()
+  call ThisTestIsFlaky()
+
   set hidden
   lcd testdata/cpp/simple
   edit simple.cpp

@@ -344,12 +344,6 @@ catch
         \ ' @ ' . v:throwpoint)
 endtry
 
-" Names of flaky tests.
-let s:flaky_tests = []
-
-" Pattern indicating a common flaky test failure.
-let s:flaky_errors_re = '__does_not_match__'
-
 " Locate Test_ functions and execute them.
 redir @q
 silent function /^Test_
@@ -366,7 +360,33 @@ for s:test in sort(s:tests)
   " Silence, please!
   set belloff=all
 
+  " A test can set g:test_is_flaky to retry running the test.
+  let g:test_is_flaky = 0
+
   call RunTheTest(s:test)
+
+  " Repeat a flaky test.  Give up when:
+  " - $TEST_NO_RETRY is not empty
+  " - it fails five times (with a different message)
+  if len(v:errors) > 0
+        \ && $TEST_NO_RETRY == ''
+        \ && g:test_is_flaky
+    for retryu in range( 5 )
+      call add( s:messages, 'Found errors in ' . s:test . '. Retrying.' )
+      call extend( s:messages, v:errors )
+
+      sleep 2
+
+      let v:errors = []
+      call RunTheTest(s:test)
+
+      if len(v:errors) == 0
+        " Test passed on rerun.
+        break
+      endif
+    endfor
+  endif
+
   call AfterTheTest()
 endfor
 

@@ -87,3 +87,7 @@ func s:WaitForCommon(expr, assert, timeout)
 
   return -1  " timed out
 endfunc
+
+function! ThisTestIsFlaky()
+  let g:test_is_flaky = v:true
+endfunction
