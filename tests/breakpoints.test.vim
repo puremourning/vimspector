@@ -394,6 +394,8 @@ function! SetUp_Test_Conditional_Line_Breakpoint_Hit()
 endfunction
 
 function! Test_Conditional_Line_Breakpoint_Hit()
+  call ThisTestIsFlaky()
+
   let fn = '../support/test/python/simple_python/main.py'
   exe 'edit' fn
   call setpos( '.', [ 0, 14, 1 ] )
