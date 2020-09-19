@@ -32,7 +32,7 @@ function! vimspector#test#signs#AssertPCIsAtLineInBuffer( buffer, line ) abort
   let index = 0
   while index < len( signs[ 0 ].signs )
     let s = signs[ 0 ].signs[ index ]
-    if s.name ==# 'vimspectorPC'
+    if s.name ==# 'vimspectorPC' || s.name ==# 'vimspectorPCBP'
       if assert_false( pc_index >= 0, 'Too many PC signs' )
         return 1
       endif

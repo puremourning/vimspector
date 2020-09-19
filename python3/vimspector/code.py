@@ -39,6 +39,7 @@ class CodeView( object ):
       'vimspectorPC': None,
       'breakpoints': []
     }
+    self._current_frame = None
 
     with utils.LetCurrentWindow( self._window ):
       vim.command( 'nnoremenu WinBar.■\\ Stop :call vimspector#Stop()<CR>' )
@@ -55,6 +56,50 @@ class CodeView( object ):
                           text = '▶',
                           texthl = 'MatchParen',
                           linehl = 'CursorLine' )
+      if not signs.SignDefined( 'vimspectorPCBP' ):
+        signs.DefineSign( 'vimspectorPCBP',
+                          text = '●▶',
+                          texthl = 'MatchParen',
+                          linehl = 'CursorLine' )
+
+
+  def _UndisplayPC( self ):
+    if self._signs[ 'vimspectorPC' ]:
+      signs.UnplaceSign( self._signs[ 'vimspectorPC' ], 'VimspectorCode' )
+      self._signs[ 'vimspectorPC' ] = None
+
+
+  def _DisplayPC( self ):
+    frame = self._current_frame
+    if not frame:
+      return
+
+    self._UndisplayPC()
+
+    # FIXME: Do we relly need to keep using up IDs ?
+    self._signs[ 'vimspectorPC' ] = self._next_sign_id
+    self._next_sign_id += 1
+
+    sign = 'vimspectorPC'
+    # If there's also a breakpoint on this line, use vimspectorPCBP
+    for bp in self._breakpoints.get( frame[ 'source' ][ 'path' ], [] ):
+      if 'line' not in bp:
+        continue
+
+      if bp[ 'line' ] == frame[ 'line' ]:
+        sign = 'vimspectorPCBP'
+        break
+
+    try:
+      signs.PlaceSign( self._signs[ 'vimspectorPC' ],
+                       'VimspectorCode',
+                       sign,
+                       frame[ 'source' ][ 'path' ],
+                       frame[ 'line' ] )
+    except vim.error as e:
+      # Ignore 'invalid buffer name'
+      if 'E158' not in str( e ):
+        raise
 
 
   def SetCurrentFrame( self, frame ):
@@ -62,29 +107,16 @@ class CodeView( object ):
     otherwise. False means either the frame is junk, we couldn't find the file
     (or don't have the data) or the code window no longer exits."""
 
-    if self._signs[ 'vimspectorPC' ]:
-      signs.UnplaceSign( self._signs[ 'vimspectorPC' ], 'VimspectorCode' )
-      self._signs[ 'vimspectorPC' ] = None
-
     if not frame or not frame.get( 'source' ):
+      self._UndisplayPC()
       return False
 
     if 'path' not in frame[ 'source' ]:
+      self._UndisplayPC()
       return False
 
-    self._signs[ 'vimspectorPC' ] = self._next_sign_id
-    self._next_sign_id += 1
-
-    try:
-      signs.PlaceSign( self._signs[ 'vimspectorPC' ],
-                       'VimspectorCode',
-                       'vimspectorPC',
-                       frame[ 'source' ][ 'path' ],
-                       frame[ 'line' ] )
-    except vim.error as e:
-      # Ignore 'invalid buffer name'
-      if 'E158' not in str( e ):
-        raise
+    self._current_frame = frame
+    self._DisplayPC()
 
     if not self._window.valid:
       return False
@@ -120,6 +152,7 @@ class CodeView( object ):
       signs.UnplaceSign( self._signs[ 'vimspectorPC' ], 'VimspectorCode' )
       self._signs[ 'vimspectorPC' ] = None
 
+    self._current_frame = None
     self._UndisplaySigns()
     self.current_syntax = None
 
@@ -187,6 +220,9 @@ class CodeView( object ):
                          file_name,
                          breakpoint[ 'line' ] )
 
+    # We need to also check if there's a breakpoint on this PC line and chnge
+    # the PC
+    self._DisplayPC()
 
   def BreakpointsAsQuickFix( self ):
     qf = []

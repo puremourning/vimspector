@@ -1405,6 +1405,7 @@ define them in your `vimrc`.
 | `vimspectorBPCond`     | Conditional line breakpiont         | 9        |
 | `vimspectorBPDisabled` | Disabled breakpoint                 | 9        |
 | `vimspectorPC`         | Program counter (i.e. current line) | 200      |
+| `vimspectorPCBP`       | Program counter and breakpoint      | 200      |
 
 The default symbols are the equivalent of something like the following:
 
@@ -1413,6 +1414,7 @@ sign define vimspectorBP         text=\ ● texthl=WarningMsg
 sign define vimspectorBPCond     text=\ ◆ texthl=WarningMsg
 sign define vimspectorBPDisabled text=\ ● texthl=LineNr
 sign define vimspectorPC         text=\ ▶ texthl=MatchParen linehl=CursorLine
+sign define vimspectorPCBP       text=●▶  texthl=MatchParen linehl=CursorLine
 ```
 
 If the signs don't display properly, your font probably doesn't contain these
@@ -1420,10 +1422,11 @@ glyphs. You can easily change them by deifining the sign in your vimrc. For
 example, you could put this in your `vimrc` to use some simple ASCII symbols:
 
 ```viml
-sign define vimspectorBP text==>         texthl=WarningMsg
-sign define vimspectorBPCond text=?>     texthl=WarningMsg
-sign define vimspectorBPDisabled text=!> texthl=LineNr
-sign define vimspectorPC text=->         texthl=MatchParen
+sign define vimspectorBP text=o          texthl=WarningMsg
+sign define vimspectorBPCond text=o?     texthl=WarningMsg
+sign define vimspectorBPDisabled text=o! texthl=LineNr
+sign define vimspectorPC text=\ >        texthl=MatchParen
+sign define vimspectorPCBP text=o>       texthl=MatchParen
 ```
 
 ## Sign priority
