@@ -29,6 +29,7 @@ DEFAULTS = {
   # Signs
   'sign_priority': {
     'vimspectorPC':         200,
+    'vimspectorPCBP':       200,
     'vimspectorBP':         9,
     'vimspectorBPCond':     9,
     'vimspectorBPDisabled': 9,

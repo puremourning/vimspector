@@ -551,6 +551,7 @@ endfunction
 function! Test_Custom_Breakpoint_Priority()
   let g:vimspector_sign_priority = {
         \ 'vimspectorPC': 1,
+        \ 'vimspectorPCBP': 1,
         \ 'vimspectorBP': 2,
         \ 'vimspectorBPCond': 3,
         \ 'vimspectorBPDisabled': 4
@@ -597,7 +598,7 @@ function! Test_Custom_Breakpoint_Priority()
   call vimspector#test#signs#AssertSignAtLine(
         \ 'VimspectorCode',
         \ 15,
-        \ 'vimspectorPC',
+        \ 'vimspectorPCBP',
         \ 1 )
   call vimspector#test#signs#AssertSignGroupSingletonAtLine( 'VimspectorCode',
                                                            \ 17,
@@ -626,7 +627,7 @@ function! Test_Custom_Breakpoint_Priority()
   call vimspector#test#signs#AssertSignAtLine(
         \ 'VimspectorCode',
         \ 17,
-        \ 'vimspectorPC',
+        \ 'vimspectorPCBP',
         \ 1 )
 
 
@@ -684,7 +685,7 @@ function! Test_Custom_Breakpoint_Priority_Partial()
   call vimspector#test#signs#AssertSignAtLine(
         \ 'VimspectorCode',
         \ 15,
-        \ 'vimspectorPC',
+        \ 'vimspectorPCBP',
         \ 200 )
   call vimspector#test#signs#AssertSignGroupSingletonAtLine( 'VimspectorCode',
                                                            \ 17,
@@ -713,7 +714,7 @@ function! Test_Custom_Breakpoint_Priority_Partial()
   call vimspector#test#signs#AssertSignAtLine(
         \ 'VimspectorCode',
         \ 17,
-        \ 'vimspectorPC',
+        \ 'vimspectorPCBP',
         \ 200 )
 
 
