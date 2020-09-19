@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 
-BASEDIR=$(dirname $0)
+SetBaseDir() {
+  BASEDIR=$1
+  if [[ ! $BASEDIR = /* ]]; then
+    # Relative
+    BASEDIR=$(pwd)/${BASEDIR}
+  fi
+}
+
+SetBaseDir $(dirname $0)
 INSTALL=0
 UPDATE=0
 INSTALLER_ARGS=''
@@ -15,12 +23,8 @@ while [ -n "$1" ]; do
   case "$1" in
     "--basedir")
       shift
-      BASEDIR=$1
+      SetBaseDir $1
       shift
-      if [[ ! $BASEDIR = /* ]]; then
-        # Relative
-        BASEDIR=$(pwd)/${BASEDIR}
-      fi
       BASEDIR_CMD="let g:vimspector_base_dir='${BASEDIR}'"
       ;;
     "--install")
@@ -131,6 +135,7 @@ echo "Testing with:"
 echo " * VIMSPECTOR_MIMODE=$VIMSPECTOR_MIMODE"
 echo " * RUN_VIM=$RUN_VIM"
 echo " * RUN_TEST=$RUN_TEST"
+echo " * BASEDIR=$BASEDIR"
 echo " * BASEDIR_CMD=$BASEDIR_CMD"
 
 
