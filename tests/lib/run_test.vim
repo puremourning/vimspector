@@ -367,11 +367,11 @@ for s:test in sort(s:tests)
 
   " Repeat a flaky test.  Give up when:
   " - $TEST_NO_RETRY is not empty
-  " - it fails five times (with a different message)
+  " - it fails five times
   if len(v:errors) > 0
         \ && $TEST_NO_RETRY == ''
         \ && g:test_is_flaky
-    for retryu in range( 5 )
+    for retry in range( 5 )
       call add( s:messages, 'Found errors in ' . s:test . '. Retrying.' )
       call extend( s:messages, v:errors )
 
