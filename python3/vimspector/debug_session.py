@@ -31,6 +31,7 @@ from vimspector import ( breakpoints,
                          utils,
                          variables,
                          settings,
+                         terminal,
                          installer )
 from vimspector.vendor.json_minify import minify
 
@@ -61,6 +62,7 @@ class DebugSession( object ):
     self._outputView = None
     self._breakpoints = breakpoints.ProjectBreakpoints()
     self._splash_screen = None
+    self._remote_term = None
 
     self._run_on_server_exit = None
 
@@ -360,7 +362,6 @@ class DebugSession( object ):
 
 
   def OnServerStderr( self, data ):
-    self._logger.info( "Server stderr: %s", data )
     if self._outputView:
       self._outputView.Print( 'server', data )
 
@@ -404,6 +405,7 @@ class DebugSession( object ):
       self._variablesView = None
       self._outputView = None
       self._codeView = None
+      self._remote_term = None
       self._uiTab = None
 
     # make sure that we're displaying signs in any still-open buffers
@@ -760,13 +762,20 @@ class DebugSession( object ):
       commands = self._GetCommands( remote, 'attach' )
 
       for command in commands:
-        cmd = remote_exec_cmd + command[ : ]
+        cmd = remote_exec_cmd + command
 
         for index, item in enumerate( cmd ):
           cmd[ index ] = item.replace( '%PID%', pid )
 
         self._logger.debug( 'Running remote app: %s', cmd )
-        self._outputView.RunJobWithOutput( 'Remote', cmd )
+        self._remote_term = terminal.LaunchTerminal(
+            self._api_prefix,
+            {
+                'args': cmd,
+                'cwd': os.getcwd()
+            },
+            self._codeView._window,
+            self._remote_term )
     else:
       if atttach_config[ 'pidSelect' ] == 'ask':
         prop = atttach_config[ 'pidProperty' ]
@@ -805,8 +814,14 @@ class DebugSession( object ):
             full_cmd.append( item.replace( '%CMD%', command_line ) )
 
         self._logger.debug( 'Running remote app: %s', full_cmd )
-        self._outputView.RunJobWithOutput( 'Remote{}'.format( index ),
-                                           full_cmd )
+        self._remote_term = terminal.LaunchTerminal(
+            self._api_prefix,
+            {
+                'args': full_cmd,
+                'cwd': os.getcwd()
+            },
+            self._codeView._window,
+            self._remote_term )
 
 
   def _GetSSHCommand( self, remote ):
