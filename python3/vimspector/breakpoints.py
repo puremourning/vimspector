@@ -55,16 +55,19 @@ class ProjectBreakpoints( object ):
     if not signs.SignDefined( 'vimspectorBP' ):
       signs.DefineSign( 'vimspectorBP',
                         text = '●',
+                        double_text = '●',
                         texthl = 'WarningMsg' )
 
     if not signs.SignDefined( 'vimspectorBPCond' ):
       signs.DefineSign( 'vimspectorBPCond',
                         text = '◆',
+                        double_text = '◆',
                         texthl = 'WarningMsg' )
 
     if not signs.SignDefined( 'vimspectorBPDisabled' ):
       signs.DefineSign( 'vimspectorBPDisabled',
                         text = '●',
+                        double_text = '●',
                         texthl = 'LineNr' )
 
 

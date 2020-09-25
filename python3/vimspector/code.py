@@ -53,11 +53,13 @@ class CodeView( object ):
       if not signs.SignDefined( 'vimspectorPC' ):
         signs.DefineSign( 'vimspectorPC',
                           text = '▶',
+                          double_text = '▶',
                           texthl = 'MatchParen',
                           linehl = 'CursorLine' )
       if not signs.SignDefined( 'vimspectorPCBP' ):
         signs.DefineSign( 'vimspectorPCBP',
                           text = '●▶',
+                          double_text  = '▷',
                           texthl = 'MatchParen',
                           linehl = 'CursorLine' )
 
