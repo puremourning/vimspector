@@ -12,7 +12,10 @@ def SignDefined( name ):
   return False
 
 
-def DefineSign( name, text, texthl, col = 'right', **kwargs ):
+def DefineSign( name, text, double_text, texthl, col = 'right', **kwargs ):
+  if utils.GetVimValue( vim.options, 'ambiwidth', '' ) == 'double':
+    text = double_text
+
   if col == 'right':
     if int( utils.Call( 'strdisplaywidth', text ) ) < 2:
       text = ' ' + text
