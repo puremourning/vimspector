@@ -132,13 +132,18 @@ class VariablesView( object ):
     self._connection = None
     self._current_syntax = ''
 
+    def AddExpandMappings():
+      vim.command( 'nnoremap <silent> <buffer> <CR> '
+                   ':<C-u>call vimspector#ExpandVariable()<CR>' )
+      vim.command( 'nnoremap <silent> <buffer> <2-LeftMouse> '
+                   ':<C-u>call vimspector#ExpandVariable()<CR>' )
+
     # Set up the "Variables" buffer in the variables_win
     self._scopes: typing.List[ Scope ] = []
     self._vars = View( variables_win, {}, self._DrawScopes )
     utils.SetUpHiddenBuffer( self._vars.buf, 'vimspector.Variables' )
     with utils.LetCurrentWindow( variables_win ):
-      vim.command(
-        'nnoremap <buffer> <CR> :call vimspector#ExpandVariable()<CR>' )
+      AddExpandMappings()
 
     # Set up the "Watches" buffer in the watches_win (and create a WinBar in
     # there)
@@ -150,8 +155,7 @@ class VariablesView( object ):
                              'vimspector#AddWatchPrompt',
                              'vimspector#OmniFuncWatch' )
     with utils.LetCurrentWindow( watches_win ):
-      vim.command(
-        'nnoremap <buffer> <CR> :call vimspector#ExpandVariable()<CR>' )
+      AddExpandMappings()
       vim.command(
         'nnoremap <buffer> <DEL> :call vimspector#DeleteWatch()<CR>' )
 

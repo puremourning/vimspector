@@ -720,7 +720,7 @@ You can configure your choices in the `.vimspector.json`. See
 ## Variables and scopes
 
 * Current scope shows values of locals.
-* Use `<CR>` to expand/collapse (+, -).
+* Use `<CR>`, or double-click with left mouse to expand/collapse (+, -).
 * When changing the stack frame the locals window updates.
 * While paused, hover to see values
 
@@ -737,7 +737,7 @@ to add a new watch expression.
   typing the expression. Commit with `<CR>`.
 * Alternatively, use `:VimspectorWatch <expression>`. Tab-completion for
   expression is available in some debug adapters.
-* Expand result with `<CR>`.
+* Expand result with `<CR>`, or double-click with left mouse.
 * Delete with `<DEL>`.
 
 ![watch window](https://puremourning.github.io/vimspector-web/img/vimspector-watch-window.png)
@@ -762,8 +762,8 @@ let g:ycm_semantic_triggers =  {
 
 ## Stack Traces
 
-* In the threads window, use `<CR>` to expand/collapse.
-* Use `<CR>` on a stack frame to jump to it.
+* In the threads window, use `<CR>`, or double-click with left mouse to expand/collapse.
+* Use `<CR>`, or double-click with left mouse on a stack frame to jump to it.
 
 ![stack trace](https://puremourning.github.io/vimspector-web/img/vimspector-callstack-window.png)
 

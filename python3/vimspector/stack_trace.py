@@ -40,7 +40,10 @@ class StackTraceView( object ):
     utils.SetUpHiddenBuffer( self._buf, 'vimspector.StackTrace' )
     utils.SetUpUIWindow( win )
 
-    vim.command( 'nnoremap <buffer> <CR> :call vimspector#GoToFrame()<CR>' )
+    vim.command( 'nnoremap <silent> <buffer> <CR> '
+                 ':<C-U>call vimspector#GoToFrame()<CR>' )
+    vim.command( 'nnoremap <silent> <buffer> <2-LeftMouse> '
+                 ':<C-U>call vimspector#GoToFrame()<CR>' )
 
     self._line_to_frame = {}
     self._line_to_thread = {}
