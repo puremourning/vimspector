@@ -1,0 +1,21 @@
+{
+  "configurations": {
+    "run": {
+      "adapter": "debugpy",
+      "default": true,
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/moo.py",
+        "cwd": "${workspaceRoot}",
+        "stopOnEntry": true
+      },
+      "breakpoints": {
+        "exception": {
+          "raised": "N",
+          "uncaught": "",
+          "userUnhandled": ""
+        }
+      }
+    }
+  }
+}

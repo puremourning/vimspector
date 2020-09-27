@@ -268,7 +268,10 @@ class ProjectBreakpoints( object ):
 
       awaiting = awaiting + 1
       self._connection.DoRequest(
-        lambda msg: response_handler( source, msg ),
+        # The source=source here is critical to ensure that we capture each
+        # source in the iteration, rather than ending up passing the same source
+        # to each callback.
+        lambda msg, source=source: response_handler( source, msg ),
         {
           'command': 'setBreakpoints',
           'arguments': {

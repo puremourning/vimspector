@@ -577,7 +577,7 @@ function! Test_Custom_Breakpoint_Priority()
         \ 'vimspectorBPDisabled',
         \ 4 )
   call vimspector#ToggleBreakpoint()
-  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 15 )
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 16 )
 
   call setpos( '.', [ 0, 17, 1 ] )
   call vimspector#ToggleBreakpoint( { 'condition': '1' } )
@@ -664,7 +664,7 @@ function! Test_Custom_Breakpoint_Priority_Partial()
         \ 'vimspectorBPDisabled',
         \ 4 )
   call vimspector#ToggleBreakpoint()
-  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 15 )
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 16 )
 
   call setpos( '.', [ 0, 17, 1 ] )
   call vimspector#ToggleBreakpoint( { 'condition': '1' } )
@@ -723,4 +723,73 @@ function! Test_Custom_Breakpoint_Priority_Partial()
   lcd -
   %bwipeout!
   unlet! g:vimspector_sign_priority
+endfunction
+
+
+function! Test_Add_Line_BP_In_Other_File_While_Debugging()
+  let moo = 'moo.py'
+  let cow = 'cow.py'
+  lcd ../support/test/python/multiple_files
+  exe 'edit' moo
+
+  call vimspector#Launch()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( moo, 1, 1 )
+  call vimspector#test#signs#AssertPCIsAtLineInBuffer( moo, 1 )
+
+  call cursor( 6, 3 )
+  call vimspector#ToggleBreakpoint()
+  call vimspector#test#signs#AssertPCIsAtLineInBuffer( moo, 1 )
+  call WaitForAssert( {->
+        \vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorCode',
+          \ 6,
+          \ 'vimspectorBP',
+          \ 9 ) } )
+
+  exe 'edit' cow
+  call cursor( 2, 1 )
+  call vimspector#ToggleBreakpoint()
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 6 )
+  call WaitForAssert( {->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorCode',
+          \ 2,
+          \ 'vimspectorBP',
+          \ 9 ) } )
+
+  call vimspector#Continue()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( moo, 6, 1 )
+  call vimspector#test#signs#AssertPCIsAtLineInBuffer( moo, 6 )
+
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 2 )
+  call vimspector#test#signs#AssertSignAtLine(
+        \ 'VimspectorCode',
+        \ 6,
+        \ 'vimspectorBP',
+        \ 9 )
+  call vimspector#test#signs#AssertSignAtLine(
+        \ 'VimspectorCode',
+        \ 6,
+        \ 'vimspectorPCBP',
+        \ 200 )
+
+  call vimspector#Continue()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( cow, 2, 1 )
+  call vimspector#test#signs#AssertPCIsAtLineInBuffer( cow, 2 )
+
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 6 )
+  call vimspector#test#signs#AssertSignAtLine(
+        \ 'VimspectorCode',
+        \ 2,
+        \ 'vimspectorBP',
+        \ 9 )
+  call vimspector#test#signs#AssertSignAtLine(
+        \ 'VimspectorCode',
+        \ 2,
+        \ 'vimspectorPCBP',
+        \ 200 )
+
+  lcd -
+  call vimspector#test#setup#Reset()
+  %bwipe!
 endfunction

@@ -70,7 +70,11 @@ function! vimspector#test#signs#AssertSignGroupSingletonAtLine( group,
 endfunction
 
 
-function! vimspector#test#signs#AssertSignAtLine( group, line, sign_name, priority ) abort
+function! vimspector#test#signs#AssertSignAtLine(
+      \ group,
+      \ line,
+      \ sign_name,
+      \ priority ) abort
 
   let signs = sign_getplaced( '%', {
     \ 'group': a:group,
@@ -106,7 +110,7 @@ endfunction
 function! vimspector#test#signs#AssertSignGroupEmptyAtLine( group, line ) abort
   let signs = sign_getplaced( '%', {
     \ 'group': a:group,
-    \ 'lnum': line( '.' )
+    \ 'lnum': a:line,
     \ } )
 
   return assert_equal( 1,
