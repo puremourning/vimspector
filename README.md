@@ -1274,7 +1274,7 @@ It allows you to debug scripts running inside chrome from within Vim.
 
 ## Java
 
-Vimsepctor works well with the [java debug server][java-debug-server], which
+Vimspector works well with the [java debug server][java-debug-server], which
 runs as a jdt.ls (Java Language Server) plugin, rather than a standalone
 debug adapter.
 
@@ -1669,7 +1669,7 @@ hi link jsonComment Comment
 
 7. What is the difference between a `gadget` and an `adapter`? A gadget is
    somethin you install with `:VimspectorInstall` or `install_gadget.py`, an
-   `adapter` is something that Vimspector talks to (actually it's the Vimsepctor
+   `adapter` is something that Vimspector talks to (actually it's the Vimspector
    config describing that thing). These are _usually_ one-to-one,
    but in theory a single gadget can supply multiple `adapter` configs.
    Typically this happens when a `gadget` supplies different `adapter` config
@@ -1701,7 +1701,7 @@ A message from the author about the motivation for this plugin:
 > into the debugger, it would be faster and more enjoyable that just cerebral
 > code comprehension.
 >
-> I created Vimsepctor because I find changing tools frustrating. `gdb` for c++,
+> I created Vimspector because I find changing tools frustrating. `gdb` for c++,
 > `pdb` for python, etc. Each has its own syntax. Each its own lexicon. Each its
 > own foibles. 
 >
