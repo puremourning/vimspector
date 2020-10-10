@@ -467,9 +467,10 @@ class DebugSession( object ):
                                   expression )
 
   @IfConnected()
-  def EvaluateConsole( self, expression ):
+  def EvaluateConsole( self, expression, verbose ):
     self._outputView.Evaluate( self._stackTraceView.GetCurrentFrame(),
-                               expression )
+                               expression,
+                               verbose )
 
   @IfConnected()
   def DeleteWatch( self ):
@@ -1050,7 +1051,9 @@ class DebugSession( object ):
     if reason == 'changed':
       self._codeView.UpdateBreakpoint( bp )
     elif reason == 'new':
-      self._codeView.AddBreakpoints( None, bp )
+      self._codeView.AddBreakpoint( bp )
+    elif reason == 'removed':
+      self._codeView.RemoveBreakpoint( bp )
     else:
       utils.UserMessage(
         'Unrecognised breakpoint event (undocumented): {0}'.format( reason ),

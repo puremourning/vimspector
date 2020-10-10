@@ -183,7 +183,7 @@ function! vimspector#Evaluate( expr ) abort
     return
   endif
   py3 _vimspector_session.ShowOutput( 'Console' )
-  py3 _vimspector_session.EvaluateConsole( vim.eval( 'a:expr' ) )
+  py3 _vimspector_session.EvaluateConsole( vim.eval( 'a:expr' ), True )
 endfunction
 
 function! vimspector#EvaluateConsole( expr ) abort
@@ -192,7 +192,7 @@ function! vimspector#EvaluateConsole( expr ) abort
   endif
   stopinsert
   setlocal nomodified
-  py3 _vimspector_session.EvaluateConsole( vim.eval( 'a:expr' ) )
+  py3 _vimspector_session.EvaluateConsole( vim.eval( 'a:expr' ), False )
 endfunction
 
 function! vimspector#ShowOutput( ... ) abort

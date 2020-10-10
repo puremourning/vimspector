@@ -166,25 +166,29 @@ class CodeView( object ):
 
   def AddBreakpoints( self, source, breakpoints ):
     for breakpoint in breakpoints:
-      if 'source' not in breakpoint:
-        if source:
-          breakpoint[ 'source' ] = source
-        else:
-          self._logger.warn( 'missing source in breakpoint {0}'.format(
-            json.dumps( breakpoint ) ) )
-          continue
+      source = breakpoint.get( 'source' ) or source
+      if not source or 'path' not in source:
+        self._logger.warn( 'missing source/path in breakpoint {0}'.format(
+          json.dumps( breakpoint ) ) )
+        continue
 
-      self._breakpoints[ breakpoint[ 'source' ][ 'path' ] ].append(
-        breakpoint )
+      breakpoint[ 'source' ] = source
+      self._breakpoints[ source[ 'path' ] ].append( breakpoint )
 
     self._logger.debug( 'Breakpoints at this point: {0}'.format(
       json.dumps( self._breakpoints, indent = 2 ) ) )
 
     self.ShowBreakpoints()
 
+
+  def AddBreakpoint( self, breakpoint ):
+    self.AddBreakpoints( None, [ breakpoint ] )
+
+
   def UpdateBreakpoint( self, bp ):
     if 'id' not in bp:
-      self.AddBreakpoints( None, [ bp ] )
+      self.AddBreakpoint( bp )
+      return
 
     for _, breakpoint_list in self._breakpoints.items():
       for index, breakpoint in enumerate( breakpoint_list ):
@@ -194,7 +198,22 @@ class CodeView( object ):
           return
 
     # Not found. Assume new
-    self.AddBreakpoints( None, [ bp ] )
+    self.AddBreakpoint( bp )
+
+
+  def RemoveBreakpoint( self, bp ):
+    for _, breakpoint_list in self._breakpoints.items():
+      found_index = None
+      for index, breakpoint in enumerate( breakpoint_list ):
+        if 'id' in breakpoint and breakpoint[ 'id' ] == bp[ 'id' ]:
+          found_index = index
+          break
+
+      if found_index is not None:
+        del breakpoint_list[ found_index ]
+        self.ShowBreakpoints()
+        return
+
 
   def _UndisplaySigns( self ):
     for sign_id in self._signs[ 'breakpoints' ]:
