@@ -260,14 +260,18 @@ class DAPOutputView( OutputView ):
     # Don't clear because output is probably still useful
     self._connection = None
 
-  def Evaluate( self, frame, expression ):
-    self._Print( 'Console', [ 'Evaluating: ' + expression ] )
+  def Evaluate( self, frame, expression, verbose ):
+    if verbose:
+      self._Print( 'Console', f"Evaluating: { expression }" )
 
     def print_result( message ):
       result = message[ 'body' ][ 'result' ]
       if result is None:
         result = '<no result>'
-      self._Print( 'Console', f'  Result: { result }' )
+      self._Print( 'Console', result.splitlines() )
+
+    def print_failure( reason, msg ):
+      self._Print( 'Console', reason.splitlines() )
 
     request = {
       'command': 'evaluate',
@@ -280,4 +284,6 @@ class DAPOutputView( OutputView ):
     if frame:
       request[ 'arguments' ][ 'frameId' ] = frame[ 'id' ]
 
-    self._connection.DoRequest( print_result, request )
+    self._connection.DoRequest( print_result,
+                                request,
+                                print_failure )

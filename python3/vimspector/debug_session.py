@@ -467,9 +467,10 @@ class DebugSession( object ):
                                   expression )
 
   @IfConnected()
-  def EvaluateConsole( self, expression ):
+  def EvaluateConsole( self, expression, verbose ):
     self._outputView.Evaluate( self._stackTraceView.GetCurrentFrame(),
-                               expression )
+                               expression,
+                               verbose )
 
   @IfConnected()
   def DeleteWatch( self ):
