@@ -141,49 +141,73 @@ class ProjectBreakpoints( object ):
 
     self.UpdateUI()
 
+  def _FindLineBreakpoint( self, file_name, line ):
+    file_name = os.path.abspath( file_name )
+    for index, bp in enumerate( self._line_breakpoints[ file_name ] ):
+      self._SignToLine( file_name, bp )
+      if bp[ 'line' ] == line:
+        return bp, index
+
+    return None, None
+
+
+  def _PutLineBreakpoint( self, file_name, line, options ):
+    self._line_breakpoints[ os.path.abspath( file_name ) ].append( {
+      'state': 'ENABLED',
+      'line': line,
+      'options': options,
+      # 'sign_id': <filled in when placed>,
+      #
+      # Used by other breakpoint types (specified in options):
+      # 'condition': ...,
+      # 'hitCondition': ...,
+      # 'logMessage': ...
+    } )
+
+
+  def _DeleteLineBreakpoint( self, bp, file_name, index ):
+    if 'sign_id' in bp:
+      signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
+    del self._line_breakpoints[ os.path.abspath( file_name ) ][ index ]
+
+
   def ToggleBreakpoint( self, options ):
-    line, column = vim.current.window.cursor
+    line, _ = vim.current.window.cursor
     file_name = vim.current.buffer.name
 
     if not file_name:
       return
 
-    found_bp = False
-    action = 'New'
-    for index, bp in enumerate( self._line_breakpoints[ file_name ] ):
-      self._SignToLine( file_name, bp )
-      if bp[ 'line' ] == line:
-        found_bp = True
-        if bp[ 'state' ] == 'ENABLED' and not self._connection:
-          bp[ 'state' ] = 'DISABLED'
-          action = 'Disable'
-        else:
-          if 'sign_id' in bp:
-            signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
-          del self._line_breakpoints[ file_name ][ index ]
-          action = 'Delete'
-        break
-
-    self._logger.debug( "Toggle found bp at {}:{} ? {} ({})".format(
-      file_name,
-      line,
-      found_bp,
-      action ) )
-
-    if not found_bp:
-      self._line_breakpoints[ file_name ].append( {
-        'state': 'ENABLED',
-        'line': line,
-        'options': options,
-        # 'sign_id': <filled in when placed>,
-        #
-        # Used by other breakpoint types (specified in options):
-        # 'condition': ...,
-        # 'hitCondition': ...,
-        # 'logMessage': ...
-      } )
+    bp, index = self._FindLineBreakpoint( file_name, line )
+    if bp is None:
+      # ADD
+      self._PutLineBreakpoint( file_name, line, options )
+    elif bp[ 'state' ] == 'ENABLED' and not self._connection:
+      # DISABLE
+      bp[ 'state' ] = 'DISABLED'
+    else:
+      # DELETE
+      self._DeleteLineBreakpoint( bp, file_name, index )
 
     self.UpdateUI()
+
+
+  def SetLineBreakpoint( self, file_name, line_num, options ):
+    bp, _ = self._FindLineBreakpoint( file_name, line_num )
+    if bp is not None:
+      bp[ 'options' ] = options
+      return
+    self._PutLineBreakpoint( file_name, line_num, options )
+    self.UpdateUI()
+
+
+  def ClearLineBreakpoint( self, file_name, line_num ):
+    bp, index = self._FindLineBreakpoint( file_name, line_num )
+    if bp is None:
+      return
+    self._DeleteLineBreakpoint( bp, file_name, index )
+    self.UpdateUI()
+
 
   def AddFunctionBreakpoint( self, function, options ):
     self._func_breakpoints.append( {
@@ -386,15 +410,19 @@ class ProjectBreakpoints( object ):
                  else 'vimspectorBPCond' if 'condition' in bp[ 'options' ]
                  else 'vimspectorBP' )
 
-        signs.PlaceSign( bp[ 'sign_id' ],
-                         'VimspectorBP',
-                         sign,
-                         file_name,
-                         bp[ 'line' ] )
+        if utils.BufferNumberForFile( file_name, False ) > 0:
+          signs.PlaceSign( bp[ 'sign_id' ],
+                           'VimspectorBP',
+                           sign,
+                           file_name,
+                           bp[ 'line' ] )
 
 
   def _SignToLine( self, file_name, bp ):
     if 'sign_id' not in bp:
+      return bp[ 'line' ]
+
+    if utils.BufferNumberForFile( file_name, False ) <= 0:
       return bp[ 'line' ]
 
     signs = vim.eval( "sign_getplaced( '{}', {} )".format(

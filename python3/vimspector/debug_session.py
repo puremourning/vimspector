@@ -1165,6 +1165,12 @@ class DebugSession( object ):
   def ToggleBreakpoint( self, options ):
     return self._breakpoints.ToggleBreakpoint( options )
 
+  def SetLineBreakpoint( self, file_name, line_num, options ):
+    return self._breakpoints.SetLineBreakpoint( file_name, line_num, options )
+
+  def ClearLineBreakpoint( self, file_name, line_num ):
+    return self._breakpoints.ClearLineBreakpoint( file_name, line_num )
+
   def ClearBreakpoints( self ):
     if self._connection:
       self._codeView.ClearBreakpoints()

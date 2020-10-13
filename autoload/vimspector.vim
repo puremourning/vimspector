@@ -76,6 +76,31 @@ function! vimspector#ToggleBreakpoint( ... ) abort
   py3 _vimspector_session.ToggleBreakpoint( vim.eval( 'options' ) )
 endfunction
 
+function! vimspector#SetLineBreakpoint( file_name, line_num, ... ) abort
+  if !s:enabled
+    return
+  endif
+  if a:0 == 0
+    let options = {}
+  else
+    let options = a:1
+  endif
+  py3 _vimspector_session.SetLineBreakpoint(
+        \ vim.eval( 'a:file_name' ),
+        \ int( vim.eval( 'a:line_num' ) ),
+        \ vim.eval( 'options' ) )
+endfunction
+
+function! vimspector#ClearLineBreakpoint( file_name, line_num ) abort
+  if !s:enabled
+    return
+  endif
+  py3 _vimspector_session.ClearLineBreakpoint(
+        \ vim.eval( 'a:file_name' ),
+        \ int( vim.eval( 'a:line_num' ) ) )
+endfunction
+
+
 function! vimspector#AddFunctionBreakpoint( function, ... ) abort
   if !s:enabled
     return
