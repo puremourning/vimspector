@@ -55,6 +55,10 @@ def BufferForFile( file_name ):
   return vim.buffers[ BufferNumberForFile( file_name ) ]
 
 
+def BufferExists( file_name ):
+  return bool( int ( vim.eval( f"bufexists( '{ Escape( file_name ) }' )" ) ) )
+
+
 def NewEmptyBuffer():
   bufnr = int( vim.eval( 'bufadd("")' ) )
   Call( 'bufload', bufnr )

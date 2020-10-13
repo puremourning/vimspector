@@ -46,6 +46,28 @@
         }
       }
     },
+    "run-to-breakpoint-specify-file": {
+      "adapter": "vscode-cpptools",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/${prog}",
+        "cwd": "${workspaceRoot}",
+        "externalConsole": false,
+        "stopAtEntry": false,
+        "stopOnEntry": false,
+        "MImode": "${VIMSPECTOR_MIMODE}"
+      },
+      "breakpoints": {
+        "exception": {
+          "cpp_catch": "",
+          "cpp_throw": "",
+          "objc_catch": "",
+          "objc_throw": "",
+          "swift_catch": "",
+          "swift_throw": ""
+        }
+      }
+    },
     "calculate-some-variable": {
       "adapter": "vscode-cpptools",
       "variables": {
