@@ -1,6 +1,6 @@
 {
   "configurations": {
-    "run": {
+    "golang-run": {
       "adapter": "vscode-go",
       "configuration": {
         "request": "launch",
@@ -9,6 +9,16 @@
         "dlvToolPath": "$HOME/go/bin/dlv",
         "trace": true,
         "env": { "GO111MODULE": "off" }
+      }
+    },
+    "golang-attach": {
+      "adapter": "vscode-go",
+      "configuration": {
+        "request": "attach",
+        "dlvToolPath": "$HOME/go/bin/dlv",
+        "mode": "local",
+        "cwd": "${workspaceRoot}",
+        "processId": "${pid:}"
       }
     }
   }
