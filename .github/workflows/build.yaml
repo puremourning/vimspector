@@ -84,7 +84,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: |
-        brew update
+        brew update-reset
         brew doctor || true
         for p in macvim tcl-tk llvm; do
           brew install $p
