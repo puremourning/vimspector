@@ -148,10 +148,10 @@ runtime dependencies). They are categorised by their level of support:
 
 ## Other languages
 
-Vimspector should work for any debug adapter that works in Visual Studio Code,
-but there are certain limitations (see FAQ). If you're trying to get vimspector
-to work with a language that's not "supported", head over to Gitter and contact
-the author. It should be possible to get it going.
+Vimspector should work for any debug adapter that works in Visual Studio Code.
+
+To use Vimspector with a language that's not "built-in", see this
+[wiki page](https://github.com/puremourning/vimspector/wiki/languages).
 
 # Installation
 
