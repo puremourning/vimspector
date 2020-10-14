@@ -157,6 +157,9 @@ GADGETS = {
       "vscode-java": {
         "name": "vscode-java",
         "port": "${DAPPort}",
+        "configuration": {
+          "cwd": "${workspaceRoot}"
+        }
       }
     },
   },
