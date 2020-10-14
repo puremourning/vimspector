@@ -339,22 +339,25 @@ GADGETS = {
   'vscode-go': {
     'language': 'go',
     'download': {
-      'url': 'https://github.com/microsoft/vscode-go/releases/download/'
-             '${version}/${file_name}'
+      'url': 'https://github.com/golang/vscode-go/releases/download/'
+             'v${version}/${file_name}'
     },
     'all': {
-      'version': '0.11.4',
-      'file_name': 'Go-0.11.4.vsix',
+      'version': '0.17.2',
+      'file_name': 'Go-0.17.2.vsix',
       'checksum':
-        'ff7d7b944da5448974cb3a0086f4a2fd48e2086742d9c013d6964283d416027e'
+        '69055b9b86387e2906f20cceb84ab2c4da86c5a5159395a7bbdb74ea3a0f982f',
     },
     'adapters': {
       'vscode-go': {
         'name': 'delve',
         'command': [
           'node',
-          '${gadgetDir}/vscode-go/out/src/debugAdapter/goDebug.js'
+          '${gadgetDir}/vscode-go/dist/debugAdapter.js'
         ],
+        "configuration": {
+          "cwd": "${workspaceRoot}",
+        }
       },
     },
   },
