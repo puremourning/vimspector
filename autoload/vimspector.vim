@@ -114,6 +114,10 @@ endfunction
 
 
 function! vimspector#RunToCursor() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.ClearTemporaryBreakpoints()
   call vimspector#SetLineBreakpoint(
         \ expand( '%' ),
         \ line( '.' ),

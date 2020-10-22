@@ -209,13 +209,48 @@ class ProjectBreakpoints( object ):
     self.UpdateUI()
 
 
-  def ClearTemporaryBreakpoints( self, file_name, line_num ):
+  def ClearTemporaryBreakpoint( self, file_name, line_num ):
     bp, index = self._FindLineBreakpoint( file_name, line_num )
     if bp is None:
       return
     if bp[ 'options' ].get( 'temporary' ):
       self._DeleteLineBreakpoint( bp, file_name, index )
       self.UpdateUI()
+
+
+  def ClearTemporaryBreakpoints( self ):
+    for file_name, breakpoints in self._line_breakpoints.items():
+      self._line_breakpoints[ file_name ] = list( filter(
+        lambda bp: not bp[ 'options' ].get( 'temporary' ),
+        breakpoints ) )
+
+
+  def _UpdateTemporaryBreakpoints( self, breakpoints, temp_idxs ):
+    # adjust any temporary breakpoints to match the server result
+    # TODO: Maybe now is the time to ditch the split breakpoints nonesense
+    for temp_idx, user_bp in temp_idxs:
+      if temp_idx >= len( breakpoints ):
+        # Just can't trust servers ?
+        self._logger.debug( "Server Error - invalid breakpoints list did not "
+                            "contain entry for temporary breakpoint at index "
+                            f"{ temp_idx } i.e. { user_bp }" )
+        continue
+
+      bp = breakpoints[ temp_idx ]
+
+      if 'line' not in bp or not bp[ 'verified' ]:
+        utils.UserMessage(
+          "Unable to set temporary breakpoint at line "
+          f"{ user_bp[ 'line' ] } execution will continue...",
+          persist = True,
+          error = True )
+
+      self._logger.debug( f"Updating temporary breakpoint { user_bp } line "
+                          f"{ user_bp[ 'line' ] } to { bp[ 'line' ] }" )
+
+      # if it was moved, update the user-breakpoint so that we unset it
+      # again properly
+      user_bp[ 'line' ] = bp[ 'line' ]
 
 
 
@@ -264,9 +299,12 @@ class ProjectBreakpoints( object ):
       if awaiting == 0 and doneHandler:
         doneHandler()
 
-    def response_handler( source, msg ):
+    def response_handler( source, msg, temp_idxs = [] ):
       if msg:
         self._breakpoints_handler.AddBreakpoints( source, msg )
+
+        breakpoints = ( msg.get( 'body' ) or {} ).get( 'breakpoints' ) or []
+        self._UpdateTemporaryBreakpoints( breakpoints, temp_idxs )
       response_received()
 
 
@@ -277,9 +315,9 @@ class ProjectBreakpoints( object ):
 
 
     # TODO: add the _configured_breakpoints to line_breakpoints
-    # TODO: the line numbers might have changed since pressing the F9 key!
 
     for file_name, line_breakpoints in self._line_breakpoints.items():
+      temp_idxs = []
       breakpoints = []
       for bp in line_breakpoints:
         self._SignToLine( file_name, bp )
@@ -293,7 +331,14 @@ class ProjectBreakpoints( object ):
         dap_bp = {}
         dap_bp.update( bp[ 'options' ] )
         dap_bp.update( { 'line': bp[ 'line' ] } )
+
+        dap_bp.pop( 'temporary', None )
+
+        if bp[ 'options' ].get( 'temporary' ):
+          temp_idxs.append( [ len( breakpoints ), bp ] )
+
         breakpoints.append( dap_bp )
+
 
       source = {
         'name': os.path.basename( file_name ),
@@ -305,7 +350,10 @@ class ProjectBreakpoints( object ):
         # The source=source here is critical to ensure that we capture each
         # source in the iteration, rather than ending up passing the same source
         # to each callback.
-        lambda msg, source=source: response_handler( source, msg ),
+        lambda msg, source=source, temp_idxs=temp_idxs: response_handler(
+          source,
+          msg,
+          temp_idxs = temp_idxs),
         {
           'command': 'setBreakpoints',
           'arguments': {

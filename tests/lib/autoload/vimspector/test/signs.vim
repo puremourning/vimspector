@@ -1,6 +1,7 @@
 function! vimspector#test#signs#AssertCursorIsAtLineInBuffer( buffer,
                                                             \ line,
                                                             \ column ) abort
+  call WaitFor( {-> bufexists( a:buffer ) } )
   call WaitForAssert( {->
         \ assert_equal( fnamemodify( a:buffer, ':p' ),
         \               fnamemodify( bufname( '%' ), ':p' ),
@@ -15,6 +16,7 @@ function! vimspector#test#signs#AssertCursorIsAtLineInBuffer( buffer,
 endfunction
 
 function! vimspector#test#signs#AssertPCIsAtLineInBuffer( buffer, line ) abort
+  call WaitFor( {-> bufexists( a:buffer ) } )
   let signs = sign_getplaced( a:buffer, {
     \ 'group': 'VimspectorCode',
     \ } )

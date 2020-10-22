@@ -645,8 +645,8 @@ class DebugSession( object ):
     self._variablesView.EvaluateWatches()
 
     if reason == 'stopped':
-      self._breakpoints.ClearTemporaryBreakpoints( frame[ 'source' ][ 'path' ],
-                                                   frame[ 'line' ] )
+      self._breakpoints.ClearTemporaryBreakpoint( frame[ 'source' ][ 'path' ],
+                                                  frame[ 'line' ] )
 
     return True
 
@@ -1176,6 +1176,9 @@ class DebugSession( object ):
 
   def ToggleBreakpoint( self, options ):
     return self._breakpoints.ToggleBreakpoint( options )
+
+  def ClearTemporaryBreakpoints( self ):
+    return self._breakpoints.ClearTemporaryBreakpoints()
 
   def SetLineBreakpoint( self, file_name, line_num, options ):
     return self._breakpoints.SetLineBreakpoint( file_name, line_num, options )
