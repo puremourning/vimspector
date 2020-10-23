@@ -149,12 +149,15 @@ class StackTraceView( object ):
 
         self._DrawStackTrace( thread )
 
-  def _LoadStackTrace( self, thread, infer_current_frame ):
+  def _LoadStackTrace( self,
+                       thread,
+                       infer_current_frame,
+                       reason = '' ):
     def consume_stacktrace( message ):
       thread[ '_frames' ] = message[ 'body' ][ 'stackFrames' ]
       if infer_current_frame:
         for frame in thread[ '_frames' ]:
-          if self._JumpToFrame( frame ):
+          if self._JumpToFrame( frame, reason ):
             break
 
       self._DrawThreads()
@@ -183,11 +186,11 @@ class StackTraceView( object ):
       else:
         self._LoadStackTrace( thread, False )
 
-  def _JumpToFrame( self, frame ):
+  def _JumpToFrame( self, frame, reason = '' ):
     def do_jump():
       if 'line' in frame and frame[ 'line' ] > 0:
         self._current_frame = frame
-        return self._session.SetCurrentFrame( self._current_frame )
+        return self._session.SetCurrentFrame( self._current_frame, reason )
       return False
 
     source = frame.get( 'source' ) or {}
@@ -211,7 +214,7 @@ class StackTraceView( object ):
     if self._current_thread is not None:
       for thread in self._threads:
         if thread[ 'id' ] == self._current_thread:
-          self._LoadStackTrace( thread, True )
+          self._LoadStackTrace( thread, True, 'stopped' )
           return
 
     self.LoadThreads( True )

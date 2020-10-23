@@ -29,7 +29,7 @@ def DefineSign( name, text, double_text, texthl, col = 'right', **kwargs ):
   vim.command( cmd )
 
 
-def PlaceSign( sign_id, group, name, file, line ):
+def PlaceSign( sign_id, group, name, file_name, line ):
   priority = settings.Dict( 'sign_priority' )[ name ]
 
   cmd = ( f'sign place { sign_id } '
@@ -37,7 +37,7 @@ def PlaceSign( sign_id, group, name, file, line ):
           f'name={ name } '
           f'priority={ priority } '
           f'line={ line } '
-          f'file={ file }' )
+          f'file={ file_name }' )
 
   vim.command( cmd )
 

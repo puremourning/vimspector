@@ -52,6 +52,11 @@
     },
     "run - default": {
       "adapter": "debugpy",
+      "variables": {
+        "MAKE_ENV_OUTPUT": {
+          "shell": "${workspaceRoot}/make_env.sh"
+        }
+      },
       "configuration": {
         "request": "launch",
         "type": "python",
@@ -60,8 +65,8 @@
         "stopOnEntry#json": "${StopOnEntry:true}",
         "console": "integratedTerminal",
         "args#json": "${args:[]}",
-        "env#json": "${env:{\\}}",
-        "igored#json#s": "string not json"
+        "igored#json#s": "string not json",
+        "env#json": "${MAKE_ENV_OUTPUT}"
       },
       "breakpoints": {
         "exception": {

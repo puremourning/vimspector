@@ -45,12 +45,18 @@ _logger = logging.getLogger( __name__ )
 SetUpLogging( _logger )
 
 
-def BufferNumberForFile( file_name ):
-  return int( vim.eval( "bufnr( '{0}', 1 )".format( Escape( file_name ) ) ) )
+def BufferNumberForFile( file_name, create = True ):
+  return int( vim.eval( "bufnr( '{0}', {1} )".format(
+    Escape( file_name ),
+    int( create ) ) ) )
 
 
 def BufferForFile( file_name ):
   return vim.buffers[ BufferNumberForFile( file_name ) ]
+
+
+def BufferExists( file_name ):
+  return bool( int ( vim.eval( f"bufexists( '{ Escape( file_name ) }' )" ) ) )
 
 
 def NewEmptyBuffer():

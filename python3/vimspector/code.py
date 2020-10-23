@@ -93,16 +93,12 @@ class CodeView( object ):
         sign = 'vimspectorPCBP'
         break
 
-    try:
+    if utils.BufferExists( frame[ 'source' ][ 'path' ] ):
       signs.PlaceSign( self._signs[ 'vimspectorPC' ],
                        'VimspectorCode',
                        sign,
                        frame[ 'source' ][ 'path' ],
                        frame[ 'line' ] )
-    except vim.error as e:
-      # Ignore 'invalid buffer name'
-      if 'E158' not in str( e ):
-        raise
 
 
   def SetCurrentFrame( self, frame ):
@@ -215,6 +211,11 @@ class CodeView( object ):
         return
 
 
+  def Refresh( self, file_name ):
+    # TODO: jsut the file ?
+    self.ShowBreakpoints()
+
+
   def _UndisplaySigns( self ):
     for sign_id in self._signs[ 'breakpoints' ]:
       signs.UnplaceSign( sign_id, 'VimspectorCode' )
@@ -236,12 +237,13 @@ class CodeView( object ):
         sign_id = self._next_sign_id
         self._next_sign_id += 1
         self._signs[ 'breakpoints' ].append( sign_id )
-        signs.PlaceSign( sign_id,
-                         'VimspectorCode',
-                         'vimspectorBP' if breakpoint[ 'verified' ]
-                                        else 'vimspectorBPDisabled',
-                         file_name,
-                         breakpoint[ 'line' ] )
+        if utils.BufferExists( file_name ):
+          signs.PlaceSign( sign_id,
+                           'VimspectorCode',
+                           'vimspectorBP' if breakpoint[ 'verified' ]
+                                          else 'vimspectorBPDisabled',
+                           file_name,
+                           breakpoint[ 'line' ] )
 
     # We need to also check if there's a breakpoint on this PC line and chnge
     # the PC
