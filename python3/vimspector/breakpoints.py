@@ -192,13 +192,13 @@ class ProjectBreakpoints( object ):
     self.UpdateUI()
 
 
-  def SetLineBreakpoint( self, file_name, line_num, options ):
+  def SetLineBreakpoint( self, file_name, line_num, options, then = None ):
     bp, _ = self._FindLineBreakpoint( file_name, line_num )
     if bp is not None:
       bp[ 'options' ] = options
       return
     self._PutLineBreakpoint( file_name, line_num, options )
-    self.UpdateUI()
+    self.UpdateUI( then )
 
 
   def ClearLineBreakpoint( self, file_name, line_num ):
@@ -269,11 +269,13 @@ class ProjectBreakpoints( object ):
     self.UpdateUI()
 
 
-  def UpdateUI( self ):
+  def UpdateUI( self, then = None ):
     if self._connection:
-      self.SendBreakpoints()
+      self.SendBreakpoints( then )
     else:
       self._ShowBreakpoints()
+      if then:
+        then()
 
 
   def SetBreakpointsHandler( self, handler ):

@@ -77,6 +77,7 @@ class DebugSession( object ):
     self._launch_complete = False
     self._on_init_complete_handlers = []
     self._server_capabilities = {}
+    self.ClearTemporaryBreakpoints()
 
   def Start( self, launch_variables = None ):
     # We mutate launch_variables, so don't mutate the default argument.
@@ -1177,11 +1178,22 @@ class DebugSession( object ):
   def ToggleBreakpoint( self, options ):
     return self._breakpoints.ToggleBreakpoint( options )
 
+  def RunTo( self, file_name, line ):
+    self.ClearTemporaryBreakpoints()
+    self.SetLineBreakpoint( file_name,
+                            line,
+                            { 'temporary': True },
+                            lambda: self.Continue() )
+
+
   def ClearTemporaryBreakpoints( self ):
     return self._breakpoints.ClearTemporaryBreakpoints()
 
-  def SetLineBreakpoint( self, file_name, line_num, options ):
-    return self._breakpoints.SetLineBreakpoint( file_name, line_num, options )
+  def SetLineBreakpoint( self, file_name, line_num, options, then = None ):
+    return self._breakpoints.SetLineBreakpoint( file_name,
+                                                line_num,
+                                                options,
+                                                then )
 
   def ClearLineBreakpoint( self, file_name, line_num ):
     return self._breakpoints.ClearLineBreakpoint( file_name, line_num )

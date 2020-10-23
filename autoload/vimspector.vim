@@ -117,12 +117,9 @@ function! vimspector#RunToCursor() abort
   if !s:Enabled()
     return
   endif
-  py3 _vimspector_session.ClearTemporaryBreakpoints()
-  call vimspector#SetLineBreakpoint(
-        \ expand( '%' ),
-        \ line( '.' ),
-        \ { 'temporary': 1 } )
-  call vimspector#Continue()
+  py3 _vimspector_session.RunTo(
+        \ vim.eval( "expand( '%' )" ),
+        \ int( vim.eval( "line( '.' )" ) ) )
 endfunction
 
 

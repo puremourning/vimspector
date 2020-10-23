@@ -45,3 +45,28 @@ function! Test_Go_Simple()
   lcd -
   %bwipeout!
 endfunction
+
+
+function! Test_Run_To_Cursor()
+  let fn='hello-world.go'
+  lcd ../support/test/go/hello_world
+  exe 'edit ' . fn
+
+  call vimspector#SetLineBreakpoint( fn, 4 )
+  call vimspector#Launch()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 4, 1 )
+  call WaitForAssert( {->
+        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( fn, 4 )
+        \ } )
+
+  call cursor( 5, 1 )
+  call vimspector#RunToCursor()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 5, 1 )
+  call WaitForAssert( {->
+        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( fn, 5 )
+        \ } )
+
+  call vimspector#test#setup#Reset()
+  lcd -
+  %bwipeout!
+endfunction

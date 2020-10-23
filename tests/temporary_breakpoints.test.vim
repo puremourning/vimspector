@@ -160,3 +160,32 @@ function! Test_InvalidBreakpoint()
   lcd -
   %bwipe!
 endfunction
+
+function! Test_StartDebuggingWithRunToCursor()
+  lcd ../support/test/python/multiple_files
+  edit moo.py
+  call cursor( 9, 1 )
+  call vimspector#RunToCursor()
+  " Stop on entry is still hit
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'moo.py', 1, 1 )
+  call vimspector#test#signs#AssertPCIsAtLineInBuffer( 'moo.py', 1 )
+  call vimspector#test#signs#AssertSignGroupSingletonAtLine(
+        \ 'VimspectorCode',
+        \ 9,
+        \ 'vimspectorBP',
+        \ 9 )
+
+  call vimspector#Continue()
+  " Runs to cursor
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'moo.py', 9, 1 )
+  call vimspector#test#signs#AssertPCIsAtLineInBuffer( 'moo.py', 9 )
+
+  call vimspector#StepOver()
+  " And claers the temp breakpoint
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'moo.py', 8, 1 )
+  call vimspector#test#signs#AssertPCIsAtLineInBuffer( 'moo.py', 8 )
+
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 9 )
+
+  lcd -
+endfunction
