@@ -108,6 +108,7 @@ And a couple of brief demos:
 - breakpoints (function, line and exception breakpoints)
 - conditional breakpoints (function, line)
 - step in/out/over/up, stop, restart
+- run to cursor
 - launch and attach
 - remote launch, remote attach
 - locals and globals display
@@ -552,6 +553,7 @@ features to set your own mappings. To that end, Vimspector defines the following
 * `<Plug>VimspectorStepOver`
 * `<Plug>VimspectorStepInto`
 * `<Plug>VimspectorStepOut`
+* `<Plug>VimspectorRunToCursor`
 
 These map roughly 1-1 with the API functions below.
 
@@ -612,6 +614,7 @@ let g:vimspector_enable_mappings = 'HUMAN'
 | `F9`         | Toggle line breakpoint on the current line.               | `vimspector#ToggleBreakpoint()`                              |
 | `<leader>F9` | Toggle conditional line breakpoint on the current line.   | `vimspector#ToggleBreakpoint( { trigger expr, hit count expr } )` |
 | `F8`         | Add a function breakpoint for the expression under cursor | `vimspector#AddFunctionBreakpoint( '<cexpr>' )`              |
+| `<leader>F8` | Run to Cursor                                             | `vimspector#RunToCursor()`                                   |
 | `F10`        | Step Over                                                 | `vimspector#StepOver()`                                      |
 | `F11`        | Step Into                                                 | `vimspector#StepInto()`                                      |
 | `F12`        | Step out of current function scope                        | `vimspector#StepOut()`                                       |
@@ -709,6 +712,12 @@ You can configure your choices in the `.vimspector.json`. See
 
 * Use `vimspector#ClearBreakpoints()`
   to clear all breakpoints including the memory of exception breakpoint choices.
+
+### Run to Cursor
+
+* Use `vimspector#RunToCursor` or `<leader><F8>`: this creates a temporary
+  breakpoint on the current line, then continues execution, clearing the
+  breakpiont when it is hit.
 
 ## Stepping
 

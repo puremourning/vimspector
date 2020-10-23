@@ -20,6 +20,7 @@ function! Test_Mappings_Are_Added_HUMAN()
   call assert_true( hasmapto( 'vimspector#StepOver()' ) )
   call assert_true( hasmapto( 'vimspector#StepInto()' ) )
   call assert_true( hasmapto( 'vimspector#StepOut()' ) )
+  call assert_true( hasmapto( 'vimspector#RunToCursor()' ) )
 endfunction
 
 function! SetUp_Test_Mappings_Are_Added_VISUAL_STUDIO()
@@ -101,8 +102,17 @@ function! Test_Use_Mappings_HUMAN()
 
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 16, 1 )
   call WaitForAssert( {->
-        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( 'simple.cp', 16 )
+        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( 'simple.cpp', 16 )
         \ } )
+
+  " Run to cursor
+  call cursor( 9, 1 )
+  call feedkeys( "\\\<F8>", 'xt' )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 9, 1 )
+  call WaitForAssert( {->
+        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( 'simple.cpp', 9 )
+        \ } )
+
 
   call vimspector#test#setup#Reset()
 

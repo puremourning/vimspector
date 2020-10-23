@@ -62,6 +62,9 @@ nnoremap <silent> <Plug>VimspectorStepInto
 nnoremap <silent> <Plug>VimspectorStepOut
       \ :<c-u>call vimspector#StepOut()<CR>
 
+nnoremap <silent> <Plug>VimspectorRunToCursor
+      \ :<c-u>call vimspector#RunToCursor()<CR>
+
 if s:mappings ==# 'VISUAL_STUDIO'
   nmap <F5>         <Plug>VimspectorContinue
   nmap <S-F5>       <Plug>VimspectorStop
@@ -80,6 +83,7 @@ elseif s:mappings ==# 'HUMAN'
   nmap <F9>         <Plug>VimspectorToggleBreakpoint
   nmap <leader><F9> <Plug>VimspectorToggleConditionalBreakpoint
   nmap <F8>         <Plug>VimspectorAddFunctionBreakpoint
+  nmap <leader><F8> <Plug>VimspectorRunToCursor
   nmap <F10>        <Plug>VimspectorStepOver
   nmap <F11>        <Plug>VimspectorStepInto
   nmap <F12>        <Plug>VimspectorStepOut

@@ -32,7 +32,9 @@ function Test_Run_To_Cursor_Simple()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'moo.py', 9, 1 )
   call vimspector#test#signs#AssertPCIsAtLineInBuffer( 'moo.py', 9 )
   " Check there is no breakpoint set on line 8
-  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 8 )
+  call WaitForAssert( {->
+      \ vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 8 )
+      \ } )
   call vimspector#test#setup#Reset()
   lcd -
   %bwipe!
@@ -66,8 +68,12 @@ function Test_Run_To_Cursor_On_NonBreaking_Line()
   "
   " I wonder if the relocated breakpoint can be matched with the _original_
   " breakpoint
-  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 7 )
-  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 6 )
+  call WaitForAssert( {->
+      \ vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 7 )
+      \ } )
+  call WaitForAssert( {->
+      \ vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 6 )
+      \ } )
   call vimspector#test#setup#Reset()
   lcd -
   %bwipe!
@@ -125,14 +131,15 @@ function Test_Run_To_Cursor_Hit_Another_Breakpoint()
 
   call vimspector#ClearLineBreakpoint( 'moo.py', 5 )
 
-  " should this clear any existing temporary breakpoint?
   call cursor( 8, 1 )
   call vimspector#RunToCursor()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'moo.py', 8, 1 )
   call WaitForAssert( {->
-        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( 'moo.py', 8 )
-        \ } )
-  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 6 )
+      \ vimspector#test#signs#AssertPCIsAtLineInBuffer( 'moo.py', 8 )
+      \ } )
+  call WaitForAssert( {->
+      \  vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 6 )
+      \ } )
 
   call vimspector#test#setup#Reset()
   lcd -
@@ -185,7 +192,9 @@ function! Test_StartDebuggingWithRunToCursor()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'moo.py', 8, 1 )
   call vimspector#test#signs#AssertPCIsAtLineInBuffer( 'moo.py', 8 )
 
-  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 9 )
+  call WaitForAssert( {->
+      \ vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 9 )
+      \ } )
 
   lcd -
 endfunction

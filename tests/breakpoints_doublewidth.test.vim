@@ -7,38 +7,6 @@ function! ClearDown()
   call vimspector#test#setup#ClearDown()
 endfunction
 
-function! SetUp_Test_Mappings_Are_Added_HUMAN()
-  let g:vimspector_enable_mappings = 'HUMAN'
-endfunction
-
-function! Test_Mappings_Are_Added_HUMAN()
-  call assert_true( hasmapto( 'vimspector#Continue()' ) )
-  call assert_false( hasmapto( 'vimspector#Launch()' ) )
-  call assert_true( hasmapto( 'vimspector#Stop()' ) )
-  call assert_true( hasmapto( 'vimspector#Restart()' ) )
-  call assert_true( hasmapto( 'vimspector#ToggleBreakpoint()' ) )
-  call assert_true( hasmapto( 'vimspector#AddFunctionBreakpoint' ) )
-  call assert_true( hasmapto( 'vimspector#StepOver()' ) )
-  call assert_true( hasmapto( 'vimspector#StepInto()' ) )
-  call assert_true( hasmapto( 'vimspector#StepOut()' ) )
-endfunction
-
-function! SetUp_Test_Mappings_Are_Added_VISUAL_STUDIO()
-  let g:vimspector_enable_mappings = 'VISUAL_STUDIO'
-endfunction
-
-function! Test_Mappings_Are_Added_VISUAL_STUDIO()
-  call assert_true( hasmapto( 'vimspector#Continue()' ) )
-  call assert_false( hasmapto( 'vimspector#Launch()' ) )
-  call assert_true( hasmapto( 'vimspector#Stop()' ) )
-  call assert_true( hasmapto( 'vimspector#Restart()' ) )
-  call assert_true( hasmapto( 'vimspector#ToggleBreakpoint()' ) )
-  call assert_true( hasmapto( 'vimspector#AddFunctionBreakpoint' ) )
-  call assert_true( hasmapto( 'vimspector#StepOver()' ) )
-  call assert_true( hasmapto( 'vimspector#StepInto()' ) )
-  call assert_true( hasmapto( 'vimspector#StepOut()' ) )
-endfunction
-
 function! SetUp_Test_Signs_Placed_Using_API_Are_Shown()
   let g:vimspector_enable_mappings = 'VISUAL_STUDIO'
 endfunction
@@ -132,7 +100,7 @@ function! Test_Use_Mappings_HUMAN()
 
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 16, 1 )
   call WaitForAssert( {->
-        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( 'simple.cp', 16 )
+        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( 'simple.cpp', 16 )
         \ } )
 
   call vimspector#test#setup#Reset()

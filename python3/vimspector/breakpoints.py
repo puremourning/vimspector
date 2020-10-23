@@ -355,7 +355,7 @@ class ProjectBreakpoints( object ):
         lambda msg, source=source, temp_idxs=temp_idxs: response_handler(
           source,
           msg,
-          temp_idxs = temp_idxs),
+          temp_idxs = temp_idxs ),
         {
           'command': 'setBreakpoints',
           'arguments': {
