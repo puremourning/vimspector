@@ -79,6 +79,30 @@ class DebugSession( object ):
     self._server_capabilities = {}
     self.ClearTemporaryBreakpoints()
 
+  def ListConfigurations( self ):
+    current_file = utils.GetBufferFilepath( vim.current.buffer )
+    filetypes = utils.GetBufferFiletypes( vim.current.buffer )
+    configurations = {}
+
+    for launch_config_file in PathsToAllConfigFiles( VIMSPECTOR_HOME,
+                                                     current_file,
+                                                     filetypes ):
+      self._logger.debug( f'Reading configurations from: {launch_config_file}' )
+      if not launch_config_file or not os.path.exists( launch_config_file ):
+        continue
+
+      with open( launch_config_file, 'r' ) as f:
+        database = json.loads( minify( f.read() ) )
+        configurations.update( database.get( 'configurations' or {} ) )
+
+    if not configurations:
+      utils.UserMessage( 'Unable to find any debug configurations. '
+                         'You need to tell vimspector how to launch your '
+                         'application.' )
+      return
+
+    return launch_config_file, configurations
+
   def Start( self, launch_variables = None ):
     # We mutate launch_variables, so don't mutate the default argument.
     # https://docs.python-guide.org/writing/gotchas/#mutable-default-arguments
@@ -91,8 +115,7 @@ class DebugSession( object ):
     self._adapter = None
 
     current_file = utils.GetBufferFilepath( vim.current.buffer )
-    filetypes = utils.GetBufferFiletypes( vim.current.buffer )
-    configurations = {}
+    launch_config_file, configurations = self.ListConfigurations()
     adapters = {}
 
     glob.glob( install.GetGadgetDir( VIMSPECTOR_HOME ) )
@@ -105,24 +128,6 @@ class DebugSession( object ):
       with open( gadget_config_file, 'r' ) as f:
         a =  json.loads( minify( f.read() ) ).get( 'adapters' ) or {}
         adapters.update( a )
-
-    for launch_config_file in PathsToAllConfigFiles( VIMSPECTOR_HOME,
-                                                     current_file,
-                                                     filetypes ):
-      self._logger.debug( f'Reading configurations from: {launch_config_file}' )
-      if not launch_config_file or not os.path.exists( launch_config_file ):
-        continue
-
-      with open( launch_config_file, 'r' ) as f:
-        database = json.loads( minify( f.read() ) )
-        adapters.update( database.get( 'adapters' ) or {} )
-        configurations.update( database.get( 'configurations' or {} ) )
-
-    if not configurations:
-      utils.UserMessage( 'Unable to find any debug configurations. '
-                         'You need to tell vimspector how to launch your '
-                         'application.' )
-      return
 
     if 'configuration' in launch_variables:
       configuration_name = launch_variables.pop( 'configuration' )
