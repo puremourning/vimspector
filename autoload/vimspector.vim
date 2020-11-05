@@ -277,6 +277,16 @@ function! vimspector#ListBreakpoints() abort
   py3 _vimspector_session.ListBreakpoints()
 endfunction
 
+function! vimspector#GetConfigurations() abort
+  if !s:Enabled()
+    return
+  endif
+  let configurations = py3eval(
+              \ 'list( _vimspector_session.GetConfigurations()[ 1 ].keys() )'
+              \ . ' if _vimspector_session else []' )
+  return configurations
+endfunction
+
 function! vimspector#CompleteOutput( ArgLead, CmdLine, CursorPos ) abort
   if !s:Enabled()
     return
