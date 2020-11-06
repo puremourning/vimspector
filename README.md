@@ -671,6 +671,16 @@ Vimspector uses the following logic to choose a configuration to launch:
 
 See [the reference guide][vimspector-ref-config-selection] for details.
 
+
+### Get configurations
+
+* Use `vimspector#GetConfigurations()` to get a list of configurations
+
+For example, to get an array of configurations and fuzzy matching on the result
+```viml
+:call matchfuzzy(vimspector#GetConfigurations(), "test::case_1")
+```
+
 ## Breakpoints
 
 * Use `vimspector#ToggleBreakpoint([ { 'condition': '<condition expr>' } ])`
