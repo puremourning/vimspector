@@ -169,6 +169,10 @@ class DebugAdapterConnection( object ):
       self._headers = {}
 
   def _SendMessage( self, msg ):
+    if not self._Write:
+      # Connection was destroyed
+      return False
+
     msg = json.dumps( msg )
     self._logger.debug( 'Sending Message: {0}'.format( msg ) )
 
