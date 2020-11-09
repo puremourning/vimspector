@@ -1134,7 +1134,8 @@ netcoredbg`
         "request": "launch",
         "program": "${workspaceRoot}/bin/Debug/netcoreapp2.2/csharp.dll",
         "args": [],
-        "stopAtEntry": true
+        "stopAtEntry": true,
+        "cwd": "${workspaceRoot}"
       }
     }
   }

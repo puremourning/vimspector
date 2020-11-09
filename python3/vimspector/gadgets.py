@@ -228,23 +228,23 @@ GADGETS = {
     'language': 'csharp',
     'enabled': False,
     'download': {
-      'url': 'https://github.com/Samsung/netcoredbg/releases/download/latest/'
-             '${file_name}',
+      'url': ( 'https://github.com/Samsung/netcoredbg/releases/download/'
+               '${version}/${file_name}' ),
       'format': 'tar',
     },
     'all': {
-      'version': 'master'
+      'version': '1.2.0-635'
     },
     'macos': {
-      'file_name': 'netcoredbg-osx-master.tar.gz',
+      'file_name': 'netcoredbg-osx.tar.gz',
       'checksum': '',
     },
     'linux': {
-      'file_name': 'netcoredbg-linux-master.tar.gz',
+      'file_name': 'netcoredbg-linux-bionic.tar.gz',
       'checksum': '',
     },
     'windows': {
-      'file_name': 'netcoredbg-win64-master.zip',
+      'file_name': 'netcoredbg-win64.zip',
       'checksum': '',
     },
     'do': lambda name, root, gadget: installer.MakeSymlink(
@@ -261,6 +261,9 @@ GADGETS = {
           "pidProperty": "processId",
           "pidSelect": "ask"
         },
+        "configuration": {
+          "cwd": "${workspaceRoot}"
+        }
       },
     }
   },
