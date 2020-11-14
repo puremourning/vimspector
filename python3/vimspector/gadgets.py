@@ -495,4 +495,31 @@ GADGETS = {
       },
     },
   },
+  'local-lua-debugger-vscode': {
+    'language': 'lua',
+    'enabled': False,
+    'repo': {
+      'url': 'https://github.com/tomblind/local-lua-debugger-vscode.git',
+      'ref': 'release-0.2.0'
+    },
+    'all': {
+      'version': '0.2.0',
+    },
+    'do': lambda name, root, gadget: installer.InstallLuaLocal( name,
+                                                                root,
+                                                                gadget ),
+    'adapters': {
+      'lua-local': {
+        'command': [
+          'node',
+          '${gadgetDir}/local-lua-debugger-vscode/extension/debugAdapter.js'
+        ],
+        'name': 'lua-local',
+        'configuration': {
+          'interpreter': 'lua',
+          'extensionPath': '${gadgetDir}/local-lua-debugger-vscode'
+        }
+      }
+    },
+  },
 }
