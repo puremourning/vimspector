@@ -64,6 +64,7 @@ For a tutorial and usage overview, take a look at the
     * [Java](#java)
        * [Usage with YouCompleteMe](#usage-with-youcompleteme)
        * [Other LSP clients](#other-lsp-clients)
+    * [Lua](#lua)
     * [Rust](#rust)
     * [Other servers](#other-servers)
  * [Customisation](#customisation)
