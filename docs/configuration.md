@@ -12,7 +12,8 @@ for Vimspector.
      * [Debug profile configuration](#debug-profile-configuration)
      * [Replacements and variables](#replacements-and-variables)
      * [The splat operator](#the-splat-operator)
-     * [Default values](#default-values)
+      * [Default values](#default-values)
+      * [Coercing Types](#coercing-types)
   * [Configuration Format](#configuration-format)
   * [Files and locations](#files-and-locations)
   * [Adapter configurations](#adapter-configurations)
@@ -20,7 +21,7 @@ for Vimspector.
      * [Configuration selection](#configuration-selection)
         * [Specifying a default configuration](#specifying-a-default-configuration)
         * [Preventing automatic selection](#preventing-automatic-selection)
-     * [Exception breakpionts](#exception-breakpionts)
+     * [Exception Breakpoints](#exception-breakpoints)
   * [Predefined Variables](#predefined-variables)
   * [Remote Debugging Support](#remote-debugging-support)
      * [Python (debugpy) Example](#python-debugpy-example)
@@ -29,7 +30,7 @@ for Vimspector.
   * [Appendix: Configuration file format](#appendix-configuration-file-format)
   * [Appendix: Editor configuration](#appendix-editor-configuration)
 
-<!-- Added by: ben, at: Fri 31 Jul 2020 22:13:39 BST -->
+<!-- Added by: ben, at: Thu 13 Aug 2020 17:42:11 BST -->
 
 <!--te-->
 
@@ -164,7 +165,7 @@ the following variable substitutions:
   the shell command. Note these variables can be supplied by both the debug and
   adapter configurations and can be either static strings or shell commands.
 
-### The splat operator
+#### The splat operator
 
 Often we want to create a single `.vimspector.json` entry which encompasses many
 use cases, as it is tedious to write every use case/start up option in JSON.
@@ -205,7 +206,7 @@ You can also combine with static values:
 This would yield the intuitive result:
 `[ "First",  "one", "two three", "four", "Last" ]`
 
-### Default values
+#### Default values
 
 You can specify replacements with default values. In this case if the user has
 not specified a value, they are prompted but with the default value
@@ -236,7 +237,7 @@ the closing `}`. For example, the is a common and useful case:
 This will prompt the user to specify `script`, but it will default to the path
 to the current file.
 
-### Coercing Types
+#### Coercing Types
 
 Sometimes, you want to provide an option for a boolean parameter, or want to
 allow the user to specify more than just strings. Vimspector allows you to do
@@ -282,7 +283,7 @@ can force Vimspector to treat the value as a string by appending `#s`, as in:
   "unlikelyKeyName#json#s": "this is a string, not JSON data"
 ```
 
-#### Advanced usage
+***Advanced usage:***
 
 The most common usage for this is for number and bool types, but it works for
 objects too. If you want to be able to specify a whole object (e.g. a whole

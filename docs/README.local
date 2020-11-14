@@ -1,7 +1,7 @@
 To update/install:
 
 gem install bundler
-bundle install
+bundle install --path vendor/bundle
 
 To run a local server/test the build
 
