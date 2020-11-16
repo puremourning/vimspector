@@ -237,7 +237,8 @@ GADGETS = {
     },
     'macos': {
       'file_name': 'netcoredbg-osx.tar.gz',
-      'checksum': '',
+      'checksum':
+        '71c773e34d358950f25119bade7e3081c4c2f9d71847bd49027ca5792e918beb',
     },
     'linux': {
       'file_name': 'netcoredbg-linux-bionic.tar.gz',
@@ -279,9 +280,9 @@ GADGETS = {
     },
     'all': {
       'file_name': 'vscode-mono-debug.vsix',
-      'version': '0.15.8',
+      'version': '0.16.2',
       'checksum':
-          '723eb2b621b99d65a24f215cb64b45f5fe694105613a900a03c859a62a810470',
+          '121eca297d83daeeb1e6e1d791305d1827998dbd595c330086b3b94d33dba3b9',
     },
     'adapters': {
       'vscode-mono-debug': {
@@ -293,6 +294,12 @@ GADGETS = {
         "attach": {
           "pidSelect": "none"
         },
+        "configuration": {
+          "cwd": "${workspaceRoot}",
+          "console": "integratedTerminal",
+          "args": [],
+          "env": {}
+        }
       },
     }
   },
