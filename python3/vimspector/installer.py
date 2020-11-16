@@ -488,7 +488,7 @@ def InstallGagdet( name: str,
       url = string.Template( gadget[ 'repo' ][ 'url' ] ).substitute( spec )
       ref = string.Template( gadget[ 'repo' ][ 'ref' ] ).substitute( spec )
 
-      print( f"Installing {name}@{gadget[ 'repo' ][ 'ref' ]}..." )
+      print( f"Installing {name}@{ref}..." )
       spec[ 'repo' ] = gadget[ 'repo' ]
       if not manifest.RequiresUpdate( name, spec ):
         save_adapters()
