@@ -351,7 +351,7 @@ of adapters just installed, whereas `:VimspectorInstall` will _update_ it,
 overwriting only newly changed or installed adapters.
 
 If you want to just add a new adapter using the script without destroying the
-exisitng ones, add `--update-gadget-config`, as in:
+existing ones, add `--update-gadget-config`, as in:
 
 ```bash
 $ ./install_gadget.py --enable-tcl
