@@ -6,6 +6,7 @@ tests/*.res
 tests/messages
 tests/debuglog
 test.log
+*.testlog
 gadgets/
 package/
 *.pyc

@@ -497,10 +497,10 @@ GADGETS = {
   },
   'local-lua-debugger-vscode': {
     'language': 'lua',
-    'enabled': False,
+    'enabled': True,
     'repo': {
       'url': 'https://github.com/tomblind/local-lua-debugger-vscode.git',
-      'ref': 'release-0.2.0'
+      'ref': 'release-${version}'
     },
     'all': {
       'version': '0.2.0',

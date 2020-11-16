@@ -86,7 +86,7 @@ jobs:
     - run: |
         brew update-reset
         brew doctor || true
-        for p in macvim tcl-tk llvm; do
+        for p in macvim tcl-tk llvm lua luajit love; do
           brew install $p
           brew outdated $p || brew upgrade $p
         done

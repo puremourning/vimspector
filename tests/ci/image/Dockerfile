@@ -4,6 +4,11 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV LC_ALL C.UTF-8
 
 RUN apt-get update && \
+  apt install -y curl dirmngr apt-transport-https lsb-release ca-certificates \
+                 software-properties-common && \
+  curl -sL https://deb.nodesource.com/setup_12.x | bash - && \
+  add-apt-repository ppa:bartbes/love-stable -y && \
+  apt-get update && \
   apt-get -y dist-upgrade && \
   apt-get -y install python3-dev \
                      python3-pip \
@@ -17,9 +22,10 @@ RUN apt-get update && \
                      tcllib \
                      gdb \
                      lldb \
-                     curl \
                      nodejs \
-                     npm && \
+                     lua5.1 \
+                     luajit \
+                     love && \
   apt-get -y autoremove
 
 RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \

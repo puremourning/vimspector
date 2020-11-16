@@ -141,10 +141,10 @@ runtime dependencies). They are categorised by their level of support:
 | Go                 | Tested       | `--enable-go`                    | vscode-go                          | Go, [Delve][]                              |
 | TCL                | Supported    | `--all` or `--enable-tcl`        | tclpro                             | TCL 8.5                                    |
 | Bourne Shell       | Supported    | `--all` or `--enable-bash`       | vscode-bash-debug                  | Bash v??                                   |
+| Lua                | Supported    | `--all` or `--enable-lua`        | local-lua-debugger-vscode          | Node >=12.13.0, Npm, Lua interpreter       |
 | Node.js            | Supported    | `--force-enable-node`            | vscode-node-debug2                 | 6 < Node < 12, Npm                         |
 | Javascript         | Supported    | `--force-enable-chrome`          | debugger-for-chrome                | Chrome                                     |
 | Java               | Supported    | `--force-enable-java  `          | vscode-java-debug                  | Compatible LSP plugin (see [later](#java)) |
-| Lua                | Supported    | `--force-enable-lua`             | local-lua-debugger-vscode          | Node, Npm, Lua interpreter                 |
 | C# (dotnet core)   | Experimental | `--force-enable-csharp`          | netcoredbg                         | DotNet core                                |
 | C# (mono)          | Experimental | `--force-enable-csharp`          | vscode-mono-debug                  | Mono                                       |
 | Python.legacy      | Legacy       | `--force-enable-python.legacy`   | vscode-python                      | Node 10, Python 2.7 or Python 3            |
@@ -1419,7 +1419,7 @@ Lua is supported through
 This debugger uses stdio to communicate with the running process, so calls to
 `io.read` will cause problems.
 
-* `./install_gadget.py --force-enable-lua` or `:VimspectorInstall local-lua-debugger-vscode`
+* `./install_gadget.py --enable-lua` or `:VimspectorInstall local-lua-debugger-vscode`
 * Examples: `support/test/lua/simple` and `support/test/lua/love`
 
 ```json
