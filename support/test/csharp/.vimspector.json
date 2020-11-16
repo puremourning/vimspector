@@ -13,7 +13,11 @@
         "adapter": "vscode-mono-debug",
         "configuration": {
           "request": "launch",
-          "program": "${workspaceRoot}/Program.exe"
+          "program": "${workspaceRoot}/Program.exe",
+          "console": "integratedTerminal",
+          "cwd": "${workspaceRoot}",
+          "args": [],
+          "env": {}
         }
       }
     }

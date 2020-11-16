@@ -295,9 +295,16 @@ class ProjectBreakpoints( object ):
 
     awaiting = 0
 
-    def response_received():
+    def response_received( *failure_args ):
       nonlocal awaiting
       awaiting = awaiting - 1
+
+      if failure_args and self._connection:
+        reason, msg = failure_args
+        utils.UserMessage( 'Unable to set breakpoint: {0}'.format( reason ),
+                           persist = True,
+                           error = True )
+
       if awaiting == 0 and doneHandler:
         doneHandler()
 
@@ -364,7 +371,7 @@ class ProjectBreakpoints( object ):
           },
           'sourceModified': False, # TODO: We can actually check this
         },
-        failure_handler = lambda *_: response_received()
+        failure_handler = response_received
       )
 
     # TODO: Add the _configured_breakpoints to function breakpoints
@@ -388,7 +395,7 @@ class ProjectBreakpoints( object ):
             'breakpoints': breakpoints,
           }
         },
-        failure_handler = lambda *_: response_received()
+        failure_handler = response_received
       )
 
     if self._exception_breakpoints:
@@ -399,7 +406,7 @@ class ProjectBreakpoints( object ):
           'command': 'setExceptionBreakpoints',
           'arguments': self._exception_breakpoints
         },
-        failure_handler = lambda *_: response_received()
+        failure_handler = response_received
       )
 
     if awaiting == 0 and doneHandler:

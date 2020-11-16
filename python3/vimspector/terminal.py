@@ -1,5 +1,6 @@
 from vimspector import utils, settings
 
+import os
 import vim
 
 
@@ -17,9 +18,9 @@ def LaunchTerminal( api_prefix,
   else:
     term = existing_term
 
-  cwd = params[ 'cwd' ]
-  args = params[ 'args' ]
-  env = params.get( 'env', {} )
+  cwd = params[ 'cwd' ] or os.getcwd()
+  args = params[ 'args' ] or []
+  env = params.get( 'env' ) or {}
 
   term_options = {
     'vertical': 1,
