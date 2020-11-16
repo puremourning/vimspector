@@ -196,7 +196,7 @@ GADGETS = {
     'language': 'tcl',
     'repo': {
       'url': 'https://github.com/puremourning/TclProDebug',
-      'ref': 'master'
+      'ref': 'v1.0.0'
     },
     'do': lambda name, root, gadget: installer.InstallTclProDebug( name,
                                                                    root,
