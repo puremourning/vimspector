@@ -425,6 +425,13 @@ def InstallNodeDebug( name, root, gadget ):
   MakeSymlink( name, root )
 
 
+def InstallLuaLocal( name, root, gadget ):
+  with CurrentWorkingDir( root ):
+    CheckCall( [ 'npm', 'install' ] )
+    CheckCall( [ 'npm', 'run', 'build' ] )
+  MakeSymlink( name, root )
+
+
 def InstallGagdet( name: str,
                    gadget: dict,
                    manifest: Manifest,

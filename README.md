@@ -64,6 +64,7 @@ For a tutorial and usage overview, take a look at the
     * [Java](#java)
        * [Usage with YouCompleteMe](#usage-with-youcompleteme)
        * [Other LSP clients](#other-lsp-clients)
+    * [Lua](#lua)
     * [Rust](#rust)
     * [Other servers](#other-servers)
  * [Customisation](#customisation)
@@ -140,6 +141,7 @@ runtime dependencies). They are categorised by their level of support:
 | Go                 | Tested       | `--enable-go`                    | vscode-go                          | Go, [Delve][]                              |
 | TCL                | Supported    | `--all` or `--enable-tcl`        | tclpro                             | TCL 8.5                                    |
 | Bourne Shell       | Supported    | `--all` or `--enable-bash`       | vscode-bash-debug                  | Bash v??                                   |
+| Lua                | Supported    | `--all` or `--enable-lua`        | local-lua-debugger-vscode          | Node >=12.13.0, Npm, Lua interpreter       |
 | Node.js            | Supported    | `--force-enable-node`            | vscode-node-debug2                 | 6 < Node < 12, Npm                         |
 | Javascript         | Supported    | `--force-enable-chrome`          | debugger-for-chrome                | Chrome                                     |
 | Java               | Supported    | `--force-enable-java  `          | vscode-java-debug                  | Compatible LSP plugin (see [later](#java)) |
@@ -1309,7 +1311,7 @@ https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome
 
 It allows you to debug scripts running inside chrome from within Vim.
 
-* `./install_gadget.py --force-enable-chrome` or `:VimspectorInstall 
+* `./install_gadget.py --force-enable-chrome` or `:VimspectorInstall
   debugger-for-chrome`
 * Example: `support/test/chrome`
 
@@ -1345,7 +1347,7 @@ use it with Vimspector.
 * Set up [YCM for java][YcmJava].
 * Get Vimspector to download the java debug plugin:
    `install_gadget.py --force-enable-java <other options...>` or
-   `:VimspectorInstall java-debug-adapter` 
+   `:VimspectorInstall java-debug-adapter`
 * Configure Vimspector for your project using the `vscode-java` adapter, e.g.:
 
 ```json
@@ -1409,6 +1411,60 @@ For the launch arguments, see the
 
 See [this issue](https://github.com/puremourning/vimspector/issues/3) for more
 background.
+
+## Lua
+
+Lua is supported through
+[local-lua-debugger-vscode](https://github.com/tomblind/local-lua-debugger-vscode).
+This debugger uses stdio to communicate with the running process, so calls to
+`io.read` will cause problems.
+
+* `./install_gadget.py --enable-lua` or `:VimspectorInstall local-lua-debugger-vscode`
+* Examples: `support/test/lua/simple` and `support/test/lua/love`
+
+```json
+{
+  "$schema": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json#",
+  "configurations": {
+    "lua": {
+      "adapter": "lua-local",
+      "configuration": {
+        "request": "launch",
+        "type": "lua-local",
+        "cwd": "${workspaceFolder}",
+        "program": {
+          "lua": "lua",
+          "file": "${file}"
+        }
+      }
+    },
+    "luajit": {
+      "adapter": "lua-local",
+      "configuration": {
+        "request": "launch",
+        "type": "lua-local",
+        "cwd": "${workspaceFolder}",
+        "program": {
+          "lua": "luajit",
+          "file": "${file}"
+        }
+      }
+    },
+    "love": {
+      "adapter": "lua-local",
+      "configuration": {
+        "request": "launch",
+        "type": "lua-local",
+        "cwd": "${workspaceFolder}",
+        "program": {
+          "command": "love"
+        },
+        "args": ["${workspaceFolder}"]
+      }
+    }
+  }
+}
+```
 
 ## Other servers
 
@@ -1685,7 +1741,7 @@ augroup END
    comment](https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322)
 4. Can I specify answers to the annoying questions about exception breakpoints
    in my `.vimspector.json` ? Yes, see [here][vimspector-ref-exception].
-5. Do I have to specify the file to execute in `.vimspector.json`, or could it be the current vim file? 
+5. Do I have to specify the file to execute in `.vimspector.json`, or could it be the current vim file?
    You don't need to. You can specify $file for the current active file. See [here][vimspector-ref-var] for complete list of replacements in the configuration file.
 6. You allow comments in `.vimspector.json`, but Vim highlights these as errors,
    do you know how to make this not-an-error? Yes, put this in
@@ -1733,7 +1789,7 @@ A message from the author about the motivation for this plugin:
 >
 > I created Vimspector because I find changing tools frustrating. `gdb` for c++,
 > `pdb` for python, etc. Each has its own syntax. Each its own lexicon. Each its
-> own foibles. 
+> own foibles.
 >
 > I designed the configuration system in such a way that the configuration can
 > be committed to source control so that it _just works_ for any of your
