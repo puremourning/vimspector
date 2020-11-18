@@ -8,17 +8,6 @@ function! ClearDown()
   call vimspector#test#setup#ClearDown()
 endfunction
 
-function! s:assert_match_list( expected, actual ) abort
-  let ret = assert_equal( len( a:expected ), len( a:actual ) )
-  let len = min( [ len( a:expected ), len( a:actual ) ] )
-  let idx = 0
-  while idx < len
-    let ret += assert_match( a:expected[ idx ], a:actual[ idx ] )
-    let idx += 1
-  endwhile
-  return ret
-endfunction
-
 function! s:StartDebugging( ... )
   if a:0 == 0
     let config = #{
@@ -222,7 +211,7 @@ function! Test_ExpandVariables()
   call feedkeys( "\<CR>", 'xt' )
 
   call WaitForAssert( {->
-        \   s:assert_match_list(
+        \   AssertMatchist(
         \     [
         \       '- Scope: Locals',
         \       ' \*- t (Test): {...}',
@@ -240,7 +229,7 @@ function! Test_ExpandVariables()
   " Step - stays expanded
   call vimspector#StepOver()
   call WaitForAssert( {->
-        \   s:assert_match_list(
+        \   AssertMatchist(
         \     [
         \       '- Scope: Locals',
         \       '  - t (Test): {...}',
@@ -289,7 +278,7 @@ function! Test_ExpandVariables()
   call setpos( '.', [ 0, 2, 1 ] )
   call feedkeys( "\<CR>", 'xt' )
   call WaitForAssert( {->
-        \   s:assert_match_list(
+        \   AssertMatchist(
         \     [
         \       '- Scope: Locals',
         \       '  - t (Test): {...}',
@@ -389,7 +378,7 @@ function! Test_ExpandWatch()
   call feedkeys( "\<CR>", 'xt' )
 
   call WaitForAssert( {->
-        \   s:assert_match_list(
+        \   AssertMatchist(
         \     [
         \       'Watches: ----',
         \       'Expression: t',
@@ -408,7 +397,7 @@ function! Test_ExpandWatch()
   " Step - stays expanded
   call vimspector#StepOver()
   call WaitForAssert( {->
-        \   s:assert_match_list(
+        \   AssertMatchist(
         \     [
         \       'Watches: ----',
         \       'Expression: t',
@@ -460,7 +449,7 @@ function! Test_ExpandWatch()
   call setpos( '.', [ 0, 3, 1 ] )
   call feedkeys( "\<CR>", 'xt' )
   call WaitForAssert( {->
-        \   s:assert_match_list(
+        \   AssertMatchist(
         \     [
         \       'Watches: ----',
         \       'Expression: t',

@@ -20,7 +20,30 @@ import logging
 from vimspector import utils
 
 
+# TODO: Need to do something a bit like the Variables stuff
+#
+# class Thread:
+#   PAUSED = 0
+#   RUNNING = 1
+#   state = RUNNING
+#
+#   thread: dict
+#   stacktrace: list
+#
+#   def __init__( self, thread ):
+#     self.thread = thread
+#     self.stacktrace = None
+#
+#   def ShouldExpand( self, current_thread_id ):
+#     return self.thread[ 'id' ] == current_thread_id
+
+
 class StackTraceView( object ):
+  class ThreadRequestState:
+    NO = 0
+    REQUESTING = 1
+    PENDING = 2
+
   def __init__( self, session, win ):
     self._logger = logging.getLogger( __name__ )
     utils.SetUpLogging( self._logger )
@@ -48,14 +71,8 @@ class StackTraceView( object ):
     self._line_to_frame = {}
     self._line_to_thread = {}
 
-    # TODO: We really need a proper state model
-    #
-    # AWAIT_CONNECTION -- OnServerReady / RequestThreads --> REQUESTING_THREADS
-    # REQUESTING -- OnGotThreads / RequestScopes --> REQUESTING_SCOPES
-    #
-    # When we attach using gdbserver, this whole thing breaks because we request
-    # the threads over and over and get duff data back on later threads.
-    self._requesting_threads = False
+    self._requesting_threads = StackTraceView.ThreadRequestState.NO
+    self._pending_thread_request = None
 
 
   def GetCurrentThreadId( self ):
@@ -75,11 +92,12 @@ class StackTraceView( object ):
 
   def ConnectionUp( self, connection ):
     self._connection = connection
-    self._requesting_threads = False
 
   def ConnectionClosed( self ):
     self.Clear()
     self._connection = None
+    self._requesting_threads = StackTraceView.ThreadRequestState.NO
+    self._pending_thread_request = None
 
   def Reset( self ):
     self.Clear()
@@ -89,64 +107,82 @@ class StackTraceView( object ):
 
     self._scratch_buffers = []
     self._buf = None
+    self._requesting_threads = StackTraceView.ThreadRequestState.NO
+    self._pending_thread_request = None
 
-  def LoadThreads( self, infer_current_frame ):
-    pending_request = False
-    if self._requesting_threads:
-      pending_request = True
+  def LoadThreads( self, infer_current_frame, reason = '' ):
+    if self._requesting_threads != StackTraceView.ThreadRequestState.NO:
+      self._requesting_threads = StackTraceView.ThreadRequestState.PENDING
+      self._pending_thread_request = ( infer_current_frame, reason )
       return
 
     def consume_threads( message ):
-      self._requesting_threads = False
+      if self._requesting_threads == StackTraceView.ThreadRequestState.PENDING:
+        # We may have hit a thread event, so try again.
+        self._requesting_threads = StackTraceView.ThreadRequestState.NO
+        self.LoadThreads( *self._pending_thread_request )
+        return
 
       if not message[ 'body' ][ 'threads' ]:
-        if pending_request:
-          # We may have hit a thread event, so try again.
-          self.LoadThreads( infer_current_frame )
-          return
-        else:
-          # This is a protocol error. It is required to return at least one!
-          utils.UserMessage( 'Server returned no threads. Is it running?',
-                             persist = True )
+        # This is a protocol error. It is required to return at least one!
+        utils.UserMessage( 'Protocol error: Server returned no threads',
+                           persist = False,
+                           error = True )
 
+      self._requesting_threads = StackTraceView.ThreadRequestState.NO
+      self._pending_thread_request = None
       self._threads.clear()
 
+      requesting = False
       for thread in message[ 'body' ][ 'threads' ]:
         self._threads.append( thread )
 
         if infer_current_frame and thread[ 'id' ] == self._current_thread:
-          self._LoadStackTrace( thread, True )
+          self._LoadStackTrace( thread, True, reason )
+          requesting = True
         elif infer_current_frame and self._current_thread is None:
           self._current_thread = thread[ 'id' ]
-          self._LoadStackTrace( thread, True )
+          self._LoadStackTrace( thread, True, reason )
+          requesting = True
 
-      self._DrawThreads()
+      if not requesting:
+        self._DrawThreads()
 
     def failure_handler( reason, msg ):
       # Make sure we request them again if the request fails
-      self._requesting_threads = False
+      self._requesting_threads = StackTraceView.ThreadRequestState.NO
+      self._pending_thread_request = None
 
-    self._requesting_threads = True
+    self._requesting_threads = StackTraceView.ThreadRequestState.REQUESTING
     self._connection.DoRequest( consume_threads, {
       'command': 'threads',
     }, failure_handler )
 
-  def _DrawThreads( self ):
+  def _DrawThreads( self, running = False ):
     self._line_to_frame.clear()
     self._line_to_thread.clear()
 
-    with utils.ModifiableScratchBuffer( self._buf ):
+    with ( utils.ModifiableScratchBuffer( self._buf ),
+           utils.RestoreCursorPosition() ):
       utils.ClearBuffer( self._buf )
 
       for thread in self._threads:
-        icon = '+' if '_frames' not in thread else '-'
+        if self._current_thread == thread[ 'id' ]:
+          icon = '^' if '_frames' not in thread else '>'
+        else:
+          icon = '+' if '_frames' not in thread else '-'
+
+        # FIXME: We probably need per-thread status here
+        if running:
+          status = ' (running)'
+        else:
+          status = ''
 
         line = utils.AppendToBuffer(
           self._buf,
-          '{0} Thread: {1}'.format( icon, thread[ 'name' ] ) )
+          f'{icon} Thread: {thread["name"]}{status}' )
 
         self._line_to_thread[ line ] = thread
-
         self._DrawStackTrace( thread )
 
   def _LoadStackTrace( self,
@@ -181,8 +217,7 @@ class StackTraceView( object ):
       thread = self._line_to_thread[ current_line ]
       if '_frames' in thread:
         del thread[ '_frames' ]
-        with utils.RestoreCursorPosition():
-          self._DrawThreads()
+        self._DrawThreads()
       else:
         self._LoadStackTrace( thread, False )
 
@@ -205,51 +240,28 @@ class StackTraceView( object ):
     else:
       return do_jump()
 
+  def OnContinued( self, threadId = None ):
+    # FIXME: This tends to create a very flickery stack trace when steppping.
+    # Maybe we shouldn't remove the frames, but just update the running status?
+    # for thread in self._threads:
+    #   if threadId is None or thread[ 'id' ] == threadId:
+    #     thread.pop( '_frames', None )
+    self._DrawThreads( running=True )
+
   def OnStopped( self, event ):
     if 'threadId' in event:
       self._current_thread = event[ 'threadId' ]
     elif event.get( 'allThreadsStopped', False ) and self._threads:
       self._current_thread = self._threads[ 0 ][ 'id' ]
 
-    if self._current_thread is not None:
-      for thread in self._threads:
-        if thread[ 'id' ] == self._current_thread:
-          self._LoadStackTrace( thread, True, 'stopped' )
-          return
-
-    self.LoadThreads( True )
+    self.LoadThreads( True, 'stopped' )
 
   def OnThreadEvent( self, event ):
     if event[ 'reason' ] == 'started' and self._current_thread is None:
       self._current_thread = event[ 'threadId' ]
       self.LoadThreads( True )
-
-  def Continue( self ):
-    if self._current_thread is None:
-      utils.UserMessage( 'No current thread', persist = True )
-      return
-
-    self._session._connection.DoRequest( None, {
-      'command': 'continue',
-      'arguments': {
-        'threadId': self._current_thread,
-      },
-    } )
-
-    self._session.ClearCurrentFrame()
-    self.LoadThreads( True )
-
-  def Pause( self ):
-    if self._current_thread is None:
-      utils.UserMessage( 'No current thread', persist = True )
-      return
-
-    self._session._connection.DoRequest( None, {
-      'command': 'pause',
-      'arguments': {
-        'threadId': self._current_thread,
-      },
-    } )
+    else:
+      self.LoadThreads( False )
 
   def _DrawStackTrace( self, thread ):
     if '_frames' not in thread:

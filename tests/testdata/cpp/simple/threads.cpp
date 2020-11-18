@@ -1,6 +1,8 @@
 #include <chrono>
+#include <condition_variable>
 #include <cstdlib>
 #include <iostream>
+#include <mutex>
 #include <string_view>
 #include <system_error>
 #include <thread>
@@ -36,17 +38,40 @@ int main( int argc, char ** argv )
   auto eng = std::default_random_engine() ;
   auto dist = std::uniform_int_distribution<int>( 250, 1000 );
 
-  for ( int i = 0; i < numThreads; ++i )
+  std::mutex m;
+  std::condition_variable v;
+  bool ready = false;
   {
-    using namespace std::chrono_literals;
-    threads.emplace_back( [&,tnum=i]() {
-      std::cout << "Started thread " << tnum << '\n';
-      std::this_thread::sleep_for(
-        5s + std::chrono::milliseconds( dist( eng ) ) );
-      std::cout << "Completed thread " << tnum << '\n';
-    });
+    std::lock_guard l(m);
+
+    std::cout << "Preparing..." << '\n';
+
+    for ( int i = 0; i < numThreads; ++i )
+    {
+      using namespace std::chrono_literals;
+      auto tp = [&,tnum=i]() {
+        // Wait for the go-ahead
+        {
+          std::unique_lock l(m);
+          while (!ready) {
+            v.wait(l);
+          }
+        }
+
+        std::cout << "Started thread " << tnum << '\n';
+        std::this_thread::sleep_for(
+          5s + std::chrono::milliseconds( dist( eng ) ) );
+        std::cout << "Completed thread " << tnum << '\n';
+      };
+
+      threads.emplace_back( tp );
+    }
+
+    std::cout << "Ready to go!" << '\n';
+    ready = true;
   }
 
+  v.notify_all();
 
   for ( int i = 0; i < numThreads; ++i )
   {

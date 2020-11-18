@@ -429,6 +429,9 @@ class DebugSession( object ):
       },
     } )
 
+    self._stackTraceView.OnContinued()
+    self._codeView.SetCurrentFrame( None )
+
   @IfConnected()
   def StepInto( self ):
     if self._stackTraceView.GetCurrentThreadId() is None:
@@ -440,6 +443,8 @@ class DebugSession( object ):
         'threadId': self._stackTraceView.GetCurrentThreadId()
       },
     } )
+    self._stackTraceView.OnContinued()
+    self._codeView.SetCurrentFrame( None )
 
   @IfConnected()
   def StepOut( self ):
@@ -452,16 +457,39 @@ class DebugSession( object ):
         'threadId': self._stackTraceView.GetCurrentThreadId()
       },
     } )
+    self._stackTraceView.OnContinued()
+    self._codeView.SetCurrentFrame( None )
 
   def Continue( self ):
-    if self._connection:
-      self._stackTraceView.Continue()
-    else:
+    if not self._connection:
       self.Start()
+      return
+
+    if self._stackTraceView.GetCurrentThreadId() is None:
+      utils.UserMessage( 'No current thread', persist = True )
+      return
+
+    self._connection.DoRequest( None, {
+      'command': 'continue',
+      'arguments': {
+        'threadId': self._stackTraceView.GetCurrentThreadId(),
+      },
+    } )
+    self._stackTraceView.OnContinued()
+    self._codeView.SetCurrentFrame( None )
 
   @IfConnected()
   def Pause( self ):
-    self._stackTraceView.Pause()
+    if self._stackTraceView.GetCurrentThreadId() is None:
+      utils.UserMessage( 'No current thread', persist = True )
+      return
+
+    self._connection.DoRequest( None, {
+      'command': 'pause',
+      'arguments': {
+        'threadId': self._stackTraceView.GetCurrentThreadId(),
+      },
+    } )
 
   @IfConnected()
   def ExpandVariable( self ):
@@ -1098,6 +1126,7 @@ class DebugSession( object ):
   def OnEvent_exited( self, message ):
     utils.UserMessage( 'The debugee exited with status code: {}'.format(
       message[ 'body' ][ 'exitCode' ] ) )
+    self.SetCurrentFrame( None )
 
   def OnEvent_process( self, message ):
     utils.UserMessage( 'The debugee was started: {}'.format(
@@ -1107,7 +1136,8 @@ class DebugSession( object ):
     pass
 
   def OnEvent_continued( self, message ):
-    pass
+    self._stackTraceView.OnContinued()
+    self._codeView.SetCurrentFrame( None )
 
   def Clear( self ):
     self._codeView.Clear()
@@ -1142,6 +1172,7 @@ class DebugSession( object ):
   def OnEvent_terminated( self, message ):
     # We will handle this when the server actually exists
     utils.UserMessage( "Debugging was terminated by the server." )
+    self.SetCurrentFrame( None )
 
   def OnEvent_output( self, message ):
     if self._outputView:
