@@ -210,6 +210,9 @@ class OutputView( object ):
       utils.CleanUpHiddenBuffer( buf_to_delete )
 
   def _RenderWinBar( self, category ):
+    if not utils.UseWinBar():
+      return
+
     if not self._window.valid:
       return
 
