@@ -347,3 +347,5 @@ function! Test_Multiple_Threads_Step()
   call vimspector#test#setup#Reset()
   %bwipe!
 endfunction
+
+" TODO: Set current frame while thread is running sets the PC

@@ -16,26 +16,22 @@
 import vim
 import os
 import logging
+import typing
 
 from vimspector import utils
 
 
-# TODO: Need to do something a bit like the Variables stuff
-#
-# class Thread:
-#   PAUSED = 0
-#   RUNNING = 1
-#   state = RUNNING
-#
-#   thread: dict
-#   stacktrace: list
-#
-#   def __init__( self, thread ):
-#     self.thread = thread
-#     self.stacktrace = None
-#
-#   def ShouldExpand( self, current_thread_id ):
-#     return self.thread[ 'id' ] == current_thread_id
+class Thread:
+  PAUSED = 0
+  RUNNING = 1
+  state = RUNNING
+
+  thread: typing.Dict
+  stacktrace: typing.List[ typing.Dict ]
+
+  def __init__( self, thread ):
+    self.thread = thread
+    self.stacktrace = None
 
 
 class StackTraceView( object ):
@@ -43,6 +39,9 @@ class StackTraceView( object ):
     NO = 0
     REQUESTING = 1
     PENDING = 2
+
+  _threads: list[ Thread ]
+  _line_to_thread = dict[ int, Thread ]
 
   def __init__( self, session, win ):
     self._logger = logging.getLogger( __name__ )
@@ -63,10 +62,11 @@ class StackTraceView( object ):
     utils.SetUpHiddenBuffer( self._buf, 'vimspector.StackTrace' )
     utils.SetUpUIWindow( win )
 
-    vim.command( 'nnoremap <silent> <buffer> <CR> '
-                 ':<C-U>call vimspector#GoToFrame()<CR>' )
-    vim.command( 'nnoremap <silent> <buffer> <2-LeftMouse> '
-                 ':<C-U>call vimspector#GoToFrame()<CR>' )
+    with utils.LetCurrentWindow( win ):
+      vim.command( 'nnoremap <silent> <buffer> <CR> '
+                   ':<C-U>call vimspector#GoToFrame()<CR>' )
+      vim.command( 'nnoremap <silent> <buffer> <2-LeftMouse> '
+                   ':<C-U>call vimspector#GoToFrame()<CR>' )
 
     self._line_to_frame = {}
     self._line_to_thread = {}
@@ -85,7 +85,7 @@ class StackTraceView( object ):
     self._current_frame = None
     self._current_thread = None
     self._current_syntax = ""
-    self._threads = []
+    self._threads.clear()
     self._sources = {}
     with utils.ModifiableScratchBuffer( self._buf ):
       utils.ClearBuffer( self._buf )
@@ -134,16 +134,18 @@ class StackTraceView( object ):
       self._threads.clear()
 
       requesting = False
-      for thread in message[ 'body' ][ 'threads' ]:
+      for t in message[ 'body' ][ 'threads' ]:
+        thread = Thread( t )
         self._threads.append( thread )
 
-        if infer_current_frame and thread[ 'id' ] == self._current_thread:
-          self._LoadStackTrace( thread, True, reason )
-          requesting = True
-        elif infer_current_frame and self._current_thread is None:
-          self._current_thread = thread[ 'id' ]
-          self._LoadStackTrace( thread, True, reason )
-          requesting = True
+        if infer_current_frame:
+          if thread.thread[ 'id' ] == self._current_thread:
+            self._LoadStackTrace( thread, True, reason )
+            requesting = True
+          elif self._current_thread is None:
+            self._current_thread = thread.thread[ 'id' ]
+            self._LoadStackTrace( thread, True, reason )
+            requesting = True
 
       if not requesting:
         self._DrawThreads()
@@ -158,7 +160,7 @@ class StackTraceView( object ):
       'command': 'threads',
     }, failure_handler )
 
-  def _DrawThreads( self, running = False ):
+  def _DrawThreads( self ):
     self._line_to_frame.clear()
     self._line_to_thread.clear()
 
@@ -167,32 +169,33 @@ class StackTraceView( object ):
       utils.ClearBuffer( self._buf )
 
       for thread in self._threads:
-        if self._current_thread == thread[ 'id' ]:
-          icon = '^' if '_frames' not in thread else '>'
+        if self._current_thread == thread.thread[ 'id' ]:
+          icon = '^' if thread.stacktrace is None else '>'
         else:
-          icon = '+' if '_frames' not in thread else '-'
+          icon = '+' if thread.stacktrace is None else '-'
 
         # FIXME: We probably need per-thread status here
-        if running:
+        if thread.state == Thread.RUNNING:
           status = ' (running)'
         else:
           status = ''
 
         line = utils.AppendToBuffer(
           self._buf,
-          f'{icon} Thread: {thread["name"]}{status}' )
+          f'{icon} Thread: {thread.thread["name"]}{status}' )
 
         self._line_to_thread[ line ] = thread
         self._DrawStackTrace( thread )
 
   def _LoadStackTrace( self,
-                       thread,
+                       thread: Thread,
                        infer_current_frame,
                        reason = '' ):
+
     def consume_stacktrace( message ):
-      thread[ '_frames' ] = message[ 'body' ][ 'stackFrames' ]
+      thread.stacktrace = message[ 'body' ][ 'stackFrames' ]
       if infer_current_frame:
-        for frame in thread[ '_frames' ]:
+        for frame in thread.stacktrace:
           if self._JumpToFrame( frame, reason ):
             break
 
@@ -201,7 +204,7 @@ class StackTraceView( object ):
     self._connection.DoRequest( consume_stacktrace, {
       'command': 'stackTrace',
       'arguments': {
-        'threadId': thread[ 'id' ],
+        'threadId': thread.thread[ 'id' ],
       }
     } )
 
@@ -215,8 +218,8 @@ class StackTraceView( object ):
       self._JumpToFrame( self._line_to_frame[ current_line ] )
     elif current_line in self._line_to_thread:
       thread = self._line_to_thread[ current_line ]
-      if '_frames' in thread:
-        del thread[ '_frames' ]
+      if thread.stacktrace is not None:
+        thread.stacktrace = None
         self._DrawThreads()
       else:
         self._LoadStackTrace( thread, False )
@@ -241,18 +244,29 @@ class StackTraceView( object ):
       return do_jump()
 
   def OnContinued( self, threadId = None ):
-    # FIXME: This tends to create a very flickery stack trace when steppping.
-    # Maybe we shouldn't remove the frames, but just update the running status?
-    # for thread in self._threads:
-    #   if threadId is None or thread[ 'id' ] == threadId:
-    #     thread.pop( '_frames', None )
-    self._DrawThreads( running=True )
+    for thread in self._threads:
+      if threadId is None:
+        thread.state = Thread.RUNNING
+      elif thread.thread[ 'id' ] == threadId:
+        thread.state = Thread.RUNNING
+        break
+
+    self._DrawThreads()
 
   def OnStopped( self, event ):
     if 'threadId' in event:
       self._current_thread = event[ 'threadId' ]
-    elif event.get( 'allThreadsStopped', False ) and self._threads:
-      self._current_thread = self._threads[ 0 ][ 'id' ]
+
+      for thread in self._threads:
+        if thread.thread[ 'id' ] == event[ 'threadId' ]:
+          thread.state = Thread.PAUSED
+          break
+    elif event.get( 'allThreadsStopped', False ):
+      if self._threads:
+        self._current_thread = self._threads[ 0 ].thread[ 'id' ]
+
+      for thread in self._threads:
+        thread.state = Thread.PAUSED
 
     self.LoadThreads( True, 'stopped' )
 
@@ -263,13 +277,11 @@ class StackTraceView( object ):
     else:
       self.LoadThreads( False )
 
-  def _DrawStackTrace( self, thread ):
-    if '_frames' not in thread:
+  def _DrawStackTrace( self, thread: Thread ):
+    if thread.stacktrace is None:
       return
 
-    stackFrames = thread[ '_frames' ]
-
-    for frame in stackFrames:
+    for frame in thread.stacktrace:
       if frame.get( 'source' ):
         source = frame[ 'source' ]
       else:
