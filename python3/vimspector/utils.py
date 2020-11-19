@@ -785,3 +785,9 @@ def WindowID( window, tab=None ):
   if tab is None:
     tab = window.tabpage
   return int( Call( 'win_getid', window.number, tab.number ) )
+
+
+def UseWinBar():
+  # Buggy neovim doesn't render correctly when the WinBar is defined:
+  # https://github.com/neovim/neovim/issues/12689
+  return not int( Call( 'has', 'nvim' ) )

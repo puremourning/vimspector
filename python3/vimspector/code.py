@@ -41,14 +41,25 @@ class CodeView( object ):
     self._current_frame = None
 
     with utils.LetCurrentWindow( self._window ):
-      vim.command( 'nnoremenu WinBar.■\\ Stop :call vimspector#Stop()<CR>' )
-      vim.command( 'nnoremenu WinBar.▶\\ Cont :call vimspector#Continue()<CR>' )
-      vim.command( 'nnoremenu WinBar.▷\\ Pause :call vimspector#Pause()<CR>' )
-      vim.command( 'nnoremenu WinBar.↷\\ Next :call vimspector#StepOver()<CR>' )
-      vim.command( 'nnoremenu WinBar.→\\ Step :call vimspector#StepInto()<CR>' )
-      vim.command( 'nnoremenu WinBar.←\\ Out :call vimspector#StepOut()<CR>' )
-      vim.command( 'nnoremenu WinBar.⟲: :call vimspector#Restart()<CR>' )
-      vim.command( 'nnoremenu WinBar.✕ :call vimspector#Reset()<CR>' )
+      if utils.UseWinBar():
+        # Buggy neovim doesn't render correctly when the WinBar is defined:
+        # https://github.com/neovim/neovim/issues/12689
+        vim.command( 'nnoremenu WinBar.■\\ Stop '
+                     ':call vimspector#Stop()<CR>' )
+        vim.command( 'nnoremenu WinBar.▶\\ Cont '
+                     ':call vimspector#Continue()<CR>' )
+        vim.command( 'nnoremenu WinBar.▷\\ Pause '
+                     ':call vimspector#Pause()<CR>' )
+        vim.command( 'nnoremenu WinBar.↷\\ Next '
+                     ':call vimspector#StepOver()<CR>' )
+        vim.command( 'nnoremenu WinBar.→\\ Step '
+                     ':call vimspector#StepInto()<CR>' )
+        vim.command( 'nnoremenu WinBar.←\\ Out '
+                     ':call vimspector#StepOut()<CR>' )
+        vim.command( 'nnoremenu WinBar.⟲: '
+                     ':call vimspector#Restart()<CR>' )
+        vim.command( 'nnoremenu WinBar.✕ '
+                     ':call vimspector#Reset()<CR>' )
 
       if not signs.SignDefined( 'vimspectorPC' ):
         signs.DefineSign( 'vimspectorPC',
