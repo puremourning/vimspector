@@ -109,6 +109,13 @@ class StackTraceView( object ):
       vim.command( 'nnoremap <silent> <buffer> <2-LeftMouse> '
                    ':<C-U>call vimspector#GoToFrame()<CR>' )
 
+      if utils.UseWinBar():
+        vim.command( 'nnoremenu 1.2 WinBar.Open '
+                     ':call vimspector#GoToFrame()<CR>' )
+        vim.command( 'nnoremenu 1.1 WinBar.Pause '
+                     ':call vimspector#PauseThread()<CR>' )
+
+
     self._line_to_frame = {}
     self._line_to_thread = {}
 
@@ -264,9 +271,21 @@ class StackTraceView( object ):
     self._connection.DoRequest( consume_stacktrace, {
       'command': 'stackTrace',
       'arguments': {
-        'threadId': thread.thread[ 'id' ],
+        'threadId': thread.id,
       }
     } )
+
+
+  def GetSelectedThreadId( self ):
+    if vim.current.buffer != self._buf:
+      return None
+
+    thread = self._line_to_thread.get( vim.current.window.cursor[ 0 ] )
+    if not thread:
+      return None
+
+    return thread.id
+
 
   def ExpandFrameOrThread( self ):
     if vim.current.buffer != self._buf:
