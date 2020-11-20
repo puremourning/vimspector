@@ -51,7 +51,10 @@ func s:WaitForCommon(expr, assert, timeout)
     let start = reltime()
   endif
 
+  let iters = 0
+
   while 1
+    let iters += 1
     let errors_before = len( v:errors )
     if type(a:expr) == v:t_func
       let success = a:expr()
@@ -63,6 +66,10 @@ func s:WaitForCommon(expr, assert, timeout)
 
     if success
       return slept
+    endif
+
+    if iters % 20 == 0
+      redraw!
     endif
 
     if slept >= a:timeout
