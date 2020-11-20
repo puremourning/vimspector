@@ -22,16 +22,56 @@ from vimspector import utils
 
 
 class Thread:
+  """The state of a single thread."""
   PAUSED = 0
   RUNNING = 1
+  TERMINATED = 3
   state = RUNNING
 
+  stopped_event: typing.Dict
   thread: typing.Dict
   stacktrace: typing.List[ typing.Dict ]
+  id: str
 
   def __init__( self, thread ):
+    self.id = thread[ 'id' ]
+    self.stopped_event = None
+    self.Update( thread )
+
+  def Update( self, thread ):
     self.thread = thread
     self.stacktrace = None
+
+  def Paused( self, event ):
+    self.state = Thread.PAUSED
+    self.stopped_event = event
+
+  def Continued( self ):
+    self.state = Thread.RUNNING
+    self.stopped_event = None
+
+  def Exited( self ):
+    self.state = Thread.TERMINATED
+    self.stopped_event = None
+
+  def State( self ):
+    if self.state == Thread.PAUSED:
+      return self.stopped_event.get( 'description', 'paused' )
+    elif self.state == Thread.RUNNING:
+      return 'running'
+    return 'terminated'
+
+  def Expand( self, stack_trace ):
+    self.stacktrace = stack_trace
+
+  def Collapse( self ):
+    self.stacktrace = None
+
+  def IsExpanded( self ):
+    return self.stacktrace is not None
+
+  def CanExpand( self ):
+    return self.state == Thread.PAUSED
 
 
 class StackTraceView( object ):
@@ -40,6 +80,7 @@ class StackTraceView( object ):
     REQUESTING = 1
     PENDING = 2
 
+  # FIXME: Make into a dict by id ?
   _threads: list[ Thread ]
   _line_to_thread = dict[ int, Thread ]
 
@@ -87,6 +128,8 @@ class StackTraceView( object ):
     self._current_syntax = ""
     self._threads.clear()
     self._sources = {}
+    self._requesting_threads = StackTraceView.ThreadRequestState.NO
+    self._pending_thread_request = None
     with utils.ModifiableScratchBuffer( self._buf ):
       utils.ClearBuffer( self._buf )
 
@@ -96,24 +139,24 @@ class StackTraceView( object ):
   def ConnectionClosed( self ):
     self.Clear()
     self._connection = None
-    self._requesting_threads = StackTraceView.ThreadRequestState.NO
-    self._pending_thread_request = None
 
   def Reset( self ):
     self.Clear()
     utils.CleanUpHiddenBuffer( self._buf )
     for b in self._scratch_buffers:
       utils.CleanUpHiddenBuffer( b )
-
     self._scratch_buffers = []
     self._buf = None
-    self._requesting_threads = StackTraceView.ThreadRequestState.NO
-    self._pending_thread_request = None
 
-  def LoadThreads( self, infer_current_frame, reason = '' ):
+  def LoadThreads( self,
+                   infer_current_frame,
+                   reason = '',
+                   stopEvent = None ):
     if self._requesting_threads != StackTraceView.ThreadRequestState.NO:
       self._requesting_threads = StackTraceView.ThreadRequestState.PENDING
-      self._pending_thread_request = ( infer_current_frame, reason )
+      self._pending_thread_request = ( infer_current_frame,
+                                       reason,
+                                       stopEvent )
       return
 
     def consume_threads( message ):
@@ -131,19 +174,42 @@ class StackTraceView( object ):
 
       self._requesting_threads = StackTraceView.ThreadRequestState.NO
       self._pending_thread_request = None
+
+      existing_threads = self._threads[:]
       self._threads.clear()
 
+      if stopEvent is not None:
+        stoppedThreadId = stopEvent.get( 'threadId' )
+        allThreadsStopped = stopEvent.get( 'allThreadsStopped', False )
+
       requesting = False
+
+      # FIXME: This is horribly inefficient
       for t in message[ 'body' ][ 'threads' ]:
-        thread = Thread( t )
+        thread = None
+        for existing_thread in existing_threads:
+          if existing_thread.id == t[ 'id' ]:
+            thread = existing_thread
+            thread.Update( t )
+            break
+
+        if not thread:
+          thread = Thread( t )
+
         self._threads.append( thread )
 
+        if stopEvent:
+          if allThreadsStopped:
+            thread.Paused( stopEvent )
+          elif stoppedThreadId is not None and thread.id == stoppedThreadId:
+            thread.Paused( stopEvent )
+
         if infer_current_frame:
-          if thread.thread[ 'id' ] == self._current_thread:
+          if thread.id == self._current_thread:
             self._LoadStackTrace( thread, True, reason )
             requesting = True
           elif self._current_thread is None:
-            self._current_thread = thread.thread[ 'id' ]
+            self._current_thread = thread.id
             self._LoadStackTrace( thread, True, reason )
             requesting = True
 
@@ -169,20 +235,14 @@ class StackTraceView( object ):
       utils.ClearBuffer( self._buf )
 
       for thread in self._threads:
-        if self._current_thread == thread.thread[ 'id' ]:
-          icon = '^' if thread.stacktrace is None else '>'
+        if self._current_thread == thread.id:
+          icon = '^' if not thread.IsExpanded() else '>'
         else:
-          icon = '+' if thread.stacktrace is None else '-'
-
-        # FIXME: We probably need per-thread status here
-        if thread.state == Thread.RUNNING:
-          status = ' (running)'
-        else:
-          status = ''
+          icon = '+' if not thread.IsExpanded() else '-'
 
         line = utils.AppendToBuffer(
           self._buf,
-          f'{icon} Thread: {thread.thread["name"]}{status}' )
+          f'{icon} Thread: {thread.thread["name"]} ({thread.State()})' )
 
         self._line_to_thread[ line ] = thread
         self._DrawStackTrace( thread )
@@ -193,7 +253,7 @@ class StackTraceView( object ):
                        reason = '' ):
 
     def consume_stacktrace( message ):
-      thread.stacktrace = message[ 'body' ][ 'stackFrames' ]
+      thread.Expand( message[ 'body' ][ 'stackFrames' ] )
       if infer_current_frame:
         for frame in thread.stacktrace:
           if self._JumpToFrame( frame, reason ):
@@ -218,11 +278,14 @@ class StackTraceView( object ):
       self._JumpToFrame( self._line_to_frame[ current_line ] )
     elif current_line in self._line_to_thread:
       thread = self._line_to_thread[ current_line ]
-      if thread.stacktrace is not None:
-        thread.stacktrace = None
+      if thread.IsExpanded():
+        thread.Collapse()
         self._DrawThreads()
-      else:
+      elif thread.CanExpand():
         self._LoadStackTrace( thread, False )
+      else:
+        utils.UserMessage( "Thread is not stopped" )
+
 
   def _JumpToFrame( self, frame, reason = '' ):
     def do_jump():
@@ -246,39 +309,41 @@ class StackTraceView( object ):
   def OnContinued( self, threadId = None ):
     for thread in self._threads:
       if threadId is None:
-        thread.state = Thread.RUNNING
-      elif thread.thread[ 'id' ] == threadId:
-        thread.state = Thread.RUNNING
+        thread.Continued()
+      elif thread.id == threadId:
+        thread.Continued()
         break
 
     self._DrawThreads()
 
   def OnStopped( self, event ):
-    if 'threadId' in event:
-      self._current_thread = event[ 'threadId' ]
+    threadId = event.get( 'threadId' )
+    allThreadsStopped = event.get( 'allThreadsStopped', False )
 
-      for thread in self._threads:
-        if thread.thread[ 'id' ] == event[ 'threadId' ]:
-          thread.state = Thread.PAUSED
-          break
-    elif event.get( 'allThreadsStopped', False ):
-      if self._threads:
-        self._current_thread = self._threads[ 0 ].thread[ 'id' ]
+    # Work out if we should change the current thread
+    if threadId is not None:
+      self._current_thread = threadId
+    elif self._current_thread is None and allThreadsStopped and self._threads:
+      self._current_thread = self._threads[ 0 ].id
 
-      for thread in self._threads:
-        thread.state = Thread.PAUSED
-
-    self.LoadThreads( True, 'stopped' )
+    self.LoadThreads( True, 'stopped', event )
 
   def OnThreadEvent( self, event ):
+    infer_current_frame = False
     if event[ 'reason' ] == 'started' and self._current_thread is None:
       self._current_thread = event[ 'threadId' ]
-      self.LoadThreads( True )
-    else:
-      self.LoadThreads( False )
+      infer_current_frame = True
+
+    if event[ 'reason' ] == 'exited':
+      for thread in self._threads:
+        if thread.id == event[ 'threadId' ]:
+          thread.Exited()
+          break
+
+    self.LoadThreads( infer_current_frame )
 
   def _DrawStackTrace( self, thread: Thread ):
-    if thread.stacktrace is None:
+    if not thread.IsExpanded():
       return
 
     for frame in thread.stacktrace:
