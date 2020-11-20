@@ -205,6 +205,10 @@ class StackTraceView( object ):
 
         self._threads.append( thread )
 
+        # If the threads were requested due to a stopped event, update any
+        # stopped thread state. Note we have to do this here (rather than in the
+        # stopped event handler) because we must apply this event to any new
+        # threads that are received here.
         if stopEvent:
           if allThreadsStopped:
             thread.Paused( stopEvent )
