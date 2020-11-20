@@ -1150,8 +1150,7 @@ class DebugSession( object ):
     pass
 
   def OnEvent_continued( self, message ):
-    # FIXME: allThreadsContinued ?
-    self._stackTraceView.OnContinued()
+    self._stackTraceView.OnContinued( message[ 'body' ] )
     self._codeView.SetCurrentFrame( None )
 
   def Clear( self ):

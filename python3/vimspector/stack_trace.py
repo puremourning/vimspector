@@ -329,9 +329,16 @@ class StackTraceView( object ):
     else:
       return do_jump()
 
-  def OnContinued( self, threadId = None ):
+  def OnContinued( self, event = None ):
+    threadId = None
+    allThreadsContinued = True
+
+    if event is not None:
+      threadId = event[ 'threadId' ]
+      allThreadsContinued = event.get( 'allThreadsContinued', False )
+
     for thread in self._threads:
-      if threadId is None:
+      if allThreadsContinued:
         thread.Continued()
       elif thread.id == threadId:
         thread.Continued()
