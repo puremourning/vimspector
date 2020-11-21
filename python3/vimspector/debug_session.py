@@ -477,8 +477,13 @@ class DebugSession( object ):
       utils.UserMessage( 'No current thread', persist = True )
       return
 
-    def handler( *_ ):
-      self._stackTraceView.OnContinued( { 'threadId': threadId } )
+    def handler( msg ):
+      self._stackTraceView.OnContinued( {
+          'threadId': threadId,
+          'allThreadsContinued': ( msg.get( 'body' ) or {} ).get(
+            'allThreadsContinued',
+            True )
+        } )
       self._codeView.SetCurrentFrame( None )
 
     self._connection.DoRequest( handler, {

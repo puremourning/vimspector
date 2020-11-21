@@ -192,14 +192,15 @@ class StackTraceView( object ):
         self.LoadThreads( *self._pending_thread_request )
         return
 
+      self._requesting_threads = StackTraceView.ThreadRequestState.NO
+      self._pending_thread_request = None
+
       if not ( message.get( 'body' ) or {} ).get( 'threads' ):
         # This is a protocol error. It is required to return at least one!
         utils.UserMessage( 'Protocol error: Server returned no threads',
                            persist = False,
                            error = True )
-
-      self._requesting_threads = StackTraceView.ThreadRequestState.NO
-      self._pending_thread_request = None
+        return
 
       existing_threads = self._threads[ : ]
       self._threads.clear()
@@ -367,14 +368,18 @@ class StackTraceView( object ):
       return do_jump()
 
 
-
   def PauseContinueThread( self ):
     thread = self._GetSelectedThread()
     if thread is None:
       utils.UserMessage( 'No thread selected' )
     elif thread.state == Thread.PAUSED:
       self._session._connection.DoRequest(
-        lambda *_: self.OnContinued( { 'threadId': thread.id } ),
+        lambda msg: self.OnContinued( {
+          'threadId': thread.id,
+          'allThreadsContinued': ( msg.get( 'body' ) or {} ).get(
+            'allThreadsContinued',
+            True )
+        } ),
         {
           'command': 'continue',
           'arguments': {
