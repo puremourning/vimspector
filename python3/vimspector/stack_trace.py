@@ -49,6 +49,7 @@ class Thread:
   def Continued( self ):
     self.state = Thread.RUNNING
     self.stopped_event = None
+    self.Collapse()
 
   def Exited( self ):
     self.state = Thread.TERMINATED
@@ -56,7 +57,7 @@ class Thread:
 
   def State( self ):
     if self.state == Thread.PAUSED:
-      return self.stopped_event.get( 'description', 'paused' )
+      return self.stopped_event.get( 'description' ) or 'paused'
     elif self.state == Thread.RUNNING:
       return 'running'
     return 'terminated'
@@ -191,7 +192,7 @@ class StackTraceView( object ):
         self.LoadThreads( *self._pending_thread_request )
         return
 
-      if not message[ 'body' ][ 'threads' ]:
+      if not ( message.get( 'body' ) or {} ).get( 'threads' ):
         # This is a protocol error. It is required to return at least one!
         utils.UserMessage( 'Protocol error: Server returned no threads',
                            persist = False,
@@ -372,12 +373,14 @@ class StackTraceView( object ):
     if thread is None:
       utils.UserMessage( 'No thread selected' )
     elif thread.state == Thread.PAUSED:
-      self._session._connection.DoRequest( None, {
-        'command': 'continue',
-        'arguments': {
-          'threadId': thread.id,
-        },
-      } )
+      self._session._connection.DoRequest(
+        lambda *_: self.OnContinued( { 'threadId': thread.id } ),
+        {
+          'command': 'continue',
+          'arguments': {
+            'threadId': thread.id,
+          },
+        } )
     elif thread.state == Thread.RUNNING:
       self._session._connection.DoRequest( None, {
         'command': 'pause',

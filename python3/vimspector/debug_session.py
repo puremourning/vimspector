@@ -434,49 +434,59 @@ class DebugSession( object ):
 
   @IfConnected()
   def StepInto( self ):
-    if self._stackTraceView.GetCurrentThreadId() is None:
+    threadId = self._stackTraceView.GetCurrentThreadId()
+    if threadId is None:
       return
 
-    self._connection.DoRequest( None, {
+    def handler( *_ ):
+      self._stackTraceView.OnContinued( { 'threadId': threadId } )
+      self._codeView.SetCurrentFrame( None )
+
+    self._connection.DoRequest( handler, {
       'command': 'stepIn',
       'arguments': {
-        'threadId': self._stackTraceView.GetCurrentThreadId()
+        'threadId': threadId
       },
     } )
-    self._stackTraceView.OnContinued()
-    self._codeView.SetCurrentFrame( None )
 
   @IfConnected()
   def StepOut( self ):
-    if self._stackTraceView.GetCurrentThreadId() is None:
+    threadId = self._stackTraceView.GetCurrentThreadId()
+    if threadId is None:
       return
 
-    self._connection.DoRequest( None, {
+    def handler( *_ ):
+      self._stackTraceView.OnContinued( { 'threadId': threadId } )
+      self._codeView.SetCurrentFrame( None )
+
+    self._connection.DoRequest( handler, {
       'command': 'stepOut',
       'arguments': {
-        'threadId': self._stackTraceView.GetCurrentThreadId()
+        'threadId': threadId
       },
     } )
-    self._stackTraceView.OnContinued()
-    self._codeView.SetCurrentFrame( None )
+
 
   def Continue( self ):
     if not self._connection:
       self.Start()
       return
 
-    if self._stackTraceView.GetCurrentThreadId() is None:
+    threadId = self._stackTraceView.GetCurrentThreadId()
+    if threadId is None:
       utils.UserMessage( 'No current thread', persist = True )
       return
 
-    self._connection.DoRequest( None, {
+    def handler( *_ ):
+      self._stackTraceView.OnContinued( { 'threadId': threadId } )
+      self._codeView.SetCurrentFrame( None )
+
+    self._connection.DoRequest( handler, {
       'command': 'continue',
       'arguments': {
-        'threadId': self._stackTraceView.GetCurrentThreadId(),
+        'threadId': threadId,
       },
     } )
-    self._stackTraceView.OnContinued()
-    self._codeView.SetCurrentFrame( None )
 
   @IfConnected()
   def Pause( self ):
