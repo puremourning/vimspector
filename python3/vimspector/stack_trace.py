@@ -200,7 +200,7 @@ class StackTraceView( object ):
       self._requesting_threads = StackTraceView.ThreadRequestState.NO
       self._pending_thread_request = None
 
-      existing_threads = self._threads[:]
+      existing_threads = self._threads[ : ]
       self._threads.clear()
 
       if stopEvent is not None:
