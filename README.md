@@ -751,6 +751,9 @@ Scopes and variables are represented by the buffer `vimspector.Variables`.
 
 ## Watches
 
+The watch window is used to inspect variables and expressions. Expressions are
+evaluated in the selected stack frame which is "focussed"
+
 The watches window is a prompt buffer, where that's available. Enter insert mode
 to add a new watch expression.
 
@@ -767,7 +770,7 @@ The watches are represented by the buffer `vimspector.StackTrace`.
 
 ### Watch autocompletion
 
-The watch prompt buffer  has its `omnifunc` set to a function that will
+The watch prompt buffer has its `omnifunc` set to a function that will
 calcualte completion for the current expression. This is trivailly used with
 `<Ctrl-x><Ctrl-o>` (see `:help ins-completion`), or integrated with your
 favourite completion system. The filetype in the buffer is set to
@@ -783,8 +786,28 @@ let g:ycm_semantic_triggers =  {
 
 ## Stack Traces
 
-* In the threads window, use `<CR>`, or double-click with left mouse to expand/collapse.
+The stack trace window shows the state of each progream thread. Threads which
+are stopped can be expanded to show the strack trace of that thread.
+
+Often, but not always, all threads are stopped when a breakpoint is hit. The
+status of a thread is show in parentheses after the thread's name. Where
+supported by the underlying debugger, threads can be paused and continued
+individually from within the Stack Trace window.
+
+A particular thread, highlighted with the `CursorLine` highlight group is the
+"focussed" thread. This is the thread that receives commands like "Stop In",
+"Stop Out", "Continue" and "Pause" in the code window. The focussed thread can
+be changed manually to "switch to" that thread.
+
+* Use `<CR>`, or double-click with left mouse to expand/collapse a thread stack
+  trace, or use the WinBar button.
 * Use `<CR>`, or double-click with left mouse on a stack frame to jump to it.
+* Use the WinBar or `vimspector#PauseContinueThread()` to individually pause or
+  continue the selected thread.
+* Use the "Focus" WinBar button, `<leader><CR>` or `vimspector#SetCurrentThread()`
+  to set the "focussed" thread to the currently selected one. If the selected
+  line is a stack frame, set the focussed thread to the thread of that frame and
+  jump to that frame in the code window.
 
 ![stack trace](https://puremourning.github.io/vimspector-web/img/vimspector-callstack-window.png)
 

@@ -110,6 +110,8 @@ class StackTraceView( object ):
     with utils.LetCurrentWindow( win ):
       vim.command( 'nnoremap <silent> <buffer> <CR> '
                    ':<C-U>call vimspector#GoToFrame()<CR>' )
+      vim.command( 'nnoremap <silent> <buffer> <leader><CR> '
+                   ':<C-U>call vimspector#SetCurrentThread()<CR>' )
       vim.command( 'nnoremap <silent> <buffer> <2-LeftMouse> '
                    ':<C-U>call vimspector#GoToFrame()<CR>' )
 
@@ -320,16 +322,22 @@ class StackTraceView( object ):
     thread = self._GetSelectedThread()
     return thread.id if thread else thread
 
+  def _SetCurrentThread( self, thread: Thread ):
+    self._current_thread = thread.id
+    self._DrawThreads()
 
   def SetCurrentThread( self ):
     thread = self._GetSelectedThread()
-    if not thread:
-      utils.UserMessage( "No thread selected" )
+    if thread:
+      self._SetCurrentThread( thread )
+    elif vim.current.buffer != self._buf:
+      return
+    elif vim.current.window.cursor[ 0 ] in self._line_to_frame:
+      thread, frame = self._line_to_frame[ vim.current.window.cursor[ 0 ] ]
+      self._SetCurrentThread( thread )
+      self._JumpToFrame( frame )
     else:
-      self._current_thread = thread.id
-
-    self._DrawThreads()
-
+      utils.UserMessage( "No thread selected" )
 
   def ExpandFrameOrThread( self ):
     thread = self._GetSelectedThread()
@@ -345,12 +353,15 @@ class StackTraceView( object ):
     elif vim.current.buffer != self._buf:
       return
     elif vim.current.window.cursor[ 0 ] in self._line_to_frame:
-      self._JumpToFrame( self._line_to_frame[ vim.current.window.cursor[ 0 ] ] )
+      thread, frame = self._line_to_frame[ vim.current.window.cursor[ 0 ] ]
+      self._JumpToFrame( frame )
 
 
   def _JumpToFrame( self, frame, reason = '' ):
     def do_jump():
       if 'line' in frame and frame[ 'line' ] > 0:
+        # Should this set the current _Thread_ too ? If i jump to a frame in
+        # Thread 2, should that become the focussed thread ?
         self._current_frame = frame
         return self._session.SetCurrentFrame( self._current_frame, reason )
       return False
@@ -469,7 +480,7 @@ class StackTraceView( object ):
                                        source[ 'name' ],
                                        frame[ 'line' ] ) )
 
-      self._line_to_frame[ line ] = frame
+      self._line_to_frame[ line ] = ( thread, frame )
 
   def _ResolveSource( self, source, and_then ):
     source_reference = int( source[ 'sourceReference' ] )

@@ -3,7 +3,7 @@ var msg = 'Hello, world!'
 var obj = {
   test: 'testing',
   toast: function() {
-    return 'toasty' . this.test;
+    return 'toasty' + this.test;
   }
 }
 
