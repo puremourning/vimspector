@@ -492,18 +492,12 @@ class DebugSession( object ):
     } )
 
   @IfConnected()
-  def PauseThread( self ):
-    threadId = self._stackTraceView.GetSelectedThreadId()
-    if threadId is None:
-      utils.UserMessage( 'No thread selected' )
-      return
+  def PauseContinueThread( self ):
+    self._stackTraceView.PauseContinueThread()
 
-    self._connection.DoRequest( None, {
-      'command': 'pause',
-      'arguments': {
-        'threadId': threadId,
-      },
-    } )
+  @IfConnected()
+  def SetCurrentThread( self ):
+    self._stackTraceView.SetCurrentThread()
 
   @IfConnected()
   def ExpandVariable( self ):

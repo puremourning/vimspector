@@ -171,11 +171,18 @@ function! vimspector#Pause() abort
   py3 _vimspector_session.Pause()
 endfunction
 
-function! vimspector#PauseThread() abort
+function! vimspector#PauseContinueThread() abort
   if !s:Enabled()
     return
   endif
-  py3 _vimspector_session.PauseThread()
+  py3 _vimspector_session.PauseContinueThread()
+endfunction
+
+function! vimspector#SetCurrentThread() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.SetCurrentThread()
 endfunction
 
 function! vimspector#Stop() abort

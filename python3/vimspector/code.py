@@ -32,6 +32,7 @@ class CodeView( object ):
     self._logger = logging.getLogger( __name__ )
     utils.SetUpLogging( self._logger )
 
+    # FIXME: This ID is by group, so should be module scope
     self._next_sign_id = 1
     self._breakpoints = defaultdict( list )
     self._signs = {

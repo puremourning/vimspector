@@ -16,7 +16,6 @@ function! s:StartDebugging()
 endfunction
 
 function! Test_Multiple_Threads_Continue()
-
   let thread_l = 67
   let notify_l = 74
 
@@ -33,7 +32,7 @@ function! Test_Multiple_Threads_Continue()
   call WaitForAssert( {->
         \   AssertMatchist(
         \     [
-        \         '> Thread: Thread #1 (paused)',
+        \         '- Thread: Thread #1 (paused)',
         \         '  .*: threads!main@threads.cpp:' . string( thread_l )
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
@@ -48,7 +47,7 @@ function! Test_Multiple_Threads_Continue()
   call WaitForAssert( {->
         \   AssertMatchist(
         \     [
-        \         '> Thread: Thread #1 (paused)',
+        \         '- Thread: Thread #1 (paused)',
         \         '  .*: threads!main@threads.cpp:' . string( thread_l )
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
@@ -73,7 +72,7 @@ function! Test_Multiple_Threads_Continue()
   call WaitForAssert( {->
         \   AssertMatchist(
         \     [
-        \         '> Thread: Thread #1 (paused)',
+        \         '- Thread: Thread #1 (paused)',
         \         '  .*: threads!main@threads.cpp:' . string( thread_l )
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
@@ -98,7 +97,7 @@ function! Test_Multiple_Threads_Continue()
   call WaitForAssert( {->
         \   AssertMatchist(
         \     [
-        \         '> Thread: Thread #1 (paused)',
+        \         '- Thread: Thread #1 (paused)',
         \         '  .*: threads!main@threads.cpp:' . string( thread_l )
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
@@ -124,7 +123,7 @@ function! Test_Multiple_Threads_Continue()
   call WaitForAssert( {->
         \   AssertMatchist(
         \     [
-        \         '> Thread: Thread #1 (paused)',
+        \         '- Thread: Thread #1 (paused)',
         \         '  .*: threads!main@threads.cpp:' . string( thread_l )
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
@@ -149,7 +148,7 @@ function! Test_Multiple_Threads_Continue()
   call WaitForAssert( {->
         \   AssertMatchist(
         \     [
-        \         '> Thread: Thread #1 (paused)',
+        \         '- Thread: Thread #1 (paused)',
         \         '  .*: threads!main@threads.cpp:' . string( notify_l )
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
@@ -189,7 +188,7 @@ function! Test_Multiple_Threads_Step()
   call WaitForAssert( {->
         \   AssertMatchist(
         \     [
-        \         '> Thread: Thread #1 (paused)',
+        \         '- Thread: Thread #1 (paused)',
         \         '  .*: threads!main@threads.cpp:' . string( thread_l )
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
@@ -347,5 +346,3 @@ function! Test_Multiple_Threads_Step()
   call vimspector#test#setup#Reset()
   %bwipe!
 endfunction
-
-" TODO: Set current frame while thread is running sets the PC
