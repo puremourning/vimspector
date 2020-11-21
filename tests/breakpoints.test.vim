@@ -684,6 +684,7 @@ function! Test_Custom_Breakpoint_Priority_Partial()
 endfunction
 
 function! Test_Add_Line_BP_In_Other_File_While_Debugging()
+  call ThisTestIsFlaky()
   let moo = 'moo.py'
   let cow = 'cow.py'
   lcd ../support/test/python/multiple_files
