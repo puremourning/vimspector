@@ -142,7 +142,7 @@ echo " * BASEDIR_CMD=$BASEDIR_CMD"
 echo "%SETUP - Building test programs..."
 set -e
   pushd tests/testdata/cpp/simple
-    make all
+    make clean all
   popd
 set +e
 echo "%DONE - built test programs"

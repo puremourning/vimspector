@@ -81,8 +81,8 @@ class StackTraceView( object ):
     PENDING = 2
 
   # FIXME: Make into a dict by id ?
-  _threads: list[ Thread ]
-  _line_to_thread = dict[ int, Thread ]
+  _threads: typing.List[ Thread ]
+  _line_to_thread = typing.Dict[ int, Thread ]
 
   def __init__( self, session, win ):
     self._logger = logging.getLogger( __name__ )
@@ -264,25 +264,26 @@ class StackTraceView( object ):
     else:
       self._next_sign_id = 1
 
-    with ( utils.ModifiableScratchBuffer( self._buf ),
-           utils.RestoreCursorPosition() ):
-      utils.ClearBuffer( self._buf )
+    with utils.ModifiableScratchBuffer( self._buf ):
+      with utils.RestoreCursorPosition():
+        utils.ClearBuffer( self._buf )
 
-      for thread in self._threads:
-        icon = '+' if not thread.IsExpanded() else '-'
-        line = utils.AppendToBuffer(
-          self._buf,
-          f'{icon} Thread: {thread.thread["name"]} ({thread.State()})' )
+        for thread in self._threads:
+          icon = '+' if not thread.IsExpanded() else '-'
+          line = utils.AppendToBuffer(
+            self._buf,
+            f'{icon} Thread {thread.id}: {thread.thread["name"]} '
+            f'({thread.State()})' )
 
-        if self._current_thread == thread.id:
-          signs.PlaceSign( self._next_sign_id,
-                           'VimspectorStackTrace',
-                           'vimspectorCurrentThread',
-                           self._buf.name,
-                           line )
+          if self._current_thread == thread.id:
+            signs.PlaceSign( self._next_sign_id,
+                             'VimspectorStackTrace',
+                             'vimspectorCurrentThread',
+                             self._buf.name,
+                             line )
 
-        self._line_to_thread[ line ] = thread
-        self._DrawStackTrace( thread )
+          self._line_to_thread[ line ] = thread
+          self._DrawStackTrace( thread )
 
   def _LoadStackTrace( self,
                        thread: Thread,

@@ -34,6 +34,7 @@ function! vimspector#internal#state#Reset() abort
   catch /.*/
     echohl WarningMsg
     echom 'Exception while loading vimspector:' v:exception
+    echom 'From:' v:throwpoint
     echom 'Vimspector unavailable: Requires Vim compiled with Python 3.6'
     echohl None
     return v:false
