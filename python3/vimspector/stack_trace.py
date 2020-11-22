@@ -16,11 +16,75 @@
 import vim
 import os
 import logging
+import typing
 
-from vimspector import utils
+from vimspector import utils, signs
+
+
+class Thread:
+  """The state of a single thread."""
+  PAUSED = 0
+  RUNNING = 1
+  TERMINATED = 3
+  state = RUNNING
+
+  stopped_event: typing.Dict
+  thread: typing.Dict
+  stacktrace: typing.List[ typing.Dict ]
+  id: str
+
+  def __init__( self, thread ):
+    self.id = thread[ 'id' ]
+    self.stopped_event = None
+    self.Update( thread )
+
+  def Update( self, thread ):
+    self.thread = thread
+    self.stacktrace = None
+
+  def Paused( self, event ):
+    self.state = Thread.PAUSED
+    self.stopped_event = event
+
+  def Continued( self ):
+    self.state = Thread.RUNNING
+    self.stopped_event = None
+    self.Collapse()
+
+  def Exited( self ):
+    self.state = Thread.TERMINATED
+    self.stopped_event = None
+
+  def State( self ):
+    if self.state == Thread.PAUSED:
+      return self.stopped_event.get( 'description' ) or 'paused'
+    elif self.state == Thread.RUNNING:
+      return 'running'
+    return 'terminated'
+
+  def Expand( self, stack_trace ):
+    self.stacktrace = stack_trace
+
+  def Collapse( self ):
+    self.stacktrace = None
+
+  def IsExpanded( self ):
+    return self.stacktrace is not None
+
+  def CanExpand( self ):
+    return self.state == Thread.PAUSED
 
 
 class StackTraceView( object ):
+  class ThreadRequestState:
+    NO = 0
+    REQUESTING = 1
+    PENDING = 2
+
+  # FIXME: Make into a dict by id ?
+  _threads: typing.List[ Thread ]
+  _line_to_thread = typing.Dict[ int, Thread ]
+
   def __init__( self, session, win ):
     self._logger = logging.getLogger( __name__ )
     utils.SetUpLogging( self._logger )
@@ -37,25 +101,43 @@ class StackTraceView( object ):
     self._sources = {}
     self._scratch_buffers = []
 
+    # FIXME: This ID is by group, so should be module scope
+    self._next_sign_id = 1
+
     utils.SetUpHiddenBuffer( self._buf, 'vimspector.StackTrace' )
     utils.SetUpUIWindow( win )
 
-    vim.command( 'nnoremap <silent> <buffer> <CR> '
-                 ':<C-U>call vimspector#GoToFrame()<CR>' )
-    vim.command( 'nnoremap <silent> <buffer> <2-LeftMouse> '
-                 ':<C-U>call vimspector#GoToFrame()<CR>' )
+    with utils.LetCurrentWindow( win ):
+      vim.command( 'nnoremap <silent> <buffer> <CR> '
+                   ':<C-U>call vimspector#GoToFrame()<CR>' )
+      vim.command( 'nnoremap <silent> <buffer> <leader><CR> '
+                   ':<C-U>call vimspector#SetCurrentThread()<CR>' )
+      vim.command( 'nnoremap <silent> <buffer> <2-LeftMouse> '
+                   ':<C-U>call vimspector#GoToFrame()<CR>' )
+
+      if utils.UseWinBar():
+        vim.command( 'nnoremenu 1.1 WinBar.Pause/Continue '
+                     ':call vimspector#PauseContinueThread()<CR>' )
+        vim.command( 'nnoremenu 1.2 WinBar.Expand/Collapse '
+                     ':call vimspector#GoToFrame()<CR>' )
+        vim.command( 'nnoremenu 1.3 WinBar.Focus '
+                     ':call vimspector#SetCurrentThread()<CR>' )
+
+    win.options[ 'cursorline' ] = False
+
+
+    if not signs.SignDefined( 'vimspectorCurrentThread' ):
+      signs.DefineSign( 'vimspectorCurrentThread',
+                        text = '▶ ',
+                        double_text = '▶',
+                        texthl = 'MatchParen',
+                        linehl = 'CursorLine' )
 
     self._line_to_frame = {}
     self._line_to_thread = {}
 
-    # TODO: We really need a proper state model
-    #
-    # AWAIT_CONNECTION -- OnServerReady / RequestThreads --> REQUESTING_THREADS
-    # REQUESTING -- OnGotThreads / RequestScopes --> REQUESTING_SCOPES
-    #
-    # When we attach using gdbserver, this whole thing breaks because we request
-    # the threads over and over and get duff data back on later threads.
-    self._requesting_threads = False
+    self._requesting_threads = StackTraceView.ThreadRequestState.NO
+    self._pending_thread_request = None
 
 
   def GetCurrentThreadId( self ):
@@ -68,14 +150,19 @@ class StackTraceView( object ):
     self._current_frame = None
     self._current_thread = None
     self._current_syntax = ""
-    self._threads = []
+    self._threads.clear()
     self._sources = {}
+    self._requesting_threads = StackTraceView.ThreadRequestState.NO
+    self._pending_thread_request = None
+    if self._next_sign_id:
+      signs.UnplaceSign( self._next_sign_id, 'VimspectorStackTrace' )
+    self._next_sign_id = 0
+
     with utils.ModifiableScratchBuffer( self._buf ):
       utils.ClearBuffer( self._buf )
 
   def ConnectionUp( self, connection ):
     self._connection = connection
-    self._requesting_threads = False
 
   def ConnectionClosed( self ):
     self.Clear()
@@ -86,47 +173,88 @@ class StackTraceView( object ):
     utils.CleanUpHiddenBuffer( self._buf )
     for b in self._scratch_buffers:
       utils.CleanUpHiddenBuffer( b )
-
     self._scratch_buffers = []
     self._buf = None
 
-  def LoadThreads( self, infer_current_frame ):
-    pending_request = False
-    if self._requesting_threads:
-      pending_request = True
+  def LoadThreads( self,
+                   infer_current_frame,
+                   reason = '',
+                   stopEvent = None ):
+    if self._requesting_threads != StackTraceView.ThreadRequestState.NO:
+      self._requesting_threads = StackTraceView.ThreadRequestState.PENDING
+      self._pending_thread_request = ( infer_current_frame,
+                                       reason,
+                                       stopEvent )
       return
 
     def consume_threads( message ):
-      self._requesting_threads = False
+      if self._requesting_threads == StackTraceView.ThreadRequestState.PENDING:
+        # We may have hit a thread event, so try again.
+        self._requesting_threads = StackTraceView.ThreadRequestState.NO
+        self.LoadThreads( *self._pending_thread_request )
+        return
 
-      if not message[ 'body' ][ 'threads' ]:
-        if pending_request:
-          # We may have hit a thread event, so try again.
-          self.LoadThreads( infer_current_frame )
-          return
-        else:
-          # This is a protocol error. It is required to return at least one!
-          utils.UserMessage( 'Server returned no threads. Is it running?',
-                             persist = True )
+      self._requesting_threads = StackTraceView.ThreadRequestState.NO
+      self._pending_thread_request = None
 
+      if not ( message.get( 'body' ) or {} ).get( 'threads' ):
+        # This is a protocol error. It is required to return at least one!
+        utils.UserMessage( 'Protocol error: Server returned no threads',
+                           persist = False,
+                           error = True )
+        return
+
+      existing_threads = self._threads[ : ]
       self._threads.clear()
 
-      for thread in message[ 'body' ][ 'threads' ]:
+      if stopEvent is not None:
+        stoppedThreadId = stopEvent.get( 'threadId' )
+        allThreadsStopped = stopEvent.get( 'allThreadsStopped', False )
+
+      requesting = False
+
+      # FIXME: This is horribly inefficient
+      for t in message[ 'body' ][ 'threads' ]:
+        thread = None
+        for existing_thread in existing_threads:
+          if existing_thread.id == t[ 'id' ]:
+            thread = existing_thread
+            thread.Update( t )
+            break
+
+        if not thread:
+          thread = Thread( t )
+
         self._threads.append( thread )
 
-        if infer_current_frame and thread[ 'id' ] == self._current_thread:
-          self._LoadStackTrace( thread, True )
-        elif infer_current_frame and self._current_thread is None:
-          self._current_thread = thread[ 'id' ]
-          self._LoadStackTrace( thread, True )
+        # If the threads were requested due to a stopped event, update any
+        # stopped thread state. Note we have to do this here (rather than in the
+        # stopped event handler) because we must apply this event to any new
+        # threads that are received here.
+        if stopEvent:
+          if allThreadsStopped:
+            thread.Paused( stopEvent )
+          elif stoppedThreadId is not None and thread.id == stoppedThreadId:
+            thread.Paused( stopEvent )
 
-      self._DrawThreads()
+        if infer_current_frame:
+          if thread.id == self._current_thread:
+            self._LoadStackTrace( thread, True, reason )
+            requesting = True
+          elif self._current_thread is None:
+            self._current_thread = thread.id
+            self._LoadStackTrace( thread, True, reason )
+            requesting = True
+
+      if not requesting:
+        self._DrawThreads()
 
     def failure_handler( reason, msg ):
       # Make sure we request them again if the request fails
-      self._requesting_threads = False
+      self._requesting_threads = StackTraceView.ThreadRequestState.NO
+      self._pending_thread_request = None
 
-    self._requesting_threads = True
+    self._requesting_threads = StackTraceView.ThreadRequestState.REQUESTING
     self._connection.DoRequest( consume_threads, {
       'command': 'threads',
     }, failure_handler )
@@ -135,28 +263,41 @@ class StackTraceView( object ):
     self._line_to_frame.clear()
     self._line_to_thread.clear()
 
+    if self._next_sign_id:
+      signs.UnplaceSign( self._next_sign_id, 'VimspectorStackTrace' )
+    else:
+      self._next_sign_id = 1
+
     with utils.ModifiableScratchBuffer( self._buf ):
-      utils.ClearBuffer( self._buf )
+      with utils.RestoreCursorPosition():
+        utils.ClearBuffer( self._buf )
 
-      for thread in self._threads:
-        icon = '+' if '_frames' not in thread else '-'
+        for thread in self._threads:
+          icon = '+' if not thread.IsExpanded() else '-'
+          line = utils.AppendToBuffer(
+            self._buf,
+            f'{icon} Thread {thread.id}: {thread.thread["name"]} '
+            f'({thread.State()})' )
 
-        line = utils.AppendToBuffer(
-          self._buf,
-          '{0} Thread: {1}'.format( icon, thread[ 'name' ] ) )
+          if self._current_thread == thread.id:
+            signs.PlaceSign( self._next_sign_id,
+                             'VimspectorStackTrace',
+                             'vimspectorCurrentThread',
+                             self._buf.name,
+                             line )
 
-        self._line_to_thread[ line ] = thread
-
-        self._DrawStackTrace( thread )
+          self._line_to_thread[ line ] = thread
+          self._DrawStackTrace( thread )
 
   def _LoadStackTrace( self,
-                       thread,
+                       thread: Thread,
                        infer_current_frame,
                        reason = '' ):
+
     def consume_stacktrace( message ):
-      thread[ '_frames' ] = message[ 'body' ][ 'stackFrames' ]
+      thread.Expand( message[ 'body' ][ 'stackFrames' ] )
       if infer_current_frame:
-        for frame in thread[ '_frames' ]:
+        for frame in thread.stacktrace:
           if self._JumpToFrame( frame, reason ):
             break
 
@@ -165,30 +306,62 @@ class StackTraceView( object ):
     self._connection.DoRequest( consume_stacktrace, {
       'command': 'stackTrace',
       'arguments': {
-        'threadId': thread[ 'id' ],
+        'threadId': thread.id,
       }
     } )
 
-  def ExpandFrameOrThread( self ):
+
+  def _GetSelectedThread( self ) -> Thread:
     if vim.current.buffer != self._buf:
+      return None
+
+    return self._line_to_thread.get( vim.current.window.cursor[ 0 ] )
+
+
+  def GetSelectedThreadId( self ):
+    thread = self._GetSelectedThread()
+    return thread.id if thread else thread
+
+  def _SetCurrentThread( self, thread: Thread ):
+    self._current_thread = thread.id
+    self._DrawThreads()
+
+  def SetCurrentThread( self ):
+    thread = self._GetSelectedThread()
+    if thread:
+      self._SetCurrentThread( thread )
+    elif vim.current.buffer != self._buf:
       return
+    elif vim.current.window.cursor[ 0 ] in self._line_to_frame:
+      thread, frame = self._line_to_frame[ vim.current.window.cursor[ 0 ] ]
+      self._SetCurrentThread( thread )
+      self._JumpToFrame( frame )
+    else:
+      utils.UserMessage( "No thread selected" )
 
-    current_line = vim.current.window.cursor[ 0 ]
+  def ExpandFrameOrThread( self ):
+    thread = self._GetSelectedThread()
 
-    if current_line in self._line_to_frame:
-      self._JumpToFrame( self._line_to_frame[ current_line ] )
-    elif current_line in self._line_to_thread:
-      thread = self._line_to_thread[ current_line ]
-      if '_frames' in thread:
-        del thread[ '_frames' ]
-        with utils.RestoreCursorPosition():
-          self._DrawThreads()
-      else:
+    if thread:
+      if thread.IsExpanded():
+        thread.Collapse()
+        self._DrawThreads()
+      elif thread.CanExpand():
         self._LoadStackTrace( thread, False )
+      else:
+        utils.UserMessage( "Thread is not stopped" )
+    elif vim.current.buffer != self._buf:
+      return
+    elif vim.current.window.cursor[ 0 ] in self._line_to_frame:
+      thread, frame = self._line_to_frame[ vim.current.window.cursor[ 0 ] ]
+      self._JumpToFrame( frame )
+
 
   def _JumpToFrame( self, frame, reason = '' ):
     def do_jump():
       if 'line' in frame and frame[ 'line' ] > 0:
+        # Should this set the current _Thread_ too ? If i jump to a frame in
+        # Thread 2, should that become the focussed thread ?
         self._current_frame = frame
         return self._session.SetCurrentFrame( self._current_frame, reason )
       return False
@@ -205,59 +378,85 @@ class StackTraceView( object ):
     else:
       return do_jump()
 
+
+  def PauseContinueThread( self ):
+    thread = self._GetSelectedThread()
+    if thread is None:
+      utils.UserMessage( 'No thread selected' )
+    elif thread.state == Thread.PAUSED:
+      self._session._connection.DoRequest(
+        lambda msg: self.OnContinued( {
+          'threadId': thread.id,
+          'allThreadsContinued': ( msg.get( 'body' ) or {} ).get(
+            'allThreadsContinued',
+            True )
+        } ),
+        {
+          'command': 'continue',
+          'arguments': {
+            'threadId': thread.id,
+          },
+        } )
+    elif thread.state == Thread.RUNNING:
+      self._session._connection.DoRequest( None, {
+        'command': 'pause',
+        'arguments': {
+          'threadId': thread.id,
+        },
+      } )
+    else:
+      utils.UserMessage(
+        f'Thread cannot be modified in state {thread.State()}' )
+
+
+  def OnContinued( self, event = None ):
+    threadId = None
+    allThreadsContinued = True
+
+    if event is not None:
+      threadId = event[ 'threadId' ]
+      allThreadsContinued = event.get( 'allThreadsContinued', False )
+
+    for thread in self._threads:
+      if allThreadsContinued:
+        thread.Continued()
+      elif thread.id == threadId:
+        thread.Continued()
+        break
+
+    self._DrawThreads()
+
   def OnStopped( self, event ):
-    if 'threadId' in event:
-      self._current_thread = event[ 'threadId' ]
-    elif event.get( 'allThreadsStopped', False ) and self._threads:
-      self._current_thread = self._threads[ 0 ][ 'id' ]
+    threadId = event.get( 'threadId' )
+    allThreadsStopped = event.get( 'allThreadsStopped', False )
 
-    if self._current_thread is not None:
-      for thread in self._threads:
-        if thread[ 'id' ] == self._current_thread:
-          self._LoadStackTrace( thread, True, 'stopped' )
-          return
+    # Work out if we should change the current thread
+    if threadId is not None:
+      self._current_thread = threadId
+    elif self._current_thread is None and allThreadsStopped and self._threads:
+      self._current_thread = self._threads[ 0 ].id
 
-    self.LoadThreads( True )
+    self.LoadThreads( True, 'stopped', event )
 
   def OnThreadEvent( self, event ):
+    infer_current_frame = False
     if event[ 'reason' ] == 'started' and self._current_thread is None:
       self._current_thread = event[ 'threadId' ]
-      self.LoadThreads( True )
+      infer_current_frame = True
 
-  def Continue( self ):
-    if self._current_thread is None:
-      utils.UserMessage( 'No current thread', persist = True )
+    if event[ 'reason' ] == 'exited':
+      for thread in self._threads:
+        if thread.id == event[ 'threadId' ]:
+          thread.Exited()
+          break
+
+    self.LoadThreads( infer_current_frame )
+
+  def _DrawStackTrace( self, thread: Thread ):
+    if not thread.IsExpanded():
       return
 
-    self._session._connection.DoRequest( None, {
-      'command': 'continue',
-      'arguments': {
-        'threadId': self._current_thread,
-      },
-    } )
-
-    self._session.ClearCurrentFrame()
-    self.LoadThreads( True )
-
-  def Pause( self ):
-    if self._current_thread is None:
-      utils.UserMessage( 'No current thread', persist = True )
-      return
-
-    self._session._connection.DoRequest( None, {
-      'command': 'pause',
-      'arguments': {
-        'threadId': self._current_thread,
-      },
-    } )
-
-  def _DrawStackTrace( self, thread ):
-    if '_frames' not in thread:
-      return
-
-    stackFrames = thread[ '_frames' ]
-
-    for frame in stackFrames:
+    for frame in thread.stacktrace:
       if frame.get( 'source' ):
         source = frame[ 'source' ]
       else:
@@ -281,7 +480,7 @@ class StackTraceView( object ):
                                        source[ 'name' ],
                                        frame[ 'line' ] ) )
 
-      self._line_to_frame[ line ] = frame
+      self._line_to_frame[ line ] = ( thread, frame )
 
   def _ResolveSource( self, source, and_then ):
     source_reference = int( source[ 'sourceReference' ] )

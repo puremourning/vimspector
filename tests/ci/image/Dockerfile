@@ -4,13 +4,19 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV LC_ALL C.UTF-8
 
 RUN apt-get update && \
-  apt install -y curl dirmngr apt-transport-https lsb-release ca-certificates \
-                 software-properties-common && \
+  apt-get install -y curl \
+                     dirmngr \
+                     apt-transport-https \
+                     lsb-release \
+                     ca-certificates \
+                     software-properties-common && \
   curl -sL https://deb.nodesource.com/setup_12.x | bash - && \
   add-apt-repository ppa:bartbes/love-stable -y && \
   apt-get update && \
   apt-get -y dist-upgrade && \
-  apt-get -y install python3-dev \
+  apt-get -y install gcc-8 \
+                     g++-8 \
+                     python3-dev \
                      python3-pip \
                      python3-venv \
                      ca-cacert \
@@ -30,6 +36,9 @@ RUN apt-get update && \
 
 RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
   dpkg-reconfigure --frontend noninteractive tzdata
+
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 1 \
+                        --slave   /usr/bin/g++ g++ /usr/bin/g++-8
 
 ## cleanup of files from setup
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

@@ -51,7 +51,10 @@ func s:WaitForCommon(expr, assert, timeout)
     let start = reltime()
   endif
 
+  let iters = 0
+
   while 1
+    let iters += 1
     let errors_before = len( v:errors )
     if type(a:expr) == v:t_func
       let success = a:expr()
@@ -63,6 +66,10 @@ func s:WaitForCommon(expr, assert, timeout)
 
     if success
       return slept
+    endif
+
+    if iters % 20 == 0
+      redraw!
     endif
 
     if slept >= a:timeout
@@ -90,4 +97,32 @@ endfunc
 
 function! ThisTestIsFlaky()
   let g:test_is_flaky = v:true
+endfunction
+
+function! AssertMatchist( expected, actual ) abort
+  let ret = assert_equal( len( a:expected ), len( a:actual ) )
+  let len = min( [ len( a:expected ), len( a:actual ) ] )
+  let idx = 0
+  while idx < len
+    let ret += assert_match( a:expected[ idx ], a:actual[ idx ] )
+    let idx += 1
+  endwhile
+  return ret
+endfunction
+
+
+function! GetBufLine( buf, start, end  = '$' )
+  if type( a:start ) != v:t_string && a:start < 0
+    let start = getbufinfo( a:buf )[ 0 ].linecount + a:start
+  else
+    let start = a:start
+  endif
+
+  if type( a:end ) != v:t_string && a:end < 0
+    let end = getbufinfo( a:buf )[ 0 ].linecount + a:end
+  else
+    let end = a:end
+  endif
+
+  return getbufline( a:buf, start, end )
 endfunction

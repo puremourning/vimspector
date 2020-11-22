@@ -11,16 +11,17 @@ For a tutorial and usage overview, take a look at the
     * [Supported languages](#supported-languages)
     * [Other languages](#other-languages)
  * [Installation](#installation)
+    * [Quick Start](#quick-start)
     * [Dependencies](#dependencies)
     * [Neovim differences](#neovim-differences)
     * [Windows differences](#windows-differences)
-    * [Clone the plugin](#clone-the-plugin)
+    * [Trying it out](#trying-it-out)
+    * [Cloning the plugin](#cloning-the-plugin)
     * [Install some gadgets](#install-some-gadgets)
        * [VimspectorInstall and VimspectorUpdate commands](#vimspectorinstall-and-vimspectorupdate-commands)
        * [install_gadget.py](#install_gadgetpy)
     * [Manual gadget installation](#manual-gadget-installation)
        * [The gadget directory](#the-gadget-directory)
-    * [Trying it out](#trying-it-out)
     * [Upgrade](#upgrade)
  * [About](#about)
     * [Background](#background)
@@ -33,9 +34,11 @@ For a tutorial and usage overview, take a look at the
     * [Launch and attach by PID:](#launch-and-attach-by-pid)
        * [Launch with options](#launch-with-options)
        * [Debug configuration selection](#debug-configuration-selection)
+       * [Get configurations](#get-configurations)
     * [Breakpoints](#breakpoints)
        * [Exception breakpoints](#exception-breakpoints)
        * [Clear breakpoints](#clear-breakpoints)
+       * [Run to Cursor](#run-to-cursor)
     * [Stepping](#stepping)
     * [Variables and scopes](#variables-and-scopes)
     * [Watches](#watches)
@@ -48,6 +51,7 @@ For a tutorial and usage overview, take a look at the
     * [Closing debugger](#closing-debugger)
  * [Debug adapter configuration](#debug-adapter-configuration)
     * [C, C  , Rust, etc.](#c-c-rust-etc)
+    * [Rust](#rust)
        * [Remote debugging](#remote-debugging)
        * [Remote launch and attach](#remote-launch-and-attach)
     * [Python](#python)
@@ -65,7 +69,6 @@ For a tutorial and usage overview, take a look at the
        * [Usage with YouCompleteMe](#usage-with-youcompleteme)
        * [Other LSP clients](#other-lsp-clients)
     * [Lua](#lua)
-    * [Rust](#rust)
     * [Other servers](#other-servers)
  * [Customisation](#customisation)
     * [Changing the default signs](#changing-the-default-signs)
@@ -80,7 +83,7 @@ For a tutorial and usage overview, take a look at the
  * [License](#license)
  * [Sponsorship](#sponsorship)
 
-<!-- Added by: ben, at: Fri  4 Sep 2020 00:48:17 BST -->
+<!-- Added by: ben, at: Sun 22 Nov 2020 14:35:00 GMT -->
 
 <!--te-->
 
@@ -121,8 +124,6 @@ And a couple of brief demos:
 - logging/stdout display
 - simple stable API for custom tooling (e.g. integrate with language server)
 
-For other languages, you'll need some other way to install the gadget.
-
 ## Supported languages
 
 The following table lists the languages that are "built-in" (along with their
@@ -158,10 +159,12 @@ To use Vimspector with a language that's not "built-in", see this
 
 # Installation
 
+## Quick Start
+
 There are 2 installation methods:
 
-* Using a release tarball, or
-* Manually
+* Using a release tarball and vim packages
+* Using a clone of the repo (e.g. package manager)
 
 Release tarballs come with debug adapters for the default languages
 pre-packaged. To use a release tarball:
@@ -174,14 +177,26 @@ $ mkdir -p $HOME/.vim/pack
 $ curl -L <url> | tar -C $HOME/.vim/pack zxvf -
 ```
 
+3. Add `packadd! vimspector` to you `.vimrc`
+
 3. Configure your project's debug profiles (create `.vimspector.json`)
 
 Alternatively, you can clone the repo and select which gadgets are installed:
 
 1. Check the dependencies
 1. Install the plugin as a Vim package. See `:help packages`.
-2. Install some 'gadgets' (debug adapters)
+2. Add `packadd! vimspector` to you `.vimrc`
+2. Install some 'gadgets' (debug adapters) - see `:VimspectorInstall ...`
 3. Configure your project's debug profiles (create `.vimspector.json`)
+
+If you prefer to use a plugin manager, see the plugin manager's docs. For
+Vundle, use:
+
+```vim
+Plugin 'puremourning/vimspector'
+```
+
+The following sections expand on the above brief overview.
 
 ## Dependencies
 
@@ -239,20 +254,54 @@ The following features are not implemented for Windows:
 
 * Tailing the vimspector log in the Output Window.
 
-## Clone the plugin
+## Trying it out
+
+If you just want to try out vimspector without changing your vim config, there
+are example projects for a number of languages in `support/test`, including:
+
+* Python (`support/test/python/simple_python`)
+* Go (`support/test/go/hello_world`)
+* Nodejs (`support/test/node/simple`)
+* Chrome (`support/test/chrome/`)
+* etc.
+
+To test one of these out, cd to the directory and run:
+
+```
+vim -Nu /path/to/vimspector/tests/vimrc --cmd "let g:vimspector_enable_mappings='HUMAN'"
+```
+
+Then press `<F5>`.
+
+There's also a C++ project in `tests/testdata/cpp/simple/` with a `Makefile`
+which can be used to check everything is working. This is used by the regression
+tests in CI so should always work, and is a good way to check if the problem is
+your configuration rather than a bug.
+
+## Cloning the plugin
+
+If you're not using a release tarball, you'll need to clone this repo to the
+appropriate place.
+
+1. Clone the plugin
 
 There are many Vim plugin managers, and I'm not going to state a particular
-preference, so if you choose to use one, you're on your own with installation
-issues.
+preference, so if you choose to use one, follow the plugin manager's
+documentation. For example, for Vundle, use:
 
-Install vimspector as a Vim package, either by cloning this repository into your
-package path, like this:
+```viml
+Plugin 'puremourning/vimspector'
+```
+
+If you don't use a plugin manager already, install vimspector as a Vim package
+by cloning this repository into your package path, like this:
 
 ```
 $ git clone https://github.com/puremourning/vimspector ~/.vim/pack/vimspector/opt/vimspector
 ```
 
-2. Configure vimspector in your `.vimrc`:
+2. Configure vimspector in your `.vimrc`, for example to enable the standard
+   mapings:
 
 ```viml
 let g:vimspector_enable_mappings = 'HUMAN'
@@ -265,7 +314,7 @@ let g:vimspector_enable_mappings = 'HUMAN'
 packadd! vimspector
 ```
 
-See support/doc/example_vimrc.vim.
+See support/doc/example_vimrc.vim for a minimal example.
 
 ## Install some gadgets
 
@@ -281,11 +330,10 @@ There are a few ways to do this:
   installed for you.
 * Using `:VimspectorInstall <adapter> <args...>` (use TAB `wildmenu` to see the
   options, also accepts any `install_gadget.py` option)
-* Alternatively, using `python3 install_gadget.py <args>` (use `--help` to see
-  all options)
-* When attempting to launch a debug configuration, if the configured adapter
-  can't be found, vimspector might suggest installing one.
-* Use `:VimspectorUpdate` to install the latest supported versions of the
+* Using `python3 install_gadget.py <args>` (use `--help` to see all options)
+* Attempting to launch a debug configuration; if the configured adapter
+  can't be found, vimspector will suggest installing one.
+* Using `:VimspectorUpdate` to install the latest supported versions of the
   gadgets.
 
 Here's a demo of doing somee installs and an upgrade:
@@ -293,7 +341,7 @@ Here's a demo of doing somee installs and an upgrade:
 [![asciicast](https://asciinema.org/a/Hfu4ZvuyTZun8THNen9FQbTay.svg)](https://asciinema.org/a/Hfu4ZvuyTZun8THNen9FQbTay)
 
 Both `install_gadget.py` and `:VimspectorInstall` do the same set of things,
-though the default behaviours are slightly different.  For supported languages,
+though the default behaviours are slightly different. For supported languages,
 they will:
 
 * Download the relevant debug adapter at a version that's been tested from the
@@ -306,7 +354,7 @@ they will:
     broken in this regard.
   * Set up the `gadgetDir` symlinks for the platform.
 
-To install the tested debug adapter for a language, run:
+For example, to install the tested debug adapter for a language, run:
 
 | To install                          | Script                                        | Command                                         |
 | ---                                 | ---                                           | ---                                             |
@@ -467,30 +515,6 @@ Vimspector will also load any fies matching:
 `</path/to/vimspector>/gadgets/<os>/.gadgets.d/*.json`. These have the same
 format as `.gadgets.json` but are not overwritten when running
 `install_gadget.py`.
-
-## Trying it out
-
-If you just want to try out vimspector without changing your vim config, there
-are example projects for a number of languages in `support/test`, including:
-
-* Python (`support/test/python/simple_python`)
-* Go (`support/test/go/hello_world`)
-* Nodejs (`support/test/node/simple`)
-* Chrome (`support/test/chrome/`)
-* etc.
-
-To test one of these out, cd to the directory and run:
-
-```
-vim -Nu /path/to/vimspector/tests/vimrc --cmd "let g:vimspector_enable_mappings='HUMAN'"
-```
-
-Then press `<F5>`.
-
-There's also a C++ project in `tests/testdata/cpp/simple/` with a `Makefile`
-which can be used to check everything is working. This is used by the regression
-tests in CI so should always work, and is a good way to check if the problem is
-your configuration rather than a bug.
 
 ## Upgrade
 
@@ -751,6 +775,9 @@ Scopes and variables are represented by the buffer `vimspector.Variables`.
 
 ## Watches
 
+The watch window is used to inspect variables and expressions. Expressions are
+evaluated in the selected stack frame which is "focussed"
+
 The watches window is a prompt buffer, where that's available. Enter insert mode
 to add a new watch expression.
 
@@ -767,7 +794,7 @@ The watches are represented by the buffer `vimspector.StackTrace`.
 
 ### Watch autocompletion
 
-The watch prompt buffer  has its `omnifunc` set to a function that will
+The watch prompt buffer has its `omnifunc` set to a function that will
 calcualte completion for the current expression. This is trivailly used with
 `<Ctrl-x><Ctrl-o>` (see `:help ins-completion`), or integrated with your
 favourite completion system. The filetype in the buffer is set to
@@ -783,8 +810,28 @@ let g:ycm_semantic_triggers =  {
 
 ## Stack Traces
 
-* In the threads window, use `<CR>`, or double-click with left mouse to expand/collapse.
+The stack trace window shows the state of each progream thread. Threads which
+are stopped can be expanded to show the strack trace of that thread.
+
+Often, but not always, all threads are stopped when a breakpoint is hit. The
+status of a thread is show in parentheses after the thread's name. Where
+supported by the underlying debugger, threads can be paused and continued
+individually from within the Stack Trace window.
+
+A particular thread, highlighted with the `CursorLine` highlight group is the
+"focussed" thread. This is the thread that receives commands like "Stop In",
+"Stop Out", "Continue" and "Pause" in the code window. The focussed thread can
+be changed manually to "switch to" that thread.
+
+* Use `<CR>`, or double-click with left mouse to expand/collapse a thread stack
+  trace, or use the WinBar button.
 * Use `<CR>`, or double-click with left mouse on a stack frame to jump to it.
+* Use the WinBar or `vimspector#PauseContinueThread()` to individually pause or
+  continue the selected thread.
+* Use the "Focus" WinBar button, `<leader><CR>` or `vimspector#SetCurrentThread()`
+  to set the "focussed" thread to the currently selected one. If the selected
+  line is a stack frame, set the focussed thread to the thread of that frame and
+  jump to that frame in the code window.
 
 ![stack trace](https://puremourning.github.io/vimspector-web/img/vimspector-callstack-window.png)
 

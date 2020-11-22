@@ -429,39 +429,90 @@ class DebugSession( object ):
       },
     } )
 
+    self._stackTraceView.OnContinued()
+    self._codeView.SetCurrentFrame( None )
+
   @IfConnected()
   def StepInto( self ):
-    if self._stackTraceView.GetCurrentThreadId() is None:
+    threadId = self._stackTraceView.GetCurrentThreadId()
+    if threadId is None:
       return
 
-    self._connection.DoRequest( None, {
+    def handler( *_ ):
+      self._stackTraceView.OnContinued( { 'threadId': threadId } )
+      self._codeView.SetCurrentFrame( None )
+
+    self._connection.DoRequest( handler, {
       'command': 'stepIn',
       'arguments': {
-        'threadId': self._stackTraceView.GetCurrentThreadId()
+        'threadId': threadId
       },
     } )
 
   @IfConnected()
   def StepOut( self ):
-    if self._stackTraceView.GetCurrentThreadId() is None:
+    threadId = self._stackTraceView.GetCurrentThreadId()
+    if threadId is None:
       return
 
-    self._connection.DoRequest( None, {
+    def handler( *_ ):
+      self._stackTraceView.OnContinued( { 'threadId': threadId } )
+      self._codeView.SetCurrentFrame( None )
+
+    self._connection.DoRequest( handler, {
       'command': 'stepOut',
       'arguments': {
-        'threadId': self._stackTraceView.GetCurrentThreadId()
+        'threadId': threadId
       },
     } )
 
+
   def Continue( self ):
-    if self._connection:
-      self._stackTraceView.Continue()
-    else:
+    if not self._connection:
       self.Start()
+      return
+
+    threadId = self._stackTraceView.GetCurrentThreadId()
+    if threadId is None:
+      utils.UserMessage( 'No current thread', persist = True )
+      return
+
+    def handler( msg ):
+      self._stackTraceView.OnContinued( {
+          'threadId': threadId,
+          'allThreadsContinued': ( msg.get( 'body' ) or {} ).get(
+            'allThreadsContinued',
+            True )
+        } )
+      self._codeView.SetCurrentFrame( None )
+
+    self._connection.DoRequest( handler, {
+      'command': 'continue',
+      'arguments': {
+        'threadId': threadId,
+      },
+    } )
 
   @IfConnected()
   def Pause( self ):
-    self._stackTraceView.Pause()
+    if self._stackTraceView.GetCurrentThreadId() is None:
+      utils.UserMessage( 'No current thread', persist = True )
+      return
+
+    self._connection.DoRequest( None, {
+      'command': 'pause',
+      'arguments': {
+        'threadId': self._stackTraceView.GetCurrentThreadId(),
+      },
+    } )
+
+  @IfConnected()
+  def PauseContinueThread( self ):
+    self._stackTraceView.PauseContinueThread()
+
+  @IfConnected()
+  def SetCurrentThread( self ):
+    self._stackTraceView.SetCurrentThread()
 
   @IfConnected()
   def ExpandVariable( self ):
@@ -1098,6 +1149,7 @@ class DebugSession( object ):
   def OnEvent_exited( self, message ):
     utils.UserMessage( 'The debugee exited with status code: {}'.format(
       message[ 'body' ][ 'exitCode' ] ) )
+    self.SetCurrentFrame( None )
 
   def OnEvent_process( self, message ):
     utils.UserMessage( 'The debugee was started: {}'.format(
@@ -1107,7 +1159,8 @@ class DebugSession( object ):
     pass
 
   def OnEvent_continued( self, message ):
-    pass
+    self._stackTraceView.OnContinued( message[ 'body' ] )
+    self._codeView.SetCurrentFrame( None )
 
   def Clear( self ):
     self._codeView.Clear()
@@ -1142,6 +1195,7 @@ class DebugSession( object ):
   def OnEvent_terminated( self, message ):
     # We will handle this when the server actually exists
     utils.UserMessage( "Debugging was terminated by the server." )
+    self.SetCurrentFrame( None )
 
   def OnEvent_output( self, message ):
     if self._outputView:
