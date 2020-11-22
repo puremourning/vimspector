@@ -9,7 +9,8 @@
         "cwd": "${workspaceFolder}",
         "program": {
           "lua": "lua",
-          "file": "simple.lua"
+          "file": "simple.lua",
+          "stopOnEntry": false
         }
       }
     },
@@ -21,7 +22,8 @@
         "cwd": "${workspaceFolder}",
         "program": {
           "lua": "luajit",
-          "file": "simple.lua"
+          "file": "simple.lua",
+          "stopOnEntry": false
         }
       }
     }
