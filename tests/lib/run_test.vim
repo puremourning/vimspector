@@ -361,9 +361,7 @@ for s:test in sort(s:tests)
   set belloff=all
 
   " A test can set g:test_is_flaky to retry running the test.
-  "
-  " FIXME: We assume all tests are flaky
-  let g:test_is_flaky = 1
+  let g:test_is_flaky = 0
 
   call RunTheTest(s:test)
 
