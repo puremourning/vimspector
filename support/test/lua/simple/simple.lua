@@ -1,7 +1,3 @@
-if pcall(require, 'lldebugger') then
-  require('lldebugger').start()
-end
-
 local separator = ' '
 
 

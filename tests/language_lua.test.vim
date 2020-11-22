@@ -13,30 +13,20 @@ function! BaseTest( configuration )
   lcd ../support/test/lua/simple
   exe 'edit ' . fn
 
-  call vimspector#SetLineBreakpoint( fn, 9 )
+  call vimspector#SetLineBreakpoint( fn, 5 )
   call vimspector#LaunchWithSettings( { 'configuration': a:configuration } )
 
-  " This debugger is ignoring stopOnEntry when not running a custom executable
-  " and always stopping on the first line after setting the hook. This first
-  " check assumes that behavior.
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 5, 1 )
   call WaitForAssert( {->
         \ vimspector#test#signs#AssertPCIsAtLineInBuffer( fn, 5 )
-        \ } )
-  " Continue
-  call feedkeys( "\<F5>", 'xt' )
-
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 9, 1 )
-  call WaitForAssert( {->
-        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( fn, 9 )
         \ } )
 
   " Step
   call feedkeys( "\<F10>", 'xt' )
 
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 10, 1 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 6, 1 )
   call WaitForAssert( {->
-        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( fn, 10 )
+        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( fn, 6 )
         \ } )
 
   call vimspector#test#setup#Reset()

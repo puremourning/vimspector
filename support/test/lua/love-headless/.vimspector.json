@@ -10,7 +10,8 @@
         "program": {
           "command": "love"
         },
-        "args": ["${workspaceFolder}"]
+        "args": ["${workspaceFolder}"],
+        "stopOnEntry": false
       }
     }
   }
