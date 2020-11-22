@@ -1,5 +1,6 @@
 function! SetUp()
   call vimspector#test#setup#SetUpWithMappings( v:none )
+  call ThisTestIsFlaky()
 endfunction
 
 function! ClearDown()
