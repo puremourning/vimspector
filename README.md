@@ -1198,6 +1198,9 @@ Requires:
 }
 ```
 
+See the vscode-go docs for
+[troubleshooting information](https://github.com/golang/vscode-go/blob/master/docs/debugging.md#troubleshooting)
+
 ## PHP
 
 This uses the php-debug, see
