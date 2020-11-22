@@ -361,7 +361,9 @@ for s:test in sort(s:tests)
   set belloff=all
 
   " A test can set g:test_is_flaky to retry running the test.
-  let g:test_is_flaky = 0
+  "
+  " FIXME: We assume all tests are flaky
+  let g:test_is_flaky = 1
 
   call RunTheTest(s:test)
 
@@ -371,7 +373,7 @@ for s:test in sort(s:tests)
   if len(v:errors) > 0
         \ && $TEST_NO_RETRY == ''
         \ && g:test_is_flaky
-    for retry in range( 5 )
+    for retry in range( 10 )
       call add( s:messages, 'Found errors in ' . s:test . '. Retrying.' )
       call extend( s:messages, v:errors )
 
