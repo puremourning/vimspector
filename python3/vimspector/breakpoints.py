@@ -219,10 +219,14 @@ class ProjectBreakpoints( object ):
 
 
   def ClearTemporaryBreakpoints( self ):
+    to_delete = []
     for file_name, breakpoints in self._line_breakpoints.items():
-      self._line_breakpoints[ file_name ] = list( filter(
-        lambda bp: not bp[ 'options' ].get( 'temporary' ),
-        breakpoints ) )
+      for index, bp in enumerate( breakpoints ):
+        if bp[ 'options' ].get( 'temporary' ):
+          to_delete.append( ( bp, file_name, index ) )
+
+    for entry in to_delete:
+      self._DeleteLineBreakpoint( *entry )
 
 
   def _UpdateTemporaryBreakpoints( self, breakpoints, temp_idxs ):

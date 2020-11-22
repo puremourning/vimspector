@@ -371,7 +371,7 @@ for s:test in sort(s:tests)
   if len(v:errors) > 0
         \ && $TEST_NO_RETRY == ''
         \ && g:test_is_flaky
-    for retry in range( 5 )
+    for retry in range( 10 )
       call add( s:messages, 'Found errors in ' . s:test . '. Retrying.' )
       call extend( s:messages, v:errors )
 
