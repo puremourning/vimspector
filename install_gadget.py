@@ -113,7 +113,7 @@ parser.add_argument( '--sudo',
                             "run this as root via sudo, pass this flag." )
 
 done_languages = set()
-for name, gadget in gadgets.GADGETS.items():
+for name, gadget in gadgets.Gadgets().items():
   lang = gadget[ 'language' ]
   if lang in done_languages:
     continue
@@ -181,7 +181,7 @@ all_adapters = installer.ReadAdapters(
   read_existing = args.update_gadget_config )
 manifest = installer.Manifest()
 
-for name, gadget in gadgets.GADGETS.items():
+for name, gadget in gadgets.Gadgets().items():
   if not gadget.get( 'enabled', True ):
     if ( not args.force_all
          and not getattr( args, 'force_enable_' + gadget[ 'language' ] ) ):

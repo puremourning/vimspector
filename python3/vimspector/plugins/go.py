@@ -14,28 +14,31 @@
 # limitations under the License.
 
 
-import pkgutil
-import importlib
-import vimspector.plugins
-
-LOADED = 0
-GADGETS = {}
+from vimspector import gadgets
 
 
-def RegisterGadget( name, spec ):
-  GADGETS[ name ] = spec
-
-
-def Gadgets():
-  global LOADED
-  if not LOADED:
-    mod = vimspector.plugins
-    # vimspector.plugins is a namespace package
-    # Following:
-    # https://packaging.python.org/guides/creating-and-discovering-plugins/#using-namespace-packages
-    for finder, name, ispkg in pkgutil.iter_modules( mod.__path__,
-                                                     mod.__name__ + '.' ):
-      importlib.import_module( name )
-    LOADED = 1
-
-  return GADGETS
+gadgets.RegisterGadget( 'vscode-go', {
+  'language': 'go',
+  'download': {
+    'url': 'https://github.com/golang/vscode-go/releases/download/'
+           'v${version}/${file_name}'
+  },
+  'all': {
+    'version': '0.18.1',
+    'file_name': 'Go-0.18.1.vsix',
+    'checksum':
+      '80d4522c6cf482cfa6141997e5b458034f67d7065d92e1ce24a0456c405d6061',
+  },
+  'adapters': {
+    'vscode-go': {
+      'name': 'delve',
+      'command': [
+        'node',
+        '${gadgetDir}/vscode-go/dist/debugAdapter.js'
+      ],
+      "configuration": {
+        "cwd": "${workspaceRoot}",
+      }
+    },
+  },
+} )

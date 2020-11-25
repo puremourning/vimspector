@@ -225,7 +225,7 @@ def GadgetListToInstallerArgs( *gadget_list ):
       continue
 
     try:
-      gadget = gadgets.GADGETS[ name ]
+      gadget = gadgets.Gadgets()[ name ]
     except KeyError:
       continue
 
@@ -239,7 +239,7 @@ def GadgetListToInstallerArgs( *gadget_list ):
 
 def FindGadgetForAdapter( adapter_name ):
   candidates = []
-  for name, gadget in gadgets.GADGETS.items():
+  for name, gadget in gadgets.Gadgets().items():
     v = {}
     v.update( gadget.get( 'all', {} ) )
     v.update( gadget.get( install.GetOS(), {} ) )
@@ -347,29 +347,6 @@ def InstallGeneric( name, root, gadget ):
   MakeExtensionSymlink( name, root )
 
 
-def InstallCppTools( name, root, gadget ):
-  extension = os.path.join( root, 'extension' )
-
-  # It's hilarious, but the execute bits aren't set in the vsix. So they
-  # actually have javascript code which does this. It's just a horrible horrible
-  # hack that really is not funny.
-  MakeExecutable( os.path.join( extension, 'debugAdapters', 'OpenDebugAD7' ) )
-  with open( os.path.join( extension, 'package.json' ) ) as f:
-    package = json.load( f )
-    runtime_dependencies = package[ 'runtimeDependencies' ]
-    for dependency in runtime_dependencies:
-      for binary in dependency.get( 'binaries' ):
-        file_path = os.path.abspath( os.path.join( extension, binary ) )
-        if os.path.exists( file_path ):
-          MakeExecutable( os.path.join( extension, binary ) )
-
-  MakeExtensionSymlink( name, root )
-
-
-def InstallBashDebug( name, root, gadget ):
-  MakeExecutable( os.path.join( root, 'extension', 'bashdb_dir', 'bashdb' ) )
-  MakeExtensionSymlink( name, root )
-
 
 def InstallDebugpy( name, root, gadget ):
   wd = os.getcwd()
@@ -380,55 +357,6 @@ def InstallDebugpy( name, root, gadget ):
   finally:
     os.chdir( wd )
 
-  MakeSymlink( name, root )
-
-
-def InstallTclProDebug( name, root, gadget ):
-  configure = [ 'sh', './configure' ]
-
-  if install.GetOS() == 'macos':
-    # Apple removed the headers from system frameworks because they are
-    # determined to make life difficult. And the TCL configure scripts are super
-    # old so don't know about this. So we do their job for them and try and find
-    # a tclConfig.sh.
-    #
-    # NOTE however that in Apple's infinite wisdom, installing the "headers" in
-    # the other location is actually broken because the paths in the
-    # tclConfig.sh are pointing at the _old_ location. You actually do have to
-    # run the package installation which puts the headers back in order to work.
-    # This is why the below list is does not contain stuff from
-    # /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform
-    #  '/Applications/Xcode.app/Contents/Developer/Platforms'
-    #    '/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System'
-    #    '/Library/Frameworks/Tcl.framework',
-    #  '/Applications/Xcode.app/Contents/Developer/Platforms'
-    #    '/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System'
-    #    '/Library/Frameworks/Tcl.framework/Versions'
-    #    '/Current',
-    for p in [ '/usr/local/opt/tcl-tk/lib' ]:
-      if os.path.exists( os.path.join( p, 'tclConfig.sh' ) ):
-        configure.append( '--with-tcl=' + p )
-        break
-
-
-  with CurrentWorkingDir( os.path.join( root, 'lib', 'tclparser' ) ):
-    CheckCall( configure )
-    CheckCall( [ 'make' ] )
-
-  MakeSymlink( name, root )
-
-
-def InstallNodeDebug( name, root, gadget ):
-  with CurrentWorkingDir( root ):
-    CheckCall( [ 'npm', 'install' ] )
-    CheckCall( [ 'npm', 'run', 'build' ] )
-  MakeSymlink( name, root )
-
-
-def InstallLuaLocal( name, root, gadget ):
-  with CurrentWorkingDir( root ):
-    CheckCall( [ 'npm', 'install' ] )
-    CheckCall( [ 'npm', 'run', 'build' ] )
   MakeSymlink( name, root )
 
 
