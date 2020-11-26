@@ -234,7 +234,7 @@ neovim doesn't implement some features Vimspector relies on:
 
 * WinBar - used for the buttons at the top of the code window and for changing
   the output window's current output.
-* Prompt Buffers - used to send commands in the Console and add Watches
+* ~~Prompt Buffers - used to send commands in the Console and add Watches.~~ Prompt buffers are available inside **5.0** nightly release ([see](https://github.com/neovim/neovim/releases/nightly))
 * Balloons - used to display the values of variables when debugging.
 
 Workarounds are in place as follows:
