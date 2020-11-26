@@ -1108,7 +1108,7 @@ to:
   [the debugpy
   documentation](https://github.com/microsoft/debugpy#debugpy-cli-usage) for
   details.
-* use the built-in "multi-session" adapter. This just asks for the host/port to
+* Use the built-in "multi-session" adapter. This just asks for the host/port to
   connect to. For example:
 
 ```json
@@ -1127,11 +1127,11 @@ to:
 }
 ```
 
-See [deatils of the launch
+See [details of the launch
 configuration](https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings)
 for explanation of things like `pathMappings`.
 
-Additional documenation, including how to do this when the remote machine can
+Additional documentation, including how to do this when the remote machine can
 only be contacted via SSH [are provided by
 debugpy](https://github.com/microsoft/debugpy/wiki/Debugging-over-SSH).
 
