@@ -237,14 +237,19 @@ class StackTraceView( object ):
           elif stoppedThreadId is not None and thread.id == stoppedThreadId:
             thread.Paused( stopEvent )
 
+        # If this is a stopped event, load the stack trace for the "current"
+        # thread. Don't do this on other thrads requests because some servers
+        # just break when that happens.
         if infer_current_frame:
           if thread.id == self._current_thread:
-            self._LoadStackTrace( thread, True, reason )
-            requesting = True
+            if thread.CanExpand():
+              self._LoadStackTrace( thread, True, reason )
+              requesting = True
           elif self._current_thread is None:
             self._current_thread = thread.id
-            self._LoadStackTrace( thread, True, reason )
-            requesting = True
+            if thread.CanExpand():
+              self._LoadStackTrace( thread, True, reason )
+              requesting = True
 
       if not requesting:
         self._DrawThreads()

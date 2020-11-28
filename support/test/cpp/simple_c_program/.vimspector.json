@@ -1,7 +1,7 @@
 {
   "configurations": {
     "simple_c_program - Launch": {
-      "adapter": "vscode-cpptools",
+      "adapter": "CodeLLDB",
       "configuration": {
         "request": "launch",
         "program": "${workspaceRoot}/test",
