@@ -1426,16 +1426,20 @@ use it with Vimspector.
 }
 ```
 
-* Tell YCM to load the debugger plugin and create a mapping, such as
-  `<leader><F5>` to start the debug server and launch vimspector, e.g. in
-  `~/.vim/ftplugin/java.vim`:
+* Tell YCM to load the debugger plugin. This should be the `gadgets/<os>`
+  directory, not any specific adapter. e.g. in `.vimrc`
 
 ```viml
 " Tell YCM where to find the plugin. Add to any existing values.
 let g:ycm_java_jdtls_extension_path = [
   \ '</path/to/Vimspector/gadgets/<os>'
   \ ]
+```
 
+* Create a mapping, such as `<leader><F5>` to start the debug server and launch
+  vimspector, e.g. in `~/.vim/ftplugin/java.vim`:
+
+```viml
 let s:jdt_ls_debugger_port = 0
 function! s:StartDebugging()
   if s:jdt_ls_debugger_port <= 0
@@ -1460,6 +1464,18 @@ nnoremap <silent> <buffer> <Leader><F5> :call <SID>StartDebugging()<CR>
 ```
 
 You can then use `<Leader><F5>` to start debugging rather than just `<F5>`.
+
+If you see "Unable to get DAP port - is JDT.LS initialized?", try running
+`:YcmCompleter ExecuteCommand vscode.java.startDebugSession` and note the
+output. If you see an error like `ResponseFailedException: Request failed:
+-32601: No delegateCommandHandler for vscode.java.startDebugSession`, make sure
+that:
+* Your YCM jdt.ls is actually working, see the
+  [YCM docs](https://github.com/ycm-core/YouCompleteMe#troubleshooting) for
+  troubleshooting
+* The YCM jdt.ls has had time to initialize before you start the debugger
+* That `g:ycm_java_jdtls_extension_path` is set in `.vimrc` or prior to YCM
+  starting
 
 For the launch arguments, see the
 [vscode document](https://code.visualstudio.com/docs/java/java-debugging).
