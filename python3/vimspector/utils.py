@@ -635,6 +635,10 @@ def ParseVariables( variables_list,
 
 
 def DisplayBaloon( is_term, display ):
+  if int(vim.eval("has('nvim')")):
+    vim.eval("vimspector#internal#state#TooltipExec({})".format(display))
+    return
+
   if not is_term:
     display = '\n'.join( display )
     # To enable the Windows GUI to display the balloon correctly

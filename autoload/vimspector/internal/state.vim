@@ -47,6 +47,28 @@ function! vimspector#internal#state#GetAPIPrefix() abort
   return s:prefix
 endfunction
 
+" REMOVEME: this is just a temporary thing to get float window working
+" Returns: py.ShowBalloon( winnr, expresssion )
+function! vimspector#internal#state#Tooltip() abort
+  " winnr + 1 because for *no good reason* winnr is 0 based here unlike
+  " everywhere else
+  " int() because for *no good reason* winnr is a string.
+  return py3eval('_vimspector_session.ShowBalloon('
+        \ . 'int( vim.eval( "winnr()" ) ) ,'
+        \ . 'vim.eval( "expand(\"<cexpr>\")" ) )' )
+endfunction
+
+function! vimspector#internal#state#TooltipExec(body) abort
+  let buf = nvim_create_buf(v:false, v:true)
+  call nvim_buf_set_lines(buf, 0, -1, v:true, a:body)
+  let opts = { 'relative': 'cursor', 'width': 40, 'height': 2, 'col': 0, 'row': 1, 'anchor': 'NW', 'style': 'minimal' }
+  let g:float_win = nvim_open_win(buf, 0, opts)
+
+  augroup vimspector#internal#balloon#nvim_float
+    autocmd!
+    autocmd CursorMoved * :call nvim_win_close(g:float_win, 1) | autocmd! vimspector#internal#balloon#nvim_float
+  augroup END
+endfunction
 " Boilerplate {{{
 let &cpoptions=s:save_cpo
 unlet s:save_cpo
