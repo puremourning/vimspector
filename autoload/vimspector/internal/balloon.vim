@@ -29,6 +29,18 @@ function! vimspector#internal#balloon#BalloonExpr() abort
         \ . 'vim.eval( "v:beval_text" ) )' )
 endfunction
 
+" Returns: py.ShowBalloon( winnr, expresssion )
+function! vimspector#internal#balloon#Tooltip() abort
+  " winnr + 1 because for *no good reason* winnr is 0 based here unlike
+  " everywhere else
+  " int() because for *no good reason* winnr is a string.
+  return py3eval('_vimspector_session.ShowBalloon('
+        \ . 'int( vim.eval( "v:beval_winnr" ) ) + 1,'
+        \ . 'vim.eval( "expand(\"<cexpr>\")" ) )' )
+endfunction
+
+
+
 " Boilerplate {{{
 let &cpoptions=s:save_cpo
 unlet s:save_cpo
