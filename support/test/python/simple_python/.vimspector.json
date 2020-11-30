@@ -1,5 +1,17 @@
 {
+  "$schema": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json",
+  "adapters": {
+    "test_custom": {
+      "command": "This is a test"
+    }
+  },
   "configurations": {
+    "Use custom gadget": {
+      "adapter": "test_custom",
+      "configuration": {
+        "request": "launch"
+      }
+    },
     // This is a comment.
     "run legacy vscode-python": {
       "adapter": "vscode-python", /* coment goes here too */
