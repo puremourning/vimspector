@@ -348,18 +348,6 @@ def InstallGeneric( name, root, gadget ):
 
 
 
-def InstallDebugpy( name, root, gadget ):
-  wd = os.getcwd()
-  root = os.path.join( root, 'debugpy-{}'.format( gadget[ 'version' ] ) )
-  os.chdir( root )
-  try:
-    CheckCall( [ sys.executable, 'setup.py', 'build' ] )
-  finally:
-    os.chdir( wd )
-
-  MakeSymlink( name, root )
-
-
 def InstallGagdet( name: str,
                    gadget: dict,
                    manifest: Manifest,
