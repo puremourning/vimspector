@@ -86,10 +86,11 @@ jobs:
     - run: |
         brew update-reset
         brew doctor || true
-        for p in macvim tcl-tk llvm lua luajit love; do
-          brew install $p
-          brew outdated $p || brew upgrade $p
+        for p in python@3.8 tcl-tk llvm lua luajit love; do
+          brew install $p || brew outdated $p || brew upgrade $p
         done
+        brew install --cask macvim
+        brew link --overwrite python@3.8
       name: 'Install vim and deps'
 
     - run: go get -u github.com/go-delve/delve/cmd/dlv
