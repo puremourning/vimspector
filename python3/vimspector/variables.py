@@ -84,6 +84,12 @@ class WatchResult( Expandable ):
     self.result = result
 
 
+class WatchFailure( WatchResult ):
+  def __init__( self, reason ):
+    super().__init__( { 'result': reason } )
+    self.changed = True
+
+
 class Variable( Expandable ):
   """Holds one level of an expanded value tree. Also itself expandable."""
   def __init__( self, variable: dict ):
@@ -296,11 +302,14 @@ class VariablesView( object ):
 
   def EvaluateWatches( self ):
     for watch in self._watches:
-      self._connection.DoRequest( partial( self._UpdateWatchExpression,
-                                           watch ), {
-        'command': 'evaluate',
-        'arguments': watch.expression,
-      } )
+      self._connection.DoRequest(
+        partial( self._UpdateWatchExpression, watch ),
+        {
+          'command': 'evaluate',
+          'arguments': watch.expression,
+        },
+        failure_handler = lambda reason, msg, watch=watch:
+            self._WatchExpressionFailed( reason, watch ) )
 
   def _UpdateWatchExpression( self, watch: Watch, message: dict ):
     if watch.result is not None:
@@ -319,6 +328,14 @@ class VariablesView( object ):
         },
       } )
 
+    self._DrawWatches()
+
+  def _WatchExpressionFailed( self, reason: str, watch: Watch ):
+    if watch.result is not None:
+      # We already have a result for this watch. Wut ?
+      return
+
+    watch.result = WatchFailure( reason )
     self._DrawWatches()
 
   def ExpandVariable( self ):
