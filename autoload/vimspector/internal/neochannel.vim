@@ -20,28 +20,34 @@ set cpoptions&vim
 " }}}
 
 
+let s:channels = {}
+let s:jobs = {}
 
-function! s:_OnEvent( chan_id, data, event ) abort
+
+function! s:_OnEvent( session_id, chan_id, data, event ) abort
   if v:exiting isnot# v:null
     return
   endif
 
-  if !exists( 's:ch' ) || a:chan_id != s:ch
+  if !has_key( s:channels, a:session_id ) ||
+        \ a:chan_id != s:channels[ a:session_id ]
     return
   endif
 
   if a:data == ['']
     echom 'Channel closed'
     redraw
-    unlet s:ch
+    unlet s:channels[ a:session_id ]
     py3 _vimspector_session.OnServerExit( 0 )
   else
     py3 _vimspector_session.OnChannelData( '\n'.join( vim.eval( 'a:data' ) ) )
   endif
 endfunction
 
-function! vimspector#internal#neochannel#StartDebugSession( config ) abort
-  if exists( 's:ch' )
+function! vimspector#internal#neochannel#StartDebugSession(
+      \ session_id,
+      \  config ) abort
+  if has_key( s:channels, a:session_id )
     echom 'Not starting: Channel is already running'
     redraw
     return v:false
@@ -54,12 +60,12 @@ function! vimspector#internal#neochannel#StartDebugSession( config ) abort
     try
       let old_env = vimspector#internal#neoterm#PrepareEnvironment(
             \ a:config[ 'env' ] )
-      let s:job = jobstart( a:config[ 'command' ],
-            \                {
-            \                    'cwd': a:config[ 'cwd' ],
-            \                    'env': a:config[ 'env' ],
-            \                }
-            \              )
+      let s:jobs[ a:session_id ] = jobstart( a:config[ 'command' ],
+            \                                {
+            \                                    'cwd': a:config[ 'cwd' ],
+            \                                    'env': a:config[ 'env' ],
+            \                                }
+            \                              )
     finally
       call vimspector#internal#neoterm#ResetEnvironment( a:config[ 'env' ],
                                                        \ old_env )
@@ -72,9 +78,10 @@ function! vimspector#internal#neochannel#StartDebugSession( config ) abort
   while attempt <= 10
     echo 'Connecting to ' . l:addr . '... (attempt' attempt 'of 10)'
     try
-      let s:ch = sockconnect( 'tcp',
-                            \ addr,
-                            \ { 'on_data': funcref( 's:_OnEvent' ) } )
+      let s:channels[ a:session_id ] = sockconnect(
+            \ 'tcp',
+            \ addr,
+            \ { 'on_data': funcref( 's:_OnEvent', [ a:session_id ] ) } )
       redraw
       return v:true
     catch /connection refused/
@@ -88,30 +95,30 @@ function! vimspector#internal#neochannel#StartDebugSession( config ) abort
   return v:false
 endfunction
 
-function! vimspector#internal#neochannel#Send( msg ) abort
-  if ! exists( 's:ch' )
+function! vimspector#internal#neochannel#Send( session_id, msg ) abort
+  if ! has_key( s:channels, a:session_id )
     echom "Can't send message: Channel was not initialised correctly"
     redraw
     return 0
   endif
 
-  call chansend( s:ch, a:msg )
+  call chansend( s:channels[ a:session_id ], a:msg )
   return 1
 endfunction
 
-function! vimspector#internal#neochannel#StopDebugSession() abort
-  if exists( 's:ch' )
-    call chanclose( s:ch )
+function! vimspector#internal#neochannel#StopDebugSession( session_id ) abort
+  if has_key( s:channels, a:session_id )
+    call chanclose( s:channels[ a:session_id ] )
     " It doesn't look like we get a callback after chanclos. Who knows if we
     " will subsequently receive data callbacks.
-    call s:_OnEvent( s:ch, [ '' ], 'data' )
+    call s:_OnEvent( a:session_id, s:channels[ a:session_id ], [ '' ], 'data' )
   endif
 
-  if exists( 's:job' )
-    if vimspector#internal#neojob#JobIsRunning( s:job )
-      call jobstop( s:job )
+  if has_key( s:jobs, a:session_id )
+    if vimspector#internal#neojob#JobIsRunning( s:jobs[ a:session_id ] )
+      call jobstop( s:jobs[ a:session_id ] )
     endif
-    unlet s:job
+    unlet s:jobs[ a:session_id ]
   endif
 endfunction
 

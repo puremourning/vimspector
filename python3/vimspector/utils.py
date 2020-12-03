@@ -101,16 +101,21 @@ def OpenFileInCurrentWindow( file_name ):
 COMMAND_HANDLERS = {}
 
 
-def OnCommandWithLogComplete( name, exit_code ):
-  cb = COMMAND_HANDLERS.get( name )
+def OnCommandWithLogComplete( session_id, name, exit_code ):
+  cb = COMMAND_HANDLERS.get( str( session_id ) + '.' + name )
   if cb:
     cb( exit_code )
 
 
-def SetUpCommandBuffer( cmd, name, api_prefix, completion_handler = None ):
-  COMMAND_HANDLERS[ name ] = completion_handler
+def SetUpCommandBuffer( session_id,
+                        cmd,
+                        name,
+                        api_prefix,
+                        completion_handler = None ):
+  COMMAND_HANDLERS[ str( session_id ) + '.' + name ] = completion_handler
 
   buf = Call( f'vimspector#internal#{api_prefix}job#StartCommandWithLog',
+              session_id,
               cmd,
               name )
 
@@ -124,10 +129,12 @@ def SetUpCommandBuffer( cmd, name, api_prefix, completion_handler = None ):
   return vim.buffers[ int( buf ) ]
 
 
-def CleanUpCommand( name, api_prefix ):
-  return vim.eval( 'vimspector#internal#{}job#CleanUpCommand( "{}" )'.format(
-    api_prefix,
-    name ) )
+def CleanUpCommand( session_id, name, api_prefix ):
+  return vim.eval(
+    'vimspector#internal#{}job#CleanUpCommand( {}, "{}" )'.format(
+      api_prefix,
+      session_id,
+      name ) )
 
 
 def CleanUpHiddenBuffer( buf ):
