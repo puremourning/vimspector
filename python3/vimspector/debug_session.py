@@ -743,7 +743,7 @@ class DebugSession( object ):
     # TODO: Do we actually need to copy and update or does Vim do that?
     env = os.environ.copy()
     if os.name == "nt":
-        env = {}
+      env = {}
     if 'env' in self._adapter:
       env.update( self._adapter[ 'env' ] )
     self._adapter[ 'env' ] = env
