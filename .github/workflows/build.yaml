@@ -38,6 +38,7 @@ jobs:
       options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined
     steps:
     - uses: actions/checkout@v2
+
     - run: |
         eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
         go get -u github.com/go-delve/delve/cmd/dlv
@@ -79,17 +80,26 @@ jobs:
         name: 'package-linux'
         path: 'package/linux-${{ github.run_id }}.tar.gz'
 
+    # - name: Start SSH session if failed
+    #   uses: luchihoratiu/debug-via-ssh@main
+    #   if: failure()
+    #   with:
+    #     NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+    #     SSH_PASS: ${{ secrets.SSH_PASS }}
+
   MacOS:
     runs-on: 'macos-10.15'
     steps:
     - uses: actions/checkout@v2
+
     - run: |
         brew update-reset
         brew doctor || true
-        for p in macvim tcl-tk llvm lua luajit love; do
-          brew install $p
-          brew outdated $p || brew upgrade $p
+        for p in python@3.8 tcl-tk llvm lua luajit love; do
+          brew install $p || brew outdated $p || brew upgrade $p
         done
+        brew install --cask macvim
+        brew link --overwrite python@3.8
       name: 'Install vim and deps'
 
     - run: go get -u github.com/go-delve/delve/cmd/dlv
@@ -127,6 +137,13 @@ jobs:
       with:
         name: 'package-macos'
         path: 'package/macos-${{ github.run_id }}.tar.gz'
+
+    # - name: Start SSH session if failed
+    #   uses: luchihoratiu/debug-via-ssh@main
+    #   if: failure()
+    #   with:
+    #     NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+    #     SSH_PASS: ${{ secrets.SSH_PASS }}
 
   PublishRelease:
     runs-on: 'ubuntu-16.04'
