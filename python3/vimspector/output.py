@@ -64,6 +64,8 @@ class OutputView( object ):
     self._buffers = {}
     self._api_prefix = api_prefix
     VIEWS.add( self )
+    # FIXME: hack?
+    self._session_id = hash( self )
 
   def Print( self, category, text: typing.Union[ str, list ] ):
     if not isinstance( text, list ):
@@ -123,7 +125,7 @@ class OutputView( object ):
 
   def _CleanUpBuffer( self, category: str, tab_buffer: TabBuffer ):
     if tab_buffer.is_job:
-      utils.CleanUpCommand( category, self._api_prefix )
+      utils.CleanUpCommand( self._session_id, category, self._api_prefix )
 
     utils.CleanUpHiddenBuffer( tab_buffer.buf )
 
@@ -192,6 +194,7 @@ class OutputView( object ):
 
     if cmd is not None:
       out = utils.SetUpCommandBuffer(
+        self._session_id, # TODO: not really a session id
         cmd,
         category,
         self._api_prefix,

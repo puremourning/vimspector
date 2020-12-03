@@ -71,8 +71,11 @@ class DebugAdapterConnection( object ):
 
     # TODO/FIXME: This is so messy
     expiry_id = vim.eval(
-      'timer_start( {}, "vimspector#internal#channel#Timeout" )'.format(
-        timeout ) )
+      'timer_start( {}, '
+      '             function( "vimspector#internal#channel#Timeout", '
+      '                       [ {} ] ) )'.format(
+        timeout,
+        self._handler.session_id ) )
 
     request = PendingRequest( msg,
                               handler,

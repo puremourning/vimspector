@@ -19,14 +19,17 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 " }}}
 
+let s:jobs = {}
+let s:commands = {}
 
 
-function! s:_OnEvent( chan_id, data, event ) abort
+
+function! s:_OnEvent( session_id, chan_id, data, event ) abort
   if v:exiting isnot# v:null
     return
   endif
 
-  if !exists( 's:job' ) || a:chan_id != s:job
+  if !has_key( s:jobs, a:session_id ) || a:chan_id != s:jobs[ a:session_id ]
     return
   endif
 
@@ -38,13 +41,15 @@ function! s:_OnEvent( chan_id, data, event ) abort
   elseif a:event ==# 'exit'
     echom 'Channel exit with status ' . a:data
     redraw
-    unlet s:job
+    unlet s:jobs[ a:session_id ]
     py3 _vimspector_session.OnServerExit( vim.eval( 'a:data' ) )
   endif
 endfunction
 
-function! vimspector#internal#neojob#StartDebugSession( config ) abort
-  if exists( 's:job' )
+function! vimspector#internal#neojob#StartDebugSession(
+      \ session_id,
+      \ config ) abort
+  if has_key( s:jobs, a:session_id )
     echom 'Not starging: Job is already running'
     redraw
     return v:false
@@ -57,11 +62,14 @@ function! vimspector#internal#neojob#StartDebugSession( config ) abort
   try
     let old_env = vimspector#internal#neoterm#PrepareEnvironment(
           \ a:config[ 'env' ] )
-    let s:job = jobstart( a:config[ 'command' ],
+    let s:jobs[ a:session_id ] = jobstart( a:config[ 'command' ],
           \                {
-          \                    'on_stdout': funcref( 's:_OnEvent' ),
-          \                    'on_stderr': funcref( 's:_OnEvent' ),
-          \                    'on_exit': funcref( 's:_OnEvent' ),
+          \                    'on_stdout': funcref( 's:_OnEvent',
+          \                                          [ a:session_id ] ),
+          \                    'on_stderr': funcref( 's:_OnEvent',
+          \                                          [ a:session_id ] ),
+          \                    'on_exit': funcref( 's:_OnEvent',
+          \                                        [ a:session_id ] ),
           \                    'cwd': a:config[ 'cwd' ],
           \                    'env': a:config[ 'env' ],
           \                }
@@ -78,40 +86,40 @@ function! vimspector#internal#neojob#JobIsRunning( job ) abort
   return jobwait( [ a:job ], 0 )[ 0 ] == -1
 endfunction
 
-function! vimspector#internal#neojob#Send( msg ) abort
-  if ! exists( 's:job' )
+function! vimspector#internal#neojob#Send( session_id, msg ) abort
+  if ! has_key( s:jobs, a:session_id )
     echom "Can't send message: Job was not initialised correctly"
     redraw
     return 0
   endif
 
-  if !vimspector#internal#neojob#JobIsRunning( s:job )
+  if !vimspector#internal#neojob#JobIsRunning( s:jobs[ a:session_id ] )
     echom "Can't send message: Job is not running"
     redraw
     return 0
   endif
 
-  call chansend( s:job, a:msg )
+  call chansend( s:jobs[ a:session_id ], a:msg )
   return 1
 endfunction
 
-function! vimspector#internal#neojob#StopDebugSession() abort
-  if !exists( 's:job' )
+function! vimspector#internal#neojob#StopDebugSession( session_id ) abort
+  if !has_key( s:jobs, a:session_id )
     return
   endif
 
-  if vimspector#internal#neojob#JobIsRunning( s:job )
+  if vimspector#internal#neojob#JobIsRunning( s:jobs[ a:session_id ] )
     echom 'Terminating job'
     redraw
-    call jobstop( s:job )
+    call jobstop( s:jobs[ a:session_id ] )
   endif
 endfunction
 
-function! vimspector#internal#neojob#Reset() abort
-  call vimspector#internal#neojob#StopDebugSession()
+function! vimspector#internal#neojob#Reset( session_id ) abort
+  call vimspector#internal#neojob#StopDebugSession( a:session_id )
 endfunction
 
-function! s:_OnCommandEvent( category, id, data, event ) abort
+function! s:_OnCommandEvent( session_id, category, id, data, event ) abort
   if v:exiting isnot# v:null
     return
   endif
@@ -121,18 +129,22 @@ function! s:_OnCommandEvent( category, id, data, event ) abort
       return
     endif
 
-    if !has_key( s:commands, a:category )
+    if ! has_key( s:commands, a:session_id )
       return
     endif
 
-    if !has_key( s:commands[ a:category ], a:id )
+    if !has_key( s:commands[ a:session_id ], a:category )
+      return
+    endif
+
+    if !has_key( s:commands[ a:session_id ][ a:category ], a:id )
       return
     endif
 
     if a:event ==# 'stdout'
-      let buffer = s:commands[ a:category ][ a:id ].stdout
+      let buffer = s:commands[ a:session_id ][ a:category ][ a:id ].stdout
     elseif a:event ==# 'stderr'
-      let buffer = s:commands[ a:category ][ a:id ].stderr
+      let buffer = s:commands[ a:session_id ][ a:category ][ a:id ].stderr
     endif
 
     try
@@ -174,6 +186,7 @@ function! s:_OnCommandEvent( category, id, data, event ) abort
   elseif a:event ==# 'exit'
     py3 __import__( "vimspector",
           \         fromlist = [ "utils" ] ).utils.OnCommandWithLogComplete(
+          \           vim.eval( 'a:session_id' ),
           \           vim.eval( 'a:category' ),
           \           int( vim.eval( 'a:data' ) ) )
   endif
@@ -199,11 +212,16 @@ function! s:MakeBufferWritable( buffer ) abort
 endfunction
 
 
-let s:commands = {}
+function! vimspector#internal#neojob#StartCommandWithLog(
+      \ session_id,
+      \ cmd,
+      \ category ) abort
+  if ! has_key( s:commands, a:session_id )
+    let s:commands[ a:session_id ] = {}
+  endif
 
-function! vimspector#internal#neojob#StartCommandWithLog( cmd, category ) abort
-  if ! has_key( s:commands, a:category )
-    let s:commands[ a:category ] = {}
+  if ! has_key( s:commands[ a:session_id ], a:category )
+    let s:commands[ a:session_id ][ a:category ] = {}
   endif
 
   let buf = bufnr( '_vimspector_log_' . a:category, v:true )
@@ -216,14 +234,14 @@ function! vimspector#internal#neojob#StartCommandWithLog( cmd, category ) abort
   let id = jobstart(a:cmd,
         \          {
         \            'on_stdout': funcref( 's:_OnCommandEvent',
-        \                                  [ a:category ] ),
+        \                                  [ a:session_id, a:category ] ),
         \            'on_stderr': funcref( 's:_OnCommandEvent',
-        \                                  [ a:category ] ),
+        \                                  [ a:session_id, a:category ] ),
         \            'on_exit': funcref( 's:_OnCommandEvent',
-        \                                [ a:category ] ),
+        \                                [ a:session_id, a:category ] ),
         \          } )
 
-  let s:commands[ a:category ][ id ] = {
+  let s:commands[ a:session_id ][ a:category ][ id ] = {
         \ 'stdout': buf,
         \ 'stderr': buf
         \ }
@@ -231,19 +249,25 @@ function! vimspector#internal#neojob#StartCommandWithLog( cmd, category ) abort
   return buf
 endfunction
 
-function! vimspector#internal#neojob#CleanUpCommand( category ) abort
-  if ! has_key( s:commands, a:category )
+function! vimspector#internal#neojob#CleanUpCommand(
+      \ session_id,
+      \ category ) abort
+  if ! has_key( s:commands, a:session_id )
     return
   endif
 
-  for id in keys( s:commands[ a:category ] )
+  if ! has_key( s:commands[ a:session_id ], a:category )
+    return
+  endif
+
+  for id in keys( s:commands[ a:session_id ][ a:category ] )
     let id = str2nr( id )
     if jobwait( [ id ], 0 )[ 0 ] == -1
       call jobstop( id )
     endif
     call jobwait( [ id ], -1 )
   endfor
-  unlet! s:commands[ a:category ]
+  unlet! s:commands[ a:session_id ][ a:category ]
 endfunction
 
 " Boilerplate {{{
