@@ -740,11 +740,7 @@ class DebugSession( object ):
 
     self._connection_type = self._api_prefix + self._connection_type
 
-    # TODO: Do we actually need to copy and update or does Vim do that?
-    env = os.environ.copy()
-    if 'env' in self._adapter:
-      env.update( self._adapter[ 'env' ] )
-    self._adapter[ 'env' ] = env
+    self._adapter[ 'env' ] = self._adapter.get( 'env', {} )
 
     if 'cwd' not in self._adapter:
       self._adapter[ 'cwd' ] = os.getcwd()

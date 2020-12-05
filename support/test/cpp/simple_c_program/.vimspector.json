@@ -1,7 +1,15 @@
 {
   "configurations": {
-    "simple_c_program - Launch": {
+    "CodeLLDB": {
       "adapter": "CodeLLDB",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/test",
+        "stopAtEntry": true
+      }
+    },
+    "lldb-vscode": {
+      "adapter": "lldb-vscode",
       "configuration": {
         "request": "launch",
         "program": "${workspaceRoot}/test",
