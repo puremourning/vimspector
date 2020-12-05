@@ -1,8 +1,12 @@
 {
   "$schema": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json",
   "adapters": {
-    "test_custom": {
-      "command": "This is a test"
+    "run_with_debugpy": {
+      "command": [ "${workspaceRoot}/run_with_debugpy" ],
+      "port": 9876,
+      "env": {
+        "DEBUG_PORT": "9876"
+      }
     }
   },
   "configurations": {
@@ -33,6 +37,19 @@
     },
     "attach": {
       "adapter": "multi-session",
+      "configuration": {
+        "request": "attach"
+      },
+      "breakpoints": {
+        "exception": {
+          "raised": "N",
+          "uncaught": "",
+          "userUnhandled": ""
+        }
+      }
+    },
+    "attach-run": {
+      "adapter": "run_with_debugpy",
       "configuration": {
         "request": "attach"
       },
