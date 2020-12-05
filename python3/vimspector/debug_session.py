@@ -43,25 +43,10 @@ VIMSPECTOR_HOME = utils.GetVimspectorBase()
 # cache of what the user entered for any option we ask them
 USER_CHOICES = {}
 
-NEXT_SESSION_ID = 0
-SESSIONS = {}
-
-
-def PushSession( session ):
-  global NEXT_SESSION_ID
-  this_id = NEXT_SESSION_ID
-  NEXT_SESSION_ID = NEXT_SESSION_ID + 1
-  SESSIONS[ this_id ] = session
-  return this_id
-
-
-def PopSession( session ):
-  SESSIONS.pop( session.session_id, None )
-
-
 class DebugSession( object ):
-  def __init__( self, api_prefix ):
-    self.session_id = PushSession( self )
+  def __init__( self, session_id, session_manager, api_prefix ):
+    self.session_id = session_id
+    self.manager = session_manager
     self._logger = logging.getLogger( __name__ )
     utils.SetUpLogging( self._logger )
 
@@ -98,7 +83,7 @@ class DebugSession( object ):
 
 
   def __del__( self ):
-    PopSession( self )
+    self.manager.DestroySession( self )
 
 
   def _ResetServerState( self ):
@@ -1220,8 +1205,9 @@ class DebugSession( object ):
                                   spec )
 
       self._connection = debug_adapter_connection.DebugAdapterConnection(
-        handlers,
-        lambda msg: utils.Call(
+        handlers = handlers,
+        session_id = self.session_id,
+        send_func = lambda msg: utils.Call(
           "vimspector#internal#{}#Send".format( self._connection_type ),
           self.session_id,
           msg ),

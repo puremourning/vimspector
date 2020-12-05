@@ -34,6 +34,7 @@ class PendingRequest( object ):
 class DebugAdapterConnection( object ):
   def __init__( self,
                 handlers,
+                session_id,
                 send_func,
                 sync_timeout = None,
                 async_timeout = None ):
@@ -49,6 +50,7 @@ class DebugAdapterConnection( object ):
     self._SetState( 'READ_HEADER' )
     self._buffer = bytes()
     self._handlers = handlers
+    self._session_id = session_id
     self._next_message_id = 0
     self._outstanding_requests = {}
     self.async_timeout = async_timeout
@@ -69,13 +71,12 @@ class DebugAdapterConnection( object ):
     msg[ 'seq' ] = this_id
     msg[ 'type' ] = 'request'
 
-    # TODO/FIXME: This is so messy
     expiry_id = vim.eval(
       'timer_start( {}, '
       '             function( "vimspector#internal#channel#Timeout", '
       '                       [ {} ] ) )'.format(
         timeout,
-        self._handler.session_id ) )
+        self._session_id ) )
 
     request = PendingRequest( msg,
                               handler,
