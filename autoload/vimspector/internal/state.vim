@@ -29,10 +29,12 @@ endif
 function! vimspector#internal#state#Reset() abort
   try
     py3 import vim
-    py3 _vimspector_session = __import__(
+    py3 _vimspector_session_manager = __import__(
           \ "vimspector",
-          \ fromlist=[ "debug_session" ] ).debug_session.DebugSession(
-          \   vim.eval( 's:prefix' ) )
+          \ fromlist=[ "session_manager" ] ).session_manager.SessionManager()
+
+    py3 _vimspector_session = _vimspector_session_manager =
+          \ _vimspector_session_manager.NewSession( vim.eval( 's:prefix' ) )
   catch /.*/
     echohl WarningMsg
     echom 'Exception while loading vimspector:' v:exception
