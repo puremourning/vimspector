@@ -53,7 +53,7 @@ function! vimspector#internal#state#Tooltip() abort
   " winnr + 1 because for *no good reason* winnr is 0 based here unlike
   " everywhere else
   " int() because for *no good reason* winnr is a string.
-  return py3eval('_vimspector_session.ShowBalloon('
+  return py3eval('_vimspector_session.ShowTooltip('
         \ . 'int( vim.eval( "winnr()" ) ) ,'
         \ . 'vim.eval( "expand(\"<cexpr>\")" ) )' )
 endfunction
@@ -62,16 +62,20 @@ function! vimspector#internal#state#CreateTooltip() abort
 
 endfunction
 
+function! vimspector#internal#state#ShowTooltip()  abort
+  return py3eval('_vimspector_session.ShowTooltip(int( vim.eval( "winnr()" ) ) ,vim.eval( "expand(\"<cexpr>\")" ) )')
+endfunction
+
 function! vimspector#internal#state#TooltipExec(body) abort
   let buf = nvim_create_buf(v:false, v:true)
   call nvim_buf_set_lines(buf, 0, -1, v:true, a:body)
 
   " get the max width on a line
   let width = 0
-  let maxWidth = winwidth()
+  let maxWidth = winwidth(0)
 
   for w in a:body
-    let width = max(len(w), width)
+    let width = max([len(w), width])
     " reached the max size, no point in looping more
     if width > maxWidth
       let width = maxWidth
@@ -79,8 +83,10 @@ function! vimspector#internal#state#TooltipExec(body) abort
     endif
   endfor
 
+
   let opts = { 'relative': 'cursor', 'width': width, 'height': len(a:body), 'col': 0, 'row': 1, 'anchor': 'NW', 'style': 'minimal' }
   let g:float_win = nvim_open_win(buf, 0, opts)
+  call setwinvar(g:float_win, '&wrap', 0)
 
   augroup vimspector#internal#balloon#nvim_float
     autocmd!

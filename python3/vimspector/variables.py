@@ -125,9 +125,9 @@ class View:
   def __init__( self, win, lines, draw ):
     self.lines = lines
     self.draw = draw
-    self.buf = win.buffer
-
-    utils.SetUpUIWindow( win )
+    if (win is not None):
+      self.buf = win.buffer
+      utils.SetUpUIWindow( win )
 
 
 class VariablesView( object ):
@@ -137,6 +137,8 @@ class VariablesView( object ):
 
     self._connection = None
     self._current_syntax = ''
+
+    self._variable_eval = None
 
     def AddExpandMappings():
       vim.command( 'nnoremap <silent> <buffer> <CR> '
@@ -266,6 +268,75 @@ class VariablesView( object ):
         'frameId': frame[ 'id' ]
       },
     } )
+
+  def _DrawEval(self):
+    # TODO: create vim functin that creates a floating window and returns window id
+    # use that window id to retrieve the buffer
+    # use that buffer in order to populate the results of the query
+    indent = 0
+    icon = '+' if self._variable_eval.IsExpandable() and not self._variable_eval.IsExpanded() else '-'
+
+    line = utils.AppendToBuffer( self._vars.buf,
+                                 '{0}{1} Scope: {2}'.format(
+                                   ' ' * indent,
+                                   icon,
+                                   self._variable_eval.scope[ 'name' ] ) )
+    self._vars.lines[ line ] = self._variable_eval
+
+    if self._variable_eval.ShouldDrawDrillDown():
+      indent += 2
+      # replace with a newly created view for the purposes of evaluation
+      self._DrawVariables( self._vars, self._variable_eval.variables, indent )
+
+      #  vim.eval("vimspector#internal#state#TooltipExec({})".format([self._variable_eval]))
+
+
+  def VariableEval(self, frame, expression):
+    """Callback to display variable under cursor `:h ballonexpr`"""
+    if not self._connection:
+      return ''
+
+    def handler( message ):
+      # TODO: this result count be expandable, but we have no way to allow the
+      # user to interact with the balloon to expand it, unless we use a popup
+      # instead, but even then we don't really want to trap the cursor.
+      body = message[ 'body' ]
+      result = body[ 'result' ]
+      if result is None:
+        result = 'null'
+      display = [
+        'Type: ' + body.get( 'type', '<unknown>' ),
+        'Value: ' + result
+      ]
+
+      self._variable_eval = Scope(body)
+
+      self._connection.DoRequest( partial( self._ConsumeVariables,
+                                           self._DrawEval,
+                                           self._variable_eval ), {
+        'command': 'variables',
+        'arguments': {
+          'variablesReference': self._variable_eval.VariablesReference(),
+        },
+      } )
+
+
+    def failure_handler( reason, message ):
+      display = [ reason ]
+      utils.DisplayBaloon( self._is_term, display )
+
+    # Send async request
+    self._connection.DoRequest( handler, {
+      'command': 'evaluate',
+      'arguments': {
+        'expression': expression,
+        'frameId': frame[ 'id' ],
+        'context': 'hover',
+      }
+    }, failure_handler )
+
+    # Return working (meanwhile)
+    return '...'
 
   def AddWatch( self, frame, expression ):
     watch = {
@@ -535,92 +606,4 @@ class VariablesView( object ):
                                             syntax,
                                             self._vars.buf,
                                             self._watch.buf )
-class VariableEval
-  def __init__(self, stackTrace):
-    self.stackTrace = stackTrace
-    self._connection = None
-    self.variable = Variable()
-
-  def _ConsumeVariables(self, parent, message):
-    new_variables = []
-    for variable_body in message[ 'body' ][ 'variables' ]:
-      if parent.variables is None:
-        parent.variables = []
-
-      # Find the variable in parent
-      found = False
-      for index, v in enumerate( parent.variables ):
-        if v.variable[ 'name' ] == variable_body[ 'name' ]:
-          variable = v
-          found = True
-          break
-
-      if not found:
-        variable = Variable( variable_body )
-      else:
-        variable.Update( variable_body )
-
-      new_variables.append( variable )
-
-      if variable.IsExpandable() and variable.IsExpanded():
-        self._connection.DoRequest( partial( self._ConsumeVariables,
-                                             draw,
-                                             variable ), {
-          'command': 'variables',
-          'arguments': {
-            'variablesReference': variable.VariablesReference()
-          },
-        } )
-
-    parent.variables = new_variables
-
-  def _DrawVariables( self,  variables, indent ):
-    assert indent > 0
-    for variable in variables:
-      line = utils.AppendToBuffer(
-        view.buf,
-        '{indent}{marker}{icon} {name} ({type_}): {value}'.format(
-          # We borrow 1 space of indent to draw the change marker
-          indent = ' ' * ( indent - 1 ),
-          marker = '*' if variable.changed else ' ',
-          icon = '+' if ( variable.IsExpandable()
-                          and not variable.IsExpanded() ) else '-',
-          name = variable.variable[ 'name' ],
-          type_ = variable.variable.get( 'type', '' ),
-          value = variable.variable.get( 'value',
-                                         '<unknown>' ) ).split( '\n' ) )
-      view.lines[ line ] = variable
-
-      if variable.ShouldDrawDrillDown():
-        self._DrawVariables( view, variable.variables, indent + 2 )
-
-  def AddVariableEval( self, bufid ):
-    current_symbol = vim.eval("expand('<cexpr>')")
-
-    def handler( message ):
-      # TODO: this result count be expandable, but we have no way to allow the
-      # user to interact with the balloon to expand it, unless we use a popup
-      # instead, but even then we don't really want to trap the cursor.
-      _ConsumeVariables(self, self.variable, message)
-      variableEvalView = View( variables_win, {}, self._DrawScopes )
-      _DrawVariables(self, self.variable, 0)
-
-
-    def failure_handler(reason, message):
-      vim.eval("echom {}".format(message))
-
-    self._connection.DoRequest( handler, {
-      'command': 'evaluate',
-      'arguments': {
-        'expression': expression,
-        'frameId': frame[ 'id' ],
-        'context': 'hover',
-      }
-    }, failure_handler )
-
-  def ConnectionUp( self, connection ):
-    self._connection = connection
-
-  def ConnectionClosed(self):
-    self._connection = None
 # vim: sw=2
