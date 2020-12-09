@@ -371,6 +371,10 @@ class VariablesView( object ):
       },
     } )
 
+
+
+
+
   def _DrawVariables( self, view,  variables, indent ):
     assert indent > 0
     for variable in variables:
@@ -531,5 +535,92 @@ class VariablesView( object ):
                                             syntax,
                                             self._vars.buf,
                                             self._watch.buf )
+class VariableEval
+  def __init__(self, stackTrace):
+    self.stackTrace = stackTrace
+    self._connection = None
+    self.variable = Variable()
 
+  def _ConsumeVariables(self, parent, message):
+    new_variables = []
+    for variable_body in message[ 'body' ][ 'variables' ]:
+      if parent.variables is None:
+        parent.variables = []
+
+      # Find the variable in parent
+      found = False
+      for index, v in enumerate( parent.variables ):
+        if v.variable[ 'name' ] == variable_body[ 'name' ]:
+          variable = v
+          found = True
+          break
+
+      if not found:
+        variable = Variable( variable_body )
+      else:
+        variable.Update( variable_body )
+
+      new_variables.append( variable )
+
+      if variable.IsExpandable() and variable.IsExpanded():
+        self._connection.DoRequest( partial( self._ConsumeVariables,
+                                             draw,
+                                             variable ), {
+          'command': 'variables',
+          'arguments': {
+            'variablesReference': variable.VariablesReference()
+          },
+        } )
+
+    parent.variables = new_variables
+
+  def _DrawVariables( self,  variables, indent ):
+    assert indent > 0
+    for variable in variables:
+      line = utils.AppendToBuffer(
+        view.buf,
+        '{indent}{marker}{icon} {name} ({type_}): {value}'.format(
+          # We borrow 1 space of indent to draw the change marker
+          indent = ' ' * ( indent - 1 ),
+          marker = '*' if variable.changed else ' ',
+          icon = '+' if ( variable.IsExpandable()
+                          and not variable.IsExpanded() ) else '-',
+          name = variable.variable[ 'name' ],
+          type_ = variable.variable.get( 'type', '' ),
+          value = variable.variable.get( 'value',
+                                         '<unknown>' ) ).split( '\n' ) )
+      view.lines[ line ] = variable
+
+      if variable.ShouldDrawDrillDown():
+        self._DrawVariables( view, variable.variables, indent + 2 )
+
+  def AddVariableEval( self, bufid ):
+    current_symbol = vim.eval("expand('<cexpr>')")
+
+    def handler( message ):
+      # TODO: this result count be expandable, but we have no way to allow the
+      # user to interact with the balloon to expand it, unless we use a popup
+      # instead, but even then we don't really want to trap the cursor.
+      _ConsumeVariables(self, self.variable, message)
+      variableEvalView = View( variables_win, {}, self._DrawScopes )
+      _DrawVariables(self, self.variable, 0)
+
+
+    def failure_handler(reason, message):
+      vim.eval("echom {}".format(message))
+
+    self._connection.DoRequest( handler, {
+      'command': 'evaluate',
+      'arguments': {
+        'expression': expression,
+        'frameId': frame[ 'id' ],
+        'context': 'hover',
+      }
+    }, failure_handler )
+
+  def ConnectionUp( self, connection ):
+    self._connection = connection
+
+  def ConnectionClosed(self):
+    self._connection = None
 # vim: sw=2
