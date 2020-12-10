@@ -47,19 +47,24 @@ function! vimspector#internal#state#GetAPIPrefix() abort
   return s:prefix
 endfunction
 
-" REMOVEME: this is just a temporary thing to get float window working
-" Returns: py.ShowBalloon( winnr, expresssion )
-function! vimspector#internal#state#Tooltip() abort
-  " winnr + 1 because for *no good reason* winnr is 0 based here unlike
-  " everywhere else
-  " int() because for *no good reason* winnr is a string.
-  return py3eval('_vimspector_session.ShowTooltip('
-        \ . 'int( vim.eval( "winnr()" ) ) ,'
-        \ . 'vim.eval( "expand(\"<cexpr>\")" ) )' )
-endfunction
-
 function! vimspector#internal#state#CreateTooltip() abort
+  let buf = nvim_create_buf(v:false, v:true)
+  call nvim_buf_set_lines(buf, 0, -1, v:true, [])
 
+  " default the dimensions for now. they can be easily overwritten later
+  let opts = { 'relative': 'cursor', 'width': 50, 'height': 2, 'col': 0, 'row': 1, 'anchor': 'NW', 'style': 'minimal' }
+  let g:float_win = nvim_open_win(buf, 0, opts)
+  call setwinvar(g:float_win, '&wrap', 0)
+
+  call win_gotoid(g:float_win)
+
+  " make sure we clean up the float after it loses focus
+  augroup vimspector#internal#balloon#nvim_float
+    autocmd!
+    autocmd WinLeave * :call nvim_win_close(g:float_win, 1) | autocmd! vimspector#internal#balloon#nvim_float
+  augroup END
+
+  return g:float_win
 endfunction
 
 function! vimspector#internal#state#ShowTooltip()  abort

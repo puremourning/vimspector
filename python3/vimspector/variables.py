@@ -139,6 +139,8 @@ class VariablesView( object ):
     self._current_syntax = ''
 
     self._variable_eval = None
+    self._variable_eval_view = None
+    self._variable_eval_win = None
 
     def AddExpandMappings():
       vim.command( 'nnoremap <silent> <buffer> <CR> '
@@ -270,25 +272,12 @@ class VariablesView( object ):
     } )
 
   def _DrawEval(self):
-    # TODO: create vim functin that creates a floating window and returns window id
-    # use that window id to retrieve the buffer
-    # use that buffer in order to populate the results of the query
-    indent = 0
-    icon = '+' if self._variable_eval.IsExpandable() and not self._variable_eval.IsExpanded() else '-'
+    self._variable_eval_win.height = min(5, len(self._variable_eval.variables))
+    with utils.RestoreCursorPosition():
+        utils.ClearBuffer( self._variable_eval_view.buf )
+        icon = '+' if self._variable_eval.IsExpandable() and not self._variable_eval.IsExpanded() else '-'
 
-    line = utils.AppendToBuffer( self._vars.buf,
-                                 '{0}{1} Scope: {2}'.format(
-                                   ' ' * indent,
-                                   icon,
-                                   self._variable_eval.scope[ 'name' ] ) )
-    self._vars.lines[ line ] = self._variable_eval
-
-    if self._variable_eval.ShouldDrawDrillDown():
-      indent += 2
-      # replace with a newly created view for the purposes of evaluation
-      self._DrawVariables( self._vars, self._variable_eval.variables, indent )
-
-      #  vim.eval("vimspector#internal#state#TooltipExec({})".format([self._variable_eval]))
+        self._DrawVariables( self._variable_eval_view, self._variable_eval.variables, 2 )
 
 
   def VariableEval(self, frame, expression):
@@ -297,28 +286,38 @@ class VariablesView( object ):
       return ''
 
     def handler( message ):
-      # TODO: this result count be expandable, but we have no way to allow the
-      # user to interact with the balloon to expand it, unless we use a popup
-      # instead, but even then we don't really want to trap the cursor.
       body = message[ 'body' ]
-      result = body[ 'result' ]
-      if result is None:
-        result = 'null'
-      display = [
-        'Type: ' + body.get( 'type', '<unknown>' ),
-        'Value: ' + result
-      ]
 
       self._variable_eval = Scope(body)
 
-      self._connection.DoRequest( partial( self._ConsumeVariables,
-                                           self._DrawEval,
-                                           self._variable_eval ), {
-        'command': 'variables',
-        'arguments': {
-          'variablesReference': self._variable_eval.VariablesReference(),
-        },
-      } )
+      float_win_id = vim.eval("vimspector#internal#state#CreateTooltip()")
+      self._variable_eval_win = vim.current.window
+
+      with utils.LetCurrentWindow( self._variable_eval_win ):
+        vim.command( 'nnoremap <silent> <buffer> <CR> '
+                     ':<C-u>call vimspector#ExpandVariable()<CR>' )
+        vim.command( 'nnoremap <silent> <buffer> <esc> '
+                     ':quit<CR>' )
+        vim.command( 'nnoremap <silent> <buffer> <2-LeftMouse> '
+                     ':<C-u>call vimspector#ExpandVariable()<CR>' )
+
+
+      if(self._variable_eval.VariablesReference() > 0):
+        self._variable_eval_view = View(self._variable_eval_win, {}, self._DrawEval)
+        self._connection.DoRequest( partial( self._ConsumeVariables,
+                                             self._DrawEval,
+                                             self._variable_eval ), {
+          'command': 'variables',
+          'arguments': {
+            'variablesReference': self._variable_eval.VariablesReference(),
+          },
+        } )
+      else:
+        # in case that there is nothing to expand, we need to simulate a response from 'variables' request
+        # it returns [Variable]
+        self._variable_eval_view = View(self._variable_eval_win, {}, self._DrawEval)
+        self._variable_eval.variables = [Variable({'name': expression, 'value': body['result']})]
+        self._DrawEval()
 
 
     def failure_handler( reason, message ):
@@ -414,6 +413,8 @@ class VariablesView( object ):
       view = self._vars
     elif vim.current.buffer == self._watch.buf:
       view = self._watch
+    elif vim.current.buffer == self._variable_eval_view.buf:
+      view = self._variable_eval_view
     else:
       return
 
@@ -542,7 +543,6 @@ class VariablesView( object ):
           variable = v
           found = True
           break
-
       if not found:
         variable = Variable( variable_body )
       else:
