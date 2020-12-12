@@ -47,24 +47,89 @@ function! vimspector#internal#state#GetAPIPrefix() abort
   return s:prefix
 endfunction
 
+let s:float_win = 0
+
 function! vimspector#internal#state#CreateTooltip() abort
-  let buf = nvim_create_buf(v:false, v:true)
-  call nvim_buf_set_lines(buf, 0, -1, v:true, [])
+  if has('nvim')
+    let buf = nvim_create_buf(v:false, v:true)
+    call nvim_buf_set_lines(buf, 0, -1, v:true, [])
 
-  " default the dimensions for now. they can be easily overwritten later
-  let opts = { 'relative': 'cursor', 'width': 50, 'height': 2, 'col': 0, 'row': 1, 'anchor': 'NW', 'style': 'minimal' }
-  let g:float_win = nvim_open_win(buf, 0, opts)
-  call setwinvar(g:float_win, '&wrap', 0)
+    " default the dimensions for now. they can be easily overwritten later
+    let opts = {
+          \ 'relative': 'cursor',
+          \ 'width': 50,
+          \ 'height': 2,
+          \ 'col': 0,
+          \ 'row': 1,
+          \ 'anchor': 'NW',
+          \ 'style': 'minimal'
+          \ }
+    let s:float_win = nvim_open_win(buf, 0, opts)
+    call setwinvar(s:float_win, '&wrap', 1)
+    call setwinvar(s:float_win, '&cursorline', 1)
 
-  call win_gotoid(g:float_win)
+    call win_gotoid(s:float_win)
 
-  " make sure we clean up the float after it loses focus
-  augroup vimspector#internal#balloon#nvim_float
-    autocmd!
-    autocmd WinLeave * :call nvim_win_close(g:float_win, 1) | autocmd! vimspector#internal#balloon#nvim_float
-  augroup END
+    nnoremap <silent> <buffer> <CR> :<C-u>call vimspector#ExpandVariable()<CR>
+    nnoremap <silent> <buffer> <esc>:quit<CR>
+    nnoremap <silent> <buffer> <2-LeftMouse>:<C-u>call vimspector#ExpandVariable()<CR>
 
-  return g:float_win
+    " make sure we clean up the float after it loses focus
+    augroup vimspector#internal#balloon#nvim_float
+      autocmd!
+      autocmd WinLeave * :call nvim_win_close(s:float_win, 1) | autocmd! vimspector#internal#balloon#nvim_float
+    augroup END
+
+  else
+    " assume we are inside vim
+    func! MyFilter(winid, key)
+      if index(['j', 'k', 'h', 'l'], a:key) >= 0
+        call win_execute(a:winid, ':normal '.a:key)
+        " do something
+        return 1
+      elseif a:key == "\<leftmouse>"
+        echo 'pressed left mouse'
+        let mouse_coords = getmousepos()
+        " close the popup if mouse is clicked outside the window
+        if mouse_coords['winid'] != a:winid
+          call popup_close(a:winid)
+        endif
+
+        echo 'clicked line '.mouse_coords['line']
+        call win_execute(a:winid, ":call cursor(".mouse_coords['line'].", ".mouse_coords['column'].")")
+        return 1
+      elseif a:key == "\<cr>"
+        echo 'pressed enter at line '.line(".", a:winid)
+        echo 'here'
+        call vimspector#ExpandVariable()
+
+        return 1
+      elseif a:key == "\<esc>"
+        call popup_close(a:winid)
+        let s:float_win = 0
+        return 1
+      endif
+      return 0
+    endfunc
+
+    if s:float_win != 0
+      popup_close(s:float_win)
+    endif
+
+    let s:float_win = popup_create([], #{
+      \ filter: "MyFilter",
+      \ cursorline: 1,
+      \ wrap: 1,
+      \ filtermode: "n",
+      \ maxwidth: 50,
+      \ maxheight: 5,
+      \ scrollbar: 1,
+      \ moved: "any",
+      \ })
+
+  endif
+
+  return s:float_win
 endfunction
 
 function! vimspector#internal#state#ShowTooltip()  abort
@@ -90,12 +155,12 @@ function! vimspector#internal#state#TooltipExec(body) abort
 
 
   let opts = { 'relative': 'cursor', 'width': width, 'height': len(a:body), 'col': 0, 'row': 1, 'anchor': 'NW', 'style': 'minimal' }
-  let g:float_win = nvim_open_win(buf, 0, opts)
-  call setwinvar(g:float_win, '&wrap', 0)
+  let s:float_win = nvim_open_win(buf, 0, opts)
+  call setwinvar(s:float_win, '&wrap', 0)
 
   augroup vimspector#internal#balloon#nvim_float
     autocmd!
-    autocmd CursorMoved * :call nvim_win_close(g:float_win, 1) | autocmd! vimspector#internal#balloon#nvim_float
+    autocmd CursorMoved * :call nvim_win_close(s:float_win, 1) | autocmd! vimspector#internal#balloon#nvim_float
   augroup END
 endfunction
 " Boilerplate {{{
