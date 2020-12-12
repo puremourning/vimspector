@@ -140,7 +140,6 @@ class VariablesView( object ):
 
     self._variable_eval = None
     self._variable_eval_view = None
-    self._variable_eval_win = None
 
     def AddExpandMappings():
       vim.command( 'nnoremap <silent> <buffer> <CR> '
@@ -272,7 +271,6 @@ class VariablesView( object ):
     } )
 
   def _DrawEval(self):
-    self._variable_eval_win.height = min(5, len(self._variable_eval.variables))
     with utils.RestoreCursorPosition():
         utils.ClearBuffer( self._variable_eval_view.buf )
         icon = '+' if self._variable_eval.IsExpandable() and not self._variable_eval.IsExpanded() else '-'
@@ -291,19 +289,14 @@ class VariablesView( object ):
       self._variable_eval = Scope(body)
 
       float_win_id = vim.eval("vimspector#internal#state#CreateTooltip()")
-      self._variable_eval_win = vim.current.window
+      float_buf_nr = int(vim.eval("winbufnr({})".format(float_win_id)))
 
-      with utils.LetCurrentWindow( self._variable_eval_win ):
-        vim.command( 'nnoremap <silent> <buffer> <CR> '
-                     ':<C-u>call vimspector#ExpandVariable()<CR>' )
-        vim.command( 'nnoremap <silent> <buffer> <esc> '
-                     ':quit<CR>' )
-        vim.command( 'nnoremap <silent> <buffer> <2-LeftMouse> '
-                     ':<C-u>call vimspector#ExpandVariable()<CR>' )
-
+      # since vim's popup cant be focused there is no way
+      # to get a reference to its window
+      # we will emulate python's window object overselves
+      self._variable_eval_view = View(type('__vim__window__', (object,), {'options': {}, 'buffer': vim.buffers[float_buf_nr]}), {}, self._DrawEval)
 
       if(self._variable_eval.VariablesReference() > 0):
-        self._variable_eval_view = View(self._variable_eval_win, {}, self._DrawEval)
         self._connection.DoRequest( partial( self._ConsumeVariables,
                                              self._DrawEval,
                                              self._variable_eval ), {
@@ -315,7 +308,6 @@ class VariablesView( object ):
       else:
         # in case that there is nothing to expand, we need to simulate a response from 'variables' request
         # it returns [Variable]
-        self._variable_eval_view = View(self._variable_eval_win, {}, self._DrawEval)
         self._variable_eval.variables = [Variable({'name': expression, 'value': body['result']})]
         self._DrawEval()
 
@@ -418,7 +410,8 @@ class VariablesView( object ):
     else:
       return
 
-    current_line = vim.current.window.cursor[ 0 ]
+    current_line = int(vim.eval("getbufinfo({})['lnum']".format(view.buf.name)))
+    print(current_line)
     if current_line not in view.lines:
       return
 
