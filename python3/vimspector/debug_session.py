@@ -68,6 +68,7 @@ class DebugSession( object ):
 
     self._configuration = None
     self._adapter = None
+    self._launch_config = None
 
     self._ResetServerState()
 
@@ -108,6 +109,7 @@ class DebugSession( object ):
                        launch_variables )
     self._configuration = None
     self._adapter = None
+    self._launch_config = None
 
     current_file = utils.GetBufferFilepath( vim.current.buffer )
     adapters = {}
@@ -280,6 +282,7 @@ class DebugSession( object ):
     def start():
       self._configuration = configuration
       self._adapter = adapter
+      self._launch_config = None
 
       self._logger.info( 'Configuration: %s',
                          json.dumps( self._configuration ) )
@@ -291,6 +294,7 @@ class DebugSession( object ):
       else:
         vim.current.tabpage = self._uiTab
 
+      self._Prepare()
       self._StartDebugAdapter()
       self._Initialise()
 
@@ -723,7 +727,6 @@ class DebugSession( object ):
                        json.dumps( self._adapter ) )
 
     self._init_complete = False
-    self._on_init_complete_handlers = []
     self._launch_complete = False
     self._run_on_server_exit = None
 
@@ -739,6 +742,7 @@ class DebugSession( object ):
         self._adapter[ 'port' ] = port
 
     self._connection_type = self._api_prefix + self._connection_type
+    self._logger.debug( f"Connection Type: { self._connection_type }" )
 
     self._adapter[ 'env' ] = self._adapter.get( 'env', {} )
 
@@ -794,16 +798,16 @@ class DebugSession( object ):
 
 
   def _PrepareAttach( self, adapter_config, launch_config ):
-    atttach_config = adapter_config.get( 'attach' )
+    attach_config = adapter_config.get( 'attach' )
 
-    if not atttach_config:
+    if not attach_config:
       return
 
-    if 'remote' in atttach_config:
+    if 'remote' in attach_config:
       # FIXME: We almost want this to feed-back variables to be expanded later,
       # e.g. expand variables when we use them, not all at once. This would
       # remove the whole %PID% hack.
-      remote = atttach_config[ 'remote' ]
+      remote = attach_config[ 'remote' ]
       remote_exec_cmd = self._GetRemoteExecCommand( remote )
 
       # FIXME: Why does this not use self._GetCommands ?
@@ -844,20 +848,23 @@ class DebugSession( object ):
             self._codeView._window,
             self._remote_term )
     else:
-      if atttach_config[ 'pidSelect' ] == 'ask':
-        prop = atttach_config[ 'pidProperty' ]
+      if attach_config[ 'pidSelect' ] == 'ask':
+        prop = attach_config[ 'pidProperty' ]
         if prop not in launch_config:
           pid = utils.AskForInput( 'Enter PID to attach to: ' )
           if pid is None:
             return
           launch_config[ prop ] = pid
         return
-      elif atttach_config[ 'pidSelect' ] == 'none':
+      elif attach_config[ 'pidSelect' ] == 'none':
         return
 
       raise ValueError( 'Unrecognised pidSelect {0}'.format(
-        atttach_config[ 'pidSelect' ] ) )
+        attach_config[ 'pidSelect' ] ) )
 
+    if 'delay' in attach_config:
+      utils.UserMessage( f"Waiting ( { attach_config[ 'delay' ] } )..." )
+      vim.command( f'sleep { attach_config[ "delay" ] }' )
 
 
   def _PrepareLaunch( self, command_line, adapter_config, launch_config ):
@@ -889,6 +896,11 @@ class DebugSession( object ):
             },
             self._codeView._window,
             self._remote_term )
+
+    if 'delay' in run_config:
+      utils.UserMessage( f"Waiting ( {run_config[ 'delay' ]} )..." )
+      vim.command( f'sleep { run_config[ "delay" ] }' )
+
 
 
   def _GetSSHCommand( self, remote ):
@@ -988,16 +1000,18 @@ class DebugSession( object ):
                                                               message )
     self._outputView.Print( 'server', msg )
 
-  def _Launch( self ):
+
+  def _Prepare( self ):
+    self._on_init_complete_handlers = []
+
     self._logger.debug( "LAUNCH!" )
-    adapter_config = self._adapter
-    launch_config = {}
-    launch_config.update( self._adapter.get( 'configuration', {} ) )
-    launch_config.update( self._configuration[ 'configuration' ] )
+    self._launch_config = {}
+    self._launch_config.update( self._adapter.get( 'configuration', {} ) )
+    self._launch_config.update( self._configuration[ 'configuration' ] )
 
     request = self._configuration.get(
       'remote-request',
-      launch_config.get( 'request', 'launch' ) )
+      self._launch_config.get( 'request', 'launch' ) )
 
     if request == "attach":
       self._splash_screen = utils.DisplaySplash(
@@ -1005,7 +1019,7 @@ class DebugSession( object ):
         self._splash_screen,
         "Attaching to debugee..." )
 
-      self._PrepareAttach( adapter_config, launch_config )
+      self._PrepareAttach( self._adapter, self._launch_config )
     elif request == "launch":
       self._splash_screen = utils.DisplaySplash(
         self._api_prefix,
@@ -1014,14 +1028,16 @@ class DebugSession( object ):
 
       # FIXME: This cmdLine hack is not fun.
       self._PrepareLaunch( self._configuration.get( 'remote-cmdLine', [] ),
-                           adapter_config,
-                           launch_config )
+                           self._adapter,
+                           self._launch_config )
 
     # FIXME: name is mandatory. Forcefully add it (we should really use the
     # _actual_ name, but that isn't actually remembered at this point)
-    if 'name' not in launch_config:
-      launch_config[ 'name' ] = 'test'
+    if 'name' not in self._launch_config:
+      self._launch_config[ 'name' ] = 'test'
 
+
+  def _Launch( self ):
     def failure_handler( reason, msg ):
       text = [
         'Launch Failed',
@@ -1034,12 +1050,11 @@ class DebugSession( object ):
                                                  self._splash_screen,
                                                  text )
 
-
     self._connection.DoRequest(
       lambda msg: self._OnLaunchComplete(),
       {
-        'command': launch_config[ 'request' ],
-        'arguments': launch_config
+        'command': self._launch_config[ 'request' ],
+        'arguments': self._launch_config
       },
       failure_handler )
 
