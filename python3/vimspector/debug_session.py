@@ -540,7 +540,7 @@ class DebugSession( object ):
 
 
   @IfConnected()
-  def ShowTooltip(self, winnr, expression):
+  def ShowTooltip(self, winnr, expression, is_hover):
     """Proxy: ballonexpr -> variables.ShowBallon"""
     frame = self._stackTraceView.GetCurrentFrame()
     # Check if RIP is in a frame
@@ -556,7 +556,7 @@ class DebugSession( object ):
       return ''
 
     # Return variable aware function
-    return self._variablesView.VariableEval(frame, expression)
+    return self._variablesView.VariableEval(frame, expression, is_hover)
 
   def _CleanUpTooltip(self):
     return self._variablesView._CleanUpTooltip()

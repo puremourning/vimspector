@@ -524,7 +524,7 @@ function! vimspector#OnBufferCreated( file_name ) abort
 endfunction
 
 function! vimspector#ShowTooltip()  abort
-  return py3eval('_vimspector_session.ShowTooltip(int( vim.eval( "winnr()" ) ) ,vim.eval( "expand(\"<cexpr>\")" ) )')
+  return py3eval('_vimspector_session.ShowTooltip(int( vim.eval( "winnr()" ) ) ,vim.eval( "expand(\"<cexpr>\")" ), 0)')
 endfunction
 
 

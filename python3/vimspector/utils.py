@@ -634,19 +634,13 @@ def ParseVariables( variables_list,
   return new_variables
 
 
-def DisplayBaloon( is_term, display ):
-  if int(vim.eval("has('nvim')")):
-    vim.eval("vimspector#internal#state#TooltipExec({})".format(display))
-    return
-
+def DisplayBaloon( is_term, display, is_hover = False ):
   if not is_term:
-    display = '\n'.join( display )
     # To enable the Windows GUI to display the balloon correctly
     # Refer https://github.com/vim/vim/issues/1512#issuecomment-492070685
-    vim.eval( "balloon_show( '' )" )
+    display = '\n'.join( display )
 
-  vim.eval( "balloon_show( {0} )".format(
-    json.dumps( display ) ) )
+  return int( vim.eval( "vimspector#internal#balloon#CreateTooltip({}, {})".format(is_hover, json.dumps( display )) ) )
 
 
 def GetBufferFilepath( buf ):

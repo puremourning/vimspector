@@ -186,7 +186,7 @@ class VariablesView( object ):
         'balloonexpr': vim.options[ 'balloonexpr' ],
         'balloondelay': vim.options[ 'balloondelay' ],
       }
-      vim.options[ 'balloonexpr' ] = 'vimspector#internal#balloon#BalloonExpr()'
+      vim.options[ 'balloonexpr' ] = 'vimspector#internal#balloon#HoverTooltip()'
       vim.options[ 'balloondelay' ] = 250
 
     if has_balloon:
@@ -282,7 +282,7 @@ class VariablesView( object ):
     self._variable_eval_view = None
     return ''
 
-  def VariableEval(self, frame, expression):
+  def VariableEval(self, frame, expression, is_hover):
     """Callback to display variable under cursor `:h ballonexpr`"""
     if not self._connection:
       return ''
@@ -291,8 +291,7 @@ class VariablesView( object ):
       body = message[ 'body' ]
 
       self._variable_eval = Scope(body)
-
-      float_win_id = vim.eval("vimspector#internal#balloon#CreateTooltip()")
+      float_win_id = utils.DisplayBaloon(self._is_term, [], is_hover)
       float_buf_nr = int(vim.eval("winbufnr({})".format(float_win_id)))
 
       # since vim's popup cant be focused there is no way
@@ -318,7 +317,7 @@ class VariablesView( object ):
 
     def failure_handler( reason, message ):
       display = [ reason ]
-      utils.DisplayBaloon( self._is_term, display )
+      utils.DisplayBaloon( self._is_term, display, is_hover )
 
     # Send async request
     self._connection.DoRequest( handler, {
@@ -331,7 +330,7 @@ class VariablesView( object ):
     }, failure_handler )
 
     # Return working (meanwhile)
-    return '...'
+    return ''
 
   def AddWatch( self, frame, expression ):
     watch = {
