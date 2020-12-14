@@ -122,7 +122,7 @@ class View:
   lines: typing.Dict[ int, Expandable ]
   draw: typing.Callable
 
-  def __init__( self, win, lines, draw ):
+  def __init__( self, win, lines, draw):
     self.lines = lines
     self.draw = draw
     if (win is not None):
@@ -277,6 +277,10 @@ class VariablesView( object ):
 
         self._DrawVariables( self._variable_eval_view, self._variable_eval.variables, 2 )
 
+  def _CleanUpTooltip(self):
+    # remove reference to old tooltip window
+    self._variable_eval_view = None
+    return ''
 
   def VariableEval(self, frame, expression):
     """Callback to display variable under cursor `:h ballonexpr`"""
@@ -288,12 +292,12 @@ class VariablesView( object ):
 
       self._variable_eval = Scope(body)
 
-      float_win_id = vim.eval("vimspector#internal#state#CreateTooltip()")
+      float_win_id = vim.eval("vimspector#internal#balloon#CreateTooltip()")
       float_buf_nr = int(vim.eval("winbufnr({})".format(float_win_id)))
 
       # since vim's popup cant be focused there is no way
       # to get a reference to its window
-      # we will emulate python's window object overselves
+      # we will emulate python's window object ourselves
       self._variable_eval_view = View(type('__vim__window__', (object,), {'options': {}, 'buffer': vim.buffers[float_buf_nr]}), {}, self._DrawEval)
 
       if(self._variable_eval.VariablesReference() > 0):
@@ -400,18 +404,17 @@ class VariablesView( object ):
     watch.result = WatchFailure( reason )
     self._DrawWatches()
 
-  def ExpandVariable( self ):
+  def ExpandVariable( self, lineNum = -1 ):
     if vim.current.buffer == self._vars.buf:
       view = self._vars
     elif vim.current.buffer == self._watch.buf:
       view = self._watch
-    elif vim.current.buffer == self._variable_eval_view.buf:
+    elif self._variable_eval_view is not None:
       view = self._variable_eval_view
     else:
       return
 
-    current_line = int(vim.eval("getbufinfo({})['lnum']".format(view.buf.name)))
-    print(current_line)
+    current_line = vim.current.window.cursor[0] if lineNum <= 0 else lineNum
     if current_line not in view.lines:
       return
 
@@ -435,10 +438,6 @@ class VariablesView( object ):
         'variablesReference': variable.VariablesReference()
       },
     } )
-
-
-
-
 
   def _DrawVariables( self, view,  variables, indent ):
     assert indent > 0

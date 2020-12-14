@@ -523,6 +523,10 @@ function! vimspector#OnBufferCreated( file_name ) abort
   py3 _vimspector_session.RefreshSigns( vim.eval( 'a:file_name' ) )
 endfunction
 
+function! vimspector#ShowTooltip()  abort
+  return py3eval('_vimspector_session.ShowTooltip(int( vim.eval( "winnr()" ) ) ,vim.eval( "expand(\"<cexpr>\")" ) )')
+endfunction
+
 
 " Boilerplate {{{
 let &cpoptions=s:save_cpo

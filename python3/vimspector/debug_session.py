@@ -520,8 +520,8 @@ class DebugSession( object ):
     self._stackTraceView.SetCurrentThread()
 
   @IfConnected()
-  def ExpandVariable( self ):
-    self._variablesView.ExpandVariable()
+  def ExpandVariable( self, lineNum = -1 ):
+    self._variablesView.ExpandVariable(lineNum)
 
   @IfConnected()
   def AddWatch( self, expression ):
@@ -557,6 +557,9 @@ class DebugSession( object ):
 
     # Return variable aware function
     return self._variablesView.VariableEval(frame, expression)
+
+  def _CleanUpTooltip(self):
+    return self._variablesView._CleanUpTooltip()
 
   @IfConnected()
   def ShowBalloon( self, winnr, expression ):
