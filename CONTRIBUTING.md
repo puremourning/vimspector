@@ -88,6 +88,42 @@ vim -Nu /path/to/vimspector/support/minimal_vimrc
 
 ## Pull Requests
 
+Vimspector is open to all contributors with ideas great and small! However,
+there is a limit to the intended scope of the plugin and the amount of time the
+maintainer has to support and... well... maintain features. It's probably well
+understood that the contributor's input typically ends when a PR is megred, but
+the maintainers have to keep it working forever.
+
+### Small changes
+
+For bug fixes, documentation changes, gadget versin updates, etc. please just
+send a PR, I'm super happy to merge these!
+
+If you are unsure, or looking for some pointers, feel free to ask in Gitter, or
+mention is in the PR.
+
+### Larger changes
+
+For larger features that might be in any way controvertial, or increase the
+complexity of the overall plugin, please come to Gitter and talk to the
+maintainer(s) first. This saves a lot of potential back-and-forth and makes sure
+that we're "on the same page" about the idea and the ongoing maintenance.
+
+In addition, if you like hacking, feel free to raise a PR tagged with `[RFC]` in
+the title and we can discuss the idea. I still prefer to discuss these things on
+Gitter rather than back-and-forth on GitHub, though.
+
+Please don't be offended if the maintainer(s) request significant rework for (or
+perhaps even dismiss) a PR that's not gone through this process.
+
+Please also don't be offended if the maintainer(s) ask if you're willing to
+provide ongoing support for the feature. As an OSS project manned entirely in
+what little spare time the maintainer(s) have, we're always looking for
+contributions and contributors who will help with support and maintenance of
+larger new features.
+
+### PR Guidelines
+
 When contributing pull requests, I ask that:
 
 * You provide a clear and complete summary of the change, the use case and how
@@ -95,6 +131,8 @@ When contributing pull requests, I ask that:
 * You avoid using APIs that are not available in the versions listed in the
   dependencies on README.md
 * You add tests for your PR.
+* You test your changes in both Vim and Neovim at the supported versions (and
+  state that in the PR).
 * You follow the style of the code as-is; the python code is YCM-stye, it is
   *not* PEP8, nor should it be.
 
