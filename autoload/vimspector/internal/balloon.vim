@@ -30,13 +30,8 @@ function! vimspector#internal#balloon#BalloonExpr() abort
 endfunction
 
 " Returns: py.ShowBalloon( winnr, expresssion )
-function! vimspector#internal#balloon#Tooltip() abort
-  " winnr + 1 because for *no good reason* winnr is 0 based here unlike
-  " everywhere else
-  " int() because for *no good reason* winnr is a string.
-  return py3eval('_vimspector_session.ShowBalloon('
-        \ . 'int( vim.eval( "v:beval_winnr" ) ) + 1,'
-        \ . 'vim.eval( "expand(\"<cexpr>\")" ) )' )
+function! vimspector#internal#balloon#HoverTooltip() abort
+  return py3eval('_vimspector_session.ShowTooltip(int( vim.eval( "v:beval_winnr" ) ) + 1 ,vim.eval( "v:beval_text"), 1)')
 endfunction
 
 
@@ -47,11 +42,16 @@ function! vimspector#internal#balloon#closeCallback() abort
   return py3eval('_vimspector_session._CleanUpTooltip()')
 endfunction
 
-function! vimspector#internal#balloon#CreateTooltip() abort
+function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
+  let body = []
+  if a:0 > 0
+    let body = a:1
+  endif
+
   if has('nvim')
     let buf = nvim_create_buf(v:false, v:true)
     " call nvim_buf_set_option(buf, 'modifiable', v:false)
-    call nvim_buf_set_lines(buf, 0, -1, v:true, [])
+    call nvim_buf_set_lines(buf, 0, -1, v:true, body)
 
     " default the dimensions for now. they can be easily overwritten later
     let opts = #{
@@ -117,7 +117,7 @@ function! vimspector#internal#balloon#CreateTooltip() abort
       call vimspector#internal#balloon#closeCallback()
     endif
 
-    let s:float_win = popup_create([], #{
+    let config = #{
       \ filter: "MyFilter",
       \ cursorline: 1,
       \ wrap: 1,
@@ -125,9 +125,14 @@ function! vimspector#internal#balloon#CreateTooltip() abort
       \ maxwidth: 50,
       \ maxheight: 5,
       \ scrollbar: 1,
-      \ moved: "any",
-      \ })
-    " call setbufvar(winbufnr(s:float_win), '&buflisted', 1)
+      \ }
+    if a:is_hover
+      let config['mousemoved'] = "word"
+      let s:float_win = popup_beval(body, config)
+    else
+      let config['moved'] = "any"
+      let s:float_win = popup_atcursor(body, config)
+    endif
 
   endif
 
