@@ -40,6 +40,99 @@ function! vimspector#internal#balloon#Tooltip() abort
 endfunction
 
 
+let s:float_win = 0
+
+function! vimspector#internal#balloon#closeCallback() abort
+  let s:float_win = 0
+  return py3eval('_vimspector_session._CleanUpTooltip()')
+endfunction
+
+function! vimspector#internal#balloon#CreateTooltip() abort
+  if has('nvim')
+    let buf = nvim_create_buf(v:false, v:true)
+    " call nvim_buf_set_option(buf, 'modifiable', v:false)
+    call nvim_buf_set_lines(buf, 0, -1, v:true, [])
+
+    " default the dimensions for now. they can be easily overwritten later
+    let opts = #{
+          \ relative: 'cursor',
+          \ width: 50,
+          \ height: 5,
+          \ col: 0,
+          \ row: 1,
+          \ anchor: 'NW',
+          \ style: 'minimal'
+          \ }
+    let s:float_win = nvim_open_win(buf, 0, opts)
+    call nvim_win_set_option(s:float_win, 'wrap', v:true)
+    call nvim_win_set_option(s:float_win, 'cursorline', v:true)
+    call nvim_win_set_option(s:float_win, 'signcolumn', 'no')
+    call nvim_win_set_option(s:float_win, 'relativenumber', v:false)
+    call nvim_win_set_option(s:float_win, 'number', v:false)
+
+    noa call win_gotoid(s:float_win)
+
+    nnoremap <silent> <buffer> <CR> :<C-u>call vimspector#ExpandVariable()<CR>
+    nnoremap <silent> <buffer> <esc> :quit<CR>
+    nnoremap <silent> <buffer> <2-LeftMouse>:<C-u>call vimspector#ExpandVariable()<CR>
+
+    " make sure we clean up the float after it loses focus
+    augroup vimspector#internal#balloon#nvim_float
+      autocmd!
+      autocmd WinLeave * :call nvim_win_close(s:float_win, 1) | :call vimspector#internal#balloon#closeCallback() | autocmd! vimspector#internal#balloon#nvim_float
+    augroup END
+
+  else
+    " assume we are inside vim
+    func! MyFilter(winid, key)
+      if index(['j', 'k'], a:key) >= 0
+        call win_execute(a:winid, ':normal '.a:key)
+        " do something
+        return 1
+      elseif a:key == "\<leftmouse>"
+        let mouse_coords = getmousepos()
+        " close the popup if mouse is clicked outside the window
+        if mouse_coords['winid'] != a:winid
+          call popup_close(a:winid)
+        endif
+
+        call win_execute(a:winid, ":call cursor(".mouse_coords['line'].", ".mouse_coords['column'].")")
+        return 1
+      elseif a:key == "\<cr>"
+        " forward line number to python, since vim does not allow us to focus
+        " the correct window
+        call py3eval("_vimspector_session.ExpandVariable(".line('.', a:winid).")")
+
+        return 1
+      elseif a:key == "\<esc>"
+        call popup_close(a:winid)
+        call vimspector#internal#balloon#closeCallback()
+        return 1
+      endif
+      return 0
+    endfunc
+
+    if s:float_win != 0
+      call popup_close(s:float_win)
+      call vimspector#internal#balloon#closeCallback()
+    endif
+
+    let s:float_win = popup_create([], #{
+      \ filter: "MyFilter",
+      \ cursorline: 1,
+      \ wrap: 1,
+      \ filtermode: "n",
+      \ maxwidth: 50,
+      \ maxheight: 5,
+      \ scrollbar: 1,
+      \ moved: "any",
+      \ })
+    " call setbufvar(winbufnr(s:float_win), '&buflisted', 1)
+
+  endif
+
+  return s:float_win
+endfunction
 
 " Boilerplate {{{
 let &cpoptions=s:save_cpo
