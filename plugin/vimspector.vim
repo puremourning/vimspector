@@ -28,11 +28,6 @@ if exists( 'g:loaded_vimpector' )
 endif
 "}}}
 
-" TODO:
-"   - Check Vim version (for jobs)
-"   - Check python support
-"   - Add commands/mappings/menus?
-
 let g:loaded_vimpector = 1
 let g:vimspector_home = expand( '<sfile>:p:h:h' )
 
