@@ -114,32 +114,34 @@ parser.add_argument( '--sudo',
 
 done_languages = set()
 for name, gadget in gadgets.GADGETS.items():
-  lang = gadget[ 'language' ]
-  if lang in done_languages:
-    continue
+  langs = gadget[ 'language' ]
+  if not isinstance(langs, list): langs = [langs]
+  for lang in langs:
+    if lang in done_languages:
+      continue
 
-  done_languages.add( lang )
-  if not gadget.get( 'enabled', True ):
+    done_languages.add( lang )
+    if not gadget.get( 'enabled', True ):
+      parser.add_argument(
+        '--force-enable-' + lang,
+        action = 'store_true',
+        help = 'Install the unsupported {} debug adapter for {} support'.format(
+          name,
+          lang ) )
+      continue
+
     parser.add_argument(
-      '--force-enable-' + lang,
+      '--enable-' + lang,
       action = 'store_true',
-      help = 'Install the unsupported {} debug adapter for {} support'.format(
+      help = 'Install the {} debug adapter for {} support'.format(
         name,
         lang ) )
-    continue
 
-  parser.add_argument(
-    '--enable-' + lang,
-    action = 'store_true',
-    help = 'Install the {} debug adapter for {} support'.format(
-      name,
-      lang ) )
-
-  parser.add_argument(
-    '--disable-' + lang,
-    action = 'store_true',
-    help = "Don't install the {} debug adapter for {} support "
-           '(when supplying --all)'.format( name, lang ) )
+    parser.add_argument(
+      '--disable-' + lang,
+      action = 'store_true',
+      help = "Don't install the {} debug adapter for {} support "
+             '(when supplying --all)'.format( name, lang ) )
 
 parser.add_argument(
     "--no-check-certificate",
@@ -182,15 +184,23 @@ all_adapters = installer.ReadAdapters(
 manifest = installer.Manifest()
 
 for name, gadget in gadgets.GADGETS.items():
-  if not gadget.get( 'enabled', True ):
-    if ( not args.force_all
-         and not getattr( args, 'force_enable_' + gadget[ 'language' ] ) ):
-      continue
-  else:
-    if not args.all and not getattr( args, 'enable_' + gadget[ 'language' ] ):
-      continue
-    if getattr( args, 'disable_' + gadget[ 'language' ] ):
-      continue
+  langs = gadget[ 'language' ]
+  if not isinstance(langs, list): langs = [langs]
+  skip = 0
+  for lang in langs:
+    if not gadget.get( 'enabled', True ):
+      if ( not args.force_all
+           and not getattr( args, 'force_enable_' +  lang) ):
+        skip = skip + 1
+        continue
+    else:
+      if not args.all and not getattr( args, 'enable_' + lang ):
+        skip = skip + 1
+        continue
+      if getattr( args, 'disable_' + lang ):
+        skip = skip + 1
+        continue
+  if skip == len(langs): continue
 
   if not args.upgrade:
     manifest.Clear( name )
