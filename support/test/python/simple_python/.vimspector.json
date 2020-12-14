@@ -3,6 +3,23 @@
   "adapters": {
     "test_custom": {
       "command": "This is a test"
+    },
+    "python-remote-docker": {
+      "variables": {
+        "port": "8765"
+      },
+      "port": "${port}",
+      "launch": {
+        "remote": {
+          "container": "${ContainerID}",
+          "runCommand": [
+            "python3", "-m", "debugpy", "--listen", "0.0.0.0:${port}",
+                                        "--wait-for-client",
+                                        "%CMD%"
+          ]
+        },
+        "delay": "5000m"
+      }
     }
   },
   "configurations": {
@@ -42,6 +59,20 @@
           "uncaught": "",
           "userUnhandled": ""
         }
+      }
+    },
+    "docker-attach": {
+      "adapter": "python-remote-docker",
+      "remote-cmdLine": [ "/root/main.py" ],
+      "remote-request": "launch",
+      "configuration": {
+        "request": "attach",
+        "pathMappings": [
+          {
+            "localRoot": "${workspaceRoot}",
+            "remoteRoot": "/root"
+          }
+        ]
       }
     },
     "run": {

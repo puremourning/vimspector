@@ -633,19 +633,24 @@ Vimspector then orchestrates the various tools to set you up.
           // Command to launch the debugee and attach the debugger; 
           // %CMD% replaced with the remote-cmdLine configured in the launch
           // configuration. (mandatory)
-          "launchCommmand": [
+          "runCommand": [
             "python", "-m", "debugpy", "--listen", "0.0.0.0:${port}",
             "%CMD%"
           ]
           
-          // Optional alternative to launchCommmand (if you need to run multiple
+          // Optional alternative to runCommand (if you need to run multiple
           // commands)
-          // "launchCommmands":  [
+          // "runCommands":  [
           //   [ /* first command */ ],
           //   [ /* second command */ ]
           // ]
 
         }
+
+        // optional delay to wait after running runCommand(s). This is often
+        // needed because of the way docker handles TCP, or if you're using some
+        // wrapper (e.g. to start the JVM)
+        // "delay": "1000m" // format as per :help sleep
       },
       "attach": {
         "remote": {
@@ -685,6 +690,10 @@ Vimspector then orchestrates the various tools to set you up.
           //   "args": [ "-o", "StrictHostKeyChecking=no" ]
           // },
         }
+        // optional delay to wait after running runCommand(s). This is often
+        // needed because of the way docker handles TCP, or if you're using some
+        // wrapper (e.g. to start the JVM)
+        // "delay": "1000m" // format as per :help sleep
       }
     }
   },
@@ -754,7 +763,7 @@ and have to tell cpptools a few more options.
         "remote": {
           "host": "${host}",
           "account": "${account}",
-          "launchCommmand": [ 
+          "runCommand": [ 
             "gdbserver",
             "--once",
             "--no-startup-with-shell",
@@ -838,19 +847,23 @@ port.
           // Command to launch the debugee and attach the debugger; 
           // %CMD% replaced with the remote-cmdLine configured in the launch
           // configuration. (mandatory)
-          "launchCommmand": [
+          "runCommand": [
             "python", "-m", "debugpy", "--listen", "0.0.0.0:${port}",
             "%CMD%"
           ]
           
-          // Optional alternative to launchCommmand (if you need to run multiple
+          // Optional alternative to runCommand (if you need to run multiple
           // commands)
-          // "launchCommmands":  [
+          // "runCommands":  [
           //   [ /* first command */ ],
           //   [ /* second command */ ]
           // ]
 
         }
+        
+        // optional delay to wait after running runCommand(s). This is often
+        // needed because of the way docker handles TCP
+        "delay": "1000m" // format as per :help sleep
       },
       "attach": {
         "remote": {
@@ -886,6 +899,11 @@ port.
           // ]
 
         }
+
+        // optional delay to wait after running runCommand(s). This is often
+        // needed because of the way docker handles TCP, or if you're using some
+        // wrapper (e.g. to start the JVM)
+        "delay": "1000m" // format as per :help sleep
       }
     }
   },
