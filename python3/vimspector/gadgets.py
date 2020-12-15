@@ -21,7 +21,7 @@ import os
 
 GADGETS = {
   'vscode-cpptools': {
-    'language': ['c','cpp'],
+    'language': ['c', 'cpp', 'rust'],
     'download': {
       'url': 'https://github.com/Microsoft/vscode-cpptools/releases/download/'
              '${version}/${file_name}',
