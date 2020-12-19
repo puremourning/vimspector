@@ -230,8 +230,8 @@ def GadgetListToInstallerArgs( *gadget_list ):
       continue
 
     lang = gadget[ "language" ]
-    if isinstance(lang, list):
-      lang = lang[0]
+    if isinstance( lang, list ):
+      lang = lang[ 0 ]
 
     if not gadget.get( 'enabled', True ):
       installer_args.append( f'--force-enable-{lang}' )

@@ -115,8 +115,8 @@ parser.add_argument( '--sudo',
 done_languages = set()
 for name, gadget in gadgets.GADGETS.items():
   langs = gadget[ 'language' ]
-  if not isinstance(langs, list):
-    langs = [langs]
+  if not isinstance( langs, list ):
+    langs = [ langs ]
   for lang in langs:
     if lang in done_languages:
       continue
@@ -186,13 +186,13 @@ manifest = installer.Manifest()
 
 for name, gadget in gadgets.GADGETS.items():
   langs = gadget[ 'language' ]
-  if not isinstance(langs, list):
-    langs = [langs]
+  if not isinstance( langs, list ):
+    langs = [ langs ]
   skip = 0
   for lang in langs:
     if not gadget.get( 'enabled', True ):
       if ( not args.force_all
-           and not getattr( args, 'force_enable_' +  lang) ):
+           and not getattr( args, 'force_enable_' +  lang ) ):
         skip = skip + 1
         continue
     else:
@@ -202,7 +202,7 @@ for name, gadget in gadgets.GADGETS.items():
       if getattr( args, 'disable_' + lang ):
         skip = skip + 1
         continue
-  if skip == len(langs):
+  if skip == len( langs ):
     continue
 
   if not args.upgrade:
