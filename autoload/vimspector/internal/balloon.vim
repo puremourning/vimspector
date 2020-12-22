@@ -84,19 +84,34 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
 
   else
     " assume we are inside vim
-    func! MyFilter(winid, key)
-      if index(['j', 'k'], a:key) >= 0
-        call win_execute(a:winid, ':normal '.a:key)
-        " do something
-        return 1
-      elseif a:key == "\<leftmouse>"
+    func! MouseFilter(winid, key)
+      if index(["\<leftmouse>", "\<2-leftmouse>"], a:key) >= 0
         let mouse_coords = getmousepos()
         " close the popup if mouse is clicked outside the window
         if mouse_coords['winid'] != a:winid
           call popup_close(a:winid)
+          call vimspector#internal#balloon#closeCallback()
         endif
 
+        " place the cursor according to the click
         call win_execute(a:winid, ":call cursor(".mouse_coords['line'].", ".mouse_coords['column'].")")
+
+        " expand the variable if we got double click
+        if a:key == "\<2-leftmouse>" && mouse_coords['winid'] == a:winid
+          " forward line number to python, since vim does not allow us to focus
+          " the correct window
+          call py3eval("_vimspector_session.ExpandVariable(".line('.', a:winid).")")
+        endif
+
+        return 1
+      endif
+      return 0
+    endfunc
+
+    func! CursorFiler(winid, key)
+      if index(['j', 'k'], a:key) >= 0
+        call win_execute(a:winid, ':normal '.a:key)
+
         return 1
       elseif a:key == "\<cr>"
         " forward line number to python, since vim does not allow us to focus
@@ -107,8 +122,10 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
       elseif a:key == "\<esc>"
         call popup_close(a:winid)
         call vimspector#internal#balloon#closeCallback()
+
         return 1
       endif
+
       return 0
     endfunc
 
@@ -118,7 +135,6 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     endif
 
     let config = {
-      \ 'filter': "MyFilter",
       \ 'cursorline': 1,
       \ 'wrap': 1,
       \ 'filtermode': "n",
@@ -127,9 +143,11 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
       \ 'scrollbar': 1,
       \ }
     if a:is_hover
-      let config['mousemoved'] = "word"
+      let config['filter'] = "MouseFilter"
+      let config['mousemoved'] = [0, 0, 0]
       let s:float_win = popup_beval(body, config)
     else
+      let config['filter'] = "CursorFiler"
       let config['moved'] = "any"
       let s:float_win = popup_atcursor(body, config)
     endif
