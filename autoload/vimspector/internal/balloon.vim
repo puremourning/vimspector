@@ -54,14 +54,14 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     call nvim_buf_set_lines(buf, 0, -1, v:true, body)
 
     " default the dimensions for now. they can be easily overwritten later
-    let opts = #{
-          \ relative: 'cursor',
-          \ width: 50,
-          \ height: 5,
-          \ col: 0,
-          \ row: 1,
-          \ anchor: 'NW',
-          \ style: 'minimal'
+    let opts = {
+          \ 'relative': 'cursor',
+          \ 'width': 50,
+          \ 'height': 5,
+          \ 'col': 0,
+          \ 'row': 1,
+          \ 'anchor': 'NW',
+          \ 'style': 'minimal'
           \ }
     let s:float_win = nvim_open_win(buf, 0, opts)
     call nvim_win_set_option(s:float_win, 'wrap', v:true)
@@ -117,14 +117,14 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
       call vimspector#internal#balloon#closeCallback()
     endif
 
-    let config = #{
-      \ filter: "MyFilter",
-      \ cursorline: 1,
-      \ wrap: 1,
-      \ filtermode: "n",
-      \ maxwidth: 50,
-      \ maxheight: 5,
-      \ scrollbar: 1,
+    let config = {
+      \ 'filter': "MyFilter",
+      \ 'cursorline': 1,
+      \ 'wrap': 1,
+      \ 'filtermode': "n",
+      \ 'maxwidth': 50,
+      \ 'maxheight': 5,
+      \ 'scrollbar': 1,
       \ }
     if a:is_hover
       let config['mousemoved'] = "word"
