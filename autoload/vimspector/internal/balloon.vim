@@ -184,6 +184,7 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     if a:is_hover
       let config['filter'] = "MouseFilter"
       let config['mousemoved'] = [0, 0, 0]
+      let config['close'] = "button"
       let s:float_win = popup_beval(body, config)
     else
       let config['filter'] = "CursorFiler"
