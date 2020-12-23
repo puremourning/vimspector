@@ -32,13 +32,23 @@ endfunction
 " Returns: py.ShowBalloon( winnr, expresssion )
 function! vimspector#internal#balloon#HoverTooltip() abort
   return py3eval('_vimspector_session.ShowTooltip(int( vim.eval( "v:beval_winnr" ) ) + 1 ,vim.eval( "v:beval_text"), 1)')
+
 endfunction
 
 
 let s:float_win = 0
+let s:nvim_related_win = 0
 
 function! vimspector#internal#balloon#closeCallback() abort
+  if has('nvim')
+    call nvim_win_close(s:float_win, v:true)
+    call nvim_win_close(s:nvim_related_win, v:true)
+  else
+    call popup_close(s:float_win)
+  endif
+
   let s:float_win = 0
+  let s:nvim_related_win = 0
   return py3eval('_vimspector_session._CleanUpTooltip()')
 endfunction
 
@@ -48,22 +58,53 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     let body = a:1
   endif
 
+  " tooltip dimensions
+  let max_height = 5
+  let max_width = 50
+
   if has('nvim')
-    let buf = nvim_create_buf(v:false, v:true)
-    " call nvim_buf_set_option(buf, 'modifiable', v:false)
-    call nvim_buf_set_lines(buf, 0, -1, v:true, body)
+    " generate border for the float window by creating a background buffer and
+    " overlaying the content buffer
+    " see https://github.com/neovim/neovim/issues/9718#issuecomment-546603628
+    let top = "╭" . repeat("─", max_width) . "╮"
+    let mid = "│" . repeat(" ", max_width) . "│"
+    let bot = "╰" . repeat("─", max_width) . "╯"
+    let lines = [top] + repeat([mid], max_height) + [bot]
+
+    let buf_id = nvim_create_buf(v:false, v:true)
+    call nvim_buf_set_lines(buf_id, 0, -1, v:true, lines)
 
     " default the dimensions for now. they can be easily overwritten later
     let opts = {
           \ 'relative': 'cursor',
-          \ 'width': 50,
-          \ 'height': 5,
+          \ 'width': max_width + 2,
+          \ 'height': max_height + 2,
           \ 'col': 0,
           \ 'row': 1,
           \ 'anchor': 'NW',
           \ 'style': 'minimal'
           \ }
-    let s:float_win = nvim_open_win(buf, 0, opts)
+    " this is the border window
+    let s:nvim_related_win = nvim_open_win(buf_id, 0, opts)
+    call nvim_win_set_option(s:nvim_related_win, 'wrap', v:true)
+    call nvim_win_set_option(s:nvim_related_win, 'cursorline', v:true)
+    call nvim_win_set_option(s:nvim_related_win, 'signcolumn', 'no')
+    call nvim_win_set_option(s:nvim_related_win, 'relativenumber', v:false)
+    call nvim_win_set_option(s:nvim_related_win, 'number', v:false)
+
+    " when calculating where to display the content window, we need to account
+    " for the border
+    set winhl=Normal:Floating
+    let opts.row += 1
+    let opts.height -= 2
+    let opts.col += 2
+    let opts.width -= 4
+
+    " create the content window
+    let buf_id = nvim_create_buf(v:false, v:true)
+    call nvim_buf_set_lines(buf_id, 0, -1, v:true, body)
+    let s:float_win = nvim_open_win(buf_id, v:false, opts)
+
     call nvim_win_set_option(s:float_win, 'wrap', v:true)
     call nvim_win_set_option(s:float_win, 'cursorline', v:true)
     call nvim_win_set_option(s:float_win, 'signcolumn', 'no')
@@ -79,7 +120,7 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     " make sure we clean up the float after it loses focus
     augroup vimspector#internal#balloon#nvim_float
       autocmd!
-      autocmd WinLeave * :call nvim_win_close(s:float_win, 1) | :call vimspector#internal#balloon#closeCallback() | autocmd! vimspector#internal#balloon#nvim_float
+      autocmd WinLeave * :call vimspector#internal#balloon#closeCallback() | autocmd! vimspector#internal#balloon#nvim_float
     augroup END
 
   else
@@ -89,7 +130,6 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
         let mouse_coords = getmousepos()
         " close the popup if mouse is clicked outside the window
         if mouse_coords['winid'] != a:winid
-          call popup_close(a:winid)
           call vimspector#internal#balloon#closeCallback()
         endif
 
@@ -120,7 +160,6 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
 
         return 1
       elseif a:key == "\<esc>"
-        call popup_close(a:winid)
         call vimspector#internal#balloon#closeCallback()
 
         return 1
@@ -130,7 +169,6 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     endfunc
 
     if s:float_win != 0
-      call popup_close(s:float_win)
       call vimspector#internal#balloon#closeCallback()
     endif
 
@@ -138,9 +176,10 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
       \ 'cursorline': 1,
       \ 'wrap': 1,
       \ 'filtermode': "n",
-      \ 'maxwidth': 50,
-      \ 'maxheight': 5,
+      \ 'maxwidth': max_width,
+      \ 'maxheight': max_height,
       \ 'scrollbar': 1,
+      \ 'border': []
       \ }
     if a:is_hover
       let config['filter'] = "MouseFilter"
