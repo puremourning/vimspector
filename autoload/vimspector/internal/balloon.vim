@@ -103,6 +103,7 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     " create the content window
     let buf_id = nvim_create_buf(v:false, v:true)
     call nvim_buf_set_lines(buf_id, 0, -1, v:true, body)
+    call nvim_buf_set_option(buf_id, 'modifiable', v:false)
     let s:float_win = nvim_open_win(buf_id, v:false, opts)
 
     call nvim_win_set_option(s:float_win, 'wrap', v:true)
