@@ -340,11 +340,12 @@ def WriteAdapters( all_adapters, to_file=None ):
 
 
 def InstallGeneric( name, root, gadget ):
-  extension = os.path.join( root, 'extension' )
+  extension_path = gadget.get( 'extension_path', 'extension' )
+  extension = os.path.join( root, extension_path )
   for f in gadget.get( 'make_executable', [] ):
     MakeExecutable( os.path.join( extension, f ) )
 
-  MakeExtensionSymlink( name, root )
+  MakeExtensionSymlink( name, root, extension_path )
 
 
 def InstallCppTools( name, root, gadget ):
@@ -699,8 +700,8 @@ def ExtractZipTo( file_path, destination, format ):
         CheckCall( [ 'tar', 'zxvf', file_path ] )
 
 
-def MakeExtensionSymlink( name, root ):
-  MakeSymlink( name, os.path.join( root, 'extension' ) ),
+def MakeExtensionSymlink( name, root, extension_path = 'extension' ):
+  MakeSymlink( name, os.path.join( root, extension_path ) ),
 
 
 def MakeSymlink( link, pointing_to, in_folder = None ):
