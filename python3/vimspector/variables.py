@@ -272,6 +272,7 @@ class VariablesView( object ):
 
   def _DrawEval(self):
     with utils.RestoreCursorPosition():
+      with utils.ModifiableScratchBuffer( self._variable_eval_view.buf ):
         utils.ClearBuffer( self._variable_eval_view.buf )
         icon = '+' if self._variable_eval.IsExpandable() and not self._variable_eval.IsExpanded() else '-'
 
