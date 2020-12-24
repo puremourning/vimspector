@@ -311,7 +311,7 @@ class VariablesView( object ):
       else:
         # in case that there is nothing to expand, we need to simulate a response from 'variables' request
         # it returns [Variable]
-        self._variable_eval.variables = [Variable({'name': expression, 'value': body['result']})]
+        self._variable_eval.variables = [Variable({'name': expression, 'type': body['type'], 'value': body['result']})]
         self._DrawEval()
 
 
