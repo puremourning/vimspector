@@ -270,7 +270,7 @@ class VariablesView( object ):
         utils.ClearBuffer( self._variable_eval_view.buf )
         icon = '+' if self._variable_eval.IsExpandable() and not self._variable_eval.IsExpanded() else '-'
 
-        self._DrawVariables( self._variable_eval_view, self._variable_eval.variables, 2 )
+        self._DrawVariables( self._variable_eval_view, self._variable_eval.variables, 2 , True)
 
   def _CleanUpTooltip(self):
     # remove reference to old tooltip window
@@ -306,7 +306,7 @@ class VariablesView( object ):
       else:
         # in case that there is nothing to expand, we need to simulate a response from 'variables' request
         # it returns [Variable]
-        self._variable_eval.variables = [Variable({'name': expression, 'type': body['type'], 'value': body['result']})]
+        self._variable_eval.variables = [Variable({ 'type': body['type'], 'value': body['result']})]
         self._DrawEval()
 
 
@@ -422,9 +422,18 @@ class VariablesView( object ):
       },
     } )
 
-  def _DrawVariables( self, view,  variables, indent ):
+  def _DrawVariables( self, view,  variables, indent, is_short = False ):
     assert indent > 0
     for variable in variables:
+      type_ = variable.variable.get( 'type', '' )
+      value = variable.variable.get( 'value', '<unknown>' )
+
+      if is_short:
+        if( len(type_) > 20):
+          type_ = type_[0:16] + " ..."
+        if( len(value) > 100 ):
+          value = value[0:96] + " ..."
+
       line = utils.AppendToBuffer(
         view.buf,
         '{indent}{marker}{icon} {name} ({type_}): {value}'.format(
@@ -433,14 +442,13 @@ class VariablesView( object ):
           marker = '*' if variable.changed else ' ',
           icon = '+' if ( variable.IsExpandable()
                           and not variable.IsExpanded() ) else '-',
-          name = variable.variable[ 'name' ],
-          type_ = variable.variable.get( 'type', '' ),
-          value = variable.variable.get( 'value',
-                                         '<unknown>' ) ).split( '\n' ) )
+          name = variable.variable.get( 'name', '' ),
+          type_ = type_,
+          value = value ).split( '\n' ))
       view.lines[ line ] = variable
 
       if variable.ShouldDrawDrillDown():
-        self._DrawVariables( view, variable.variables, indent + 2 )
+        self._DrawVariables( view, variable.variables, indent + 2, is_short )
 
   def _DrawScopes( self ):
     # FIXME: The drawing is dumb and draws from scratch every time. This is
