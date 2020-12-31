@@ -173,10 +173,13 @@ def SaveConfiguration( configuration ):
   if not gen:
     return
 
-  config_path = utils.AskForInput(
-    f'Would you like to save the configuration named "{ gen[ "name" ] }"'
-    '? Enter the path to save to (ctrl-c to cancel): ',
-    gen[ 'path' ] )
+  if utils.Confirm(
+    f'Would you like to save the configuration named "{ gen[ "name" ] }"',
+    '&Yes\n&No' ) != 1:
+    return
+
+  config_path = utils.AskForInput( 'Enter the path to save to: ',
+                                   gen[ 'path' ] )
 
   if not config_path:
     return
@@ -185,7 +188,7 @@ def SaveConfiguration( configuration ):
   current_contents = {}
 
   if os.path.exists( config_path ):
-    if utils.Confirm( 'File exists, overwrite? (NOTE: comments and '
+    if utils.Confirm( 'File exists, overwrite?\n(NOTE: comments and '
                       'formatting in the existing file will be LOST!!)',
                       '&Yes\n&No' ) == 1:
       with open( config_path, 'r' ) as f:
