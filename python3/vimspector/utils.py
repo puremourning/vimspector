@@ -386,6 +386,14 @@ def AskForInput( prompt, default_value = None ):
       return None
 
 
+def Confirm( msg, *args ):
+  with AskingForUserInput():
+    try:
+      return int( Call( 'confirm', msg, *args ) )
+    except ( KeyboardInterrupt, vim.error ):
+      return 0
+
+
 def AppendToBuffer( buf, line_or_lines, modified=False ):
   line = 1
   try:
@@ -600,8 +608,6 @@ def CoerceType( mapping: typing.Dict[ str, typing.Any ], key: str ):
     mapping[ key ] = DICT_TYPES[ new_type ]( value )
 
 
-# TODO: Should we just run the substitution on the whole JSON string instead?
-# That woul dallow expansion in bool and number values, such as ports etc. ?
 def ExpandReferencesInDict( obj, mapping, calculus, user_choices ):
   for k in list( obj.keys() ):
     obj[ k ] = ExpandReferencesInObject( obj[ k ],
@@ -817,6 +823,7 @@ def WindowID( window, tab=None ):
   return int( Call( 'win_getid', window.number, tab.number ) )
 
 
+@memoize
 def UseWinBar():
   # Buggy neovim doesn't render correctly when the WinBar is defined:
   # https://github.com/neovim/neovim/issues/12689

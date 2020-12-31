@@ -31,7 +31,6 @@ from vimspector import ( breakpoints,
                          variables,
                          settings,
                          terminal,
-                         installer,
                          launch )
 
 # We cache this once, and don't allow it to change (FIXME?)
@@ -109,6 +108,7 @@ class DebugSession( object ):
 
     if not configurations:
       configuration_name, configuration = launch.SuggestConfiguration(
+        current_file,
         filetypes )
     else:
       configuration_name, configuration = launch.SelectConfiguration(
@@ -267,6 +267,9 @@ class DebugSession( object ):
 
   def _Reset( self ):
     self._logger.info( "Debugging complete." )
+
+    launch.SaveConfiguration( self._configuration )
+
     if self._uiTab:
       self._logger.debug( "Clearing down UI" )
 

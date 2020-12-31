@@ -120,7 +120,7 @@ def SelectConfiguration( launch_variables, configurations ):
   return configuration_name, configuration
 
 
-def SuggestConfiguration( filetypes ):
+def SuggestConfiguration( current_file, filetypes ):
   nothing = None, None
   templates = []
   filetypes = set( filetypes )
@@ -160,8 +160,47 @@ def SuggestConfiguration( filetypes ):
   configuration_name = utils.AskForInput( 'Give the config a name: ',
                                           configuration[ 'description' ] )
 
+  configuration[ 'launch_configuration' ][ 'generated' ] = {
+    'name': configuration_name,
+    'path': os.path.join( os.path.dirname( current_file ), '.vimspector.json' ),
+  }
 
   return configuration_name, configuration[ 'launch_configuration' ]
+
+
+def SaveConfiguration( configuration ):
+  gen = configuration.pop( 'generated', None )
+  if not gen:
+    return
+
+  config_path = utils.AskForInput(
+    f'Would you like to save the configuration named "{ gen[ "name" ] }"'
+    '? Enter the path to save to (ctrl-c to cancel): ',
+    gen[ 'path' ] )
+
+  if not config_path:
+    return
+
+  os.makedirs( os.path.dirname( config_path ), exist_ok = True )
+  current_contents = {}
+
+  if os.path.exists( config_path ):
+    if utils.Confirm( 'File exists, overwrite? (NOTE: comments and '
+                      'formatting in the existing file will be LOST!!)',
+                      '&Yes\n&No' ) == 1:
+      with open( config_path, 'r' ) as f:
+        current_contents = json.loads( minify( f.read() ) )
+
+  # TODO: how much of configuration is mangled at this point ?
+  # TODO: how about the defaulted arguments? All the refs are replaced at this
+  # point?
+  current_contents.setdefault( 'configurations', {} )
+  current_contents[ 'configurations' ][ gen[ 'name' ] ] = configuration
+
+  with open( config_path, 'w' ) as f:
+    json.dump( current_contents, f, indent=2 )
+
+  utils.UserMessage( f'Wrote { config_path }.', persist = True )
 
 
 def SelectAdapter( api_prefix,
