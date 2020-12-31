@@ -500,7 +500,7 @@ GADGETS = {
                   'program': '${Binary:${fileBasenameNoExtension\\}}',
                   'args': [ '*${CommandLineArguments}' ],
                   'cwd': '${WorkingDir:${fileDirname\\}}',
-                  'terminal': '${Console:none\nintegrated\nexternal}',
+                  'terminal': '${Console:integrated\nexternal}',
                   'stopOnEntry#json': '${StopOnEntry:true\nfalse}',
                   'expressions': '${ExpressionType:native\nsimple\npython}'
                 }
