@@ -536,10 +536,7 @@ def ExpandReferencesInString( orig_s,
 
   # Parse any variables passed in in mapping, and ask for any that weren't,
   # storing the result in mapping
-  bug_catcher = 0
-  while bug_catcher < 100:
-    ++bug_catcher
-
+  while True:
     try:
       s = _Substitute( s, mapping )
       break

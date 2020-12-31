@@ -18,6 +18,7 @@ import logging
 import json
 import glob
 import shlex
+import copy
 
 from vimspector import install, installer, utils, gadgets
 from vimspector.vendor.json_minify import minify
@@ -132,7 +133,10 @@ def SuggestConfiguration( current_file, filetypes ):
 
     for template in spec.get( 'templates', [] ):
       if filetypes.intersection( template.get( 'filetypes', set() ) ):
-        templates.append( template )
+        # We _must_ copy the template as we end up taking bits out of it to
+        # assign to the resulting config. Python... references... mutabiliy..
+        # fun.
+        templates.append( copy.deepcopy( template ) )
 
   if not templates:
     return nothing
@@ -188,11 +192,14 @@ def SaveConfiguration( configuration ):
   current_contents = {}
 
   if os.path.exists( config_path ):
-    if utils.Confirm( 'File exists, overwrite?\n(NOTE: comments and '
-                      'formatting in the existing file will be LOST!!)',
-                      '&Yes\n&No' ) == 1:
-      with open( config_path, 'r' ) as f:
-        current_contents = json.loads( minify( f.read() ) )
+    if utils.Confirm( 'File exists, merge with this configuration?\n'
+                      '(NOTE: comments and formatting in the existing file '
+                      'will be LOST!!)',
+                      '&Yes\n&No' ) != 1:
+      return
+
+    with open( config_path, 'r' ) as f:
+      current_contents = json.loads( minify( f.read() ) )
 
   # TODO: how much of configuration is mangled at this point ?
   # TODO: how about the defaulted arguments? All the refs are replaced at this
@@ -203,7 +210,7 @@ def SaveConfiguration( configuration ):
   with open( config_path, 'w' ) as f:
     json.dump( current_contents, f, indent=2 )
 
-  utils.UserMessage( f'Wrote { config_path }.', persist = True )
+  utils.UserMessage( f'Wrote { config_path }', persist = True )
 
 
 def SelectAdapter( api_prefix,
