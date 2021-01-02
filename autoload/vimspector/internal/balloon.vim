@@ -38,6 +38,12 @@ endfunction
 
 let s:float_win = 0
 let s:nvim_related_win = 0
+"
+" tooltip dimensions
+let s:min_width = 1
+let s:min_height = 1
+let s:max_width = 50
+let s:max_height = 5
 
 function! vimspector#internal#balloon#closeCallback() abort
   if has('nvim')
@@ -52,33 +58,66 @@ function! vimspector#internal#balloon#closeCallback() abort
   return py3eval('_vimspector_session._CleanUpTooltip()')
 endfunction
 
+function! vimspector#internal#balloon#nvim_generate_border(width, height)
+  let top = "╭" . repeat("─",a:width + 2) . "╮"
+  let mid = "│" . repeat(" ",a:width + 2) . "│"
+  let bot = "╰" . repeat("─",a:width + 2) . "╯"
+  let lines = [top] + repeat([mid], a:height) + [bot]
+
+  return lines
+endfunction
+
+function! vimspector#internal#balloon#nvim_resize_tooltip()
+  if !has('nvim') || s:float_win <= 0 || s:nvim_related_win <= 0
+    return
+  endif
+
+  noa call win_gotoid(s:float_win)
+  let buf_lines = getline(1, '$')
+
+  let width = s:min_width
+  let height = min([max([s:min_height, len(buf_lines)]), s:max_height])
+
+  " calculate the longest line
+  for l in buf_lines
+    let width = max([width, len(l)])
+  endfor
+
+  let width = min([width, s:max_width])
+
+  let opts = {
+        \ 'width': width,
+        \ 'height': height,
+        \ }
+  " resize the content window
+  call nvim_win_set_config(s:float_win, opts)
+
+  " resize the border window
+  let opts['width'] = width + 4
+  let opts['height'] = height + 2
+  call nvim_win_set_config(s:nvim_related_win, opts)
+  call nvim_buf_set_lines(nvim_win_get_buf(s:nvim_related_win), 0, -1, v:true, vimspector#internal#balloon#nvim_generate_border(width, height))
+
+endfunction
+
 function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
   let body = []
   if a:0 > 0
     let body = a:1
   endif
 
-  " tooltip dimensions
-  let max_height = 5
-  let max_width = 50
-
   if has('nvim')
     " generate border for the float window by creating a background buffer and
     " overlaying the content buffer
     " see https://github.com/neovim/neovim/issues/9718#issuecomment-546603628
-    let top = "╭" . repeat("─", max_width) . "╮"
-    let mid = "│" . repeat(" ", max_width) . "│"
-    let bot = "╰" . repeat("─", max_width) . "╯"
-    let lines = [top] + repeat([mid], max_height) + [bot]
-
     let buf_id = nvim_create_buf(v:false, v:true)
-    call nvim_buf_set_lines(buf_id, 0, -1, v:true, lines)
+    call nvim_buf_set_lines(buf_id, 0, -1, v:true, vimspector#internal#balloon#nvim_generate_border(s:max_width, s:max_height))
 
     " default the dimensions for now. they can be easily overwritten later
     let opts = {
           \ 'relative': 'cursor',
-          \ 'width': max_width + 2,
-          \ 'height': max_height + 2,
+          \ 'width': s:max_width + 2,
+          \ 'height': s:max_height + 2,
           \ 'col': 0,
           \ 'row': 1,
           \ 'anchor': 'NW',
@@ -122,6 +161,7 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     augroup vimspector#internal#balloon#nvim_float
       autocmd!
       autocmd WinLeave * :call vimspector#internal#balloon#closeCallback() | autocmd! vimspector#internal#balloon#nvim_float
+      autocmd BufModifiedSet * :echo execute(eval("nvim_win_get_buf(".s:float_win.")")."bufdo echom &modified")
     augroup END
 
   else
@@ -177,8 +217,8 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
       \ 'cursorline': 1,
       \ 'wrap': 0,
       \ 'filtermode': "n",
-      \ 'maxwidth': max_width,
-      \ 'maxheight': max_height,
+      \ 'maxwidth': s:max_width,
+      \ 'maxheight': s:max_height,
       \ 'scrollbar': 1,
       \ 'border': []
       \ }
