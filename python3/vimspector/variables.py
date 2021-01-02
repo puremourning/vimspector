@@ -284,6 +284,8 @@ class VariablesView( object ):
         else:
           self._DrawVariables( self._variable_eval_view, self._variable_eval.variables, 2 , True)
 
+        vim.eval("vimspector#internal#balloon#nvim_resize_tooltip()")
+
   def _CleanUpTooltip(self):
     # remove reference to old tooltip window
     self._variable_eval_view = None
