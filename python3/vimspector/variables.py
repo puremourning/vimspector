@@ -274,9 +274,15 @@ class VariablesView( object ):
     with utils.RestoreCursorPosition():
       with utils.ModifiableScratchBuffer( self._variable_eval_view.buf ):
         utils.ClearBuffer( self._variable_eval_view.buf )
-        icon = '+' if self._variable_eval.IsExpandable() and not self._variable_eval.IsExpanded() else '-'
-
-        self._DrawVariables( self._variable_eval_view, self._variable_eval.variables, 2 , True)
+        # if we only have a single non-expandable variable, it means we ran into a simple type
+        # hence, there is no need to draw additional fluff around the value
+        if(len(self._variable_eval.variables) == 1 and self._variable_eval.variables[0].IsExpandable() == False):
+          utils.AppendToBuffer(
+            self._variable_eval_view.buf,
+            self._variable_eval.variables[0].variable.get( 'value', '<unknown>' )
+            )
+        else:
+          self._DrawVariables( self._variable_eval_view, self._variable_eval.variables, 2 , True)
 
   def _CleanUpTooltip(self):
     # remove reference to old tooltip window
@@ -442,26 +448,32 @@ class VariablesView( object ):
   def _DrawVariables( self, view,  variables, indent, is_short = False ):
     assert indent > 0
     for variable in variables:
-      type_ = variable.variable.get( 'type', '' )
-      value = variable.variable.get( 'value', '<unknown>' )
-
+      text = ''
       if is_short:
-        if( len(type_) > 20):
-          type_ = type_[0:16] + " ..."
-        if( len(value) > 100 ):
-          value = value[0:96] + " ..."
-
-      line = utils.AppendToBuffer(
-        view.buf,
-        '{indent}{marker}{icon} {name} ({type_}): {value}'.format(
+        text = '{indent}{icon} {name}: {value}'.format(
+          # We borrow 1 space of indent to draw the change marker
+          indent = ' ' * ( indent - 1 ),
+          icon = '+' if ( variable.IsExpandable()
+                          and not variable.IsExpanded() ) else '-',
+          name = variable.variable.get( 'name', '' ),
+          value = variable.variable.get( 'value', '<unknown>' )
+        )
+      else:
+        text = '{indent}{marker}{icon} {name} ({type_}): {value}'.format(
           # We borrow 1 space of indent to draw the change marker
           indent = ' ' * ( indent - 1 ),
           marker = '*' if variable.changed else ' ',
           icon = '+' if ( variable.IsExpandable()
                           and not variable.IsExpanded() ) else '-',
           name = variable.variable.get( 'name', '' ),
-          type_ = type_,
-          value = value ).split( '\n' ))
+          type_ = variable.variable.get( 'type', '' ),
+          value = variable.variable.get( 'value', '<unknown>' )
+        )
+
+      line = utils.AppendToBuffer(
+        view.buf,
+        text.split( '\n' ))
+
       view.lines[ line ] = variable
 
       if variable.ShouldDrawDrillDown():
