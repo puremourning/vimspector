@@ -116,10 +116,10 @@ class View:
   lines: typing.Dict[ int, Expandable ]
   draw: typing.Callable
 
-  def __init__( self, win, lines, draw):
+  def __init__( self, win, lines, draw ):
     self.lines = lines
     self.draw = draw
-    if (win is not None):
+    if ( win is not None ):
       self.buf = win.buffer
       utils.SetUpUIWindow( win )
 
@@ -132,8 +132,8 @@ class VariablesView( object ):
     self._connection = None
     self._current_syntax = ''
 
-    self._variable_eval = None
-    self._variable_eval_view = None
+    self._variable_eval: Scope = None
+    self._variable_eval_view: View = None
 
     def AddExpandMappings():
       vim.command( 'nnoremap <silent> <buffer> <CR> '
@@ -180,7 +180,9 @@ class VariablesView( object ):
         'balloonexpr': vim.options[ 'balloonexpr' ],
         'balloondelay': vim.options[ 'balloondelay' ],
       }
-      vim.options[ 'balloonexpr' ] = 'vimspector#internal#balloon#HoverTooltip()'
+      vim.options[ 'balloonexpr' ] = "vimspector#internal#"
+      "balloon#HoverTooltip()"
+
       vim.options[ 'balloondelay' ] = 250
 
     if has_balloon:
@@ -264,28 +266,38 @@ class VariablesView( object ):
       },
     } )
 
-  def _DrawEval(self):
+  def _DrawEval( self ):
     with utils.RestoreCursorPosition():
       with utils.ModifiableScratchBuffer( self._variable_eval_view.buf ):
         utils.ClearBuffer( self._variable_eval_view.buf )
-        # if we only have a single non-expandable variable, it means we ran into a simple type
+        # if we only have a single non-expandable variable,
+        # it means we ran into a simple type
         # hence, there is no need to draw additional fluff around the value
-        if(len(self._variable_eval.variables) == 1 and self._variable_eval.variables[0].IsExpandable() == False):
+        if(
+            len( self._variable_eval.variables ) == 1
+            and self._variable_eval.variables[ 0 ].IsExpandable() is False
+        ):
           utils.AppendToBuffer(
             self._variable_eval_view.buf,
-            self._variable_eval.variables[0].variable.get( 'value', '<unknown>' )
-            )
+            self._variable_eval.variables[ 0 ]
+              .variable.get( 'value', '<unknown>' )
+          )
         else:
-          self._DrawVariables( self._variable_eval_view, self._variable_eval.variables, 2 , True)
+          self._DrawVariables(
+              self._variable_eval_view,
+              self._variable_eval.variables,
+              2,
+              True
+          )
 
-        vim.eval("vimspector#internal#balloon#nvim_resize_tooltip()")
+        vim.eval( "vimspector#internal#balloon#nvim_resize_tooltip()" )
 
-  def _CleanUpTooltip(self):
+  def _CleanUpTooltip( self ) :
     # remove reference to old tooltip window
     self._variable_eval_view = None
     return ''
 
-  def VariableEval(self, frame, expression, is_hover):
+  def VariableEval( self, frame, expression, is_hover ):
     """Callback to display variable under cursor `:h ballonexpr`"""
     if not self._connection:
       return ''
@@ -293,16 +305,24 @@ class VariablesView( object ):
     def handler( message ):
       body = message[ 'body' ]
 
-      self._variable_eval = Scope(body)
-      float_win_id = utils.DisplayBaloon(self._is_term, [], is_hover)
-      float_buf_nr = int(vim.eval("winbufnr({})".format(float_win_id)))
+      self._variable_eval = Scope( body )
+      float_win_id = utils.DisplayBaloon( self._is_term, [], is_hover )
+      float_buf_nr = int( vim.eval( "winbufnr({})".format( float_win_id ) ) )
 
       # since vim's popup cant be focused there is no way
       # to get a reference to its window
       # we will emulate python's window object ourselves
-      self._variable_eval_view = View(type('__vim__window__', (object,), {'options': {}, 'buffer': vim.buffers[float_buf_nr]}), {}, self._DrawEval)
+      self._variable_eval_view = View(
+          type(
+            '__vim__window__',
+            ( object, ),
+            { 'options': {}, 'buffer': vim.buffers[ float_buf_nr ] }
+          ),
+          {},
+          self._DrawEval
+      )
 
-      if(self._variable_eval.VariablesReference() > 0):
+      if( self._variable_eval.VariablesReference() > 0 ):
         self._connection.DoRequest( partial( self._ConsumeVariables,
                                              self._DrawEval,
                                              self._variable_eval ), {
@@ -312,9 +332,12 @@ class VariablesView( object ):
           },
         } )
       else:
-        # in case that there is nothing to expand, we need to simulate a response from 'variables' request
+        # in case that there is nothing to expand,
+        # we need to simulate a response from 'variables' request
         # it returns [Variable]
-        self._variable_eval.variables = [Variable({ 'type': body['type'], 'value': body['result']})]
+        self._variable_eval.variables = [
+            Variable( { 'type': body[ 'type' ], 'value': body[ 'result' ] } )
+        ]
         self._DrawEval()
 
 
@@ -405,7 +428,7 @@ class VariablesView( object ):
     else:
       return
 
-    current_line = vim.current.window.cursor[0] if lineNum <= 0 else lineNum
+    current_line = vim.current.window.cursor[ 0 ] if lineNum <= 0 else lineNum
     if current_line not in view.lines:
       return
 
@@ -457,7 +480,8 @@ class VariablesView( object ):
 
       line = utils.AppendToBuffer(
         view.buf,
-        text.split( '\n' ))
+        text.split( '\n' )
+      )
 
       view.lines[ line ] = variable
 
