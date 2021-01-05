@@ -219,7 +219,8 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
       \ 'maxwidth': s:max_width,
       \ 'maxheight': s:max_height,
       \ 'scrollbar': 1,
-      \ 'border': []
+      \ 'border': [],
+      \ 'padding': [ 0, 1, 0, 1]
       \ }
     if a:is_hover
       let config['filter'] = "MouseFilter"
