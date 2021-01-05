@@ -166,29 +166,29 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
   else
     " assume we are inside vim
     func! MouseFilter(winid, key)
+      let handled = 0
       if index(["\<leftmouse>", "\<2-leftmouse>"], a:key) >= 0
         let mouse_coords = getmousepos()
         " close the popup if mouse is clicked outside the window
         if mouse_coords['winid'] != a:winid
           call vimspector#internal#balloon#closeCallback()
+        else
+          " place the cursor according to the click
+          call win_execute(a:winid, ":call cursor(".mouse_coords['line'].", ".mouse_coords['column'].")")
+
+          " expand the variable if we got double click
+          if a:key == "\<2-leftmouse>" && mouse_coords['winid'] == a:winid
+            " forward line number to python, since vim does not allow us to focus
+            " the correct window
+            call py3eval("_vimspector_session.ExpandVariable(".line('.', a:winid).")")
+            let handled = 1
+          endif
         endif
-
-        " place the cursor according to the click
-        call win_execute(a:winid, ":call cursor(".mouse_coords['line'].", ".mouse_coords['column'].")")
-
-        " expand the variable if we got double click
-        if a:key == "\<2-leftmouse>" && mouse_coords['winid'] == a:winid
-          " forward line number to python, since vim does not allow us to focus
-          " the correct window
-          call py3eval("_vimspector_session.ExpandVariable(".line('.', a:winid).")")
-        endif
-
-        return 1
       endif
-      return 0
+      return handled
     endfunc
 
-    func! CursorFiler(winid, key)
+    func! CursorFilter(winid, key)
       if index(['j', 'k'], a:key) >= 0
         call win_execute(a:winid, ':normal '.a:key)
 
@@ -229,7 +229,7 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
       let config['resize'] = 1
       let s:float_win = popup_beval(body, config)
     else
-      let config['filter'] = "CursorFiler"
+      let config['filter'] = "CursorFilter"
       let config['moved'] = "any"
       let s:float_win = popup_atcursor(body, config)
     endif
