@@ -111,14 +111,27 @@ class Watch:
     self.expression = expression
     self.result = None
 
+  @staticmethod
+  def New( frame, expression, context ):
+    watch = {
+      'expression': expression,
+      'context': context,
+    }
+    if frame:
+      watch[ 'frameId' ] = frame[ 'id' ]
+
+    return Watch( watch )
+
 
 class View:
   lines: typing.Dict[ int, Expandable ]
   draw: typing.Callable
+  syntax: str
 
   def __init__( self, win, lines, draw ):
     self.lines = lines
     self.draw = draw
+    self.syntax = None
     if ( win is not None ):
       self.buf = win.buffer
       utils.SetUpUIWindow( win )
@@ -180,8 +193,8 @@ class VariablesView( object ):
         'balloonexpr': vim.options[ 'balloonexpr' ],
         'balloondelay': vim.options[ 'balloondelay' ],
       }
-      vim.options[ 'balloonexpr' ] = "vimspector#internal#"
-      "balloon#HoverTooltip()"
+      vim.options[ 'balloonexpr' ] = ( "vimspector#internal#"
+                                       "balloon#HoverTooltip()" )
 
       vim.options[ 'balloondelay' ] = 250
 
@@ -267,28 +280,25 @@ class VariablesView( object ):
     } )
 
   def _DrawEval( self ):
+    watch = self._variable_eval
+    view = self._variable_eval_view
+
     with utils.RestoreCursorPosition():
-      with utils.ModifiableScratchBuffer( self._variable_eval_view.buf ):
-        utils.ClearBuffer( self._variable_eval_view.buf )
-        # if we only have a single non-expandable variable,
-        # it means we ran into a simple type
-        # hence, there is no need to draw additional fluff around the value
-        if(
-            len( self._variable_eval.variables ) == 1
-            and self._variable_eval.variables[ 0 ].IsExpandable() is False
-        ):
-          utils.AppendToBuffer(
-            self._variable_eval_view.buf,
-            self._variable_eval.variables[ 0 ]
-              .variable.get( 'value', '<unknown>' )
-          )
-        else:
-          self._DrawVariables(
-              self._variable_eval_view,
-              self._variable_eval.variables,
-              2,
-              True
-          )
+      with utils.ModifiableScratchBuffer( view.buf ):
+        utils.ClearBuffer( view.buf )
+        # FIXME: This probably doesn't work reliably
+        view.syntax = utils.SetSyntax( view.syntax,
+                                       self._current_syntax,
+                                       view.buf )
+
+        utils.AppendToBuffer(
+          view.buf,
+          f"Expression: { watch.expression[ 'expression' ] }" )
+
+        self._DrawWatchResult( view,
+                               2,
+                               watch,
+                               is_short = True )
 
         vim.eval( "vimspector#internal#balloon#nvim_resize_tooltip()" )
 
@@ -303,9 +313,13 @@ class VariablesView( object ):
       return ''
 
     def handler( message ):
-      body = message[ 'body' ]
 
-      self._variable_eval = Scope( body )
+      watch = self._variable_eval
+      if watch.result is None:
+        watch.result = WatchResult( message[ 'body' ] )
+      else:
+        watch.result.Update( message[ 'body' ] )
+
       float_win_id = utils.DisplayBaloon( self._is_term, [], is_hover )
       float_buf_nr = int( vim.eval( "winbufnr({})".format( float_win_id ) ) )
 
@@ -322,51 +336,41 @@ class VariablesView( object ):
           self._DrawEval
       )
 
-      if( self._variable_eval.VariablesReference() > 0 ):
+      if watch.result.IsExpandable():
+        # Always expand the first level
+        watch.result.expanded = Expandable.EXPANDED_BY_US
+
+      if watch.result.IsExpanded():
         self._connection.DoRequest( partial( self._ConsumeVariables,
-                                             self._DrawEval,
-                                             self._variable_eval ), {
+                                             self._variable_eval_view.draw,
+                                             watch.result ), {
           'command': 'variables',
           'arguments': {
-            'variablesReference': self._variable_eval.VariablesReference(),
+            'variablesReference': watch.result.VariablesReference(),
           },
         } )
-      else:
-        # in case that there is nothing to expand,
-        # we need to simulate a response from 'variables' request
-        # it returns [Variable]
-        self._variable_eval.variables = [
-            Variable( { 'type': body[ 'type' ], 'value': body[ 'result' ] } )
-        ]
-        self._DrawEval()
 
+      self._DrawEval()
 
     def failure_handler( reason, message ):
       display = [ reason ]
       utils.DisplayBaloon( self._is_term, display, is_hover )
 
+    self._variable_eval = Watch.New( frame,
+                                     expression,
+                                     'hover' )
+
     # Send async request
     self._connection.DoRequest( handler, {
       'command': 'evaluate',
-      'arguments': {
-        'expression': expression,
-        'frameId': frame[ 'id' ],
-        'context': 'hover',
-      }
+      'arguments': self._variable_eval.expression,
     }, failure_handler )
 
     # Return working (meanwhile)
     return ''
 
   def AddWatch( self, frame, expression ):
-    watch = {
-      'expression': expression,
-      'context': 'watch',
-    }
-    if frame:
-      watch[ 'frameId' ] = frame[ 'id' ]
-
-    self._watches.append( Watch( watch ) )
+    self._watches.append( Watch.New( frame, expression, 'watch' ) )
     self.EvaluateWatches()
 
   def DeleteWatch( self ):
@@ -453,7 +457,7 @@ class VariablesView( object ):
       },
     } )
 
-  def _DrawVariables( self, view,  variables, indent, is_short = False ):
+  def _DrawVariables( self, view, variables, indent, is_short = False ):
     assert indent > 0
     for variable in variables:
       text = ''
@@ -513,7 +517,7 @@ class VariablesView( object ):
                                        'Expression: '
                                        + watch.expression[ 'expression' ] )
           watch.line = line
-          self._DrawWatchResult( 2, watch )
+          self._DrawWatchResult( self._watch, 2, watch )
 
   def _DrawScope( self, indent, scope ):
     icon = '+' if scope.IsExpandable() and not scope.IsExpanded() else '-'
@@ -529,7 +533,7 @@ class VariablesView( object ):
       indent += 2
       self._DrawVariables( self._vars, scope.variables, indent )
 
-  def _DrawWatchResult( self, indent, watch ):
+  def _DrawWatchResult( self, view, indent, watch, is_short = False ):
     if not watch.result:
       return
 
@@ -544,12 +548,12 @@ class VariablesView( object ):
       icon = icon,
       result = watch.result.result.get( 'result', '<unknown>' ) )
 
-    line = utils.AppendToBuffer( self._watch.buf, line.split( '\n' ) )
-    self._watch.lines[ line ] = watch.result
+    line = utils.AppendToBuffer( view.buf, line.split( '\n' ) )
+    view.lines[ line ] = watch.result
 
     if watch.result.ShouldDrawDrillDown():
       indent = 4
-      self._DrawVariables( self._watch, watch.result.variables, indent )
+      self._DrawVariables( view, watch.result.variables, indent, is_short )
 
   def _ConsumeVariables( self, draw, parent, message ):
     new_variables = []
@@ -623,6 +627,7 @@ class VariablesView( object ):
 
 
   def SetSyntax( self, syntax ):
+    # TODO: Switch to View.syntax
     self._current_syntax = utils.SetSyntax( self._current_syntax,
                                             syntax,
                                             self._vars.buf,
