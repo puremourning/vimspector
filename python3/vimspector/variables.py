@@ -291,12 +291,8 @@ class VariablesView( object ):
                                        self._current_syntax,
                                        view.buf )
 
-        utils.AppendToBuffer(
-          view.buf,
-          f"Expression: { watch.expression[ 'expression' ] }" )
-
         self._DrawWatchResult( view,
-                               2,
+                               0,
                                watch,
                                is_short = True )
 
@@ -537,15 +533,25 @@ class VariablesView( object ):
     if not watch.result:
       return
 
-    assert indent > 0
-    icon = '+' if ( watch.result.IsExpandable() and
-                    not watch.result.IsExpanded() ) else '-'
+    assert is_short or indent > 0
 
-    line =  '{indent}{marker}{icon} Result: {result}'.format(
+    if is_short:
+      # The first result is always expanded in a hover (short format)
+      icon = ''
+      marker = ''
+      leader = ''
+    else:
+      icon = '+' if ( watch.result.IsExpandable() and
+                      not watch.result.IsExpanded() ) else '-'
+      marker = '*' if watch.result.changed else ' ',
+      leader = ' Result: '
+
+    line =  '{indent}{marker}{icon}{leader}{result}'.format(
       # We borrow 1 space of indent to draw the change marker
       indent = ' ' * ( indent - 1 ),
-      marker = '*' if watch.result.changed else ' ',
+      marker = marker,
       icon = icon,
+      leader = leader,
       result = watch.result.result.get( 'result', '<unknown>' ) )
 
     line = utils.AppendToBuffer( view.buf, line.split( '\n' ) )
