@@ -543,7 +543,7 @@ class VariablesView( object ):
     else:
       icon = '+' if ( watch.result.IsExpandable() and
                       not watch.result.IsExpanded() ) else '-'
-      marker = '*' if watch.result.changed else ' ',
+      marker = '*' if watch.result.changed else ' '
       leader = ' Result: '
 
     line =  '{indent}{marker}{icon}{leader}{result}'.format(
@@ -558,8 +558,7 @@ class VariablesView( object ):
     view.lines[ line ] = watch.result
 
     if watch.result.ShouldDrawDrillDown():
-      indent = 4
-      self._DrawVariables( view, watch.result.variables, indent, is_short )
+      self._DrawVariables( view, watch.result.variables, indent + 2, is_short )
 
   def _ConsumeVariables( self, draw, parent, message ):
     new_variables = []
