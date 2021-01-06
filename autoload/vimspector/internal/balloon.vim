@@ -161,7 +161,6 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     augroup vimspector#internal#balloon#nvim_float
       autocmd!
       autocmd WinLeave * :call vimspector#internal#balloon#closeCallback() | autocmd! vimspector#internal#balloon#nvim_float
-      autocmd BufModifiedSet * :echo execute(eval("nvim_win_get_buf(".s:float_win.")")."bufdo echom &modified")
     augroup END
 
   else
