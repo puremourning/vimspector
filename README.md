@@ -1285,7 +1285,7 @@ xdebug.remote_connect_back=true
 xdebug.remote_port=9000
 ```
 
-* .vimspectory.json
+* .vimspector.json
 ```json
 {
   "configurations": {
