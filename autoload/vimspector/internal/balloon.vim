@@ -213,7 +213,6 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     endif
 
     let config = {
-      \ 'cursorline': 1,
       \ 'wrap': 0,
       \ 'filtermode': "n",
       \ 'maxwidth': s:max_width,
@@ -232,6 +231,7 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     else
       let config['filter'] = "CursorFilter"
       let config['moved'] = "any"
+      let config['cursorline'] = 1
       let s:float_win = popup_atcursor(body, config)
     endif
 
