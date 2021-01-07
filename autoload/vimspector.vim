@@ -523,8 +523,39 @@ function! vimspector#OnBufferCreated( file_name ) abort
   py3 _vimspector_session.RefreshSigns( vim.eval( 'a:file_name' ) )
 endfunction
 
-function! vimspector#ShowTooltip()  abort
-  return py3eval('_vimspector_session.ShowTooltip(int( vim.eval( "winnr()" ) ) ,vim.eval( "expand(\"<cexpr>\")" ), 0)')
+function! vimspector#ShowTooltipForSelection() range
+  let [start, end] = [[line("'<"), col("'<") - 1], [line("'>"), col("'>")]]
+  " restor cursor position, since command mode puts it to the begining of the
+  " current line when invoked from visual mode
+  call cursor(end)
+
+  " retrive the lines selected in visual mode
+  let lines = getbufline(bufnr('%'), start[0], end[0])
+
+  " make sure the leave only the parts we care about if multiple lines are
+  " selected
+  let lines[0] = strcharpart(lines[0], start[1])
+  let lines_len = len(lines) - 1
+
+  if len(lines) == 1
+    let lines[lines_len] = strcharpart(lines[lines_len], 0, end[1] - start[1])
+  else
+    let lines[lines_len] = strcharpart(lines[lines_len], 0, end[1])
+  endif
+
+  let str = join(lines)
+
+  call vimspector#ShowTooltip(str)
+endfunction
+
+function! vimspector#ShowTooltip(...)  abort
+  let str = "<cexpr>"
+
+  if a:0 > 0
+    let str = a:1
+  endif
+
+  return py3eval('_vimspector_session.ShowTooltip(int( vim.eval( "winnr()" ) ) ,vim.eval( "expand(\"'.str.'\")" ), 0)')
 endfunction
 
 
