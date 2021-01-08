@@ -145,7 +145,7 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     call nvim_buf_set_option(buf_id, 'modifiable', v:false)
     let s:float_win = nvim_open_win(buf_id, v:false, opts)
 
-    call nvim_win_set_option(s:float_win, 'wrap', v:true)
+    call nvim_win_set_option(s:float_win, 'wrap', v:false)
     call nvim_win_set_option(s:float_win, 'cursorline', v:true)
     call nvim_win_set_option(s:float_win, 'signcolumn', 'no')
     call nvim_win_set_option(s:float_win, 'relativenumber', v:false)
