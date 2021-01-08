@@ -3,6 +3,8 @@
 set SCALAR g
 array set ARRAY {key1 value1 key2 value2}
 
+set LIST [list a b c {def} {g h i j} k l m]
+
 proc Wrap { body } {
   uplevel 1 $body
 }
