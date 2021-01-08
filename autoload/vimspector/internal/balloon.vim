@@ -216,6 +216,8 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
       \ 'border': [],
       \ 'padding': [ 0, 1, 0, 1],
       \ 'highlight': 'Normal',
+      \ 'drag': 1,
+      \ 'resize': 1
       \ }
 
     if &ambiwidth ==# 'single' && &encoding == 'utf-8'
@@ -226,8 +228,6 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
       let config['filter'] = "MouseFilter"
       let config['mousemoved'] = [0, 0, 0]
       let config['close'] = "button"
-      let config['drag'] = 1
-      let config['resize'] = 1
       let s:float_win = popup_beval(body, config)
     else
       let config['filter'] = "CursorFilter"
