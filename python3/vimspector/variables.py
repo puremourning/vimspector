@@ -287,7 +287,7 @@ class VariablesView( object ):
       with utils.ModifiableScratchBuffer( view.buf ):
         utils.ClearBuffer( view.buf )
         # FIXME: This probably doesn't work reliably
-        view.syntax = utils.SetSyntax( view.syntax,
+        view.syntax = utils.SetSyntax( None,
                                        self._current_syntax,
                                        view.buf )
 
