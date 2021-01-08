@@ -66,7 +66,7 @@ function! vimspector#internal#neochannel#StartDebugSession( config ) abort
     endtry
   endif
 
-  let l:addr = get( a:config, 'host', 'localhost' ) . ':' . a:config[ 'port' ]
+  let l:addr = get( a:config, 'host', '127.0.0.1' ) . ':' . a:config[ 'port' ]
 
   let attempt = 1
   while attempt <= 10
