@@ -47,14 +47,19 @@ let s:min_height = 1
 let s:max_width = 80
 let s:max_height = 20
 
-function! vimspector#internal#balloon#closeCallback() abort
+function! vimspector#internal#balloon#Close() abort
   if has('nvim')
     call nvim_win_close(s:float_win, v:true)
     call nvim_win_close(s:nvim_related_win, v:true)
+
+    call vimspector#internal#balloon#CloseCallback()
   else
     call popup_close(s:float_win)
   endif
 
+endfunction
+
+function! vimspector#internal#balloon#CloseCallback( ... ) abort
   let s:float_win = 0
   let s:nvim_related_win = 0
   return py3eval('_vimspector_session._CleanUpTooltip()')
@@ -162,7 +167,7 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     " make sure we clean up the float after it loses focus
     augroup vimspector#internal#balloon#nvim_float
       autocmd!
-      autocmd WinLeave * :call vimspector#internal#balloon#closeCallback() | autocmd! vimspector#internal#balloon#nvim_float
+      autocmd WinLeave * :call vimspector#internal#balloon#Close() | autocmd! vimspector#internal#balloon#nvim_float
     augroup END
 
   else
@@ -173,7 +178,7 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
         let mouse_coords = getmousepos()
         " close the popup if mouse is clicked outside the window
         if mouse_coords['winid'] != a:winid
-          call vimspector#internal#balloon#closeCallback()
+          call vimspector#internal#balloon#Close()
         else
           " place the cursor according to the click
           call win_execute(a:winid, ":call cursor(".mouse_coords['line'].", ".mouse_coords['column'].")")
@@ -204,7 +209,7 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     endfunc
 
     if s:float_win != 0
-      call vimspector#internal#balloon#closeCallback()
+      call vimspector#internal#balloon#Close()
     endif
 
     let config = {
@@ -217,7 +222,8 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
       \ 'padding': [ 0, 1, 0, 1],
       \ 'highlight': 'Normal',
       \ 'drag': 1,
-      \ 'resize': 1
+      \ 'resize': 1,
+      \ 'callback': 'vimspector#internal#balloon#CloseCallback'
       \ }
 
     if &ambiwidth ==# 'single' && &encoding == 'utf-8'
