@@ -322,7 +322,7 @@ class VariablesView( object ):
       else:
         watch.result.Update( message[ 'body' ] )
 
-      float_win_id = utils.DisplayBaloon( self._is_term, [], is_hover )
+      float_win_id = utils.DisplayBalloon( self._is_term, [], is_hover )
       float_buf_nr = int( vim.eval( "winbufnr({})".format( float_win_id ) ) )
 
       # since vim's popup cant be focused there is no way
@@ -356,7 +356,7 @@ class VariablesView( object ):
 
     def failure_handler( reason, message ):
       display = [ reason ]
-      utils.DisplayBaloon( self._is_term, display, is_hover )
+      utils.DisplayBalloon( self._is_term, display, is_hover )
 
     self._variable_eval = Watch.New( frame,
                                      expression,
@@ -628,11 +628,11 @@ class VariablesView( object ):
         'Type: ' + body.get( 'type', '<unknown>' ),
         'Value: ' + result
       ]
-      utils.DisplayBaloon( self._is_term, display )
+      utils.DisplayBalloon( self._is_term, display )
 
     def failure_handler( reason, message ):
       display = [ reason ]
-      utils.DisplayBaloon( self._is_term, display )
+      utils.DisplayBalloon( self._is_term, display )
 
     # Send async request
     self._connection.DoRequest( handler, {
