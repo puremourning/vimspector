@@ -221,6 +221,11 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
       \ 'border': [],
       \ 'padding': [ 0, 1, 0, 1]
       \ }
+
+    if &ambiwidth ==# 'single' && &encoding == 'utf-8'
+      let config['borderchars'] = [ '─', '│', '─', '│', '╭', '╮', '╯', '╰' ]
+    endif
+
     if a:is_hover
       let config['filter'] = "MouseFilter"
       let config['mousemoved'] = [0, 0, 0]
