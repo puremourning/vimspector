@@ -42,8 +42,8 @@ let s:nvim_related_win = 0
 " tooltip dimensions
 let s:min_width = 1
 let s:min_height = 1
-let s:max_width = 50
-let s:max_height = 5
+let s:max_width = 80
+let s:max_height = 20
 
 function! vimspector#internal#balloon#closeCallback() abort
   if has('nvim')
