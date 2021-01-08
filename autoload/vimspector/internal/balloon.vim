@@ -179,7 +179,7 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
           call win_execute(a:winid, ":call cursor(".mouse_coords['line'].", ".mouse_coords['column'].")")
 
           " expand the variable if we got double click
-          if a:key == "\<2-leftmouse>" && mouse_coords['winid'] == a:winid
+          if a:key == "\<2-leftmouse>"
             " forward line number to python, since vim does not allow us to focus
             " the correct window
             call py3eval("_vimspector_session.ExpandVariable(".line('.', a:winid).")")
@@ -191,23 +191,16 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     endfunc
 
     func! CursorFilter(winid, key)
-      if index(['j', 'k'], a:key) >= 0
-        call win_execute(a:winid, ':normal '.a:key)
-
-        return 1
-      elseif a:key == "\<cr>"
+      if a:key == "\<CR>"
         " forward line number to python, since vim does not allow us to focus
         " the correct window
         call py3eval("_vimspector_session.ExpandVariable(".line('.', a:winid).")")
-
         return 1
-      elseif a:key == "\<esc>"
-        call vimspector#internal#balloon#closeCallback()
-
-        return 1
+      elseif index( [ "\<LeftMouse>", "\<2-LeftMouse>" ], a:key ) >= 0
+        return MouseFilter( a:winid, a:key )
       endif
 
-      return 0
+      return popup_filter_menu( a:winid, a:key )
     endfunc
 
     if s:float_win != 0
