@@ -19,6 +19,8 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 " }}}
 
+scriptencoding utf-8
+
 " Returns: py.ShowBalloon( winnr, expresssion )
 function! vimspector#internal#balloon#BalloonExpr() abort
   " winnr + 1 because for *no good reason* winnr is 0 based here unlike
@@ -223,7 +225,7 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
       \ }
 
     if &ambiwidth ==# 'single' && &encoding == 'utf-8'
-      let config['borderchars'] = [ '─', '│', '─', '│', '╭', '╮', '╯', '╰' ]
+      let config['borderchars'] = [ '─', '│', '─', '│', '╭', '╮', '┛', '╰' ]
     endif
 
     if a:is_hover
