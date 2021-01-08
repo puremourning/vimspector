@@ -188,11 +188,12 @@ class StackTraceView( object ):
       return
 
     def consume_threads( message ):
+      requesting = False
       if self._requesting_threads == StackTraceView.ThreadRequestState.PENDING:
         # We may have hit a thread event, so try again.
         self._requesting_threads = StackTraceView.ThreadRequestState.NO
         self.LoadThreads( *self._pending_thread_request )
-        return
+        requesting = True
 
       self._requesting_threads = StackTraceView.ThreadRequestState.NO
       self._pending_thread_request = None
@@ -240,7 +241,10 @@ class StackTraceView( object ):
         # If this is a stopped event, load the stack trace for the "current"
         # thread. Don't do this on other thrads requests because some servers
         # just break when that happens.
-        if infer_current_frame:
+        #
+        # Don't do this if we're also satisfying a cached request already (we'll
+        # do it then)
+        if infer_current_frame and not requesting:
           if thread.id == self._current_thread:
             if thread.CanExpand():
               self._LoadStackTrace( thread, True, reason )
