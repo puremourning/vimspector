@@ -214,7 +214,8 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
       \ 'maxheight': s:max_height,
       \ 'scrollbar': 1,
       \ 'border': [],
-      \ 'padding': [ 0, 1, 0, 1]
+      \ 'padding': [ 0, 1, 0, 1],
+      \ 'highlight': 'Normal',
       \ }
 
     if &ambiwidth ==# 'single' && &encoding == 'utf-8'
