@@ -1,0 +1,21 @@
+{
+  "configurations": {
+    "kotlin-debug-adapter launch": {
+      "adapter": "cust_kotlin-debug-adapter",
+      "configuration": {
+        "request": "launch",
+        "projectRoot": "${workspaceFolder}",
+        "mainClass": "vimspector/test/ApplicationKt"
+      }
+    },
+    "kotlin-debug-adapter attach": {
+      "adapter": "cust_kotlin-debug-adapter",
+      "configuration": {
+        "request": "attach",
+        "projectRoot": "${workspaceFolder}",
+        "hostName": "${hostName}",
+        "port": "${port}"
+      }
+    }
+  }
+}
