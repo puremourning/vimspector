@@ -602,9 +602,6 @@ That said, many people are familiar with particular debuggers, so the following
 mappings can be enabled by setting `g:vimspector_enable_mappings` to the
 specified value.
 
-Please note: Currently there are no `<plug>` mappings. These will be added in
-future to make custom mappings much easier.
-
 ## Visual Studio / VSCode
 
 To use Visual Studio-like mappings, add the following to your `vimrc` **before
