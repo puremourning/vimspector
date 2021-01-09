@@ -171,27 +171,31 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     augroup END
 
   else
-    " assume we are inside vim
     func! MouseFilter(winid, key)
-      let handled = 0
-      if index(["\<leftmouse>", "\<2-leftmouse>"], a:key) >= 0
-        let mouse_coords = getmousepos()
-        " close the popup if mouse is clicked outside the window
-        if mouse_coords['winid'] != a:winid
-          call vimspector#internal#balloon#Close()
-        else
-          " place the cursor according to the click
-          call win_execute(a:winid, ":call cursor(".mouse_coords['line'].", ".mouse_coords['column'].")")
-
-          " expand the variable if we got double click
-          if a:key == "\<2-leftmouse>"
-            " forward line number to python, since vim does not allow us to focus
-            " the correct window
-            call py3eval("_vimspector_session.ExpandVariable(".line('.', a:winid).")")
-            let handled = 1
-          endif
-        endif
+      if index(["\<leftmouse>", "\<2-leftmouse>"], a:key) < 0
+        return 0
       endif
+
+      let handled = 0
+      let mouse_coords = getmousepos()
+
+      " close the popup if mouse is clicked outside the window
+      if mouse_coords['winid'] != a:winid
+        call vimspector#internal#balloon#Close()
+        return 0
+      endif
+
+      " place the cursor according to the click
+      call win_execute(a:winid, ":call cursor(".mouse_coords['line'].", ".mouse_coords['column'].")")
+
+      " expand the variable if we got double click
+      if a:key == "\<2-leftmouse>"
+        " forward line number to python, since vim does not allow us to focus
+        " the correct window
+        call py3eval("_vimspector_session.ExpandVariable(".line('.', a:winid).")")
+        let handled = 1
+      endif
+
       return handled
     endfunc
 
