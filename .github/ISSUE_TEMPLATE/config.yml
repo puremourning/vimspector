@@ -1,0 +1,12 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and support
+    url: http://gitter.im/vimspector/Lobby
+    about: Please ask and answer questions here.
+  - name: Discussions
+    url: https://github.com/puremourning/vimspector/discussions
+    about: Please post questions and useful hints here
+  - name: Support for additional languages
+    url: https://github.com/puremourning/vimspector/wiki/languages
+    about: Please see here for information on support for additional languages
+
