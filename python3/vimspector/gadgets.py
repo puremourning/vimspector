@@ -21,7 +21,7 @@ import os
 
 GADGETS = {
   'vscode-cpptools': {
-    'language': 'c',
+    'language': [ 'c', 'cpp', 'rust' ],
     'download': {
       'url': 'https://github.com/Microsoft/vscode-cpptools/releases/download/'
              '${version}/${file_name}',
@@ -225,7 +225,7 @@ GADGETS = {
     },
   },
   'netcoredbg': {
-    'language': 'csharp',
+    'language': [ 'csharp', 'fsharp', 'vbnet' ],
     'enabled': False,
     'download': {
       'url': ( 'https://github.com/Samsung/netcoredbg/releases/download/'
