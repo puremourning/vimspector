@@ -340,7 +340,7 @@ In order for Vimspector to be useful, you need to have some adapters installed.
 
 There are a few ways to do this:
 
-* If you downloaded a tarball, gadgets for main supported langauges are already
+* If you downloaded a tarball, gadgets for main supported languages are already
   installed for you.
 * Using `:VimspectorInstall <adapter> <args...>` (use TAB `wildmenu` to see the
   options, also accepts any `install_gadget.py` option)
@@ -350,7 +350,7 @@ There are a few ways to do this:
 * Using `:VimspectorUpdate` to install the latest supported versions of the
   gadgets.
 
-Here's a demo of doing somee installs and an upgrade:
+Here's a demo of doing some installs and an upgrade:
 
 [![asciicast](https://asciinema.org/a/Hfu4ZvuyTZun8THNen9FQbTay.svg)](https://asciinema.org/a/Hfu4ZvuyTZun8THNen9FQbTay)
 
@@ -364,7 +364,7 @@ they will:
   install the gadgets manually.
 * Perform any necessary post-installation actions, such as:
   * Building any binary components
-  * Ensuring scripts are executable, because the VSIX pacakges are usually
+  * Ensuring scripts are executable, because the VSIX packages are usually
     broken in this regard.
   * Set up the `gadgetDir` symlinks for the platform.
 
@@ -570,7 +570,7 @@ The plugin is currently _experimental_. That means that any part of it
 can (and probably will) change, including things like:
 
 - breaking changes to the configuration
-- keys, layout, functionatlity of the UI
+- keys, layout, functionality of the UI
 
 However, I commit to only doing this in the most extreme cases and to annouce
 such changes on Gitter well in advance. There's nothing more annoying than stuff
@@ -628,7 +628,7 @@ Copyright © 2018 Ben Jackson
 
 ## Sponsorship
 
-If you like Vimspector so much that you're wiling to part with your hard-earned cash, please consider donating to one of the following charities, which are meaningful to the author of Vimspector (in order of prefernce):
+If you like Vimspector so much that you're wiling to part with your hard-earned cash, please consider donating to one of the following charities, which are meaningful to the author of Vimspector (in order of preference):
 
 * [Greyhound Rescue Wales](https://greyhoundrescuewales.co.uk)
 * [Cancer Research UK](https://www.cancerresearchuk.org)
@@ -784,7 +784,7 @@ For example, to get an array of configurations and fuzzy matching on the result
 
 ## Breakpoints
 
-See the [mappings](€mappings) section for the default mappngs for working with
+See the [mappings](€mappings) section for the default mappings for working with
 breakpoints. This section describes the full API in vimscript functions.
 
 ### Summary
@@ -806,7 +806,7 @@ Examples:
 * `call vimspector#SetLineBreakpoint( 'some_file.py', 10 )` - set a breakpoint
   on `some_filepy:10`
 * `call vimspector#AddFunctionBreakpoint( 'main' )` - add a function breakpoint
-  on the `main` funciton
+  on the `main` function
 * `call vimspector#ToggleBreakpoint( { 'condition': 'i > 5' } )` - add a
   breakpoint on the current line that triggers only when `i > 5` is `true`
 * `call vimspector#SetLineBreakpoint( 'some_file.py', 10, { 'condition': 'i > 5' } )` - add a
@@ -817,7 +817,7 @@ Examples:
 
 ### Line breakpoints
 
-The simplest and most common form of breakpoint is a line breakpoint. Exectuion
+The simplest and most common form of breakpoint is a line breakpoint. Execution
 is paused when the specified line is executed.
 
 For most debugging scenarios, users will just hit `<F9>` to create a line
@@ -825,7 +825,7 @@ breakpoint on the current line and `<F5>` to launch the application.
 
 ### Conditional breakpoints
 
-Some debug adatpers support conditional breakpionts. Note that vimspector does
+Some debug adapters support conditional breakpionts. Note that vimspector does
 not tell you if the debugger doesn't support conditional breakpoints (yet). A
 conditional breakpiont is a breakpiont which only triggers if some expression
 evaluates to true, or has some other constraints met.
@@ -833,11 +833,11 @@ evaluates to true, or has some other constraints met.
 Some of these functions above take a single optional argument which is a
 dictionary of options. The dictionary can have the following keys:
 
-* `condition`: An optional expression evaluated to deterimie if the breakpoint
+* `condition`: An optional expression evaluated to determine if the breakpoint
   should fire. Not supported by all debug adapters. For example, to break when
   `abc` is `10`, enter something like `abc == 10`, depending on the language.
 * `hitCondition`: An optional expression evaluated to determine a number of
-  times the breakpoint should be ignored. Should (probablty?) not be used in
+  times the breakpoint should be ignored. Should (probably?) not be used in
   combination with `condition`. Not supported by all debug adapters. For
   example, to break on the 3rd time hitting this line, enter `3`.
 
@@ -851,7 +851,7 @@ expressions in a command line (with history).
 
 Exception breakpoints typically fire when an exception is throw or other error
 condition occurs. Depending on the debugger, when starting debugging, you may be
-asekd a few questions about how to handle exceptoins. These are "exception
+asked a few questions about how to handle exceptions. These are "exception
 breakpoints" and vimspector remembers your choices while Vim is still running.
 
 Typically you can accept the defaults (just keep pressing `<CR>`!) as most debug
@@ -912,7 +912,7 @@ The watches are represented by the buffer `vimspector.StackTrace`.
 ### Watch autocompletion
 
 The watch prompt buffer has its `omnifunc` set to a function that will
-calcualte completion for the current expression. This is trivailly used with
+calculate completion for the current expression. This is trivially used with
 `<Ctrl-x><Ctrl-o>` (see `:help ins-completion`), or integrated with your
 favourite completion system. The filetype in the buffer is set to
 `VimspectorPrompt`.
@@ -927,8 +927,8 @@ let g:ycm_semantic_triggers =  {
 
 ## Stack Traces
 
-The stack trace window shows the state of each progream thread. Threads which
-are stopped can be expanded to show the strack trace of that thread.
+The stack trace window shows the state of each program thread. Threads which
+are stopped can be expanded to show the stack trace of that thread.
 
 Often, but not always, all threads are stopped when a breakpoint is hit. The
 status of a thread is show in parentheses after the thread's name. Where
@@ -988,7 +988,7 @@ If the output window is closed, a new one can be opened with
 ### Console autocompletion
 
 The console prompt buffer has its `omnifunc` set to a function that will
-calcualte completion for the current command/expression. This is trivailly used
+calculate completion for the current command/expression. This is trivially used
 with `<Ctrl-x><Ctrl-o>` (see `:help ins-completion`), or integrated with your
 favourite completion system. The filetype in the buffer is set to
 `VimspectorPrompt`.
@@ -1659,7 +1659,7 @@ This debugger uses stdio to communicate with the running process, so calls to
 
 # Customisation
 
-There is very limited support for customistaion of the UI.
+There is very limited support for customisation of the UI.
 
 ## Changing the default signs
 
@@ -1687,7 +1687,7 @@ sign define vimspectorPCBP       text=●▶  texthl=MatchParen linehl=CursorLin
 ```
 
 If the signs don't display properly, your font probably doesn't contain these
-glyphs. You can easily change them by deifining the sign in your vimrc. For
+glyphs. You can easily change them by defining the sign in your vimrc. For
 example, you could put this in your `vimrc` to use some simple ASCII symbols:
 
 ```viml
@@ -1733,7 +1733,7 @@ smaller ones.
 ## Changing the default window sizes
 
 > ***Please Note***: This cusomiation API is ***unstable***, meaning that it may
-change at any time. I will endeavour to reduce the impact of this and annouce
+change at any time. I will endeavour to reduce the impact of this and announce
 changes in Gitter.
 
 The following options control the default sizes of the UI windows (all of them
@@ -1786,7 +1786,7 @@ let g:vimspector_terminal_minwidth = 20
 ## Advanced UI customisation
 
 > ***Please Note***: This cusomiation API is ***unstable***, meaning that it may
-change at any time. I will endeavour to reduce the impact of this and annouce
+change at any time. I will endeavour to reduce the impact of this and announce
 changes in Gitter.
 
 The above customisation of window sizes is limited intentionally to keep things
@@ -1818,7 +1818,7 @@ keys:
 * `g:vimspector_session_windows.variables`: Window ID of the variables window,
   containing the `vimspector.Variables` buffer.
 * `g:vimspector_session_windows.watches`: Window ID of the watches window,
-  containng the `vimspector.Watches` buffer.
+  containing the `vimspector.Watches` buffer.
 * `g:vimspector_session_windows.stack_trace`: Window ID of the stack trade
   window containing the `vimspector.StackTrace` buffer.
 * `g:vimspector_session_windows.code`: Window ID of the code window.
@@ -1877,7 +1877,7 @@ augroup END
 
 There is some example code in `support/custom_ui_vimrc` showing how you can use
 the window IDs to modify various aspects of the UI using some basic vim
-commands, primarily `win_gotoid` funciton and the `wincmd` ex command.
+commands, primarily `win_gotoid` function and the `wincmd` ex command.
 
 To try this out `vim -Nu support/custom_ui_vimrc <some file>`.
 
@@ -1937,7 +1937,7 @@ hi link jsonComment Comment
 ```
 
 7. What is the difference between a `gadget` and an `adapter`? A gadget is
-   somethin you install with `:VimspectorInstall` or `install_gadget.py`, an
+   something you install with `:VimspectorInstall` or `install_gadget.py`, an
    `adapter` is something that Vimspector talks to (actually it's the Vimspector
    config describing that thing). These are _usually_ one-to-one,
    but in theory a single gadget can supply multiple `adapter` configs.
