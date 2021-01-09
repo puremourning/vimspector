@@ -140,7 +140,6 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
 
     " when calculating where to display the content window, we need to account
     " for the border
-    set winhl=Normal:Floating
     let opts.row += 1
     let opts.height -= 2
     let opts.col += 2
@@ -158,7 +157,16 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     call nvim_win_set_option(s:float_win, 'relativenumber', v:false)
     call nvim_win_set_option(s:float_win, 'number', v:false)
 
-    noa call win_gotoid(s:float_win)
+    let old_curwin = win_getid()
+    try
+      noautocmd call win_gotoid(s:nvim_related_win)
+      set winhl=Normal:Floating
+    finally
+      noautocmd call win_gotoid(old_curwin)
+    endtry
+
+    noautocmd call win_gotoid(s:float_win)
+    set winhl=Normal:Floating
 
     nnoremap <silent> <buffer> <CR> :<C-u>call vimspector#ExpandVariable()<CR>
     nnoremap <silent> <buffer> <esc> :quit<CR>
