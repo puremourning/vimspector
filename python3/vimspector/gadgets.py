@@ -21,7 +21,7 @@ import os
 
 GADGETS = {
   'vscode-cpptools': {
-    'language': 'c',
+    'language': [ 'c', 'cpp', 'rust' ],
     'download': {
       'url': 'https://github.com/Microsoft/vscode-cpptools/releases/download/'
              '${version}/${file_name}',
@@ -115,10 +115,10 @@ GADGETS = {
       'url': 'https://github.com/microsoft/debugpy/archive/${file_name}'
     },
     'all': {
-      'version': '1.0.0b12',
-      'file_name': 'v1.0.0b12.zip',
+      'version': '1.2.1',
+      'file_name': 'v1.2.1.zip',
       'checksum':
-        '210632bba2221fbb841c9785a615258819ceec401d1abdbeb5f2326f12cc72a1'
+        '29a6c5d1053d2b6f3b1a63e1a8ecff93f951d3cc0b7548431592e9e3007239e6'
     },
     'do': lambda name, root, gadget: installer.InstallDebugpy( name,
                                                                root,
@@ -225,7 +225,7 @@ GADGETS = {
     },
   },
   'netcoredbg': {
-    'language': 'csharp',
+    'language': [ 'csharp', 'fsharp', 'vbnet' ],
     'enabled': False,
     'download': {
       'url': ( 'https://github.com/Samsung/netcoredbg/releases/download/'
@@ -353,10 +353,10 @@ GADGETS = {
              'v${version}/${file_name}'
     },
     'all': {
-      'version': '0.18.1',
-      'file_name': 'Go-0.18.1.vsix',
+      'version': '0.19.1',
+      'file_name': 'go-0.19.1.vsix',
       'checksum':
-        '80d4522c6cf482cfa6141997e5b458034f67d7065d92e1ce24a0456c405d6061',
+        '7f9dc014245b030d9f562b28f3ea9b1fd6e2708fac996c53ff6a707f8204ec64',
     },
     'adapters': {
       'vscode-go': {

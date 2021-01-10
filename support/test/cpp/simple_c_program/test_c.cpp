@@ -1,3 +1,5 @@
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
 
 namespace Test
@@ -32,6 +34,8 @@ namespace Test
 int main ( int argc, char ** argv )
 {
   int x{ 10 };
+
+  printf( "HOME: %s\n", getenv( "HOME" ) );
 
   Test::TestStruct t{ true, {99} };
   foo( t );

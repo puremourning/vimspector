@@ -1,7 +1,10 @@
 # vimspector - A multi language graphical debugger for Vim
 
 For a tutorial and usage overview, take a look at the
-[Vimspector website][website]
+[Vimspector website][website].
+
+For detailed explanatin of the `.vimspector.json` format, see the
+[reference guide][vimspector-ref].
 
 ![Build](https://github.com/puremourning/vimspector/workflows/Build/badge.svg?branch=master) [![Gitter](https://badges.gitter.im/vimspector/Lobby.svg)](https://gitter.im/vimspector/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
@@ -27,15 +30,21 @@ For a tutorial and usage overview, take a look at the
     * [Background](#background)
     * [Status](#status)
        * [Experimental](#experimental)
+    * [Motivation](#motivation)
+    * [License](#license)
+    * [Sponsorship](#sponsorship)
  * [Mappings](#mappings)
     * [Visual Studio / VSCode](#visual-studio--vscode)
     * [Human Mode](#human-mode)
- * [Usage](#usage)
+ * [Usage and API](#usage-and-api)
     * [Launch and attach by PID:](#launch-and-attach-by-pid)
        * [Launch with options](#launch-with-options)
        * [Debug configuration selection](#debug-configuration-selection)
        * [Get configurations](#get-configurations)
     * [Breakpoints](#breakpoints)
+       * [Summary](#summary)
+       * [Line breakpoints](#line-breakpoints)
+       * [Conditional breakpoints](#conditional-breakpoints)
        * [Exception breakpoints](#exception-breakpoints)
        * [Clear breakpoints](#clear-breakpoints)
        * [Run to Cursor](#run-to-cursor)
@@ -49,14 +58,14 @@ For a tutorial and usage overview, take a look at the
        * [Console autocompletion](#console-autocompletion)
        * [Log View](#log-view)
     * [Closing debugger](#closing-debugger)
- * [Debug adapter configuration](#debug-adapter-configuration)
+ * [Debug profile configuration](#debug-profile-configuration)
     * [C, C  , Rust, etc.](#c-c-rust-etc)
+       * [C   Remote debugging](#c-remote-debugging)
+       * [C   Remote launch and attach](#c-remote-launch-and-attach)
     * [Rust](#rust)
-       * [Remote debugging](#remote-debugging)
-       * [Remote launch and attach](#remote-launch-and-attach)
     * [Python](#python)
-       * [Remote Debugging](#remote-debugging-1)
-       * [Remote launch and attach](#remote-launch-and-attach-1)
+       * [Python Remote Debugging](#python-remote-debugging)
+       * [Python Remote launch and attach](#python-remote-launch-and-attach)
        * [Legacy: vscode-python](#legacy-vscode-python)
     * [TCL](#tcl)
     * [C♯](#c)
@@ -79,11 +88,8 @@ For a tutorial and usage overview, take a look at the
     * [Customising the WinBar](#customising-the-winbar)
     * [Example](#example)
  * [FAQ](#faq)
- * [Motivation](#motivation)
- * [License](#license)
- * [Sponsorship](#sponsorship)
 
-<!-- Added by: ben, at: Sun 22 Nov 2020 14:35:00 GMT -->
+<!-- Added by: ben, at: Sat  9 Jan 2021 13:13:28 GMT -->
 
 <!--te-->
 
@@ -134,21 +140,22 @@ runtime dependencies). They are categorised by their level of support:
 * `Experimental`: Working, but not frequently used and rarely tested
 * `Legacy`: No longer supported, please migrate your config
 
-| Language           | Status       | Switch (for `install_gadget.py`) | Adapter (for `:VimspectorInstall`) | Dependencies                               |
-|--------------------|--------------|----------------------------------|------------------------------------|--------------------------------------------|
-| C, C++, etc.       | Tested       | `--all` or `--enable-c`          | vscode-cpptools                    | mono-core                                  |
-| Rust, C, C++, etc. | Supported    | `--force-enable-rust`            | CodeLLDB                           | Python 3                                   |
-| Python             | Tested       | `--all` or `--enable-python`     | debugpy                            | Python 2.7 or Python 3                     |
-| Go                 | Tested       | `--enable-go`                    | vscode-go                          | Go, [Delve][]                              |
-| TCL                | Supported    | `--all` or `--enable-tcl`        | tclpro                             | TCL 8.5                                    |
-| Bourne Shell       | Supported    | `--all` or `--enable-bash`       | vscode-bash-debug                  | Bash v??                                   |
-| Lua                | Supported    | `--all` or `--enable-lua`        | local-lua-debugger-vscode          | Node >=12.13.0, Npm, Lua interpreter       |
-| Node.js            | Supported    | `--force-enable-node`            | vscode-node-debug2                 | 6 < Node < 12, Npm                         |
-| Javascript         | Supported    | `--force-enable-chrome`          | debugger-for-chrome                | Chrome                                     |
-| Java               | Supported    | `--force-enable-java  `          | vscode-java-debug                  | Compatible LSP plugin (see [later](#java)) |
-| C# (dotnet core)   | Experimental | `--force-enable-csharp`          | netcoredbg                         | DotNet core                                |
-| C# (mono)          | Experimental | `--force-enable-csharp`          | vscode-mono-debug                  | Mono                                       |
-| Python.legacy      | Legacy       | `--force-enable-python.legacy`   | vscode-python                      | Node 10, Python 2.7 or Python 3            |
+| Language           | Status       | Switch (for `install_gadget.py`)   | Adapter (for `:VimspectorInstall`) | Dependencies                               |
+|--------------------|--------------|------------------------------------|------------------------------------|--------------------------------------------|
+| C, C++, Rust etc.  | Tested       | `--all` or `--enable-c` (or cpp)   | vscode-cpptools                    | mono-core                                  |
+| Rust, C, C++, etc. | Supported    | `--force-enable-rust`              | CodeLLDB                           | Python 3                                   |
+| Python             | Tested       | `--all` or `--enable-python`       | debugpy                            | Python 2.7 or Python 3                     |
+| Go                 | Tested       | `--enable-go`                      | vscode-go                          | Go, [Delve][]                              |
+| TCL                | Supported    | `--all` or `--enable-tcl`          | tclpro                             | TCL 8.5                                    |
+| Bourne Shell       | Supported    | `--all` or `--enable-bash`         | vscode-bash-debug                  | Bash v??                                   |
+| Lua                | Supported    | `--all` or `--enable-lua`          | local-lua-debugger-vscode          | Node >=12.13.0, Npm, Lua interpreter       |
+| Node.js            | Supported    | `--force-enable-node`              | vscode-node-debug2                 | 6 < Node < 12, Npm                         |
+| Javascript         | Supported    | `--force-enable-chrome`            | debugger-for-chrome                | Chrome                                     |
+| Java               | Supported    | `--force-enable-java  `            | vscode-java-debug                  | Compatible LSP plugin (see [later](#java)) |
+| C# (dotnet core)   | Experimental | `--force-enable-csharp`            | netcoredbg                         | DotNet core                                |
+| C# (mono)          | Experimental | `--force-enable-csharp`            | vscode-mono-debug                  | Mono                                       |
+| F#, VB, etc.       | Experimental | `--force-enable-fsharp` (or vbnet) | netcoredbg                         | DotNet core                                |
+| Python.legacy      | Legacy       | `--force-enable-python.legacy`     | vscode-python                      | Node 10, Python 2.7 or Python 3            |
 
 ## Other languages
 
@@ -333,7 +340,7 @@ In order for Vimspector to be useful, you need to have some adapters installed.
 
 There are a few ways to do this:
 
-* If you downloaded a tarball, gadgets for main supported langauges are already
+* If you downloaded a tarball, gadgets for main supported languages are already
   installed for you.
 * Using `:VimspectorInstall <adapter> <args...>` (use TAB `wildmenu` to see the
   options, also accepts any `install_gadget.py` option)
@@ -343,7 +350,7 @@ There are a few ways to do this:
 * Using `:VimspectorUpdate` to install the latest supported versions of the
   gadgets.
 
-Here's a demo of doing somee installs and an upgrade:
+Here's a demo of doing some installs and an upgrade:
 
 [![asciicast](https://asciinema.org/a/Hfu4ZvuyTZun8THNen9FQbTay.svg)](https://asciinema.org/a/Hfu4ZvuyTZun8THNen9FQbTay)
 
@@ -357,7 +364,7 @@ they will:
   install the gadgets manually.
 * Perform any necessary post-installation actions, such as:
   * Building any binary components
-  * Ensuring scripts are executable, because the VSIX pacakges are usually
+  * Ensuring scripts are executable, because the VSIX packages are usually
     broken in this regard.
   * Set up the `gadgetDir` symlinks for the platform.
 
@@ -563,11 +570,70 @@ The plugin is currently _experimental_. That means that any part of it
 can (and probably will) change, including things like:
 
 - breaking changes to the configuration
-- keys, layout, functionatlity of the UI
+- keys, layout, functionality of the UI
 
 However, I commit to only doing this in the most extreme cases and to annouce
 such changes on Gitter well in advance. There's nothing more annoying than stuff
 just breaking on you. I get that.
+
+## Motivation
+
+A message from the author about the motivation for this plugin:
+
+> Many development environments have a built-in debugger. I spend an inordinate
+> amount of my time in Vim. I do all my development in Vim and I have even
+> customised my workflows for building code, running tests etc.
+>
+> For many years I have observed myself, friends and colleagues have been
+> writing `printf`, `puts`, `print`, etc.  debugging statements in all sorts of
+> files simply because there is no _easy_ way to run a debugger for _whatever_
+> language we happen to be developing in.
+>
+> I truly believe that interactive, graphical debugging environments are the
+> best way to understand and reason about both unfamiliar and familiar code, and
+> that the lack of ready, simple access to a debugger is a huge hidden
+> productivity hole for many.
+>
+> Don't get me wrong, I know there are literally millions of developers out
+> there that are more than competent at developing without a graphical debugger,
+> but I maintain that if they had the ability to _just press a key_ and jump
+> into the debugger, it would be faster and more enjoyable that just cerebral
+> code comprehension.
+>
+> I created Vimspector because I find changing tools frustrating. `gdb` for c++,
+> `pdb` for python, etc. Each has its own syntax. Each its own lexicon. Each its
+> own foibles.
+>
+> I designed the configuration system in such a way that the configuration can
+> be committed to source control so that it _just works_ for any of your
+> colleagues, friends, collaborators or complete strangers.
+>
+> I made remote debugging a first-class feature because that's a primary use
+> case for me in my job.
+>
+> With Vimspector I can _just hit `<F5>`_ in all of the languages I develop in
+> and debug locally or remotely using the exact same workflow, mappings and UI.
+> I have integrated this with my Vim in such a way that I can hit a button and
+> _run the test under the cursor in Vimspector_.  This kind of integration has
+> massively improved my workflow and productivity.  It's even made the process
+> of learning a new codebase... fun.
+>
+> \- Ben Jackson, Creator.
+
+## License
+
+[Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+Copyright © 2018 Ben Jackson
+
+## Sponsorship
+
+If you like Vimspector so much that you're wiling to part with your hard-earned cash, please consider donating to one of the following charities, which are meaningful to the author of Vimspector (in order of preference):
+
+* [Greyhound Rescue Wales](https://greyhoundrescuewales.co.uk)
+* [Cancer Research UK](https://www.cancerresearchuk.org)
+* [ICCF Holland](https://iccf.nl)
+* Any charity of your choosing.
 
 # Mappings
 
@@ -600,9 +666,6 @@ nmap <F5> <Plug>VimspectorContinue
 That said, many people are familiar with particular debuggers, so the following
 mappings can be enabled by setting `g:vimspector_enable_mappings` to the
 specified value.
-
-Please note: Currently there are no `<plug>` mappings. These will be added in
-future to make custom mappings much easier.
 
 ## Visual Studio / VSCode
 
@@ -652,7 +715,12 @@ let g:vimspector_enable_mappings = 'HUMAN'
 | `F11`        | Step Into                                                 | `vimspector#StepInto()`                                      |
 | `F12`        | Step out of current function scope                        | `vimspector#StepOut()`                                       |
 
-# Usage
+# Usage and API
+
+This section defines detailed usage instructions, organised by feature. For most
+users, the [mappings](#mappings) section contains the most common commands and
+default usage. This section can be used as a reference to create your own
+mappings or custom behaviours.
 
 ## Launch and attach by PID:
 
@@ -716,19 +784,60 @@ For example, to get an array of configurations and fuzzy matching on the result
 
 ## Breakpoints
 
-* Use `vimspector#ToggleBreakpoint([ { 'condition': '<condition expr>' } ])`
-  to set/disable/delete a line breakpoint, with optional condition.
-* Use `vimspector#AddFunctionBreakpoint( '<name>' [, { 'condition': '<condition expr>' } ] )`
-  to add a function breakpoint with optional condition.
+See the [mappings](€mappings) section for the default mappings for working with
+breakpoints. This section describes the full API in vimscript functions.
 
-Both of these functions take a single optional argument which is a dictionary of
-options. The dictionary can have the following keys:
+### Summary
 
-* `condition`: An optional expression evaluated to deterimie if the breakpoint
+* Use `vimspector#ToggleBreakpoint( { options dict } )` to set/disable/delete
+  a line breakpoint. The argument is optional (see below).
+* Use `vimspector#AddFunctionBreakpoint( '<name>', { options dict} )`
+  to add a function breakpoint. The second argument is optional (see below).
+* Use `vimspector#SetLineBreakpoint( file_name, line_num, { options dict } )` to
+  set a breakpoint at a specific file/line. The last argument is optional
+  (see below)
+* Use `vimspector#ClearLineBreakpoint( file_name, line_num )` to
+  remove a breakpoint at a specific file/line
+* Use `vimspector#ClearBreakpoints()` to clear all breakpoints
+
+Examples:
+
+* `call vimspector#ToggleBreakpoint()` - toggle breakpoint on current line
+* `call vimspector#SetLineBreakpoint( 'some_file.py', 10 )` - set a breakpoint
+  on `some_filepy:10`
+* `call vimspector#AddFunctionBreakpoint( 'main' )` - add a function breakpoint
+  on the `main` function
+* `call vimspector#ToggleBreakpoint( { 'condition': 'i > 5' } )` - add a
+  breakpoint on the current line that triggers only when `i > 5` is `true`
+* `call vimspector#SetLineBreakpoint( 'some_file.py', 10, { 'condition': 'i > 5' } )` - add a
+  breakpoint at `some_file.py:10` that triggers only when `i > 5` is `true`
+* `call vimspector#ClearLineBreakpoint( 'some_file.py', 10 )` - delete the
+  breakpoint at `some_file.py:10`
+* `call vimspector#ClearBreakpoints()` - clear all breakpoints
+
+### Line breakpoints
+
+The simplest and most common form of breakpoint is a line breakpoint. Execution
+is paused when the specified line is executed.
+
+For most debugging scenarios, users will just hit `<F9>` to create a line
+breakpoint on the current line and `<F5>` to launch the application.
+
+### Conditional breakpoints
+
+Some debug adapters support conditional breakpionts. Note that vimspector does
+not tell you if the debugger doesn't support conditional breakpoints (yet). A
+conditional breakpiont is a breakpiont which only triggers if some expression
+evaluates to true, or has some other constraints met.
+
+Some of these functions above take a single optional argument which is a
+dictionary of options. The dictionary can have the following keys:
+
+* `condition`: An optional expression evaluated to determine if the breakpoint
   should fire. Not supported by all debug adapters. For example, to break when
   `abc` is `10`, enter something like `abc == 10`, depending on the language.
 * `hitCondition`: An optional expression evaluated to determine a number of
-  times the breakpoint should be ignored. Should (probablty?) not be used in
+  times the breakpoint should be ignored. Should (probably?) not be used in
   combination with `condition`. Not supported by all debug adapters. For
   example, to break on the 3rd time hitting this line, enter `3`.
 
@@ -740,9 +849,10 @@ expressions in a command line (with history).
 
 ### Exception breakpoints
 
-When starting debugging, you may be asekd a few questions about how to handle
-exceptoins. These are "exception breakpoints" and vimspector remembers your
-choices while Vim is still running.
+Exception breakpoints typically fire when an exception is throw or other error
+condition occurs. Depending on the debugger, when starting debugging, you may be
+asked a few questions about how to handle exceptions. These are "exception
+breakpoints" and vimspector remembers your choices while Vim is still running.
 
 Typically you can accept the defaults (just keep pressing `<CR>`!) as most debug
 adapter defaults are sane, but if you want to break on, say `uncaught exception`
@@ -753,14 +863,14 @@ You can configure your choices in the `.vimspector.json`. See
 
 ### Clear breakpoints
 
-* Use `vimspector#ClearBreakpoints()`
-  to clear all breakpoints including the memory of exception breakpoint choices.
+Use `vimspector#ClearBreakpoints()`
+to clear all breakpoints including the memory of exception breakpoint choices.
 
 ### Run to Cursor
 
-* Use `vimspector#RunToCursor` or `<leader><F8>`: this creates a temporary
-  breakpoint on the current line, then continues execution, clearing the
-  breakpiont when it is hit.
+Use `vimspector#RunToCursor` or `<leader><F8>`: this creates a temporary
+breakpoint on the current line, then continues execution, clearing the
+breakpoint when it is hit.
 
 ## Stepping
 
@@ -802,7 +912,7 @@ The watches are represented by the buffer `vimspector.StackTrace`.
 ### Watch autocompletion
 
 The watch prompt buffer has its `omnifunc` set to a function that will
-calcualte completion for the current expression. This is trivailly used with
+calculate completion for the current expression. This is trivially used with
 `<Ctrl-x><Ctrl-o>` (see `:help ins-completion`), or integrated with your
 favourite completion system. The filetype in the buffer is set to
 `VimspectorPrompt`.
@@ -817,8 +927,8 @@ let g:ycm_semantic_triggers =  {
 
 ## Stack Traces
 
-The stack trace window shows the state of each progream thread. Threads which
-are stopped can be expanded to show the strack trace of that thread.
+The stack trace window shows the state of each program thread. Threads which
+are stopped can be expanded to show the stack trace of that thread.
 
 Often, but not always, all threads are stopped when a breakpoint is hit. The
 status of a thread is show in parentheses after the thread's name. Where
@@ -846,7 +956,7 @@ The stack trace is represented by the buffer `vimspector.StackTrace`.
 
 ## Program Output
 
-* In the outputs window use the WinBar to select the output channel.
+* In the outputs window, use the WinBar to select the output channel.
 * Alternatively, use `:VimspectorShowOutput <category>`. Use command-line
   completion to see the categories.
 * The debugee prints to the stdout channel.
@@ -861,7 +971,7 @@ options).
 ### Console
 
 The console window is a prompt buffer, where that's available, and can be used
-as an interactive CLI for the debug adapter. Support for this varies amongt
+as an interactive CLI for the debug adapter. Support for this varies amongst
 adapters.
 
 * Enter insert mode to enter a command to evaluate.
@@ -878,7 +988,7 @@ If the output window is closed, a new one can be opened with
 ### Console autocompletion
 
 The console prompt buffer has its `omnifunc` set to a function that will
-calcualte completion for the current command/expression. This is trivailly used
+calculate completion for the current command/expression. This is trivially used
 with `<Ctrl-x><Ctrl-o>` (see `:help ins-completion`), or integrated with your
 favourite completion system. The filetype in the buffer is set to
 `VimspectorPrompt`.
@@ -908,7 +1018,7 @@ To close the debugger, use:
 * `:VimspectorReset` when the WinBar is not available.
 * `call vimspector#Reset()`
 
-# Debug adapter configuration
+# Debug profile configuration
 
 For an introduction to the configuration of `.vimspector.json`, take a look at
 the Getting Started section of the [Vimspector website][website].
@@ -985,6 +1095,17 @@ licensing.
 }
 ```
 
+### C++ Remote debugging
+
+The cpptools documentation describes how to attach cpptools to gdbserver using
+`miDebuggerAddress`. Note that when doing this you should use the
+`"request": "attach"`.
+
+### C++ Remote launch and attach
+
+If you're feeling fancy, checkout the [reference guide][remote-debugging] for
+an example of getting Vimspector to remotely launch and attach.
+
 * CodeLLDB (MacOS)
 
 CodeLLDB is superior to vscode-cpptools in a number of ways on macOS at least.
@@ -1051,17 +1172,6 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
 
 
 
-### Remote debugging
-
-The cpptools documentation describes how to attach cpptools to gdbserver using
-`miDebuggerAddress`. Note that when doing this you should use the
-`"request": "attach"`.
-
-### Remote launch and attach
-
-If you're feeling fancy, checkout the [reference guide][remote-debugging] for
-an example of getting Vimspector to remotely launch and attach.
-
 ## Python
 
 * Python: [debugpy][]
@@ -1096,7 +1206,7 @@ an example of getting Vimspector to remotely launch and attach.
 }
 ```
 
-### Remote Debugging
+### Python Remote Debugging
 
 In order to use remote debugging with debugpy, you have to connect Vimspector
 directly to the application that is being debugged. This is easy, but it's a
@@ -1135,7 +1245,7 @@ Additional documentation, including how to do this when the remote machine can
 only be contacted via SSH [are provided by
 debugpy](https://github.com/microsoft/debugpy/wiki/Debugging-over-SSH).
 
-### Remote launch and attach
+### Python Remote launch and attach
 
 If you're feeling fancy, checkout the [reference guide][remote-debugging] for
 an example of getting Vimspector to remotely launch and attach.
@@ -1284,7 +1394,7 @@ xdebug.remote_connect_back=true
 xdebug.remote_port=9000
 ```
 
-* .vimspectory.json
+* .vimspector.json
 ```json
 {
   "configurations": {
@@ -1549,7 +1659,7 @@ This debugger uses stdio to communicate with the running process, so calls to
 
 # Customisation
 
-There is very limited support for customistaion of the UI.
+There is very limited support for customisation of the UI.
 
 ## Changing the default signs
 
@@ -1561,7 +1671,7 @@ define them in your `vimrc`.
 | Sign                   | Description                         | Priority |
 |------------------------|-------------------------------------|----------|
 | `vimspectorBP`         | Line breakpoint                     | 9        |
-| `vimspectorBPCond`     | Conditional line breakpiont         | 9        |
+| `vimspectorBPCond`     | Conditional line breakpoint         | 9        |
 | `vimspectorBPDisabled` | Disabled breakpoint                 | 9        |
 | `vimspectorPC`         | Program counter (i.e. current line) | 200      |
 | `vimspectorPCBP`       | Program counter and breakpoint      | 200      |
@@ -1577,7 +1687,7 @@ sign define vimspectorPCBP       text=●▶  texthl=MatchParen linehl=CursorLin
 ```
 
 If the signs don't display properly, your font probably doesn't contain these
-glyphs. You can easily change them by deifining the sign in your vimrc. For
+glyphs. You can easily change them by defining the sign in your vimrc. For
 example, you could put this in your `vimrc` to use some simple ASCII symbols:
 
 ```viml
@@ -1623,7 +1733,7 @@ smaller ones.
 ## Changing the default window sizes
 
 > ***Please Note***: This cusomiation API is ***unstable***, meaning that it may
-change at any time. I will endeavour to reduce the impact of this and annouce
+change at any time. I will endeavour to reduce the impact of this and announce
 changes in Gitter.
 
 The following options control the default sizes of the UI windows (all of them
@@ -1676,7 +1786,7 @@ let g:vimspector_terminal_minwidth = 20
 ## Advanced UI customisation
 
 > ***Please Note***: This cusomiation API is ***unstable***, meaning that it may
-change at any time. I will endeavour to reduce the impact of this and annouce
+change at any time. I will endeavour to reduce the impact of this and announce
 changes in Gitter.
 
 The above customisation of window sizes is limited intentionally to keep things
@@ -1708,7 +1818,7 @@ keys:
 * `g:vimspector_session_windows.variables`: Window ID of the variables window,
   containing the `vimspector.Variables` buffer.
 * `g:vimspector_session_windows.watches`: Window ID of the watches window,
-  containng the `vimspector.Watches` buffer.
+  containing the `vimspector.Watches` buffer.
 * `g:vimspector_session_windows.stack_trace`: Window ID of the stack trade
   window containing the `vimspector.StackTrace` buffer.
 * `g:vimspector_session_windows.code`: Window ID of the code window.
@@ -1767,7 +1877,7 @@ augroup END
 
 There is some example code in `support/custom_ui_vimrc` showing how you can use
 the window IDs to modify various aspects of the UI using some basic vim
-commands, primarily `win_gotoid` funciton and the `wincmd` ex command.
+commands, primarily `win_gotoid` function and the `wincmd` ex command.
 
 To try this out `vim -Nu support/custom_ui_vimrc <some file>`.
 
@@ -1827,7 +1937,7 @@ hi link jsonComment Comment
 ```
 
 7. What is the difference between a `gadget` and an `adapter`? A gadget is
-   somethin you install with `:VimspectorInstall` or `install_gadget.py`, an
+   something you install with `:VimspectorInstall` or `install_gadget.py`, an
    `adapter` is something that Vimspector talks to (actually it's the Vimspector
    config describing that thing). These are _usually_ one-to-one,
    but in theory a single gadget can supply multiple `adapter` configs.
@@ -1835,65 +1945,11 @@ hi link jsonComment Comment
    for, say remote debugging, or debugging in a container, etc.
 8. The signs and winbar display funny symbols. How do i fix them? See
    [this](#changing-the-default-signs) and [this](#customising-the-winbar)
+9. What's thie telemetry stuff all about? Are you sending my data to evil companies?
+   Debug adapters (for some reason) send telemetry data to clients. Vimspector simply
+   displays this information in the output window. It *does not* and *will not ever*
+   collect, use, forward or otherwise share any data with any third parties.
 
-# Motivation
-
-A message from the author about the motivation for this plugin:
-
-> Many development environments have a built-in debugger. I spend an inordinate
-> amount of my time in Vim. I do all my development in Vim and I have even
-> customised my workflows for building code, running tests etc.
->
-> For many years I have observed myself, friends and colleagues have been
-> writing `printf`, `puts`, `print`, etc.  debugging statements in all sorts of
-> files simply because there is no _easy_ way to run a debugger for _whatever_
-> language we happen to be developing in.
->
-> I truly believe that interactive, graphical debugging environments are the
-> best way to understand and reason about both unfamiliar and familiar code, and
-> that the lack of ready, simple access to a debugger is a huge hidden
-> productivity hole for many.
->
-> Don't get me wrong, I know there are literally millions of developers out
-> there that are more than competent at developing without a graphical debugger,
-> but I maintain that if they had the ability to _just press a key_ and jump
-> into the debugger, it would be faster and more enjoyable that just cerebral
-> code comprehension.
->
-> I created Vimspector because I find changing tools frustrating. `gdb` for c++,
-> `pdb` for python, etc. Each has its own syntax. Each its own lexicon. Each its
-> own foibles.
->
-> I designed the configuration system in such a way that the configuration can
-> be committed to source control so that it _just works_ for any of your
-> colleagues, friends, collaborators or complete strangers.
->
-> I made remote debugging a first-class feature because that's a primary use
-> case for me in my job.
->
-> With Vimspector I can _just hit `<F5>`_ in all of the languages I develop in
-> and debug locally or remotely using the exact same workflow, mappings and UI.
-> I have integrated this with my Vim in such a way that I can hit a button and
-> _run the test under the cursor in Vimspector_.  This kind of integration has
-> massively improved my workflow and productivity.  It's even made the process
-> of learning a new codebase... fun.
->
-> \- Ben Jackson, Creator.
-
-# License
-
-[Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)
-
-Copyright © 2018 Ben Jackson
-
-# Sponsorship
-
-If you like Vimspector so much that you're wiling to part with your hard-earned cash, please consider donating to one of the following charities, which are meaningful to the author of Vimspector (in order of prefernce):
-
-* [Greyhound Rescue Wales](https://greyhoundrescuewales.co.uk)
-* [Cancer Research UK](https://www.cancerresearchuk.org)
-* [ICCF Holland](https://iccf.nl)
-* Any charity of your choosing.
 
 [ycmd]: https://github.com/Valloric/ycmd
 [gitter]: https://gitter.im/vimspector/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link

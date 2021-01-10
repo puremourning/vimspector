@@ -557,3 +557,37 @@ function Test_EvaluatePromptConsole()
   call vimspector#test#setup#Reset()
   %bwipe!
 endfunction
+
+function! Test_EvaluateFailure()
+  call s:StartDebugging()
+
+  " Add a wtch
+  call vimspector#AddWatch( 'test' )
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \       'Watches: ----',
+        \       'Expression: test',
+        \       " *- Result: NameError: name 'test' is not defined",
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.watches ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  VimspectorEval test
+  call assert_equal( bufnr( 'vimspector.Console' ),
+                   \ winbufnr( g:vimspector_session_windows.output ) )
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       "NameError: name 'test' is not defined"
+        \     ],
+        \     getbufline( bufnr( 'vimspector.Console' ), '$', '$' )
+        \   )
+        \ } )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
