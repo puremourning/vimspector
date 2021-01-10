@@ -1945,6 +1945,10 @@ hi link jsonComment Comment
    for, say remote debugging, or debugging in a container, etc.
 8. The signs and winbar display funny symbols. How do i fix them? See
    [this](#changing-the-default-signs) and [this](#customising-the-winbar)
+9. What's thie telemetry stuff all about? Are you sending my data to evil companies?
+   Debug adapters (for some reason) send telemetry data to clients. Vimspector simply
+   displays this information in the output window. It *does not* and *will not ever*
+   collect, use, forward or otherwise share any data with any third parties.
 
 
 [ycmd]: https://github.com/Valloric/ycmd
