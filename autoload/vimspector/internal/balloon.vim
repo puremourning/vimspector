@@ -132,7 +132,6 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
           \ }
     " this is the border window
     let s:nvim_related_win = nvim_open_win(buf_id, 0, opts)
-    call nvim_win_set_option(s:nvim_related_win, 'wrap', v:true)
     call nvim_win_set_option(s:nvim_related_win, 'cursorline', v:true)
     call nvim_win_set_option(s:nvim_related_win, 'signcolumn', 'no')
     call nvim_win_set_option(s:nvim_related_win, 'relativenumber', v:false)
@@ -229,12 +228,15 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
       \ 'filtermode': "n",
       \ 'maxwidth': s:max_width,
       \ 'maxheight': s:max_height,
+      \ 'minwidth': s:min_width,
+      \ 'minheight': s:min_height,
       \ 'scrollbar': 1,
       \ 'border': [],
       \ 'padding': [ 0, 1, 0, 1],
       \ 'highlight': 'Normal',
       \ 'drag': 1,
       \ 'resize': 1,
+      \ 'close': 'button',
       \ 'callback': 'vimspector#internal#balloon#CloseCallback'
       \ }
 
@@ -245,7 +247,6 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     if a:is_hover
       let config['filter'] = "MouseFilter"
       let config['mousemoved'] = [0, 0, 0]
-      let config['close'] = "button"
       let s:float_win = popup_beval(body, config)
     else
       let config['filter'] = "CursorFilter"
