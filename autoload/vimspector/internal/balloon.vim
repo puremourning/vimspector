@@ -132,7 +132,6 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
           \ }
     " this is the border window
     let s:nvim_related_win = nvim_open_win(buf_id, 0, opts)
-    call nvim_win_set_option(s:nvim_related_win, 'cursorline', v:true)
     call nvim_win_set_option(s:nvim_related_win, 'signcolumn', 'no')
     call nvim_win_set_option(s:nvim_related_win, 'relativenumber', v:false)
     call nvim_win_set_option(s:nvim_related_win, 'number', v:false)
@@ -156,16 +155,7 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     call nvim_win_set_option(s:float_win, 'relativenumber', v:false)
     call nvim_win_set_option(s:float_win, 'number', v:false)
 
-    let old_curwin = win_getid()
-    try
-      noautocmd call win_gotoid(s:nvim_related_win)
-      set winhl=Normal:Floating
-    finally
-      noautocmd call win_gotoid(old_curwin)
-    endtry
-
     noautocmd call win_gotoid(s:float_win)
-    set winhl=Normal:Floating
 
     nnoremap <silent> <buffer> <CR> :<C-u>call vimspector#ExpandVariable()<CR>
     nnoremap <silent> <buffer> <esc> :quit<CR>
@@ -233,7 +223,6 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
       \ 'scrollbar': 1,
       \ 'border': [],
       \ 'padding': [ 0, 1, 0, 1],
-      \ 'highlight': 'Normal',
       \ 'drag': 1,
       \ 'resize': 1,
       \ 'close': 'button',
