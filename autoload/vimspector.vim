@@ -523,7 +523,7 @@ function! vimspector#OnBufferCreated( file_name ) abort
   py3 _vimspector_session.RefreshSigns( vim.eval( 'a:file_name' ) )
 endfunction
 
-function! vimspector#ShowTooltipForSelection() range
+function! vimspector#ShowTooltipForSelection() range abort
   let [start, end] = [[line("'<"), col("'<") - 1], [line("'>"), col("'>")]]
   " restor cursor position, since command mode puts it to the begining of the
   " current line when invoked from visual mode
@@ -549,7 +549,7 @@ function! vimspector#ShowTooltipForSelection() range
 endfunction
 
 function! vimspector#ShowTooltip(...)  abort
-  let str = "<cexpr>"
+  let str = '<cexpr>'
 
   if a:0 > 0
     let str = a:1
