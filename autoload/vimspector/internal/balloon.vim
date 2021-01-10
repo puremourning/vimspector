@@ -65,16 +65,16 @@ function! vimspector#internal#balloon#CloseCallback( ... ) abort
   return py3eval('_vimspector_session._CleanUpTooltip()')
 endfunction
 
-function! vimspector#internal#balloon#nvim_generate_border(width, height)
-  let top = "╭" . repeat("─",a:width + 2) . "╮"
-  let mid = "│" . repeat(" ",a:width + 2) . "│"
-  let bot = "╰" . repeat("─",a:width + 2) . "╯"
+function! vimspector#internal#balloon#nvim_generate_border(width, height) abort
+  let top = '╭' . repeat('─',a:width + 2) . '╮'
+  let mid = '│' . repeat(' ',a:width + 2) . '│'
+  let bot = '╰' . repeat('─',a:width + 2) . '╯'
   let lines = [top] + repeat([mid], a:height) + [bot]
 
   return lines
 endfunction
 
-function! vimspector#internal#balloon#nvim_resize_tooltip()
+function! vimspector#internal#balloon#nvim_resize_tooltip() abort
   if !has('nvim') || s:float_win <= 0 || s:nvim_related_win <= 0
     return
   endif
@@ -107,7 +107,7 @@ function! vimspector#internal#balloon#nvim_resize_tooltip()
 
 endfunction
 
-function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
+function! vimspector#internal#balloon#CreateTooltip(is_hover, ...) abort
   let body = []
   if a:0 > 0
     let body = a:1
@@ -168,7 +168,7 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
     augroup END
 
   else
-    func! MouseFilter(winid, key)
+    func! MouseFilter(winid, key) abort
       if index(["\<leftmouse>", "\<2-leftmouse>"], a:key) < 0
         return 0
       endif
@@ -183,24 +183,24 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
       endif
 
       " place the cursor according to the click
-      call win_execute(a:winid, ":call cursor(".mouse_coords['line'].", ".mouse_coords['column'].")")
+      call win_execute(a:winid, ':call cursor('.mouse_coords['line'].', '.mouse_coords['column'].')')
 
       " expand the variable if we got double click
-      if a:key == "\<2-leftmouse>"
+      if a:key ==? "\<2-leftmouse>"
         " forward line number to python, since vim does not allow us to focus
         " the correct window
-        call py3eval("_vimspector_session.ExpandVariable(".line('.', a:winid).")")
+        call py3eval('_vimspector_session.ExpandVariable('.line('.', a:winid).')')
         let handled = 1
       endif
 
       return handled
     endfunc
 
-    func! CursorFilter(winid, key)
-      if a:key == "\<CR>"
+    func! CursorFilter(winid, key) abort
+      if a:key ==? "\<CR>"
         " forward line number to python, since vim does not allow us to focus
         " the correct window
-        call py3eval("_vimspector_session.ExpandVariable(".line('.', a:winid).")")
+        call py3eval('_vimspector_session.ExpandVariable('.line('.', a:winid).')')
         return 1
       elseif index( [ "\<LeftMouse>", "\<2-LeftMouse>" ], a:key ) >= 0
         return MouseFilter( a:winid, a:key )
@@ -215,7 +215,7 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
 
     let config = {
       \ 'wrap': 0,
-      \ 'filtermode': "n",
+      \ 'filtermode': 'n',
       \ 'maxwidth': s:max_width,
       \ 'maxheight': s:max_height,
       \ 'minwidth': s:min_width,
@@ -229,17 +229,17 @@ function! vimspector#internal#balloon#CreateTooltip(is_hover, ...)
       \ 'callback': 'vimspector#internal#balloon#CloseCallback'
       \ }
 
-    if &ambiwidth ==# 'single' && &encoding == 'utf-8'
+    if &ambiwidth ==# 'single' && &encoding ==? 'utf-8'
       let config['borderchars'] = [ '─', '│', '─', '│', '╭', '╮', '┛', '╰' ]
     endif
 
     if a:is_hover
-      let config['filter'] = "MouseFilter"
+      let config['filter'] = 'MouseFilter'
       let config['mousemoved'] = [0, 0, 0]
       let s:float_win = popup_beval(body, config)
     else
-      let config['filter'] = "CursorFilter"
-      let config['moved'] = "any"
+      let config['filter'] = 'CursorFilter'
+      let config['moved'] = 'any'
       let config['cursorline'] = 1
       let s:float_win = popup_atcursor(body, config)
     endif
