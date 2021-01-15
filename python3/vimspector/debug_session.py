@@ -702,6 +702,7 @@ class DebugSession( object ):
       'variables': utils.WindowID( vars_window, self._uiTab ),
       'watches': utils.WindowID( watch_window, self._uiTab ),
       'output': utils.WindowID( output_window, self._uiTab ),
+      'eval': None # this is going to be updated every time eval popup is opened
     }
     with utils.RestoreCursorPosition():
       with utils.RestoreCurrentWindow():
