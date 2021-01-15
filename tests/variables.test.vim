@@ -623,10 +623,8 @@ function! Test_VariableEval()
         \ } )
 
   " Expand
-  call win_execute( g:vimspector_session_windows.eval, [
-    \ 'call feedkeys( ''jjjj'', ''xt'' )',
-    \ 'call feedkeys( "\<CR>", ''xt'' )'
-    \ ] )
+  call feedkeys( 'jjjj', 'xt' )
+  call feedkeys( "\<CR>", 'xt' )
 
   call WaitForAssert( {->
         \   AssertMatchist(
@@ -646,11 +644,9 @@ function! Test_VariableEval()
         \ } )
 
   "Close
-  call win_execute( g:vimspector_session_windows.eval, 'call feedkeys( "\<Esc>", ''xt'')')
+  call feedkeys( "\<Esc>", 'xt' )
 
-  call WaitForAssert( {->
-    \     assert_equal( 0, g:vimspector_session_windows.eval )
-    \ } )
+  call assert_equal( v:none, g:vimspector_session_windows.eval )
 
   call vimspector#test#setup#Reset()
   %bwipe!
