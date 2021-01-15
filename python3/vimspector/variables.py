@@ -307,6 +307,7 @@ class VariablesView( object ):
   def _CleanUpTooltip( self ) :
     # remove reference to old tooltip window
     self._variable_eval_view = None
+    vim.vars[ 'vimspector_session_windows' ][ 'eval' ] = None
     return ''
 
   def VariableEval( self, frame, expression, is_hover ):
@@ -323,6 +324,8 @@ class VariablesView( object ):
         watch.result.Update( message[ 'body' ] )
 
       float_win_id = utils.DisplayBalloon( self._is_term, [], is_hover )
+      # record the global eval window id
+      vim.vars[ 'vimspector_session_windows' ][ 'eval' ] = int( float_win_id )
       float_buf_nr = int( vim.eval( "winbufnr({})".format( float_win_id ) ) )
 
       # since vim's popup cant be focused there is no way
