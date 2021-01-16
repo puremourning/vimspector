@@ -541,7 +541,7 @@ function! vimspector#ShowTooltipForSelection() range abort
   let lines[0] = strcharpart(lines[0], start[1])
   let lines_len = len(lines) - 1
 
-  if len(lines) == 1
+  if len( lines ) == 1
     let lines[lines_len] = strcharpart(lines[lines_len], 0, end[1] - start[1])
   else
     let lines[lines_len] = strcharpart(lines[lines_len], 0, end[1])
