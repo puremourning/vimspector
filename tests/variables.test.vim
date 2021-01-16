@@ -641,7 +641,7 @@ function! Test_VariableEval()
   " so we need to manually escape and re-trigger previous visual selection
   call execute('normal v')
   call feedkeys("lllll\<esc>", 'xt')
-  call execute("normal gv")
+  call execute('normal gv')
 
   call vimspector#ShowTooltipForSelection()
 
