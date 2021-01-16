@@ -359,7 +359,9 @@ class VariablesView( object ):
 
     def failure_handler( reason, message ):
       display = [ reason ]
-      utils.DisplayBalloon( self._is_term, display, is_hover )
+      float_win_id = utils.DisplayBalloon( self._is_term, display, is_hover )
+      # record the global eval window id
+      vim.vars[ 'vimspector_session_windows' ][ 'eval' ] = int( float_win_id )
 
     self._variable_eval = Watch.New( frame,
                                      expression,
