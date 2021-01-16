@@ -602,10 +602,117 @@ function! Test_VariableEval()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 26, 1 )
 
   "evaluate the prev line
-  " call win_gotoid( g:vimspector_session_windows.code )
   call setpos('.', [ 0, 24, 8 ])
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 24, 8 )
   call vimspector#ShowTooltip()
+
+  call WaitForAssert( {->
+        \   assert_notequal( v:none, g:vimspector_session_windows.eval )
+        \ } )
+
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \       '{...}',
+        \       ' - i: 0',
+        \       ' - c: 0 ''\\0\{1,3}''',
+        \       ' - fffff: 0',
+        \       ' + another_test: ',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.eval ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  "Close
+  call feedkeys( "\<Esc>", 'xt' )
+
+  call assert_equal( v:none, g:vimspector_session_windows.eval )
+
+  " test selection
+  call setpos('.', [ 0, 24, 8 ])
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 24, 8 )
+
+  " enter visual mode
+  " this is a hack, since usually, when user enters command mode from inside
+  " visual mode, the latter is immediately interrupted and the '<' '>' marks are
+  " set. for some odd reason, visual mode is not interupted from the script,
+  " so we need to manually escape and re-trigger previous visual selection
+  call execute('normal v')
+  call feedkeys("lllll\<esc>", 'xt')
+  call execute("normal gv")
+
+  call vimspector#ShowTooltipForSelection()
+
+  call WaitForAssert( {->
+        \ assert_notequal( v:none, g:vimspector_session_windows.eval )
+        \ } )
+
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \       '{...}',
+        \       ' - i: 0',
+        \       ' - c: 0 ''\\0\{1,3}''',
+        \       ' - fffff: 0',
+        \       ' + another_test: ',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.eval ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  "Close
+  call feedkeys( "\<Esc>", 'xt' )
+
+  call assert_equal( v:none, g:vimspector_session_windows.eval )
+
+  " Evaluation error
+  call setpos('.', [ 0, 25, 1 ])
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 25, 1 )
+  call vimspector#ShowTooltip()
+
+  call WaitForAssert( {->
+        \   assert_notequal( v:none, g:vimspector_session_windows.eval )
+        \ } )
+
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \       'Evaluation error',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.eval ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  "Close
+  call feedkeys( "\<Esc>", 'xt' )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+function! Test_VariableEvalExpand()
+  let fn =  'testdata/cpp/simple/struct.cpp'
+  call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
+        \   configuration: 'run-to-breakpoint'
+        \ } } )
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 26, 1 )
+
+  "evaluate the prev line
+  call setpos('.', [ 0, 24, 8 ])
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 24, 8 )
+  call vimspector#ShowTooltip()
+
+  call WaitForAssert( {->
+        \ assert_notequal( v:none, g:vimspector_session_windows.eval )
+        \ } )
 
   call WaitForAssert( {->
         \   AssertMatchist(
@@ -623,8 +730,7 @@ function! Test_VariableEval()
         \ } )
 
   " Expand
-  call feedkeys( 'jjjj', 'xt' )
-  call feedkeys( "\<CR>", 'xt' )
+  call feedkeys( "jjjj\<CR>", 'xt' )
 
   call WaitForAssert( {->
         \   AssertMatchist(
@@ -636,6 +742,24 @@ function! Test_VariableEval()
         \       ' - another_test: ',
         \       '   - choo: 0 ''\\0\{1,3}''',
         \       '   + ints: '
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.eval ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  "Collapse
+  call feedkeys( "\<CR>", 'xt' )
+
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \       '{...}',
+        \       ' - i: 0',
+        \       ' - c: 0 ''\\0\{1,3}''',
+        \       ' - fffff: 0',
+        \       ' + another_test: ',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.eval ),
         \                 1,
