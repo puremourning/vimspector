@@ -532,6 +532,10 @@ function! vimspector#ShowTooltipForSelection() range abort
   " retrive the lines selected in visual mode
   let lines = getbufline(bufnr('%'), start[0], end[0])
 
+  if(len(lines) < 1)
+    return
+  endif
+
   " make sure the leave only the parts we care about if multiple lines are
   " selected
   let lines[0] = strcharpart(lines[0], start[1])
