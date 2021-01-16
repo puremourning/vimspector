@@ -628,7 +628,9 @@ function! Test_VariableEval()
   "Close
   call feedkeys( "\<Esc>", 'xt' )
 
-  call assert_equal( v:none, g:vimspector_session_windows.eval )
+  call WaitForAssert( {->
+        \ assert_equal( v:none, g:vimspector_session_windows.eval )
+        \ } )
 
   " test selection
   call setpos('.', [ 0, 24, 8 ])
@@ -665,9 +667,13 @@ function! Test_VariableEval()
         \ } )
 
   "Close
-  call feedkeys( "\<Esc>", 'xt' )
+  " we need to send esc twice because of the weird interactions between visual
+  " mode and tests
+  call feedkeys( "\<Esc>\<Esc>", 'xt' )
 
-  call assert_equal( v:none, g:vimspector_session_windows.eval )
+  call WaitForAssert( {->
+        \ assert_equal( v:none, g:vimspector_session_windows.eval )
+        \ } )
 
   " Evaluation error
   call setpos('.', [ 0, 25, 1 ])
@@ -691,6 +697,10 @@ function! Test_VariableEval()
 
   "Close
   call feedkeys( "\<Esc>", 'xt' )
+
+  call WaitForAssert( {->
+        \ assert_equal( v:none, g:vimspector_session_windows.eval )
+        \ } )
 
   call vimspector#test#setup#Reset()
   %bwipe!
@@ -770,7 +780,9 @@ function! Test_VariableEvalExpand()
   "Close
   call feedkeys( "\<Esc>", 'xt' )
 
-  call assert_equal( v:none, g:vimspector_session_windows.eval )
+  call WaitForAssert( {->
+        \ assert_equal( v:none, g:vimspector_session_windows.eval )
+        \ } )
 
   call vimspector#test#setup#Reset()
   %bwipe!
