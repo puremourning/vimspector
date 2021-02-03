@@ -50,6 +50,7 @@ For detailed explanatin of the `.vimspector.json` format, see the
        * [Run to Cursor](#run-to-cursor)
     * [Stepping](#stepping)
     * [Variables and scopes](#variables-and-scopes)
+    * [Variable/selection hover evaluation](#variable-eval)
     * [Watches](#watches)
        * [Watch autocompletion](#watch-autocompletion)
     * [Stack Traces](#stack-traces)
@@ -102,7 +103,7 @@ language that Visual Studio Code supports (but see caveats).
 The [Vimspector website][website] has an overview of the UI, along with basic
 instructions for configuration and setup.
 
-But for now, here's a (rather old) screenshot of Vimsepctor debugging Vim:
+But for now, here's a (rather old) screenshot of Vimspector debugging Vim:
 
 ![vimspector-vim-screenshot](https://puremourning.github.io/vimspector-web/img/vimspector-overview.png)
 
@@ -249,7 +250,7 @@ neovim doesn't implement some features Vimspector relies on:
   the output window's current output.
 * Prompt Buffers - used to send commands in the Console and add Watches.
   (*Note*: prompt buffers are available in neovim nightly)
-* Balloons - used to display the values of variables when debugging.
+* Tooltips - used to display the values of variables when debugging.
 
 Workarounds are in place as follows:
 
@@ -258,9 +259,9 @@ Workarounds are in place as follows:
   [`:VimspectorReset`](#closing-debugger)
 * Prompt Buffers - There are [`:VimspectorEval`](#console)
   and [`:VimspectorWatch`](#watches)
-
-There is no workaroud for the lack of balloons; you'll just have to use
-`:VimspectorEval` or `:VimspectorWatch`, or switch to Vim.
+* Functions - There are
+  [`:call vimspector#ShowTooltip()`](#variable-eval) and
+  [`:call vimspector#ShowTooltipForSelection()`](#variable-eval)
 
 ## Windows differences
 
@@ -889,6 +890,17 @@ breakpoint when it is hit.
 ![locals window](https://puremourning.github.io/vimspector-web/img/vimspector-locals-window.png)
 
 Scopes and variables are represented by the buffer `vimspector.Variables`.
+
+## Variable/selection hover evaluation
+
+All rules for `Variables and scopes` apply plus the following:
+* With mouse enabled, hover over a variable and get the value it evaluates to.
+* Use your mouse to hightlight a expression (e.g. a + b) and the result of the expression.
+* Call `vimspector#ShowTooltip()` or `vimspector#ShowTooltipForSelection()` to evaluate expressions without mouse (the only way to use this feature in nvim).
+* Use regular nagivation keys to chose the current selection and `<Esc>` (or leave the tooltip window) to close the tooltip.
+
+Note: using a selection evaluation might lead to undesired consequences, since **the expression is actually executed**. E.g. `c = a + b;` once this entire line is evaluated, value of `c` becomes the sum of `a` and `b`.
+
 
 ## Watches
 
