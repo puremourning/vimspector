@@ -50,7 +50,7 @@ For detailed explanatin of the `.vimspector.json` format, see the
        * [Run to Cursor](#run-to-cursor)
     * [Stepping](#stepping)
     * [Variables and scopes](#variables-and-scopes)
-    * [Variable/selection hover evaluation](#variable-eval)
+    * [Variable/selection hover evaluation](#variable-or-selection-hover-evaluation)
     * [Watches](#watches)
        * [Watch autocompletion](#watch-autocompletion)
     * [Stack Traces](#stack-traces)
@@ -260,8 +260,8 @@ Workarounds are in place as follows:
 * Prompt Buffers - There are [`:VimspectorEval`](#console)
   and [`:VimspectorWatch`](#watches)
 * Functions - There are
-  [`:call vimspector#ShowTooltip()`](#variable-eval) and
-  [`:call vimspector#ShowTooltipForSelection()`](#variable-eval)
+  [`:call vimspector#ShowTooltip()`](#variable-or-selection-hover-evaluation) and
+  [`:call vimspector#ShowTooltipForSelection()`](#variable-or-selection-hover-evaluation)
 
 ## Windows differences
 
@@ -891,13 +891,13 @@ breakpoint when it is hit.
 
 Scopes and variables are represented by the buffer `vimspector.Variables`.
 
-## Variable/selection hover evaluation
+## Variable or selection hover evaluation
 
 All rules for `Variables and scopes` apply plus the following:
 * With mouse enabled, hover over a variable and get the value it evaluates to.
-* Use your mouse to hightlight a expression (e.g. a + b) and the result of the expression.
+* Use your mouse to perform a visual selection of an expression (e.g. `a + b`) and get its result.
 * Call `vimspector#ShowTooltip()` or `vimspector#ShowTooltipForSelection()` to evaluate expressions without mouse (the only way to use this feature in nvim).
-* Use regular nagivation keys to chose the current selection and `<Esc>` (or leave the tooltip window) to close the tooltip.
+* Use regular nagivation keys to chose the current selection; `<Esc>` (or leave the tooltip window) to close the tooltip.
 
 Note: using a selection evaluation might lead to undesired consequences, since **the expression is actually executed**. E.g. `c = a + b;` once this entire line is evaluated, value of `c` becomes the sum of `a` and `b`.
 
