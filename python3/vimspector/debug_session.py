@@ -705,6 +705,7 @@ class DebugSession( object ):
     self._stackTraceView.SetSyntax( self._codeView.current_syntax )
     self._variablesView.LoadScopes( frame )
     self._variablesView.EvaluateWatches()
+    vim.command( 'doautocmd <nomodeline> User VimspectorFrameWasSet' )
 
     if reason == 'stopped':
       self._breakpoints.ClearTemporaryBreakpoint( frame[ 'source' ][ 'path' ],
