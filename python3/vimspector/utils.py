@@ -83,7 +83,7 @@ def OpenFileInCurrentWindow( file_name ):
 
     vim.current.buffer = vim.buffers[ buffer_number ]
     vim.current.buffer.vars["vimspectorStep"] = 1
-    vim.command( 'doautocmd <nomodeline> User VimspectorFrameWasSet' )
+    vim.command( 'doautocmd <nomodeline> User VimspectorFrameEnter' )
   except vim.error as e:
     if 'E325' not in str( e ):
       raise
