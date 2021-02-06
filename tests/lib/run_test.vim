@@ -82,6 +82,16 @@ func! Abort( timer_id )
   qa!
 endfunc
 
+func! TestLog( msg )
+  if type( a:msg ) == v:t_string
+    let msg = [ a:msg ]
+  else
+    let msg = a:msg
+  endif
+
+  call extend( s:messages, msg )
+endfunc
+
 func RunTheTest(test)
   echo 'Executing ' . a:test
 
@@ -152,8 +162,6 @@ func RunTheTest(test)
     augroup END
 
     exe 'call ' . a:test
-
-    au! EarlyExit
   catch /^\cskipped/
     call add(s:messages, '    Skipped')
     call add(s:skipped,
@@ -192,6 +200,8 @@ func RunTheTest(test)
 
     call s:TestFailed()
   endtry
+
+  au! EarlyExit
 
   call timer_stop( timer )
 
