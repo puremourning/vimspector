@@ -460,7 +460,7 @@ VAR_MATCH = re.compile(
       {(?P<braceddefault>               # or An {id:default} - default param, as
         (?P<defname>[_a-z][_a-z0-9]*)   #   an ID
         :                               #   then a colon
-        (?P<default>(?:\\}|[^}])+)      #   then anything up to }, or a \}
+        (?P<default>(?:\\}|[^}])*)      #   then anything up to }, or a \}
       )}                             |  #   then a }
       (?P<invalid>)                     # or Something else - invalid
     )

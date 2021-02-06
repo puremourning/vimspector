@@ -5,6 +5,10 @@ from vimspector import utils
 
 
 class TestExpandReferencesInDict( unittest.TestCase ):
+  def __init__( self, *args, **kwargs ):
+    super().__init__( *args, **kwargs )
+    self.maxDiff = 4096
+
   def test_ExpandReferencesInDict( self ):
     mapping = {
       'one': 'one',
@@ -13,7 +17,7 @@ class TestExpandReferencesInDict( unittest.TestCase ):
       'words': 'these are some words'
     }
     calculus = {
-      'three': lambda : 1 + 2
+      'three': lambda : 1 + 2,
     }
     CHOICES = {
       'five': '5ive!'
@@ -44,6 +48,8 @@ class TestExpandReferencesInDict( unittest.TestCase ):
       'one_default2': '${one_default2:${one\\}}',
       'two_default2':
         '${two_default2_1:${one\\}} and ${two_default2_2:${two\\}}',
+      'unlikely_name#json#s': 'true',
+      'empty_splice': [ '*${empty:}' ],
     }
 
     e = {
@@ -66,6 +72,8 @@ class TestExpandReferencesInDict( unittest.TestCase ):
       'two_default': 'one and two',
       'one_default2': 'one',
       'two_default2': 'one and TWO',
+      'unlikely_name#json': 'true',
+      'empty_splice': [],
     }
 
     with patch( 'vimspector.utils.AskForInput', side_effect = AskForInput ):
@@ -74,6 +82,6 @@ class TestExpandReferencesInDict( unittest.TestCase ):
     self.assertDictEqual( d, e )
 
 
-unittest.main( module=__name__,
-               testRunner=unittest.TextTestRunner( sys.stdout ),
-               exit=False )
+assert unittest.main( module=__name__,
+                      testRunner=unittest.TextTestRunner( sys.stdout ),
+                      exit=False ).result.wasSuccessful()
