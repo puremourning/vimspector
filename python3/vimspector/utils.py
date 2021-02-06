@@ -77,12 +77,12 @@ def OpenFileInCurrentWindow( file_name ):
   buffer_number = BufferNumberForFile( file_name )
   try:
     if "vimspectorStep" in vim.current.buffer.vars:
-      del vim.current.buffer.vars["vimspectorStep"]
+      del vim.current.buffer.vars[ "vimspectorStep" ]
       # @todo: what if the same buffer is still visited by another thread
       vim.command( 'doautocmd <nomodeline> User VimspectorFrameLeavePre' )
 
     vim.current.buffer = vim.buffers[ buffer_number ]
-    vim.current.buffer.vars["vimspectorStep"] = 1
+    vim.current.buffer.vars[ "vimspectorStep" ] = 1
     vim.command( 'doautocmd <nomodeline> User VimspectorFrameEnter' )
   except vim.error as e:
     if 'E325' not in str( e ):
