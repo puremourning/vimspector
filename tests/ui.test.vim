@@ -410,16 +410,16 @@ function! Test_CustomWinBar()
   %bwipe!
 endfunction
 
-function! Test_VimspectorFrameWasSet()
-  augroup TestVimspectorFrameWasSet
+function! Test_VimspectorFrameEnter()
+  augroup TestVimspectorFrameEnter
     au!
-    au User VimspectorFrameWasSet let b:vimspectorStepIsThere = 'foo'
+    au User VimspectorFrameEnter let b:vimspectorStepIsThere = 'foo'
   augroup END
 
   call s:StartDebugging()
   call assert_equal( 'foo', getbufvar(bufnr(), 'vimspectorStepIsThere', 0) )
 
-  au! TestVimspectorFrameWasSet
+  au! TestVimspectorFrameEnter
   unlet b:vimspectorStepIsThere
   call vimspector#test#setup#Reset()
   %bwipe!
