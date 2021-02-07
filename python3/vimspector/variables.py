@@ -616,43 +616,6 @@ class VariablesView( object ):
 
     draw()
 
-  def ShowBalloon( self, frame, expression ):
-    """Callback to display variable under cursor `:h ballonexpr`"""
-    if not self._connection:
-      return ''
-
-    def handler( message ):
-      # TODO: this result count be expandable, but we have no way to allow the
-      # user to interact with the balloon to expand it, unless we use a popup
-      # instead, but even then we don't really want to trap the cursor.
-      body = message[ 'body' ]
-      result = body[ 'result' ]
-      if result is None:
-        result = 'null'
-      display = [
-        'Type: ' + body.get( 'type', '<unknown>' ),
-        'Value: ' + result
-      ]
-      utils.DisplayBalloon( self._is_term, display )
-
-    def failure_handler( reason, message ):
-      display = [ reason ]
-      utils.DisplayBalloon( self._is_term, display )
-
-    # Send async request
-    self._connection.DoRequest( handler, {
-      'command': 'evaluate',
-      'arguments': {
-        'expression': expression,
-        'frameId': frame[ 'id' ],
-        'context': 'hover',
-      }
-    }, failure_handler )
-
-    # Return working (meanwhile)
-    return '...'
-
-
   def SetSyntax( self, syntax ):
     # TODO: Switch to View.syntax
     self._current_syntax = utils.SetSyntax( self._current_syntax,

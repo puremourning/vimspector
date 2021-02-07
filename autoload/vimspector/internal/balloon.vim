@@ -21,23 +21,6 @@ set cpoptions&vim
 
 scriptencoding utf-8
 
-" Returns: py.ShowBalloon( winnr, expresssion )
-function! vimspector#internal#balloon#BalloonExpr() abort
-  " winnr + 1 because for *no good reason* winnr is 0 based here unlike
-  " everywhere else
-  " int() because for *no good reason* winnr is a string.
-  return py3eval('_vimspector_session.ShowBalloon('
-        \ . 'int( vim.eval( "v:beval_winnr" ) ) + 1,'
-        \ . 'vim.eval( "v:beval_text" ) )' )
-endfunction
-
-" Returns: py.ShowBalloon( winnr, expresssion )
-function! vimspector#internal#balloon#HoverTooltip() abort
-  return py3eval('_vimspector_session.ShowTooltip(int( vim.eval( "v:beval_winnr" ) ) + 1 ,vim.eval( "v:beval_text"), 1)')
-
-endfunction
-
-
 let s:float_win = 0
 let s:nvim_related_win = 0
 "
