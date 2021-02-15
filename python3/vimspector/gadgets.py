@@ -376,14 +376,14 @@ GADGETS = {
     'enabled': False,
     'download': {
       'url':
-        'https://github.com/felixfbecker/vscode-php-debug/releases/download/'
+        'https://github.com/xdebug/vscode-php-debug/releases/download/'
         '${version}/${file_name}',
     },
     'all': {
-      'version': 'v1.13.0',
+      'version': 'v1.14.9',
       'file_name': 'php-debug.vsix',
       'checksum':
-        '8a51e593458fd14623c1c89ebab87347b087d67087717f18bcf77bb788052718',
+        '0c5709cbbffe26b12aa63a88142195a9a045a5d8fca7fe63d62c789fe601630d',
     },
     'adapters': {
       'vscode-php-debug': {
