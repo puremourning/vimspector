@@ -1446,7 +1446,7 @@ php <path to script>
 Requires:
 
 * `install_gadget.py --force-enable-node`
-* For installation, a Node.js environemt that is < node 12. I believe this is an
+* For installation, a Node.js environment that is < node 12. I believe this is an
   incompatibility with gulp. Advice, use [nvm][] with `nvm install --lts 10; nvm
   use --lts 10; ./install_gadget.py --force-enable-node ...`
 * Options described here:
