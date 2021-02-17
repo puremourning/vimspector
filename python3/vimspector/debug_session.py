@@ -412,6 +412,7 @@ class DebugSession( object ):
       self._outputView.Reset()
       self._codeView.Reset()
       vim.command( 'tabclose!' )
+      vim.command( 'doautocmd <nomodeline> User VimspectorDebugEnded' )
       self._stackTraceView = None
       self._variablesView = None
       self._outputView = None
