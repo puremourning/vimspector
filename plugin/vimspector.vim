@@ -60,6 +60,12 @@ nnoremap <silent> <Plug>VimspectorStepOut
 nnoremap <silent> <Plug>VimspectorRunToCursor
       \ :<c-u>call vimspector#RunToCursor()<CR>
 
+nnoremap <silent> <Plug>VimspectorBalloonEval
+      \ :<c-u>call vimspector#ShowEvalBalloon(0)<CR>
+
+xnoremap <silent> <Plug>VimspectorBalloonEval
+      \ :<c-u>call vimspector#ShowEvalBalloon(1)<CR>
+
 if s:mappings ==# 'VISUAL_STUDIO'
   nmap <F5>         <Plug>VimspectorContinue
   nmap <S-F5>       <Plug>VimspectorStop

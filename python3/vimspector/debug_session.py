@@ -540,6 +540,25 @@ class DebugSession( object ):
 
 
   @IfConnected()
+  def ShowEvalBalloon( self, winnr, expression, is_hover ):
+    frame = self._stackTraceView.GetCurrentFrame()
+    # Check if RIP is in a frame
+    if frame is None:
+      self._logger.debug( 'Tooltip: Not in a stack frame' )
+      return ''
+
+    # Check if cursor in code window
+    if winnr != int( self._codeView._window.number ):
+      self._logger.debug( 'Winnr %s is not the code window %s',
+                          winnr,
+                          self._codeView._window.number )
+      return ''
+
+    # Return variable aware function
+    return self._variablesView.VariableEval( frame, expression, is_hover )
+
+
+  @IfConnected()
   def ShowTooltip( self, winnr, expression, is_hover ):
     """Proxy: ballonexpr -> variables.ShowTooltip"""
     frame = self._stackTraceView.GetCurrentFrame()

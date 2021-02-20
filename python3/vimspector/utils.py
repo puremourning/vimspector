@@ -34,6 +34,12 @@ _log_handler = logging.FileHandler( LOG_FILE, mode = 'w' )
 _log_handler.setFormatter(
     logging.Formatter( '%(asctime)s - %(levelname)s - %(message)s' ) )
 
+# this is the "large number" that vim returns for col num, when getting '> mark
+# with getpos() for line wise visual selection(V)
+# see https://github.com/vim/vim/blob/eed9d46293f0842aad0d50ff3a526f9a48b12421/src/evalfunc.c#L4077
+# and https://github.com/vim/vim/blob/064095012c0b8e4e43e75834b337115950898fbf/src/vim.h#L1699
+MAX_COL = 2147483647
+
 
 def SetUpLogging( logger ):
   logger.setLevel( logging.DEBUG )
@@ -642,7 +648,7 @@ def DisplayBalloon( is_term, display, is_hover = False ):
 
   rc = int( vim.eval(
     "vimspector#internal#balloon#CreateTooltip({}, {})".format(
-      is_hover, json.dumps( display )
+      int( is_hover ), json.dumps( display )
     )
   ) )
 
@@ -723,6 +729,21 @@ def SetSyntax( current_syntax, syntax, *args ):
 def GetBufferFiletypes( buf ):
   ft = ToUnicode( vim.eval( f"getbufvar( {buf.number}, '&ft' )" ) )
   return ft.split( '.' )
+
+
+def GetVisualSelection( bufnr ):
+  start_line, start_col = vim.current.buffer.mark( "<" )
+  end_line, end_col = vim.current.buffer.mark( ">" )
+
+  # lines are 1 based, but columns are 0 based
+  # don't as me why...
+  lines = vim.buffers[ bufnr ][ start_line - 1 : end_line ]
+  lines[ 0 ] = lines[ 0 ][ start_col : ]
+  # only trim the end if we are not in line-wise select mode
+  if( end_col < MAX_COL ):
+    lines[ -1 ] = lines[ -1 ][ : end_col + 1 ]
+
+  return lines
 
 
 def DisplaySplash( api_prefix, splash, text ):
