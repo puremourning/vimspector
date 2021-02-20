@@ -138,7 +138,7 @@ class View:
     self.lines = lines
     self.draw = draw
     self.syntax = None
-    if ( win is not None ):
+    if win is not None:
       self.buf = win.buffer
       utils.SetUpUIWindow( win )
 
@@ -285,7 +285,7 @@ class VariablesView( object ):
       },
     } )
 
-  def _DrawEval( self ):
+  def _DrawBalloonEval( self ):
     watch = self._variable_eval
     view = self._variable_eval_view
 
@@ -308,7 +308,6 @@ class VariablesView( object ):
     # remove reference to old tooltip window
     self._variable_eval_view = None
     vim.vars[ 'vimspector_session_windows' ][ 'eval' ] = None
-    return ''
 
   def VariableEval( self, frame, expression, is_hover ):
     """Callback to display variable under cursor `:h ballonexpr`"""
@@ -338,7 +337,7 @@ class VariablesView( object ):
             { 'options': {}, 'buffer': vim.buffers[ float_buf_nr ] }
           ),
           {},
-          self._DrawEval
+          self._DrawBalloonEval
       )
 
       if watch.result.IsExpandable():
@@ -355,7 +354,7 @@ class VariablesView( object ):
           },
         } )
 
-      self._DrawEval()
+      self._DrawBalloonEval()
 
     def failure_handler( reason, message ):
       display = [ reason ]
