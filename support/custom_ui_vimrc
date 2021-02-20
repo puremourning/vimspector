@@ -1,5 +1,7 @@
 execute 'source' expand( '<sfile>:p:h' ) . '/minimal_vimrc'
 set noequalalways
+let mapleader = ','
+let maplocalleader = "\<Space>"
 
 function! s:CustomiseUI()
   let wins = g:vimspector_session_windows
@@ -59,11 +61,52 @@ function! s:CustomiseWinBar()
     nnoremenu WinBar.✕\ ᶠ⁸ :call vimspector#Reset()<CR>
 endfunction
 
+let s:mapped = {}
+
+function! s:OnJumpToFrame() abort
+  if has_key( s:mapped, string( bufnr() ) )
+    return
+  endif
+
+  nmap <silent> <buffer> <LocalLeader>dn <Plug>VimspectorStepOver
+  nmap <silent> <buffer> <LocalLeader>ds <Plug>VimspectorStepInto
+  nmap <silent> <buffer> <LocalLeader>df <Plug>VimspectorStepOut
+  nmap <silent> <buffer> <LocalLeader>dc <Plug>VimspectorContinue
+
+  let s:mapped[ string( bufnr() ) ] = 1
+endfunction
+
+function! s:OnDebugEnd() abort
+
+  let original_buf = bufnr()
+  let hidden = &hidden
+
+  try
+    set hidden
+    for bufnr in keys( s:mapped )
+      try
+        execute 'noautocmd buffer' bufnr
+        silent! nunmap <buffer> <LocalLeader>dn
+        silent! nunmap <buffer> <LocalLeader>ds
+        silent! nunmap <buffer> <LocalLeader>df
+        silent! nunmap <buffer> <LocalLeader>dc
+      endtry
+    endfor
+  finally
+    execute 'noautocmd buffer' original_buf
+    let &hidden = hidden
+  endtry
+
+  let s:mapped = {}
+endfunction
+
 augroup TestUICustomistaion
   autocmd!
   autocmd User VimspectorUICreated call s:CustomiseUI()
   autocmd User VimspectorTerminalOpened call s:SetUpTerminal()
   autocmd User VimspectorUICreated call s:CustomiseWinBar()
+  autocmd User VimspectorJumpedToFrame call s:OnJumpToFrame()
+  autocmd User VimspectorDebugEnded call s:OnDebugEnd()
 augroup END
 
 let g:vimspector_sign_priority = {
