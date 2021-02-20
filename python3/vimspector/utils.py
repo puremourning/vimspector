@@ -639,7 +639,7 @@ def DisplayBalloon( is_term, display, is_hover = False ):
     # Refer https://github.com/vim/vim/issues/1512#issuecomment-492070685
     display = '\n'.join( display )
 
-  rc = int( vim.eval(
+  created_win_id = int( vim.eval(
     "vimspector#internal#balloon#CreateTooltip({}, {})".format(
       int( is_hover ), json.dumps( display )
     )
@@ -647,7 +647,7 @@ def DisplayBalloon( is_term, display, is_hover = False ):
 
   vim.eval( "vimspector#internal#balloon#nvim_resize_tooltip()" )
 
-  return rc
+  return created_win_id
 
 
 def GetBufferFilepath( buf ):
