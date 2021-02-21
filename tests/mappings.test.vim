@@ -106,9 +106,9 @@ function! Test_Use_Mappings_HUMAN()
         \ vimspector#test#signs#AssertPCIsAtLineInBuffer( 'simple.cpp', 16 )
         \ } )
 
-  " Run to cursor
+  " Run to cursor (note , is the mapleader)
   call cursor( 9, 1 )
-  call feedkeys( "\\\<F8>", 'xt' )
+  call feedkeys( ",\<F8>", 'xt' )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 9, 1 )
   call WaitForAssert( {->
         \ vimspector#test#signs#AssertPCIsAtLineInBuffer( 'simple.cpp', 9 )
