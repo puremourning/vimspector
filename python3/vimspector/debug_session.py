@@ -520,8 +520,8 @@ class DebugSession( object ):
     self._stackTraceView.SetCurrentThread()
 
   @IfConnected()
-  def ExpandVariable( self ):
-    self._variablesView.ExpandVariable()
+  def ExpandVariable( self, buf = None, line_num = None ):
+    self._variablesView.ExpandVariable( buf, line_num )
 
   @IfConnected()
   def AddWatch( self, expression ):
@@ -538,13 +538,13 @@ class DebugSession( object ):
   def DeleteWatch( self ):
     self._variablesView.DeleteWatch()
 
+
   @IfConnected()
-  def ShowBalloon( self, winnr, expression ):
-    """Proxy: ballonexpr -> variables.ShowBallon"""
+  def ShowEvalBalloon( self, winnr, expression, is_hover ):
     frame = self._stackTraceView.GetCurrentFrame()
     # Check if RIP is in a frame
     if frame is None:
-      self._logger.debug( 'Balloon: Not in a stack frame' )
+      self._logger.debug( 'Tooltip: Not in a stack frame' )
       return ''
 
     # Check if cursor in code window
@@ -555,7 +555,11 @@ class DebugSession( object ):
       return ''
 
     # Return variable aware function
-    return self._variablesView.ShowBalloon( frame, expression )
+    return self._variablesView.VariableEval( frame, expression, is_hover )
+
+
+  def CleanUpTooltip( self ):
+    return self._variablesView.CleanUpTooltip()
 
   @IfConnected()
   def ExpandFrameOrThread( self ):
@@ -679,6 +683,7 @@ class DebugSession( object ):
       'variables': utils.WindowID( vars_window, self._uiTab ),
       'watches': utils.WindowID( watch_window, self._uiTab ),
       'output': utils.WindowID( output_window, self._uiTab ),
+      'eval': None # this is going to be updated every time eval popup is opened
     }
     with utils.RestoreCursorPosition():
       with utils.RestoreCurrentWindow():

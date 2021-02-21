@@ -50,6 +50,7 @@ For detailed explanatin of the `.vimspector.json` format, see the
        * [Run to Cursor](#run-to-cursor)
     * [Stepping](#stepping)
     * [Variables and scopes](#variables-and-scopes)
+    * [Variable or selection hover evaluation](#variable-or-selection-hover-evaluation)
     * [Watches](#watches)
        * [Watch autocompletion](#watch-autocompletion)
     * [Stack Traces](#stack-traces)
@@ -89,7 +90,7 @@ For detailed explanatin of the `.vimspector.json` format, see the
     * [Example](#example)
  * [FAQ](#faq)
 
-<!-- Added by: ben, at: Sat  9 Jan 2021 13:13:28 GMT -->
+<!-- Added by: ben, at: Sun 21 Feb 2021 16:59:12 GMT -->
 
 <!--te-->
 
@@ -102,7 +103,7 @@ language that Visual Studio Code supports (but see caveats).
 The [Vimspector website][website] has an overview of the UI, along with basic
 instructions for configuration and setup.
 
-But for now, here's a (rather old) screenshot of Vimsepctor debugging Vim:
+But for now, here's a (rather old) screenshot of Vimspector debugging Vim:
 
 ![vimspector-vim-screenshot](https://puremourning.github.io/vimspector-web/img/vimspector-overview.png)
 
@@ -124,7 +125,7 @@ And a couple of brief demos:
 - locals and globals display
 - watch expressions with autocompletion
 - call stack display and navigation
-- variable value display hover
+- hierarchical variable value display popup (see `<Plug>VimspectorBalloonEval`)
 - interactive debug console with autocompletion
 - launch debugee within Vim's embedded terminal
 - logging/stdout display
@@ -230,8 +231,8 @@ Why such a new vim ? Well 2 reasons:
    if you hit them.
 
 Why is neovim experimental? Because the author doesn't use neovim regularly, and
-there are no regression tests for vimspector in neovim, so it's likely to break
-frequently.  Issue reports are handled on best-efforts basis, and PRs are
+there are no regression tests for vimspector in neovim, so it may break
+occasionally. Issue reports are handled on best-efforts basis, and PRs are
 welcome to fix bugs. See also the next section descibing differences for neovim
 vs vim.
 
@@ -249,7 +250,8 @@ neovim doesn't implement some features Vimspector relies on:
   the output window's current output.
 * Prompt Buffers - used to send commands in the Console and add Watches.
   (*Note*: prompt buffers are available in neovim nightly)
-* Balloons - used to display the values of variables when debugging.
+* Balloons - this allows for the variable evaluation popup to be displayed when
+  hovering the mouse. See below for how to create a keyboard mapping instead.
 
 Workarounds are in place as follows:
 
@@ -258,9 +260,18 @@ Workarounds are in place as follows:
   [`:VimspectorReset`](#closing-debugger)
 * Prompt Buffers - There are [`:VimspectorEval`](#console)
   and [`:VimspectorWatch`](#watches)
+* Balloons - There is the `<Plug>VimspectorBalloonEval` mapping. There is no
+default mapping for this, so I recommend something like this to get variable
+display in a popup:
 
-There is no workaroud for the lack of balloons; you'll just have to use
-`:VimspectorEval` or `:VimspectorWatch`, or switch to Vim.
+```viml
+" mnemonic 'di' = 'debug inspect' (pick your own, if you prefer!)
+
+" for normal mode - the word under the cursor
+nmap <Leader>di <Plug>VimspectorBalloonEval
+" for visual mode, the visually selected text
+xmap <Leader>di <Plug>VimspectorBalloonEval
+```
 
 ## Windows differences
 
@@ -653,6 +664,7 @@ features to set your own mappings. To that end, Vimspector defines the following
 * `<Plug>VimspectorStepInto`
 * `<Plug>VimspectorStepOut`
 * `<Plug>VimspectorRunToCursor`
+* `<Plug>VimspectorBalloonEval`
 
 These map roughly 1-1 with the API functions below.
 
@@ -714,6 +726,18 @@ let g:vimspector_enable_mappings = 'HUMAN'
 | `F10`        | Step Over                                                 | `vimspector#StepOver()`                                      |
 | `F11`        | Step Into                                                 | `vimspector#StepInto()`                                      |
 | `F12`        | Step out of current function scope                        | `vimspector#StepOut()`                                       |
+
+In addition, I recommend adding a mapping to `<Plug>VimspectorBalloonEval`, in
+normal and visual modes, for example:
+
+```viml
+" mnemonic 'di' = 'debug inspect' (pick your own, if you prefer!)
+
+" for normal mode - the word under the cursor
+nmap <Leader>di <Plug>VimspectorBalloonEval
+" for visual mode, the visually selected text
+xmap <Leader>di <Plug>VimspectorBalloonEval
+```
 
 # Usage and API
 
@@ -889,6 +913,20 @@ breakpoint when it is hit.
 ![locals window](https://puremourning.github.io/vimspector-web/img/vimspector-locals-window.png)
 
 Scopes and variables are represented by the buffer `vimspector.Variables`.
+
+## Variable or selection hover evaluation
+
+All rules for `Variables and scopes` apply plus the following:
+
+* With mouse enabled, hover over a variable and get the value it evaluates to.
+* Use your mouse to perform a visual selection of an expression (e.g. `a + b`)
+  and get its result.
+* Make a normal mode (`nmap`) and visual mode (`xmap`) mapping to
+  `<Plug>VimspectorBalloonEval` to manually trigger the popup.
+* Use regular nagivation keys (`j`, `k`) to chose the current selection; `<Esc>`
+  (or leave the tooltip window) to close the tooltip.
+
+![variable eval hover](https://puremourning.github.io/vimspector-web/img/vimspector-variable-eval-hover.png)
 
 ## Watches
 

@@ -523,6 +523,22 @@ function! vimspector#OnBufferCreated( file_name ) abort
   py3 _vimspector_session.RefreshSigns( vim.eval( 'a:file_name' ) )
 endfunction
 
+function! vimspector#ShowEvalBalloon( is_visual ) abort
+  if a:is_visual
+    let expr = py3eval( '__import__( "vimspector", fromlist = [ "utils" ] )'
+                      \ . '.utils.GetVisualSelection('
+                      \ . '    int( vim.eval( "winbufnr( winnr() )" ) ) )' )
+    let expr = join( expr, '\n' )
+  else
+    let expr = expand( '<cexpr>' )
+  endif
+
+  return py3eval( '_vimspector_session.ShowEvalBalloon('
+                \ . ' int( vim.eval( "winnr()" ) ), "'
+                \ . expr
+                \ . '", 0 )' )
+endfunction
+
 
 " Boilerplate {{{
 let &cpoptions=s:save_cpo

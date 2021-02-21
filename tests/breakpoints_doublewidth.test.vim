@@ -293,8 +293,8 @@ function! Test_Conditional_Line_Breakpoint()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 16, 1 )
   call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 16 )
 
-  " Add the conditional breakpoint
-  call feedkeys( "\\\<F9>argc==0\<CR>\<CR>", 'xt' )
+  " Add the conditional breakpoint (, is mapleader)
+  call feedkeys( ",\<F9>argc==0\<CR>\<CR>", 'xt' )
   call vimspector#test#signs#AssertSignGroupSingletonAtLine( 'VimspectorBP',
                                                            \ 16,
                                                            \ 'vimspectorBPCond',
@@ -370,8 +370,8 @@ function! Test_Conditional_Line_Breakpoint_Hit()
   exe 'edit' fn
   call setpos( '.', [ 0, 14, 1 ] )
 
-  " Add the conditional breakpoint (3 times)
-  call feedkeys( "\\\<F9>\<CR>3\<CR>", 'xt' )
+  " Add the conditional breakpoint (3 times) (, is mapleader)
+  call feedkeys( ",\<F9>\<CR>3\<CR>", 'xt' )
   call vimspector#test#signs#AssertSignGroupSingletonAtLine(
         \ 'VimspectorBP',
         \ 14,

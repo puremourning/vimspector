@@ -634,15 +634,19 @@ def ParseVariables( variables_list,
   return new_variables
 
 
-def DisplayBaloon( is_term, display ):
+def DisplayBalloon( is_term, display, is_hover = False ):
   if not is_term:
-    display = '\n'.join( display )
     # To enable the Windows GUI to display the balloon correctly
     # Refer https://github.com/vim/vim/issues/1512#issuecomment-492070685
-    vim.eval( "balloon_show( '' )" )
+    display = '\n'.join( display )
 
-  vim.eval( "balloon_show( {0} )".format(
-    json.dumps( display ) ) )
+  created_win_id = int( vim.eval(
+    "vimspector#internal#balloon#CreateTooltip({}, {})".format(
+      int( is_hover ), json.dumps( display )
+    )
+  ) )
+
+  return created_win_id
 
 
 def GetBufferFilepath( buf ):
@@ -717,6 +721,28 @@ def SetSyntax( current_syntax, syntax, *args ):
 def GetBufferFiletypes( buf ):
   ft = ToUnicode( vim.eval( f"getbufvar( {buf.number}, '&ft' )" ) )
   return ft.split( '.' )
+
+
+def GetVisualSelection( bufnr ):
+  start_line, start_col = vim.current.buffer.mark( "<" )
+  end_line, end_col = vim.current.buffer.mark( ">" )
+
+
+  # lines are 1 based, but columns are 0 based
+  # don't ask me why...
+  start_line -= 1
+  end_line -= 1
+
+  lines = vim.buffers[ bufnr ][ start_line : end_line + 1 ]
+  # Do end first, in case it's on the same line as start (as doing start first
+  # would change the offset)
+  lines[ -1 ] = lines[ -1 ][ : end_col + 1 ]
+  lines[ 0 ] = lines[ 0 ][ start_col : ]
+
+  _logger.debug( f'Visual selection: { lines } from '
+                 f'{ start_line }/{ start_col } -> { end_line }/{ end_col }' )
+
+  return lines
 
 
 def DisplaySplash( api_prefix, splash, text ):
