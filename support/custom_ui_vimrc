@@ -1,7 +1,12 @@
+" setup boilerplate to make this file usable with vim -Nu <tihs file> {{{
+scriptencoding utf-8
 execute 'source' expand( '<sfile>:p:h' ) . '/minimal_vimrc'
 set noequalalways
 let mapleader = ','
 let maplocalleader = "\<Space>"
+" }}}
+
+" Custom Layout {{{
 
 function! s:CustomiseUI()
   let wins = g:vimspector_session_windows
@@ -61,6 +66,27 @@ function! s:CustomiseWinBar()
     nnoremenu WinBar.✕\ ᶠ⁸ :call vimspector#Reset()<CR>
 endfunction
 
+augroup TestUICustomistaion
+  autocmd!
+  autocmd User VimspectorUICreated call s:CustomiseUI()
+  autocmd User VimspectorTerminalOpened call s:SetUpTerminal()
+  autocmd User VimspectorUICreated call s:CustomiseWinBar()
+augroup END
+
+" }}}
+
+" Custom sign priority {{{
+
+let g:vimspector_sign_priority = {
+  \    'vimspectorBP':         3,
+  \    'vimspectorBPCond':     2,
+  \    'vimspectorBPDisabled': 1,
+  \    'vimspectorPC':         999,
+  \ }
+
+" }}}
+
+" Custom mappings while debuggins {{{
 let s:mapped = {}
 
 function! s:OnJumpToFrame() abort
@@ -72,6 +98,8 @@ function! s:OnJumpToFrame() abort
   nmap <silent> <buffer> <LocalLeader>ds <Plug>VimspectorStepInto
   nmap <silent> <buffer> <LocalLeader>df <Plug>VimspectorStepOut
   nmap <silent> <buffer> <LocalLeader>dc <Plug>VimspectorContinue
+  nmap <silent> <buffer> <LocalLeader>di <Plug>VimspectorBalloonEval
+  xmap <silent> <buffer> <LocalLeader>di <Plug>VimspectorBalloonEval
 
   let s:mapped[ string( bufnr() ) ] = 1
 endfunction
@@ -90,6 +118,8 @@ function! s:OnDebugEnd() abort
         silent! nunmap <buffer> <LocalLeader>ds
         silent! nunmap <buffer> <LocalLeader>df
         silent! nunmap <buffer> <LocalLeader>dc
+        silent! nunmap <buffer> <LocalLeader>di
+        silent! xunmap <buffer> <LocalLeader>di
       endtry
     endfor
   finally
@@ -100,18 +130,12 @@ function! s:OnDebugEnd() abort
   let s:mapped = {}
 endfunction
 
-augroup TestUICustomistaion
-  autocmd!
-  autocmd User VimspectorUICreated call s:CustomiseUI()
-  autocmd User VimspectorTerminalOpened call s:SetUpTerminal()
-  autocmd User VimspectorUICreated call s:CustomiseWinBar()
+augroup TestCustomMappings
+  au!
   autocmd User VimspectorJumpedToFrame call s:OnJumpToFrame()
   autocmd User VimspectorDebugEnded call s:OnDebugEnd()
 augroup END
 
-let g:vimspector_sign_priority = {
-  \    'vimspectorBP':         3,
-  \    'vimspectorBPCond':     2,
-  \    'vimspectorBPDisabled': 1,
-  \    'vimspectorPC':         999,
-  \ }
+" }}}
+
+" vim: foldmethod=marker
