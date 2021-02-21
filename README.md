@@ -50,7 +50,7 @@ For detailed explanatin of the `.vimspector.json` format, see the
        * [Run to Cursor](#run-to-cursor)
     * [Stepping](#stepping)
     * [Variables and scopes](#variables-and-scopes)
-    * [Variable/selection hover evaluation](#variable-or-selection-hover-evaluation)
+    * [Variable or selection hover evaluation](#variable-or-selection-hover-evaluation)
     * [Watches](#watches)
        * [Watch autocompletion](#watch-autocompletion)
     * [Stack Traces](#stack-traces)
@@ -90,7 +90,7 @@ For detailed explanatin of the `.vimspector.json` format, see the
     * [Example](#example)
  * [FAQ](#faq)
 
-<!-- Added by: ben, at: Sat  9 Jan 2021 13:13:28 GMT -->
+<!-- Added by: ben, at: Sun 21 Feb 2021 16:59:12 GMT -->
 
 <!--te-->
 
