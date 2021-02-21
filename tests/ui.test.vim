@@ -411,16 +411,54 @@ function! Test_CustomWinBar()
 endfunction
 
 function! Test_VimspectorJumpedToFrame()
+  let s:ended = 0
+  let s:au_visited_buffers = {}
+
   augroup TestVimspectorJumpedToFrame
     au!
-    au User VimspectorJumpedToFrame let b:vimspectorStepIsThere = 'foo'
+    au User VimspectorJumpedToFrame
+          \ let s:au_visited_buffers[ bufname() ] = get( s:au_visited_buffers,
+          \                                              bufname(),
+          \                                              0 ) + 1
+    au User VimspectorDebugEnded
+          \ let s:ended = 1
   augroup END
 
-  call s:StartDebugging()
-  call assert_equal( 'foo', getbufvar(bufnr(), 'vimspectorStepIsThere', 0) )
+  lcd ../support/test/python/multiple_files
+  edit moo.py
+
+  let moo = 'moo.py'
+  let cow = getcwd() . '/cow.py'
+
+  call vimspector#SetLineBreakpoint( 'moo.py', 13 )
+  call vimspector#Launch()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'moo.py', 1, 1 )
+  call vimspector#test#signs#AssertPCIsAtLineInBuffer( 'moo.py', 1 )
+  let expected = {}
+  let expected[ moo ] = 1
+  call assert_equal( expected, s:au_visited_buffers )
+
+  call vimspector#Continue()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'moo.py', 13, 1 )
+  call vimspector#test#signs#AssertPCIsAtLineInBuffer( 'moo.py', 13 )
+  let expected[ moo ] += 1
+  call assert_equal( expected, s:au_visited_buffers )
+
+  call vimspector#SetLineBreakpoint( 'cow.py', 2 )
+  call vimspector#Continue()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'cow.py', 2, 1 )
+  call vimspector#test#signs#AssertPCIsAtLineInBuffer( 'cow.py', 2 )
+  let expected[ cow ] = 1
+  call assert_equal( expected, s:au_visited_buffers )
+
+  VimspectorReset
+  call WaitForAssert( { -> assert_equal( s:ended, 1 ) } )
 
   au! TestVimspectorJumpedToFrame
-  unlet b:vimspectorStepIsThere
+  unlet! s:au_visited_buffers
+  unlet! s:ended
+
   call vimspector#test#setup#Reset()
+  lcd -
   %bwipe!
 endfunction
