@@ -645,8 +645,6 @@ def DisplayBalloon( is_term, display, is_hover = False ):
     )
   ) )
 
-  vim.eval( "vimspector#internal#balloon#nvim_resize_tooltip()" )
-
   return created_win_id
 
 
@@ -728,11 +726,20 @@ def GetVisualSelection( bufnr ):
   start_line, start_col = vim.current.buffer.mark( "<" )
   end_line, end_col = vim.current.buffer.mark( ">" )
 
+
   # lines are 1 based, but columns are 0 based
-  # don't as me why...
-  lines = vim.buffers[ bufnr ][ start_line - 1 : end_line ]
-  lines[ 0 ] = lines[ 0 ][ start_col : ]
+  # don't ask me why...
+  start_line -= 1
+  end_line -= 1
+
+  lines = vim.buffers[ bufnr ][ start_line : end_line + 1 ]
+  # Do end first, in case it's on the same line as start (as doing start first
+  # would change the offset)
   lines[ -1 ] = lines[ -1 ][ : end_col + 1 ]
+  lines[ 0 ] = lines[ 0 ][ start_col : ]
+
+  _logger.debug( f'Visual selection: { lines } from '
+                 f'{ start_line }/{ start_col } -> { end_line }/{ end_col }' )
 
   return lines
 

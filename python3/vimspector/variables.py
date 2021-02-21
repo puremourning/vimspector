@@ -143,6 +143,12 @@ class View:
       utils.SetUpUIWindow( win )
 
 
+class BufView( View ):
+  def __init__( self, buf, lines, draw ):
+    super().__init__( None, lines, draw )
+    self.buf = buf
+
+
 class VariablesView( object ):
   def __init__( self, variables_win, watches_win ):
     self._logger = logging.getLogger( __name__ )
@@ -219,6 +225,7 @@ class VariablesView( object ):
       utils.ClearBuffer( self._vars.buf )
     with utils.ModifiableScratchBuffer( self._watch.buf ):
       utils.ClearBuffer( self._watch.buf )
+    self.ClearTooltip()
     self._current_syntax = ''
 
   def ConnectionUp( self, connection ):
@@ -234,6 +241,8 @@ class VariablesView( object ):
 
     utils.CleanUpHiddenBuffer( self._vars.buf )
     utils.CleanUpHiddenBuffer( self._watch.buf )
+    self.ClearTooltip()
+
 
   def LoadScopes( self, frame ):
     def scopes_consumer( message ):
@@ -302,9 +311,14 @@ class VariablesView( object ):
                                watch,
                                is_short = True )
 
-        vim.eval( "vimspector#internal#balloon#nvim_resize_tooltip()" )
+        vim.eval( "vimspector#internal#balloon#ResizeTooltip()" )
 
-  def _CleanUpTooltip( self ) :
+  def ClearTooltip( self ):
+    # This will actually end up calling CleanUpTooltip via the popup close
+    # callback
+    vim.eval( 'vimspector#internal#balloon#Close()' )
+
+  def CleanUpTooltip( self ) :
     # remove reference to old tooltip window
     self._variable_eval_view = None
     vim.vars[ 'vimspector_session_windows' ][ 'eval' ] = None
@@ -322,22 +336,17 @@ class VariablesView( object ):
       else:
         watch.result.Update( message[ 'body' ] )
 
-      float_win_id = utils.DisplayBalloon( self._is_term, [], is_hover )
+      popup_win_id = utils.DisplayBalloon( self._is_term, [], is_hover )
       # record the global eval window id
-      vim.vars[ 'vimspector_session_windows' ][ 'eval' ] = int( float_win_id )
-      float_buf_nr = int( vim.eval( "winbufnr({})".format( float_win_id ) ) )
+      vim.vars[ 'vimspector_session_windows' ][ 'eval' ] = int( popup_win_id )
+      popup_bufnr = int( vim.eval( "winbufnr({})".format( popup_win_id ) ) )
 
-      # since vim's popup cant be focused there is no way
-      # to get a reference to its window
-      # we will emulate python's window object ourselves
-      self._variable_eval_view = View(
-          type(
-            '__vim__window__',
-            ( object, ),
-            { 'options': {}, 'buffer': vim.buffers[ float_buf_nr ] }
-          ),
-          {},
-          self._DrawBalloonEval
+      # We don't need to do any UI window setup here, as it's already done as
+      # part of the popup creation, so just pass the buffer to the View instance
+      self._variable_eval_view = BufView(
+        vim.buffers[ popup_bufnr ],
+        {},
+        self._DrawBalloonEval
       )
 
       if watch.result.IsExpandable():
@@ -439,21 +448,27 @@ class VariablesView( object ):
     watch.result = WatchFailure( reason )
     self._DrawWatches()
 
-  def ExpandVariable( self, lineNum = -1 ):
-    if vim.current.buffer == self._vars.buf:
+  def ExpandVariable( self, buf = None, line_num = None ):
+    if buf is None:
+      buf = vim.current.buffer
+
+    if line_num is None:
+      line_num = vim.current.window.cursor[ 0 ]
+
+    if buf == self._vars.buf:
       view = self._vars
-    elif vim.current.buffer == self._watch.buf:
+    elif buf == self._watch.buf:
       view = self._watch
-    elif self._variable_eval_view is not None:
+    elif ( self._variable_eval_view is not None
+           and buf == self._variable_eval_view.buf ):
       view = self._variable_eval_view
     else:
       return
 
-    current_line = vim.current.window.cursor[ 0 ] if lineNum <= 0 else lineNum
-    if current_line not in view.lines:
+    if line_num not in view.lines:
       return
 
-    variable = view.lines[ current_line ]
+    variable = view.lines[ line_num ]
 
     if variable.IsExpanded():
       # Collapse

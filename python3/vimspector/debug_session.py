@@ -520,8 +520,8 @@ class DebugSession( object ):
     self._stackTraceView.SetCurrentThread()
 
   @IfConnected()
-  def ExpandVariable( self, lineNum = -1 ):
-    self._variablesView.ExpandVariable( lineNum )
+  def ExpandVariable( self, buf = None, line_num = None ):
+    self._variablesView.ExpandVariable( buf, line_num )
 
   @IfConnected()
   def AddWatch( self, expression ):
@@ -558,8 +558,8 @@ class DebugSession( object ):
     return self._variablesView.VariableEval( frame, expression, is_hover )
 
 
-  def _CleanUpTooltip( self ):
-    return self._variablesView._CleanUpTooltip()
+  def CleanUpTooltip( self ):
+    return self._variablesView.CleanUpTooltip()
 
   @IfConnected()
   def ExpandFrameOrThread( self ):
