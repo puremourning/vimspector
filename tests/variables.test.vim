@@ -601,10 +601,14 @@ function! Test_VariableEval()
   call vimspector#StepOver()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 26, 1 )
 
+  " leader is ,
+  xmap <buffer> <Leader>d <Plug>VimspectorBalloonEval
+  nmap <buffer> <Leader>d <Plug>VimspectorBalloonEval
+
   "evaluate the prev line
-  call setpos('.', [ 0, 24, 8 ])
+  call setpos( '.', [ 0, 24, 8 ] )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 24, 8 )
-  call vimspector#ShowTooltip()
+  call feedkeys( ',d', 'xt' )
 
   call WaitForAssert( {->
         \   assert_notequal( v:none, g:vimspector_session_windows.eval )
@@ -633,19 +637,10 @@ function! Test_VariableEval()
         \ } )
 
   " test selection
-  call setpos('.', [ 0, 24, 8 ])
+  call setpos( '.', [ 0, 24, 8 ] )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 24, 8 )
 
-  " enter visual mode
-  " this is a hack, since usually, when user enters command mode from inside
-  " visual mode, the latter is immediately interrupted and the '<' '>' marks are
-  " set. for some odd reason, visual mode is not interupted from the script,
-  " so we need to manually escape and re-trigger previous visual selection
-  call execute('normal v')
-  call feedkeys("lllll\<esc>", 'xt')
-  call execute('normal gv')
-
-  call vimspector#ShowTooltipForSelection()
+  call feedkeys( 'viw,d', 'xt' )
 
   call WaitForAssert( {->
         \ assert_notequal( v:none, g:vimspector_session_windows.eval )
@@ -667,18 +662,19 @@ function! Test_VariableEval()
         \ } )
 
   "Close
-  " we need to send esc twice because of the weird interactions between visual
-  " mode and tests
-  call feedkeys( "\<Esc>\<Esc>", 'xt' )
+  call feedkeys( "\<Esc>", 'xt' )
 
   call WaitForAssert( {->
         \ assert_equal( v:none, g:vimspector_session_windows.eval )
         \ } )
 
+  " Get back to normal mode
+  call feedkeys( "\<Esc>", 'xt' )
+
   " Evaluation error
-  call setpos('.', [ 0, 25, 1 ])
+  call setpos( '.', [ 0, 25, 1 ] )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 25, 1 )
-  call vimspector#ShowTooltip()
+  call feedkeys( ',d', 'xt' )
 
   call WaitForAssert( {->
         \   assert_notequal( v:none, g:vimspector_session_windows.eval )
@@ -715,10 +711,14 @@ function! Test_VariableEvalExpand()
   call vimspector#StepOver()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 26, 1 )
 
+  " leader is ,
+  xmap <buffer> <Leader>d <Plug>VimspectorBalloonEval
+  nmap <buffer> <Leader>d <Plug>VimspectorBalloonEval
+
   "evaluate the prev line
-  call setpos('.', [ 0, 24, 8 ])
+  call setpos( '.', [ 0, 24, 8 ] )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 24, 8 )
-  call vimspector#ShowTooltip()
+  call feedkeys( ',d', 'xt' )
 
   call WaitForAssert( {->
         \ assert_notequal( v:none, g:vimspector_session_windows.eval )
