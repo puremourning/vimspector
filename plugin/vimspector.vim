@@ -125,6 +125,8 @@ augroup VimspectorUserAutoCmds
   autocmd!
   autocmd User VimspectorUICreated      silent
   autocmd User VimspectorTerminalOpened silent
+  autocmd user VimspectorJumpedToFrame  silent
+  autocmd user VimspectorDebugEnded     silent
 augroup END
 
 augroup Vimspector

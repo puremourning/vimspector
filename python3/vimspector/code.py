@@ -134,6 +134,7 @@ class CodeView( object ):
     utils.JumpToWindow( self._window )
     try:
       utils.OpenFileInCurrentWindow( frame[ 'source' ][ 'path' ] )
+      vim.command( 'doautocmd <nomodeline> User VimspectorJumpedToFrame' )
     except vim.error:
       self._logger.exception( 'Unexpected vim error opening file {}'.format(
         frame[ 'source' ][ 'path' ] ) )

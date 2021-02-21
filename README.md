@@ -85,12 +85,13 @@ For detailed explanatin of the `.vimspector.json` format, see the
     * [Sign priority](#sign-priority)
     * [Changing the default window sizes](#changing-the-default-window-sizes)
     * [Changing the terminal size](#changing-the-terminal-size)
+    * [Custom mappings while debugging](#custom-mappings-while-debugging)
     * [Advanced UI customisation](#advanced-ui-customisation)
     * [Customising the WinBar](#customising-the-winbar)
     * [Example](#example)
  * [FAQ](#faq)
 
-<!-- Added by: ben, at: Sun 21 Feb 2021 16:59:12 GMT -->
+<!-- Added by: ben, at: Sun 21 Feb 2021 21:15:32 GMT -->
 
 <!--te-->
 
@@ -674,6 +675,10 @@ appropriate place, such as your `vimrc` (hint: run `:e $MYVIMRC`).
 ```viml
 nmap <F5> <Plug>VimspectorContinue
 ```
+
+In addition, many users probably want to only enable certain Vimspector mappings
+while debugging is active. This is also possible, though it requires writing
+[some vimscipt](#custom-mappings-while-debugging).
 
 That said, many people are familiar with particular debuggers, so the following
 mappings can be enabled by setting `g:vimspector_enable_mappings` to the
@@ -1820,6 +1825,29 @@ let g:vimspector_code_minwidth = 90
 let g:vimspector_terminal_maxwidth = 75
 let g:vimspector_terminal_minwidth = 20
 ```
+
+## Custom mappings while debugging
+
+It's useful to be able to define mappings only while debugging and remove those
+mappings when debugging is complete. For this purpose, Vimspector provides 2
+`User` autocommds:
+
+* `VimspectorJumpedToFrame` - triggered whenever a 'break' event happens, or
+  when selecting a stack from to jump to. This can be used to create (for
+  example) buffer-local mappings for any files opened in the code window.
+* `VimspectorDebugEnded` - triggered when the debug session is terminated
+  (actually when Vimspector is fully reset)
+
+An example way to use this is included in `support/custom_ui_vimrc`. In there,
+these autocommands are used to create buffer-local mappings for any files
+visited while debugging and to clear them when completing debugging. This is
+particularly useful for commadns like `<Plug>VimspectorBalloonEval` which only
+make sense while debugging (and only in the code window). Check the commented
+section `Custom mappings while debugging`.
+
+NOTE: This is a fairly advanced feature requiring some nontrivial vimscript.
+It's possible that this feature will be incorporated into Vimspector in future
+as it is a common requirement.
 
 ## Advanced UI customisation
 
