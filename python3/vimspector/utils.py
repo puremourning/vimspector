@@ -34,6 +34,7 @@ _log_handler = logging.FileHandler( LOG_FILE, mode = 'w' )
 _log_handler.setFormatter(
     logging.Formatter( '%(asctime)s - %(levelname)s - %(message)s' ) )
 
+
 def SetUpLogging( logger ):
   logger.setLevel( logging.DEBUG )
   if _log_handler not in logger.handlers:
