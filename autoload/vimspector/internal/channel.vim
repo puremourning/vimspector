@@ -95,21 +95,44 @@ EOF
 endfunction
 
 function! vimspector#internal#channel#StopDebugSession() abort
-  if exists( 's:ch' ) && ch_status( s:ch ) ==# 'open'
+
+  if exists( 's:job' )
+    " We started the job, so we need to kill it and wait to read all the data
+    " from the socket
+
+    if job_status( s:job ) ==# 'run'
+      call job_stop( s:job, 'term' )
+    endif
+
+    while job_status( s:job ) ==# 'run'
+      call job_stop( s:job, 'kill' )
+    endwhile
+
+    unlet s:job
+
+    if exists( 's:ch' ) && count( [ 'closed', 'fail' ], ch_status( s:ch ) ) == 0
+      " We're going to block on this channel reading, then manually call the
+      " close callback, so remove the automatic close callback to avoid tricky
+      " re-entrancy
+      call ch_setoptions( s:ch, { 'close_cb': '' } )
+    endif
+
+  elseif exists( 's:ch' ) &&
+          \ count( [ 'closed', 'fail' ], ch_status( s:ch ) ) == 0
+
     " channel is open, close it and trigger the callback. The callback is _not_
     " triggered when manually calling ch_close. if we get here and the channel
     " is not open, then we there is a _OnClose callback waiting for us, so do
     " nothing.
     call ch_close( s:ch )
-    call s:_OnClose( s:ch )
   endif
 
-  if exists( 's:job' )
-    if job_status( s:job ) ==# 'run'
-      call job_stop( s:job, 'kill' )
-    endif
-    unlet s:job
-  endif
+  " block until we've read all data from the socket and handled it.
+  while count( [ 'open', 'buffered' ],  ch_status( s:ch ) ) == 1
+    let data = ch_read( s:ch, { 'timeout': 10 } )
+    call s:_OnServerData( s:ch, data )
+  endwhile
+  call s:_OnClose( s:ch )
 endfunction
 
 function! vimspector#internal#channel#Reset() abort
