@@ -162,6 +162,10 @@ function! vimspector#internal#balloon#CloseCallback( ... ) abort
 endfunction
 
 function! vimspector#internal#balloon#Close() abort
+  if s:popup_win_id == 0
+    return
+  endif
+
   if s:is_neovim
     call nvim_win_close( s:popup_win_id, v:true )
     call nvim_win_close( s:nvim_border_win_id, v:true )
