@@ -68,7 +68,8 @@ function! vimspector#internal#balloon#CreateTooltip( is_hover, ... ) abort
       \ 'drag': 1,
       \ 'resize': 1,
       \ 'close': 'button',
-      \ 'callback': 'vimspector#internal#balloon#CloseCallback'
+      \ 'callback': 'vimspector#internal#balloon#CloseCallback',
+      \ 'mapping': 0
       \ }
 
     " When ambiwidth is single, use prettier characters for the border. This
