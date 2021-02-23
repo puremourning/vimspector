@@ -346,7 +346,7 @@ See support/doc/example_vimrc.vim for a minimal example.
 
 Vimspector is a generic client for Debug Adapters. Debug Adapters (referred to
 as 'gadgets' or 'adapters') are what actually do the work of talking to the real
-debugers.
+debuggers.
 
 In order for Vimspector to be useful, you need to have some adapters installed.
 
@@ -464,7 +464,7 @@ You essentially need to get a working installation of the debug adapter, find
 out how to start it, and configure that in an `adapters` entry in either your
 `.vimspector.json` or in `.gadgets.json`.
 
-The simplest way in practice is to install or start Visusal Studio Code and use
+The simplest way in practice is to install or start Visual Studio Code and use
 its extension manager to install the relevant extension. You can then configure
 the adapter manually in the `adapters` section of your `.vimspector.json` or in
 a `gadgets.json`.
@@ -545,7 +545,7 @@ format as `.gadgets.json` but are not overwritten when running
 ## Upgrade
 
 After updating the Vimspector code (either via `git pull` or whatever package
-manager), run `:VimspectorUpdate` to update any already-installed gadets.
+manager), run `:VimspectorUpdate` to update any already-installed gadgets.
 
 # About
 
@@ -770,7 +770,7 @@ The argument is a `dict` with the following keys:
 * `configuration`: (optional) Name of the debug configuration to launch
 * `<anything else>`: (optional) Name of a variable to set
 
-This allows for some intergration and automation.  For example, if you have a
+This allows for some integration and automation.  For example, if you have a
 configuration named `Run Test` that contains a [replacement
 variable][vimspector-ref-var] named `${Test}` you could write a mapping which
 ultimately executes:
@@ -854,9 +854,9 @@ breakpoint on the current line and `<F5>` to launch the application.
 
 ### Conditional breakpoints
 
-Some debug adapters support conditional breakpionts. Note that vimspector does
+Some debug adapters support conditional breakpoints. Note that vimspector does
 not tell you if the debugger doesn't support conditional breakpoints (yet). A
-conditional breakpiont is a breakpiont which only triggers if some expression
+conditional breakpoint is a breakpoint which only triggers if some expression
 evaluates to true, or has some other constraints met.
 
 Some of these functions above take a single optional argument which is a
@@ -928,7 +928,7 @@ All rules for `Variables and scopes` apply plus the following:
   and get its result.
 * Make a normal mode (`nmap`) and visual mode (`xmap`) mapping to
   `<Plug>VimspectorBalloonEval` to manually trigger the popup.
-* Use regular nagivation keys (`j`, `k`) to chose the current selection; `<Esc>`
+* Use regular nagivation keys (`j`, `k`) to choose the current selection; `<Esc>`
   (or leave the tooltip window) to close the tooltip.
 
 ![variable eval hover](https://puremourning.github.io/vimspector-web/img/vimspector-variable-eval-hover.png)
@@ -1775,7 +1775,7 @@ smaller ones.
 
 ## Changing the default window sizes
 
-> ***Please Note***: This cusomiation API is ***unstable***, meaning that it may
+> ***Please Note***: This customisation API is ***unstable***, meaning that it may
 change at any time. I will endeavour to reduce the impact of this and announce
 changes in Gitter.
 
@@ -1797,7 +1797,7 @@ let g:vimspector_bottombar_height = 15
 
 ## Changing the terminal size
 
-The terminal is typically created as a vertical split to the righ of the code
+The terminal is typically created as a vertical split to the right of the code
 window, and that window is re-used for subsequent terminal buffers.
 The following control the sizing of the terminal window used
 for debuggee input/output when using Vim's built-in terminal.
@@ -1816,7 +1816,7 @@ least `g:vimspector_code_minwidth` columns for the main code window and that the
 terminal is no wider than `g:vimspector_terminal_maxwidth` columns.
 `g:vimspector_terminal_minwidth` is there to ensure that there's a reasonable
 number of columns for the terminal even when there isn't enough horizontal space
-to satisfy the other contraints.
+to satisfy the other constraints.
 
 Example:
 
@@ -1830,7 +1830,7 @@ let g:vimspector_terminal_minwidth = 20
 
 It's useful to be able to define mappings only while debugging and remove those
 mappings when debugging is complete. For this purpose, Vimspector provides 2
-`User` autocommds:
+`User` autocommands:
 
 * `VimspectorJumpedToFrame` - triggered whenever a 'break' event happens, or
   when selecting a stack from to jump to. This can be used to create (for
@@ -1841,7 +1841,7 @@ mappings when debugging is complete. For this purpose, Vimspector provides 2
 An example way to use this is included in `support/custom_ui_vimrc`. In there,
 these autocommands are used to create buffer-local mappings for any files
 visited while debugging and to clear them when completing debugging. This is
-particularly useful for commadns like `<Plug>VimspectorBalloonEval` which only
+particularly useful for commands like `<Plug>VimspectorBalloonEval` which only
 make sense while debugging (and only in the code window). Check the commented
 section `Custom mappings while debugging`.
 
@@ -1851,7 +1851,7 @@ as it is a common requirement.
 
 ## Advanced UI customisation
 
-> ***Please Note***: This cusomiation API is ***unstable***, meaning that it may
+> ***Please Note***: This customisation API is ***unstable***, meaning that it may
 change at any time. I will endeavour to reduce the impact of this and announce
 changes in Gitter.
 
@@ -1898,7 +1898,7 @@ In addition, the following key is added when triggering the
 ## Customising the WinBar
 
 You can even customise the WinBar buttons by simply running the usual `menu`
-(and `unmanu`) commands.
+(and `unmenu`) commands.
 
 By default, Vimspector uses something a bit like this:
 
@@ -2009,9 +2009,9 @@ hi link jsonComment Comment
    but in theory a single gadget can supply multiple `adapter` configs.
    Typically this happens when a `gadget` supplies different `adapter` config
    for, say remote debugging, or debugging in a container, etc.
-8. The signs and winbar display funny symbols. How do i fix them? See
+8. The signs and winbar display funny symbols. How do I fix them? See
    [this](#changing-the-default-signs) and [this](#customising-the-winbar)
-9. What's thie telemetry stuff all about? Are you sending my data to evil companies?
+9. What's this telemetry stuff all about? Are you sending my data to evil companies?
    Debug adapters (for some reason) send telemetry data to clients. Vimspector simply
    displays this information in the output window. It *does not* and *will not ever*
    collect, use, forward or otherwise share any data with any third parties.
