@@ -279,6 +279,7 @@ function! s:CreateNeovimTooltip( body ) abort
   call nvim_buf_set_option( buf_id, 'modifiable', v:false )
   let s:popup_win_id = nvim_open_win( buf_id, v:false, opts )
 
+  " Apparently none of these work, when 'style' is 'minimal'
   call nvim_win_set_option( s:popup_win_id, 'wrap', v:false )
   call nvim_win_set_option( s:popup_win_id, 'cursorline', v:true )
   call nvim_win_set_option( s:popup_win_id, 'signcolumn', 'no' )

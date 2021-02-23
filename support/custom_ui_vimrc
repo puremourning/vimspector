@@ -38,6 +38,10 @@ function! s:CustomiseUI()
 endfunction
 
 function s:SetUpTerminal()
+  if !has_key( g:vimspector_session_windows, 'terminal' )
+    " There's a neovim bug which means that this doesn't work in neovim
+    return
+  endif
   let terminal_win = g:vimspector_session_windows.terminal
 
   " Make the terminal window at most 80 columns wide, ensuring there is enough

@@ -301,8 +301,7 @@ class VariablesView( object ):
     with utils.RestoreCursorPosition():
       with utils.ModifiableScratchBuffer( view.buf ):
         utils.ClearBuffer( view.buf )
-        # FIXME: This probably doesn't work reliably
-        view.syntax = utils.SetSyntax( None,
+        view.syntax = utils.SetSyntax( view.syntax,
                                        self._current_syntax,
                                        view.buf )
 

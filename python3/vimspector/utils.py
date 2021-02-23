@@ -707,7 +707,7 @@ def SetSyntax( current_syntax, syntax, *args ):
     syntax = ''
 
   if current_syntax == syntax:
-    return
+    return syntax
 
   # We use set syn= because just setting vim.Buffer.options[ 'syntax' ]
   # doesn't actually trigger the Syntax autocommand, and i'm not sure that
