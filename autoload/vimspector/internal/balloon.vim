@@ -124,8 +124,6 @@ function! vimspector#internal#balloon#MouseFilter( winid, key ) abort
 
   " expand the variable if we got double click
   if a:key ==? "\<2-leftmouse>"
-    " forward line number to python, since vim does not allow us to focus
-    " the correct window
     call py3eval( '_vimspector_session.ExpandVariable('
                 \ . 'buf = vim.buffers[ ' .  winbufnr( a:winid ) . ' ],'
                 \ . 'line_num = ' . line( '.', a:winid )
@@ -138,9 +136,13 @@ endfunction
 
 function! vimspector#internal#balloon#CursorFilter( winid, key ) abort
   if a:key ==? "\<CR>"
-    " forward line number to python, since vim does not allow us to focus
-    " the correct window
     call py3eval( '_vimspector_session.ExpandVariable('
+                \ . 'buf = vim.buffers[ ' .  winbufnr( a:winid ) . ' ],'
+                \ . 'line_num = ' . line( '.', a:winid )
+                \ . ')' )
+    return 1
+  elseif a:key ==? "\<C-CR>"
+    call py3eval( '_vimspector_session.SetVariableValue('
                 \ . 'buf = vim.buffers[ ' .  winbufnr( a:winid ) . ' ],'
                 \ . 'line_num = ' . line( '.', a:winid )
                 \ . ')' )
@@ -293,6 +295,8 @@ function! s:CreateNeovimTooltip( body ) abort
 
   nnoremap <silent> <buffer> <CR>
         \ <cmd>call vimspector#ExpandVariable()<CR>
+  nnoremap <silent> <buffer> <C-CR>
+        \ <cmd>call vimspector#SetVariableValue()<CR>
   nnoremap <silent> <buffer> <Esc>
         \ <cmd>quit<CR>
   nnoremap <silent> <buffer> <2-LeftMouse>
