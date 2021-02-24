@@ -793,7 +793,12 @@ class DebugSession( object ):
     arguments = {}
     if self._server_capabilities.get( 'supportTerminateDebuggee' ):
       # If we attached, we should _not_ terminate the debuggee
-      arguments[ 'terminateDebuggee' ] = False
+      if self._stackTraceView.AnyThreadsRunning():
+        choice = utils.AskForInput( "Terminate debugee [Y/N/default]? ", "" )
+        if choice == "Y" or choice == "y":
+          arguments[ 'terminateDebuggee' ] = True
+        elif choice == "N" or choice == 'n':
+          arguments[ 'terminateDebuggee' ] = False
 
     self._connection.DoRequest( handler, {
       'command': 'disconnect',
@@ -1164,10 +1169,22 @@ class DebugSession( object ):
 
     self._connection.DoResponse( message, None, response )
 
+  def OnEvent_terminated( self, message ):
+    # The debugging _session_ has terminated. This does not mean that the
+    # debugee has terminated (that's the exited event).
+    #
+    # We will handle this when the server actually exists.
+    #
+    # FIXME we should always wait for this event before disconnecting closing
+    # any socket connection
+    self.SetCurrentFrame( None )
+
+
   def OnEvent_exited( self, message ):
     utils.UserMessage( 'The debugee exited with status code: {}'.format(
       message[ 'body' ][ 'exitCode' ] ) )
-    self.SetCurrentFrame( None )
+    self._stackTraceView.OnExited( message )
+    self._codeView.SetCurrentFrame( None )
 
   def OnEvent_process( self, message ):
     utils.UserMessage( 'The debugee was started: {}'.format(
@@ -1209,11 +1226,6 @@ class DebugSession( object ):
       callback()
     else:
       self._logger.debug( "No server exit handler" )
-
-  def OnEvent_terminated( self, message ):
-    # We will handle this when the server actually exists
-    utils.UserMessage( "Debugging was terminated by the server." )
-    self.SetCurrentFrame( None )
 
   def OnEvent_output( self, message ):
     if self._outputView:
