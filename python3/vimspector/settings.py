@@ -45,7 +45,7 @@ DEFAULTS = {
     'variables': {
       'expand_collapse': [ '<CR>', '<2-LeftMouse>' ],
       'delete': [ '<Del>' ],
-      'set_value': [ '<C-CR>' ]
+      'set_value': [ '<C-CR>', '<leader><CR>' ]
     },
     'stack_trace': {
       'expand_or_jump': [ '<CR>', '<2-LeftMouse>' ],
