@@ -128,7 +128,7 @@ And a couple of brief demos:
 - call stack display and navigation
 - hierarchical variable value display popup (see `<Plug>VimspectorBalloonEval`)
 - interactive debug console with autocompletion
-- launch debugee within Vim's embedded terminal
+- launch debuggee within Vim's embedded terminal
 - logging/stdout display
 - simple stable API for custom tooling (e.g. integrate with language server)
 
@@ -698,7 +698,7 @@ let g:vimspector_enable_mappings = 'VISUAL_STUDIO'
 | `F5`              | When debugging, continue. Otherwise start debugging.      | `vimspector#Continue()` |
 | `Shift F5`        | Stop debugging.                                           | `vimspector#Stop()` |
 | `Ctrl Shift F5`   | Restart debugging with the same configuration.            | `vimspector#Restart()` |
-| `F6`              | Pause debugee.                                            | `vimspector#Pause()` |
+| `F6`              | Pause debuggee.                                            | `vimspector#Pause()` |
 | `F9`              | Toggle line breakpoint on the current line.               | `vimspector#ToggleBreakpoint()` |
 | `Shift F9`        | Add a function breakpoint for the expression under cursor | `vimspector#AddFunctionBreakpoint( '<cexpr>' )` |
 | `F10`             | Step Over                                                 | `vimspector#StepOver()` |
@@ -723,7 +723,7 @@ let g:vimspector_enable_mappings = 'HUMAN'
 | `F5`         | When debugging, continue. Otherwise start debugging.      | `vimspector#Continue()`                                      |
 | `F3`         | Stop debugging.                                           | `vimspector#Stop()`                                          |
 | `F4`         | Restart debugging with the same configuration.            | `vimspector#Restart()`                                       |
-| `F6`         | Pause debugee.                                            | `vimspector#Pause()`                                         |
+| `F6`         | Pause debuggee.                                            | `vimspector#Pause()`                                         |
 | `F9`         | Toggle line breakpoint on the current line.               | `vimspector#ToggleBreakpoint()`                              |
 | `<leader>F9` | Toggle conditional line breakpoint on the current line.   | `vimspector#ToggleBreakpoint( { trigger expr, hit count expr } )` |
 | `F8`         | Add a function breakpoint for the expression under cursor | `vimspector#AddFunctionBreakpoint( '<cexpr>' )`              |
@@ -1002,7 +1002,7 @@ The stack trace is represented by the buffer `vimspector.StackTrace`.
 * In the outputs window, use the WinBar to select the output channel.
 * Alternatively, use `:VimspectorShowOutput <category>`. Use command-line
   completion to see the categories.
-* The debugee prints to the stdout channel.
+* The debuggee prints to the stdout channel.
 * Other channels may be useful for debugging.
 
 ![output window](https://puremourning.github.io/vimspector-web/img/vimspector-output-window.png)
@@ -1057,9 +1057,28 @@ which will tail it in a little window (doesn't work on Windows).
 
 To close the debugger, use:
 
-* `Reset` WinBar button (`set mouse=a`)
+* `Reset` WinBar button
 * `:VimspectorReset` when the WinBar is not available.
 * `call vimspector#Reset()`
+
+
+## Terminate debuggee
+
+If the debuggee is still running when stopping or resetting, then some debug
+adapters allow you to specify what should happen to it when finishing debugging.
+Typically, the default behaviour is sensible, and this is what happens most of
+the time. These are the defaults according to DAP:
+
+* If the request was 'launch': terminate the debuggee
+* If the request was 'attach': don't terminate the debuggee
+
+Some debug adapters allow you to choose what to do when disconnecting. If you
+wish to control this behaviour, use `:VimspectorReset` or call
+`vimspector#Reset( { 'interactive': v:true } )`. If the debug adapter offers a
+choice as to whether or not to terminate the debuggee, you will be prompted to
+choose. The same applies for `vimspector#Stop()` which can take an argument:
+`vimspector#Stop( { 'interactive': v:true } )`.
+
 
 # Debug profile configuration
 
@@ -1903,14 +1922,14 @@ You can even customise the WinBar buttons by simply running the usual `menu`
 By default, Vimspector uses something a bit like this:
 
 ```viml
-nnoremenu WinBar.■\ Stop :call vimspector#Stop()<CR>
+nnoremenu WinBar.■\ Stop :call vimspector#Stop( { 'interactive': v:false } )<CR>
 nnoremenu WinBar.▶\ Cont :call vimspector#Continue()<CR>
 nnoremenu WinBar.▷\ Pause :call vimspector#Pause()<CR>
 nnoremenu WinBar.↷\ Next :call vimspector#StepOver()<CR>
 nnoremenu WinBar.→\ Step :call vimspector#StepInto()<CR>
 nnoremenu WinBar.←\ Out :call vimspector#StepOut()<CR>
 nnoremenu WinBar.⟲: :call vimspector#Restart()<CR>
-nnoremenu WinBar.✕ :call vimspector#Reset()<CR>
+nnoremenu WinBar.✕ :call vimspector#Reset( { 'interactive': v:false } )<CR>
 ```
 
 If you prefer a different layout or if the unicode symbols don't render
@@ -1923,7 +1942,7 @@ func! CustomiseUI()
   " Clear the existing WinBar created by Vimspector
   nunmenu WinBar
   " Cretae our own WinBar
-  nnoremenu WinBar.Kill :call vimspector#Stop()<CR>
+  nnoremenu WinBar.Kill :call vimspector#Stop( { 'interactive': v:true } )<CR>
   nnoremenu WinBar.Continue :call vimspector#Continue()<CR>
   nnoremenu WinBar.Pause :call vimspector#Pause()<CR>
   nnoremenu WinBar.Step\ Over  :call vimspector#StepOver()<CR>
