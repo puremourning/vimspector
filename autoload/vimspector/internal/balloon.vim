@@ -315,14 +315,10 @@ function! s:CreateNeovimTooltip( body ) abort
   " interract with the popup in neovim
   noautocmd call win_gotoid( s:popup_win_id )
 
-  nnoremap <silent> <buffer> <CR>
-        \ <cmd>call vimspector#ExpandVariable()<CR>
-  nnoremap <silent> <buffer> <C-CR>
-        \ <cmd>call vimspector#SetVariableValue()<CR>
-  nnoremap <silent> <buffer> <Esc>
-        \ <cmd>quit<CR>
-  nnoremap <silent> <buffer> <2-LeftMouse>
-        \ <cmd>call vimspector#ExpandVariable()<CR>
+  nnoremap <silent> <buffer> <Esc> <cmd>quit<CR>
+  call py3eval( "__import__( 'vimspector', "
+              \."            fromlist = [ 'variables' ] )."
+              \.'               variables.AddExpandMappings()' )
 
   " Close the popup whenever we leave this window
   augroup vimspector#internal#balloon#nvim_float

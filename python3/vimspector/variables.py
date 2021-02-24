@@ -153,6 +153,18 @@ class BufView( View ):
     self.buf = buf
 
 
+def AddExpandMappings( mappings = None ):
+  if mappings is None:
+    mappings = settings.Dict( 'mappings' )[ 'variables' ]
+  for mapping in utils.GetVimList( mappings, 'expand_collapse' ):
+    vim.command( f'nnoremap <silent> <buffer> { mapping } '
+                 ':<C-u>call vimspector#ExpandVariable()<CR>' )
+
+  for mapping in utils.GetVimList( mappings, 'set_value' ):
+    vim.command( f'nnoremap <silent> <buffer> { mapping } '
+                 ':<C-u>call vimspector#SetVariableValue()<CR>' )
+
+
 class VariablesView( object ):
   def __init__( self, variables_win, watches_win ):
     self._logger = logging.getLogger( __name__ )
@@ -167,15 +179,6 @@ class VariablesView( object ):
 
     mappings = settings.Dict( 'mappings' )[ 'variables' ]
 
-    def AddExpandMappings():
-      for mapping in utils.GetVimList( mappings, 'expand_collapse' ):
-        vim.command( f'nnoremap <silent> <buffer> { mapping } '
-                     ':<C-u>call vimspector#ExpandVariable()<CR>' )
-
-      for mapping in utils.GetVimList( mappings, 'set_value' ):
-        vim.command( f'nnoremap <silent> <buffer> { mapping } '
-                     ':<C-u>call vimspector#SetVariableValue()<CR>' )
-
     # Set up the "Variables" buffer in the variables_win
     self._scopes: typing.List[ Scope ] = []
     self._vars = View( variables_win, {}, self._DrawScopes )
@@ -184,7 +187,7 @@ class VariablesView( object ):
       if utils.UseWinBar():
         vim.command( 'nnoremenu <silent> 1.1 WinBar.Set '
                      ':call vimspector#SetVariableValue()<CR>' )
-      AddExpandMappings()
+      AddExpandMappings( mappings )
 
     # Set up the "Watches" buffer in the watches_win (and create a WinBar in
     # there)
@@ -196,7 +199,7 @@ class VariablesView( object ):
                              'vimspector#AddWatchPrompt',
                              'vimspector#OmniFuncWatch' )
     with utils.LetCurrentWindow( watches_win ):
-      AddExpandMappings()
+      AddExpandMappings( mappings )
       for mapping in utils.GetVimList( mappings, 'delete' ):
         vim.command(
           f'nnoremap <buffer> { mapping } :call vimspector#DeleteWatch()<CR>' )
