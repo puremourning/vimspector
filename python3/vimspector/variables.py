@@ -32,8 +32,9 @@ class Expandable:
   a 'variablesReference' to be resolved by the 'variables' request. Records the
   current state expanded/collapsed. Implementations just implement
   VariablesReference to get the variables."""
-  def __init__( self ):
+  def __init__( self, container: 'Expandable' = None ):
     self.variables: typing.List[ 'Variable' ] = None
+    self.container: Expandable = container
     # None is Falsy and represents collapsed _by default_. WHen set to False,
     # this means the user explicitly collapsed it. When True, the user expanded
     # it (or we expanded it by default).
@@ -47,6 +48,9 @@ class Expandable:
 
   def IsExpandable( self ):
     return self.VariablesReference() > 0
+
+  def IsContained( self ):
+    return self.container is not None
 
   @abc.abstractmethod
   def VariablesReference( self ):
@@ -92,8 +96,8 @@ class WatchFailure( WatchResult ):
 
 class Variable( Expandable ):
   """Holds one level of an expanded value tree. Also itself expandable."""
-  def __init__( self, variable: dict ):
-    super().__init__()
+  def __init__( self, container: Expandable, variable: dict ):
+    super().__init__( container = container )
     self.variable = variable
     # A new variable appearing is marked as changed
     self.changed = True
@@ -156,6 +160,7 @@ class VariablesView( object ):
 
     self._connection = None
     self._current_syntax = ''
+    self._server_capabilities = None
 
     self._variable_eval: Scope = None
     self._variable_eval_view: View = None
@@ -165,12 +170,17 @@ class VariablesView( object ):
                    ':<C-u>call vimspector#ExpandVariable()<CR>' )
       vim.command( 'nnoremap <silent> <buffer> <2-LeftMouse> '
                    ':<C-u>call vimspector#ExpandVariable()<CR>' )
+      vim.command( 'nnoremap <silent> <buffer> <C-CR> '
+                   ':<C-u>call vimspector#SetVariableValue()<CR>' )
 
     # Set up the "Variables" buffer in the variables_win
     self._scopes: typing.List[ Scope ] = []
     self._vars = View( variables_win, {}, self._DrawScopes )
     utils.SetUpHiddenBuffer( self._vars.buf, 'vimspector.Variables' )
     with utils.LetCurrentWindow( variables_win ):
+      if utils.UseWinBar():
+        vim.command( 'nnoremenu <silent> 1.1 WinBar.Set '
+                     ':call vimspector#SetVariableValue()<CR>' )
       AddExpandMappings()
 
     # Set up the "Watches" buffer in the watches_win (and create a WinBar in
@@ -194,6 +204,8 @@ class VariablesView( object ):
                      ':call vimspector#ExpandVariable()<CR>' )
         vim.command( 'nnoremenu 1.3 WinBar.Delete '
                      ':call vimspector#DeleteWatch()<CR>' )
+        vim.command( 'nnoremenu <silent> 1.1 WinBar.Set '
+                     ':call vimspector#SetVariableValue()<CR>' )
 
     # Set the (global!) balloon expr if supported
     has_balloon      = int( vim.eval( "has( 'balloon_eval' )" ) )
@@ -231,11 +243,21 @@ class VariablesView( object ):
   def ConnectionUp( self, connection ):
     self._connection = connection
 
+  def SetServerCapabilities( self, capabilities ):
+    self._server_capabilities = capabilities
+
+    if self._server_capabilities.get( 'supportsSetVariable' ):
+      # TODO add a winbar item ? add a mapping ?
+      pass
+
   def ConnectionClosed( self ):
     self.Clear()
     self._connection = None
+    self._server_capabilities = None
 
   def Reset( self ):
+    self._server_capabilities = None
+
     for k, v in self._oldoptions.items():
       vim.options[ k ] = v
 
@@ -447,7 +469,7 @@ class VariablesView( object ):
     watch.result = WatchFailure( reason )
     self._DrawWatches()
 
-  def ExpandVariable( self, buf = None, line_num = None ):
+  def _GetVariable( self, buf = None, line_num = None ):
     if buf is None:
       buf = vim.current.buffer
 
@@ -462,12 +484,17 @@ class VariablesView( object ):
            and buf == self._variable_eval_view.buf ):
       view = self._variable_eval_view
     else:
-      return
+      return None
 
     if line_num not in view.lines:
-      return
+      return None
 
-    variable = view.lines[ line_num ]
+    return view.lines[ line_num ], view
+
+  def ExpandVariable( self, buf = None, line_num = None ):
+    variable, view = self._GetVariable( buf, line_num )
+    if variable is None:
+      return
 
     if variable.IsExpanded():
       # Collapse
@@ -487,6 +514,59 @@ class VariablesView( object ):
         'variablesReference': variable.VariablesReference()
       },
     } )
+
+  def SetVariableValue( self ):
+    variable: Variable
+    view: View
+
+    variable, view = self._GetVariable( buf = None, line_num = None )
+    if variable is None:
+      return
+
+    if not variable.IsContained():
+      return
+
+    new_value = utils.AskForInput( 'New Value: ',
+                                   variable.variable.get( 'value', '' ) )
+
+    if new_value is None:
+      return
+
+
+    def handler( message ):
+      # Annoyingly the response to setVariable request doesn't return a
+      # Variable, but some part of it, so take a copy of the existing Variable
+      # dict and update it, then call its update method with the updated copy.
+      new_variable = dict( variable.variable )
+      new_variable.update( message[ 'body' ] )
+
+      # Clear any existing known children (FIXME: Is this the right thing to do)
+      variable.variables = None
+
+      # If the variable is expanded, re-request its children
+      if variable.IsExpanded():
+        self._connection.DoRequest( partial( self._ConsumeVariables,
+                                             view.draw,
+                                             variable ), {
+          'command': 'variables',
+          'arguments': {
+            'variablesReference': variable.VariablesReference()
+          },
+        } )
+
+      variable.Update( new_variable )
+      view.draw()
+
+    self._connection.DoRequest( handler, {
+      'command': 'setVariable',
+      'arguments': {
+        'variablesReference': variable.container.VariablesReference(),
+        'name': variable.variable[ 'name' ],
+        'value': new_value
+      },
+    } )
+
+
 
   def _DrawVariables( self, view, variables, indent, is_short = False ):
     assert indent > 0
@@ -609,7 +689,7 @@ class VariablesView( object ):
           found = True
           break
       if not found:
-        variable = Variable( variable_body )
+        variable = Variable( parent, variable_body )
       else:
         variable.Update( variable_body )
 
