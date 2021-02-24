@@ -125,6 +125,8 @@ And a couple of brief demos:
 - remote launch, remote attach
 - locals and globals display
 - watch expressions with autocompletion
+- variable inspection tooltip on hover
+- set variable value in locals, watch and hover windows
 - call stack display and navigation
 - hierarchical variable value display popup (see `<Plug>VimspectorBalloonEval`)
 - interactive debug console with autocompletion
@@ -912,6 +914,7 @@ breakpoint when it is hit.
 
 * Current scope shows values of locals.
 * Use `<CR>`, or double-click with left mouse to expand/collapse (+, -).
+* Set the value of the variable with `<C-CR>` (control + `<CR>`)
 * When changing the stack frame the locals window updates.
 * While paused, hover to see values
 
@@ -928,8 +931,9 @@ All rules for `Variables and scopes` apply plus the following:
   and get its result.
 * Make a normal mode (`nmap`) and visual mode (`xmap`) mapping to
   `<Plug>VimspectorBalloonEval` to manually trigger the popup.
-* Use regular nagivation keys (`j`, `k`) to choose the current selection; `<Esc>`
-  (or leave the tooltip window) to close the tooltip.
+  * Set the value of the variable with `<C-CR>` (control + `<CR>`)
+  * Use regular nagivation keys (`j`, `k`) to choose the current selection; `<Esc>`
+    (or leave the tooltip window) to close the tooltip.
 
 ![variable eval hover](https://puremourning.github.io/vimspector-web/img/vimspector-variable-eval-hover.png)
 
@@ -946,6 +950,7 @@ to add a new watch expression.
 * Alternatively, use `:VimspectorWatch <expression>`. Tab-completion for
   expression is available in some debug adapters.
 * Expand result with `<CR>`, or double-click with left mouse.
+* Set the value of the variable with `<C-CR>` (control + `<CR>`)
 * Delete with `<DEL>`.
 
 ![watch window](https://puremourning.github.io/vimspector-web/img/vimspector-watch-window.png)
