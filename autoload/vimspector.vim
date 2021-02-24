@@ -209,6 +209,13 @@ function! vimspector#ExpandVariable() abort
   py3 _vimspector_session.ExpandVariable()
 endfunction
 
+function! vimspector#SetVariableValue() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.SetVariableValue()
+endfunction
+
 function! vimspector#DeleteWatch() abort
   if !s:Enabled()
     return
