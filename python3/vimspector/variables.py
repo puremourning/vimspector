@@ -246,10 +246,6 @@ class VariablesView( object ):
   def SetServerCapabilities( self, capabilities ):
     self._server_capabilities = capabilities
 
-    if self._server_capabilities.get( 'supportsSetVariable' ):
-      # TODO add a winbar item ? add a mapping ?
-      pass
-
   def ConnectionClosed( self ):
     self.Clear()
     self._connection = None
@@ -518,6 +514,9 @@ class VariablesView( object ):
   def SetVariableValue( self, buf = None, line_num = None ):
     variable: Variable
     view: View
+
+    if not self._server_capabilities.get( 'supportsSetVariable' ):
+      return
 
     variable, view = self._GetVariable( buf, line_num )
     if variable is None:
