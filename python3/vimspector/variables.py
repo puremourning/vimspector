@@ -515,11 +515,11 @@ class VariablesView( object ):
       },
     } )
 
-  def SetVariableValue( self ):
+  def SetVariableValue( self, buf = None, line_num = None ):
     variable: Variable
     view: View
 
-    variable, view = self._GetVariable( buf = None, line_num = None )
+    variable, view = self._GetVariable( buf, line_num )
     if variable is None:
       return
 

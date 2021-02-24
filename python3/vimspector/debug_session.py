@@ -526,9 +526,8 @@ class DebugSession( object ):
     self._variablesView.ExpandVariable( buf, line_num )
 
   @IfConnected()
-  def SetVariableValue( self ):
-    # TODO: , buf = None, line_num = None ):
-    self._variablesView.SetVariableValue()
+  def SetVariableValue( self, buf = None, line_num = None ):
+    self._variablesView.SetVariableValue( buf, line_num )
 
   @IfConnected()
   def AddWatch( self, expression ):
