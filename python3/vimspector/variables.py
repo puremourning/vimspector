@@ -557,6 +557,9 @@ class VariablesView( object ):
       variable.Update( new_variable )
       view.draw()
 
+    def failure_handler( reason, message ):
+      utils.UserMessage( f'Cannot set value: { reason }', error = True )
+
     self._connection.DoRequest( handler, {
       'command': 'setVariable',
       'arguments': {
@@ -564,7 +567,7 @@ class VariablesView( object ):
         'name': variable.variable[ 'name' ],
         'value': new_value
       },
-    } )
+    }, failure_handler = failure_handler )
 
 
 
