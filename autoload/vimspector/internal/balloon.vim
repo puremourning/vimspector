@@ -134,21 +134,43 @@ function! vimspector#internal#balloon#MouseFilter( winid, key ) abort
   return handled
 endfunction
 
+function! s:MatchKey( key, candidates ) abort
+  let mapped = ''
+  for candidate in a:candidates
+    try
+      " Try and expand the key code
+      execute 'let mapped = "\' . candidate . '"'
+      if mapped ==# a:key
+        return v:true
+      endif
+    endtry
+  endfor
+
+  return v:false
+endfunction
+
 function! vimspector#internal#balloon#CursorFilter( winid, key ) abort
-  if a:key ==? "\<CR>"
+  let mappings = py3eval(
+        \ "__import__( 'vimspector',"
+        \."            fromlist = [ 'settings' ] ).settings.Dict("
+        \."              'mappings' )[ 'variables' ]" )
+
+  if index( [ "\<LeftMouse>", "\<2-LeftMouse>" ], a:key ) >= 0
+    return vimspector#internal#balloon#MouseFilter( a:winid, a:key )
+  endif
+
+  if s:MatchKey( a:key, mappings.expand_collapse )
     call py3eval( '_vimspector_session.ExpandVariable('
                 \ . 'buf = vim.buffers[ ' .  winbufnr( a:winid ) . ' ],'
                 \ . 'line_num = ' . line( '.', a:winid )
                 \ . ')' )
     return 1
-  elseif a:key ==? "\<C-CR>"
+  elseif s:MatchKey( a:key, mappings.set_value )
     call py3eval( '_vimspector_session.SetVariableValue('
                 \ . 'buf = vim.buffers[ ' .  winbufnr( a:winid ) . ' ],'
                 \ . 'line_num = ' . line( '.', a:winid )
                 \ . ')' )
     return 1
-  elseif index( [ "\<LeftMouse>", "\<2-LeftMouse>" ], a:key ) >= 0
-    return vimspector#internal#balloon#MouseFilter( a:winid, a:key )
   endif
 
   return popup_filter_menu( a:winid, a:key )

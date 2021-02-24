@@ -17,6 +17,7 @@
 import vim
 import builtins
 from vimspector import utils
+from collections.abc import Mapping
 
 DEFAULTS = {
   # UI
@@ -38,6 +39,19 @@ DEFAULTS = {
 
   # Installer
   'install_gadgets': [],
+
+  # Mappings
+  'mappings': {
+    'variables': {
+      'expand_collapse': [ '<CR>', '<2-LeftMouse>' ],
+      'delete': [ '<Del>' ],
+      'set_value': [ '<C-CR>' ]
+    },
+    'stack_trace': {
+      'expand_or_jump': [ '<CR>', '<2-LeftMouse>' ],
+      'focus_thread': [ '<leader><CR>' ],
+    }
+  }
 }
 
 
@@ -69,9 +83,46 @@ if hasattr( vim, 'Dictionary' ):
   DICT_TYPE = vim.Dictionary
 
 
-def Dict( option: str ):
-  d = DICT_TYPE( DEFAULTS.get( option, {} ) )
-  d.update( utils.GetVimValue( vim.vars,
-                               f'vimspector_{ option }',
-                               {} ) )
-  return d
+def Dict( option ):
+  return _UpdateDict( DICT_TYPE( DEFAULTS.get( option, {} ) ),
+                      utils.GetVimValue( vim.vars,
+                                         f'vimspector_{ option }',
+                                         {} ) )
+
+
+def _UpdateDict( target, override ):
+  """Apply the updates in |override| to the dict |target|. This is like
+  dict.update, but recursive. i.e. if the existing element is a dict, then
+  override elements of the sub-dict rather than wholesale replacing.
+  e.g.
+  UpdateDict(
+    {
+      'outer': { 'inner': { 'key': 'oldValue', 'existingKey': True } }
+    },
+    {
+      'outer': { 'inner': { 'key': 'newValue' } },
+      'newKey': { 'newDict': True },
+    }
+  )
+  yields:
+    {
+      'outer': {
+        'inner': {
+           'key': 'newValue',
+           'existingKey': True
+        }
+      },
+      'newKey': { newDict: True }
+    }
+  """
+
+  for key, value in override.items():
+    current_value = target.get( key )
+    if not isinstance( current_value, Mapping ):
+      target[ key ] = value
+    elif isinstance( value, Mapping ):
+      target[ key ] = _UpdateDict( current_value, value )
+    else:
+      target[ key ] = value
+
+  return target

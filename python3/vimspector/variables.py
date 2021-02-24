@@ -19,7 +19,7 @@ import logging
 from functools import partial
 import typing
 
-from vimspector import utils
+from vimspector import utils, settings
 
 
 class Expandable:
@@ -165,13 +165,16 @@ class VariablesView( object ):
     self._variable_eval: Scope = None
     self._variable_eval_view: View = None
 
+    mappings = settings.Dict( 'mappings' )[ 'variables' ]
+
     def AddExpandMappings():
-      vim.command( 'nnoremap <silent> <buffer> <CR> '
-                   ':<C-u>call vimspector#ExpandVariable()<CR>' )
-      vim.command( 'nnoremap <silent> <buffer> <2-LeftMouse> '
-                   ':<C-u>call vimspector#ExpandVariable()<CR>' )
-      vim.command( 'nnoremap <silent> <buffer> <C-CR> '
-                   ':<C-u>call vimspector#SetVariableValue()<CR>' )
+      for mapping in utils.GetVimList( mappings, 'expand_collapse' ):
+        vim.command( f'nnoremap <silent> <buffer> { mapping } '
+                     ':<C-u>call vimspector#ExpandVariable()<CR>' )
+
+      for mapping in utils.GetVimList( mappings, 'set_value' ):
+        vim.command( f'nnoremap <silent> <buffer> { mapping } '
+                     ':<C-u>call vimspector#SetVariableValue()<CR>' )
 
     # Set up the "Variables" buffer in the variables_win
     self._scopes: typing.List[ Scope ] = []
@@ -194,8 +197,9 @@ class VariablesView( object ):
                              'vimspector#OmniFuncWatch' )
     with utils.LetCurrentWindow( watches_win ):
       AddExpandMappings()
-      vim.command(
-        'nnoremap <buffer> <DEL> :call vimspector#DeleteWatch()<CR>' )
+      for mapping in utils.GetVimList( mappings, 'delete' ):
+        vim.command(
+          f'nnoremap <buffer> { mapping } :call vimspector#DeleteWatch()<CR>' )
 
       if utils.UseWinBar():
         vim.command( 'nnoremenu <silent> 1.1 WinBar.New '
