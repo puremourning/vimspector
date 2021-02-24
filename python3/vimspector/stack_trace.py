@@ -116,11 +116,11 @@ class StackTraceView( object ):
                    ':<C-U>call vimspector#GoToFrame()<CR>' )
 
       if utils.UseWinBar():
-        vim.command( 'nnoremenu 1.1 WinBar.Pause/Continue '
+        vim.command( 'nnoremenu <silent> 1.1 WinBar.Pause/Continue '
                      ':call vimspector#PauseContinueThread()<CR>' )
-        vim.command( 'nnoremenu 1.2 WinBar.Expand/Collapse '
+        vim.command( 'nnoremenu <silent> 1.2 WinBar.Expand/Collapse '
                      ':call vimspector#GoToFrame()<CR>' )
-        vim.command( 'nnoremenu 1.3 WinBar.Focus '
+        vim.command( 'nnoremenu <silent> 1.3 WinBar.Focus '
                      ':call vimspector#SetCurrentThread()<CR>' )
 
     win.options[ 'cursorline' ] = False

@@ -198,11 +198,11 @@ class VariablesView( object ):
         'nnoremap <buffer> <DEL> :call vimspector#DeleteWatch()<CR>' )
 
       if utils.UseWinBar():
-        vim.command( 'nnoremenu 1.1 WinBar.New '
+        vim.command( 'nnoremenu <silent> 1.1 WinBar.New '
                      ':call vimspector#AddWatch()<CR>' )
-        vim.command( 'nnoremenu 1.2 WinBar.Expand/Collapse '
+        vim.command( 'nnoremenu <silent> 1.2 WinBar.Expand/Collapse '
                      ':call vimspector#ExpandVariable()<CR>' )
-        vim.command( 'nnoremenu 1.3 WinBar.Delete '
+        vim.command( 'nnoremenu <silent> 1.3 WinBar.Delete '
                      ':call vimspector#DeleteWatch()<CR>' )
         vim.command( 'nnoremenu <silent> 1.1 WinBar.Set '
                      ':call vimspector#SetVariableValue()<CR>' )
