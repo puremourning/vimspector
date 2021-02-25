@@ -105,7 +105,10 @@ function! s:OnJumpToFrame() abort
   nmap <silent> <buffer> <LocalLeader>di <Plug>VimspectorBalloonEval
   xmap <silent> <buffer> <LocalLeader>di <Plug>VimspectorBalloonEval
 
-  let s:mapped[ string( bufnr() ) ] = 1
+  let s:mapped[ string( bufnr() ) ] = { 'modifiable': &modifiable }
+
+  setlocal nomodifiable
+
 endfunction
 
 function! s:OnDebugEnd() abort
@@ -124,6 +127,8 @@ function! s:OnDebugEnd() abort
         silent! nunmap <buffer> <LocalLeader>dc
         silent! nunmap <buffer> <LocalLeader>di
         silent! xunmap <buffer> <LocalLeader>di
+
+        let &l:modifiable = s:mapped[ bufnr ][ 'modifiable' ]
       endtry
     endfor
   finally
@@ -139,6 +144,17 @@ augroup TestCustomMappings
   autocmd User VimspectorJumpedToFrame call s:OnJumpToFrame()
   autocmd User VimspectorDebugEnded call s:OnDebugEnd()
 augroup END
+
+" }}}
+
+" Custom mappings for special buffers {{{
+
+let g:vimspector_mappings = {
+      \   'stack_trace': {},
+      \   'variables': {
+      \    'set_value': [ '<Tab>', '<C-CR>', 'C' ],
+      \   }
+      \ }
 
 " }}}
 

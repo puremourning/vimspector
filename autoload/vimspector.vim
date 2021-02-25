@@ -209,6 +209,17 @@ function! vimspector#ExpandVariable() abort
   py3 _vimspector_session.ExpandVariable()
 endfunction
 
+function! vimspector#SetVariableValue( ... ) abort
+  if !s:Enabled()
+    return
+  endif
+  if a:0 == 0
+    py3 _vimspector_session.SetVariableValue()
+  else
+    py3 _vimspector_session.SetVariableValue( new_value = vim.eval( 'a:1' ) )
+  endif
+endfunction
+
 function! vimspector#DeleteWatch() abort
   if !s:Enabled()
     return
@@ -228,7 +239,9 @@ function! vimspector#AddWatch( ... ) abort
     return
   endif
   if a:0 == 0
-    let expr = input( 'Enter watch expression: ' )
+    let expr = input( 'Enter watch expression: ',
+                    \ '',
+                    \ 'custom,vimspector#CompleteExpr' )
   else
     let expr = a:1
   endif

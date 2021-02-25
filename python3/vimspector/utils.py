@@ -356,16 +356,21 @@ def SelectFromList( prompt, options ):
       return None
 
 
-def AskForInput( prompt, default_value = None ):
+def AskForInput( prompt, default_value = None, completion = None ):
   if default_value is None:
-    default_option = ''
-  else:
-    default_option = ", '{}'".format( Escape( default_value ) )
+    default_value = ''
+
+  args = [ prompt, default_value ]
+
+  if completion is not None:
+    if completion == 'expr':
+      args.append( 'custom,vimspector#CompleteExpr' )
+    else:
+      args.append( completion )
 
   with InputSave():
     try:
-      return vim.eval( "input( '{}' {} )".format( Escape( prompt ),
-                                                  default_option ) )
+      return Call( 'input', *args )
     except ( KeyboardInterrupt, vim.error ):
       return None
 

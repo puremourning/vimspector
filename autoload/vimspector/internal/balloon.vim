@@ -124,8 +124,6 @@ function! vimspector#internal#balloon#MouseFilter( winid, key ) abort
 
   " expand the variable if we got double click
   if a:key ==? "\<2-leftmouse>"
-    " forward line number to python, since vim does not allow us to focus
-    " the correct window
     call py3eval( '_vimspector_session.ExpandVariable('
                 \ . 'buf = vim.buffers[ ' .  winbufnr( a:winid ) . ' ],'
                 \ . 'line_num = ' . line( '.', a:winid )
@@ -136,17 +134,49 @@ function! vimspector#internal#balloon#MouseFilter( winid, key ) abort
   return handled
 endfunction
 
+function! s:MatchKey( key, candidates ) abort
+  for candidate in a:candidates
+    " If the mapping string looks like a special character, then try and
+    " expand it. This is... a hack. The whole thing only works if the mapping
+    " is a single key (anyway), and so we assume any string starting with < is a
+    " special key (which will be the common case) and try and map it. If it
+    " fails... it fails.
+    if candidate[ 0 ] == '<'
+      try
+        execute 'let candidate = "\' . candidate . '"'
+      endtry
+    endif
+
+    if candidate ==# a:key
+      return v:true
+    endif
+  endfor
+
+  return v:false
+endfunction
+
 function! vimspector#internal#balloon#CursorFilter( winid, key ) abort
-  if a:key ==? "\<CR>"
-    " forward line number to python, since vim does not allow us to focus
-    " the correct window
+  let mappings = py3eval(
+        \ "__import__( 'vimspector',"
+        \."            fromlist = [ 'settings' ] ).settings.Dict("
+        \."              'mappings' )[ 'variables' ]" )
+
+  if index( [ "\<LeftMouse>", "\<2-LeftMouse>" ], a:key ) >= 0
+    return vimspector#internal#balloon#MouseFilter( a:winid, a:key )
+  endif
+
+  if s:MatchKey( a:key, mappings.expand_collapse )
     call py3eval( '_vimspector_session.ExpandVariable('
                 \ . 'buf = vim.buffers[ ' .  winbufnr( a:winid ) . ' ],'
                 \ . 'line_num = ' . line( '.', a:winid )
                 \ . ')' )
     return 1
-  elseif index( [ "\<LeftMouse>", "\<2-LeftMouse>" ], a:key ) >= 0
-    return vimspector#internal#balloon#MouseFilter( a:winid, a:key )
+  elseif s:MatchKey( a:key, mappings.set_value )
+    call py3eval( '_vimspector_session.SetVariableValue('
+                \ . 'buf = vim.buffers[ ' .  winbufnr( a:winid ) . ' ],'
+                \ . 'line_num = ' . line( '.', a:winid )
+                \ . ')' )
+    return 1
   endif
 
   return popup_filter_menu( a:winid, a:key )
@@ -291,12 +321,10 @@ function! s:CreateNeovimTooltip( body ) abort
   " interract with the popup in neovim
   noautocmd call win_gotoid( s:popup_win_id )
 
-  nnoremap <silent> <buffer> <CR>
-        \ <cmd>call vimspector#ExpandVariable()<CR>
-  nnoremap <silent> <buffer> <Esc>
-        \ <cmd>quit<CR>
-  nnoremap <silent> <buffer> <2-LeftMouse>
-        \ <cmd>call vimspector#ExpandVariable()<CR>
+  nnoremap <silent> <buffer> <Esc> <cmd>quit<CR>
+  call py3eval( "__import__( 'vimspector', "
+              \."            fromlist = [ 'variables' ] )."
+              \.'               variables.AddExpandMappings()' )
 
   " Close the popup whenever we leave this window
   augroup vimspector#internal#balloon#nvim_float

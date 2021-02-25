@@ -234,7 +234,7 @@ class OutputView( object ):
           raise
 
       vim.command(
-        "nnoremenu  1.{0} WinBar.{1}{2} "
+        "nnoremenu <silent> 1.{0} WinBar.{1}{2} "
         ":call vimspector#ShowOutputInWindow( {3}, '{1}' )<CR>".format(
           tab_buffer.index,
           utils.Escape( category ),

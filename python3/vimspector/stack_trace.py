@@ -18,7 +18,7 @@ import os
 import logging
 import typing
 
-from vimspector import utils, signs
+from vimspector import utils, signs, settings
 
 
 class Thread:
@@ -107,20 +107,23 @@ class StackTraceView( object ):
     utils.SetUpHiddenBuffer( self._buf, 'vimspector.StackTrace' )
     utils.SetUpUIWindow( win )
 
+    mappings = settings.Dict( 'mappings' )[ 'stack_trace' ]
+
     with utils.LetCurrentWindow( win ):
-      vim.command( 'nnoremap <silent> <buffer> <CR> '
-                   ':<C-U>call vimspector#GoToFrame()<CR>' )
-      vim.command( 'nnoremap <silent> <buffer> <leader><CR> '
-                   ':<C-U>call vimspector#SetCurrentThread()<CR>' )
-      vim.command( 'nnoremap <silent> <buffer> <2-LeftMouse> '
-                   ':<C-U>call vimspector#GoToFrame()<CR>' )
+      for mapping in utils.GetVimList( mappings, 'expand_or_jump' ):
+        vim.command( f'nnoremap <silent> <buffer> { mapping } '
+                     ':<C-U>call vimspector#GoToFrame()<CR>' )
+
+      for mapping in utils.GetVimList( mappings, 'focus_thread' ):
+        vim.command( f'nnoremap <silent> <buffer> { mapping } '
+                     ':<C-U>call vimspector#SetCurrentThread()<CR>' )
 
       if utils.UseWinBar():
-        vim.command( 'nnoremenu 1.1 WinBar.Pause/Continue '
+        vim.command( 'nnoremenu <silent> 1.1 WinBar.Pause/Continue '
                      ':call vimspector#PauseContinueThread()<CR>' )
-        vim.command( 'nnoremenu 1.2 WinBar.Expand/Collapse '
+        vim.command( 'nnoremenu <silent> 1.2 WinBar.Expand/Collapse '
                      ':call vimspector#GoToFrame()<CR>' )
-        vim.command( 'nnoremenu 1.3 WinBar.Focus '
+        vim.command( 'nnoremenu <silent> 1.3 WinBar.Focus '
                      ':call vimspector#SetCurrentThread()<CR>' )
 
     win.options[ 'cursorline' ] = False

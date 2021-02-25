@@ -526,6 +526,10 @@ class DebugSession( object ):
     self._variablesView.ExpandVariable( buf, line_num )
 
   @IfConnected()
+  def SetVariableValue( self, new_value = None, buf = None, line_num = None ):
+    self._variablesView.SetVariableValue( new_value, buf, line_num )
+
+  @IfConnected()
   def AddWatch( self, expression ):
     self._variablesView.AddWatch( self._stackTraceView.GetCurrentFrame(),
                                   expression )
@@ -999,6 +1003,7 @@ class DebugSession( object ):
     def handle_initialize_response( msg ):
       self._server_capabilities = msg.get( 'body' ) or {}
       self._breakpoints.SetServerCapabilities( self._server_capabilities )
+      self._variablesView.SetServerCapabilities( self._server_capabilities )
       self._Launch()
 
     self._connection.DoRequest( handle_initialize_response, {
