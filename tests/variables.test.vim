@@ -508,8 +508,7 @@ function Test_EvaluateConsole()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer(
         \ 'vimspector.Console', len, v:null )
 
-  VimspectorEval
-  call feedkeys( 't.c\<CR>', 'xt' )
+  call feedkeys( ':VimspectorEval\<CR>t.c\<CR>', 'xt' )
 
   call assert_equal( bufnr( 'vimspector.Console' ),
                    \ winbufnr( g:vimspector_session_windows.output ) )
