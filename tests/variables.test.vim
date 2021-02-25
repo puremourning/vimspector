@@ -525,14 +525,14 @@ function Test_EvaluateInput()
   call vimspector#StepOver()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 27, 1 )
 
-  call feedkeys( ":VimspectorEval\<CR>t.i\<CR>", 'xt' )
+  VimspectorEval -exec print printf("hello")
 
   call assert_equal( bufnr( 'vimspector.Console' ),
                    \ winbufnr( g:vimspector_session_windows.output ) )
   call WaitForAssert( {->
         \   assert_equal(
         \     [
-        \       '1'
+        \       '@"hello\r\n"'
         \     ],
         \     getbufline( bufnr( 'vimspector.Console' ), '$', '$' )
         \   )
@@ -543,8 +543,8 @@ function Test_EvaluateInput()
   call WaitForAssert( {->
         \   assert_equal(
         \     [
-        \       'Evaluating: t.i',
-        \       '1'
+        \       'Evaluating: -exec print printf("hello\n")',
+        \       '@"hello\r\n"'
         \     ],
         \     getbufline( bufnr( 'vimspector.Console' ), len-1, '$' )
         \   )
