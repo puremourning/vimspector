@@ -508,15 +508,31 @@ function Test_EvaluateConsole()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer(
         \ 'vimspector.Console', len, v:null )
 
-  call feedkeys( ':VimspectorEval\<CR>t.c\<CR>', 'xt' )
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+
+function Test_EvaluateConsole()
+  let fn =  'testdata/cpp/simple/struct.cpp'
+  call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
+        \   configuration: 'run-to-breakpoint'
+        \ } } )
+
+  " Make sure the Test t is initialised
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 26, 1 )
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 27, 1 )
+
+  call feedkeys( ':VimspectorEval\<CR>t.i\<CR>', 'xt' )
 
   call assert_equal( bufnr( 'vimspector.Console' ),
                    \ winbufnr( g:vimspector_session_windows.output ) )
-
   call WaitForAssert( {->
         \   assert_equal(
         \     [
-        \       "99 'c'"
+        \       '1'
         \     ],
         \     getbufline( bufnr( 'vimspector.Console' ), '$', '$' )
         \   )
@@ -527,12 +543,14 @@ function Test_EvaluateConsole()
   call WaitForAssert( {->
         \   assert_equal(
         \     [
-        \       'Evaluating: t.c',
-        \       "99 'c'"
+        \       'Evaluating: t.i',
+        \       '1'
         \     ],
         \     getbufline( bufnr( 'vimspector.Console' ), len-1, '$' )
         \   )
         \ } )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer(
+        \ 'vimspector.Console', len, v:null )
 
   call vimspector#test#setup#Reset()
   %bwipe!
