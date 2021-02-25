@@ -235,7 +235,9 @@ function! vimspector#AddWatch( ... ) abort
     return
   endif
   if a:0 == 0
-    let expr = input( 'Enter watch expression: ' )
+    let expr = input( 'Enter watch expression: ',
+                    \ '',
+                    \ 'custom,vimspector#CompleteExpr' )
   else
     let expr = a:1
   endif
