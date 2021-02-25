@@ -364,6 +364,14 @@ class StackTraceView( object ):
       self._JumpToFrame( frame )
 
 
+  def AnyThreadsRunning( self ):
+    for thread in self._threads:
+      if thread.state != Thread.TERMINATED:
+        return True
+
+    return False
+
+
   def _JumpToFrame( self, frame, reason = '' ):
     def do_jump():
       if 'line' in frame and frame[ 'line' ] > 0:
@@ -458,6 +466,10 @@ class StackTraceView( object ):
           break
 
     self.LoadThreads( infer_current_frame )
+
+  def OnExited( self, event ):
+    for thread in self._threads:
+      thread.Exited()
 
   def _DrawStackTrace( self, thread: Thread ):
     if not thread.IsExpanded():

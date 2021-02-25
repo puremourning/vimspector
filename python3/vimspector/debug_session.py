@@ -320,7 +320,7 @@ class DebugSession( object ):
 
     if self._connection:
       self._logger.debug( "_StopDebugAdapter with callback: start" )
-      self._StopDebugAdapter( start )
+      self._StopDebugAdapter( interactive = False, callback = start )
       return
 
     start()
@@ -385,14 +385,15 @@ class DebugSession( object ):
     self._connection = None
 
   @IfConnected()
-  def Stop( self ):
+  def Stop( self, interactive = False ):
     self._logger.debug( "Stop debug adapter with no callback" )
-    self._StopDebugAdapter()
+    self._StopDebugAdapter( interactive = interactive )
 
-  def Reset( self ):
+  def Reset( self, interactive = False ):
     if self._connection:
       self._logger.debug( "Stop debug adapter with callback : self._Reset()" )
-      self._StopDebugAdapter( lambda: self._Reset() )
+      self._StopDebugAdapter( interactive = interactive,
+                              callback = lambda: self._Reset() )
     else:
       self._Reset()
 
@@ -772,7 +773,7 @@ class DebugSession( object ):
 
     self._logger.info( 'Debug Adapter Started' )
 
-  def _StopDebugAdapter( self, callback = None ):
+  def _StopDebugAdapter( self, interactive = False, callback = None ):
     self._splash_screen = utils.DisplaySplash(
       self._api_prefix,
       self._splash_screen,
@@ -791,9 +792,14 @@ class DebugSession( object ):
         self._connection_type ) )
 
     arguments = {}
-    if self._server_capabilities.get( 'supportTerminateDebuggee' ):
-      # If we attached, we should _not_ terminate the debuggee
-      arguments[ 'terminateDebuggee' ] = False
+    if ( interactive and
+         self._server_capabilities.get( 'supportTerminateDebuggee' ) ):
+      if self._stackTraceView.AnyThreadsRunning():
+        choice = utils.AskForInput( "Terminate debuggee [Y/N/default]? ", "" )
+        if choice == "Y" or choice == "y":
+          arguments[ 'terminateDebuggee' ] = True
+        elif choice == "N" or choice == 'n':
+          arguments[ 'terminateDebuggee' ] = False
 
     self._connection.DoRequest( handler, {
       'command': 'disconnect',
@@ -1023,14 +1029,14 @@ class DebugSession( object ):
       self._splash_screen = utils.DisplaySplash(
         self._api_prefix,
         self._splash_screen,
-        "Attaching to debugee..." )
+        "Attaching to debuggee..." )
 
       self._PrepareAttach( self._adapter, self._launch_config )
     elif request == "launch":
       self._splash_screen = utils.DisplaySplash(
         self._api_prefix,
         self._splash_screen,
-        "Launching debugee..." )
+        "Launching debuggee..." )
 
       # FIXME: This cmdLine hack is not fun.
       self._PrepareLaunch( self._configuration.get( 'remote-cmdLine', [] ),
@@ -1164,13 +1170,25 @@ class DebugSession( object ):
 
     self._connection.DoResponse( message, None, response )
 
-  def OnEvent_exited( self, message ):
-    utils.UserMessage( 'The debugee exited with status code: {}'.format(
-      message[ 'body' ][ 'exitCode' ] ) )
+  def OnEvent_terminated( self, message ):
+    # The debugging _session_ has terminated. This does not mean that the
+    # debuggee has terminated (that's the exited event).
+    #
+    # We will handle this when the server actually exists.
+    #
+    # FIXME we should always wait for this event before disconnecting closing
+    # any socket connection
     self.SetCurrentFrame( None )
 
+
+  def OnEvent_exited( self, message ):
+    utils.UserMessage( 'The debuggee exited with status code: {}'.format(
+      message[ 'body' ][ 'exitCode' ] ) )
+    self._stackTraceView.OnExited( message )
+    self._codeView.SetCurrentFrame( None )
+
   def OnEvent_process( self, message ):
-    utils.UserMessage( 'The debugee was started: {}'.format(
+    utils.UserMessage( 'The debuggee was started: {}'.format(
       message[ 'body' ][ 'name' ] ) )
 
   def OnEvent_module( self, message ):
@@ -1209,11 +1227,6 @@ class DebugSession( object ):
       callback()
     else:
       self._logger.debug( "No server exit handler" )
-
-  def OnEvent_terminated( self, message ):
-    # We will handle this when the server actually exists
-    utils.UserMessage( "Debugging was terminated by the server." )
-    self.SetCurrentFrame( None )
 
   def OnEvent_output( self, message ):
     if self._outputView:

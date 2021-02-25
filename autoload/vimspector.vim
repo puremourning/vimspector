@@ -55,11 +55,16 @@ function! vimspector#LaunchWithSettings( settings ) abort
   py3 _vimspector_session.Start( launch_variables = vim.eval( 'a:settings' ) )
 endfunction
 
-function! vimspector#Reset() abort
+function! vimspector#Reset( ... ) abort
   if !s:Enabled()
     return
   endif
-  py3 _vimspector_session.Reset()
+  if a:0 == 0
+    let options = {}
+  else
+    let options = a:1
+  endif
+  py3 _vimspector_session.Reset( **vim.eval( 'options' ) )
 endfunction
 
 function! vimspector#Restart() abort
@@ -185,11 +190,16 @@ function! vimspector#SetCurrentThread() abort
   py3 _vimspector_session.SetCurrentThread()
 endfunction
 
-function! vimspector#Stop() abort
+function! vimspector#Stop( ... ) abort
   if !s:Enabled()
     return
   endif
-  py3 _vimspector_session.Stop()
+  if a:0 == 0
+    options = {}
+  else
+    options = a:1
+  endif
+  py3 _vimspector_session.Stop( **vim.eval( 'options' ) )
 endfunction
 
 function! vimspector#ExpandVariable() abort

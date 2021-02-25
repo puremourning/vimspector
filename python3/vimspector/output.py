@@ -33,7 +33,7 @@ BUFFER_MAP = {
   'console': 'Console',
   'stdout': 'Console',
   'stderr': 'stderr',
-  'telemetry': 'Telemetry',
+  'telemetry': None,
 }
 
 
@@ -77,6 +77,10 @@ class OutputView( object ):
     self._Print( category, text_lines )
 
   def _Print( self, category, text_lines ):
+    if category is None:
+      # This category is supressed
+      return
+
     if category not in self._buffers:
       self._CreateBuffer( category )
 
@@ -251,7 +255,8 @@ class DAPOutputView( OutputView ):
 
     self._connection = None
     for b in set( BUFFER_MAP.values() ):
-      self._CreateBuffer( b )
+      if b is not None:
+        self._CreateBuffer( b )
 
     self.AddLogFileView()
     self._ShowOutput( 'Console' )
