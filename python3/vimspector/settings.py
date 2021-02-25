@@ -17,7 +17,6 @@
 import vim
 import builtins
 from vimspector import utils
-from collections.abc import Mapping
 
 DEFAULTS = {
   # UI
@@ -85,9 +84,7 @@ if hasattr( vim, 'Dictionary' ):
 
 def Dict( option ):
   return _UpdateDict( DICT_TYPE( DEFAULTS.get( option, {} ) ),
-                      utils.GetVimValue( vim.vars,
-                                         f'vimspector_{ option }',
-                                         {} ) )
+                      vim.vars.get( f'vimspector_{ option }', DICT_TYPE() ) )
 
 
 def _UpdateDict( target, override ):
@@ -118,9 +115,9 @@ def _UpdateDict( target, override ):
 
   for key, value in override.items():
     current_value = target.get( key )
-    if not isinstance( current_value, Mapping ):
+    if not isinstance( current_value, DICT_TYPE ):
       target[ key ] = value
-    elif isinstance( value, Mapping ):
+    elif isinstance( value, DICT_TYPE ):
       target[ key ] = _UpdateDict( current_value, value )
     else:
       target[ key ] = value

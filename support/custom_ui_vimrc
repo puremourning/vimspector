@@ -142,4 +142,15 @@ augroup END
 
 " }}}
 
+" Custom mappings for special buffers {{{
+
+let g:vimspector_mappings = {
+      \   'stack_trace': {},
+      \   'variables': {
+      \    'set_value': [ '<Tab>', '<C-CR>' ],
+      \   },
+      \ }
+
+" }}}
+
 " vim: foldmethod=marker

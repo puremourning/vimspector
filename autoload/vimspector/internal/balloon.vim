@@ -138,7 +138,10 @@ function! s:MatchKey( key, candidates ) abort
   let mapped = ''
   for candidate in a:candidates
     try
-      " Try and expand the key code
+      " Try and expand the key code. Note this won't work for non-special keys
+      " and it won't work for multple keys, which is kinda shitty.
+      "
+      " There's no vim api to run expand_keycodes() i don't think.
       execute 'let mapped = "\' . candidate . '"'
       if mapped ==# a:key
         return v:true
