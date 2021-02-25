@@ -320,28 +320,6 @@ function! vimspector#CompleteOutput( ArgLead, CmdLine, CursorPos ) abort
   return join( buffers, "\n" )
 endfunction
 
-py3 <<EOF
-def _vimspector_GetExprCompletions( ArgLead, prev_non_keyword_char ):
-  if not _vimspector_session:
-    return []
-
-  items = []
-  for candidate in _vimspector_session.GetCompletionsSync(
-    ArgLead,
-    prev_non_keyword_char ):
-
-    label = candidate.get( 'text', candidate[ 'label' ] )
-
-    start = prev_non_keyword_char - 1
-
-    if 'start' in candidate and 'length' in candidate:
-      start = candidate[ 'start' ]
-
-    items.append( ArgLead[ 0 : start ] + label )
-
-  return items
-EOF
-
 function! vimspector#CompleteExpr( ArgLead, CmdLine, CursorPos ) abort
   if !s:Enabled()
     return
@@ -350,7 +328,7 @@ function! vimspector#CompleteExpr( ArgLead, CmdLine, CursorPos ) abort
   let col = len( a:ArgLead )
   let prev_non_keyword_char = match( a:ArgLead[ 0 : col - 1 ], '\k*$' ) + 1
 
-  return join( py3eval( '_vimspector_GetExprCompletions( '
+  return join( py3eval( '_vimspector_session.GetCommandLineCompletions( '
                       \ . 'vim.eval( "a:ArgLead" ), '
                       \ . 'int( vim.eval( "prev_non_keyword_char" ) ) )' ),
              \ "\n" )

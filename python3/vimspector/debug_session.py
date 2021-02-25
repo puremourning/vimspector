@@ -628,6 +628,18 @@ class DebugSession( object ):
     return response[ 'body' ][ 'targets' ]
 
 
+  @IfConnected( otherwise=[] )
+  def GetCommandLineCompletions( self, ArgLead, prev_non_keyword_char ):
+    items = []
+    for candidate in self.GetCompletionsSync( ArgLead, prev_non_keyword_char ):
+      label = candidate.get( 'text', candidate[ 'label' ] )
+      start = prev_non_keyword_char - 1
+      if 'start' in candidate and 'length' in candidate:
+        start = candidate[ 'start' ]
+      items.append( ArgLead[ 0 : start ] + label )
+
+    return items
+
   def RefreshSigns( self, file_name ):
     if self._connection:
       self._codeView.Refresh( file_name )
