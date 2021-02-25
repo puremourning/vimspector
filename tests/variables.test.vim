@@ -508,6 +508,33 @@ function Test_EvaluateConsole()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer(
         \ 'vimspector.Console', len, v:null )
 
+  VimspectorEval
+  call feedkeys( 't.c\<CR>', 'xt' )
+
+  call assert_equal( bufnr( 'vimspector.Console' ),
+                   \ winbufnr( g:vimspector_session_windows.output ) )
+
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       "99 'c'"
+        \     ],
+        \     getbufline( bufnr( 'vimspector.Console' ), '$', '$' )
+        \   )
+        \ } )
+
+  let len = getbufinfo( 'vimspector.Console' )[ 0 ].linecount
+
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       'Evaluating: t.c',
+        \       "99 'c'"
+        \     ],
+        \     getbufline( bufnr( 'vimspector.Console' ), len-1, '$' )
+        \   )
+        \ } )
+
   call vimspector#test#setup#Reset()
   %bwipe!
 endfunction
