@@ -525,7 +525,7 @@ function Test_EvaluateInput()
   call vimspector#StepOver()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 27, 1 )
 
-  call feedkeys( ':VimspectorEval\<CR>t.i\<CR>', 'xt' )
+  call feedkeys( ":VimspectorEval\<CR>t.i\<CR>", 'xt' )
 
   call assert_equal( bufnr( 'vimspector.Console' ),
                    \ winbufnr( g:vimspector_session_windows.output ) )
