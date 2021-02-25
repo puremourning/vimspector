@@ -239,12 +239,19 @@ function! vimspector#AddWatchPrompt( expr ) abort
   call vimspector#AddWatch( a:expr )
 endfunction
 
-function! vimspector#Evaluate( expr ) abort
+function! vimspector#Evaluate( ... ) abort
   if !s:Enabled()
     return
   endif
+
+  if a:0 == 0
+    let l:expr = input( 'Enter eval expression: ' )
+  else
+    let l:expr = a:1
+  endif
+
   py3 _vimspector_session.ShowOutput( 'Console' )
-  py3 _vimspector_session.EvaluateConsole( vim.eval( 'a:expr' ), True )
+  py3 _vimspector_session.EvaluateConsole( vim.eval( 'l:expr' ), True )
 endfunction
 
 function! vimspector#EvaluateConsole( expr ) abort

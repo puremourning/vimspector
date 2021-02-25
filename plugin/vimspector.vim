@@ -100,7 +100,7 @@ command! -bar -nargs=? -complete=custom,vimspector#CompleteOutput
 command! -bar
       \ VimspectorToggleLog
       \ call vimspector#ToggleLog()
-command! -bar -nargs=1 -complete=custom,vimspector#CompleteExpr
+command! -bar -nargs=? -complete=custom,vimspector#CompleteExpr
       \ VimspectorEval
       \ call vimspector#Evaluate( <f-args> )
 command! -bar
