@@ -544,9 +544,8 @@ function Test_EvaluateInput()
         \   assert_equal(
         \     [
         \       '(int) $1 = 5',
-        \       ''
         \     ],
-        \     getbufline( bufnr( 'vimspector.Console' ), len-1, '$' )
+        \     getbufline( bufnr( 'vimspector.Console' ), len-2, len-2 )
         \   )
         \ } )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer(
