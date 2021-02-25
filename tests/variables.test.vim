@@ -543,7 +543,7 @@ function Test_EvaluateInput()
   call WaitForAssert( {->
         \   assert_equal(
         \     [
-        \       '(int) $1 = 5',
+        \       'Evaluating: -exec print (int) printf("hello")',
         \     ],
         \     getbufline( bufnr( 'vimspector.Console' ), len-2, len-2 )
         \   )
