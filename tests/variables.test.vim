@@ -830,3 +830,292 @@ function! Test_VariableEvalExpand()
   call vimspector#test#setup#Reset()
   %bwipe!
 endfunction
+
+function! Test_SetVariableValue_Local()
+  let fn =  'testdata/cpp/simple/struct.cpp'
+  call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
+        \   configuration: 'run-to-breakpoint'
+        \ } } )
+
+  " Make sure the Test t is initialised
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 26, 1 )
+
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       '- Scope: Locals',
+        \       ' *+ t (Test): {...}',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+  call assert_equal( 'cpp',
+                   \ getbufvar(
+                   \   winbufnr( g:vimspector_session_windows.variables ),
+                   \   '&syntax' ) )
+
+  " Expand
+  call win_gotoid( g:vimspector_session_windows.variables )
+  call setpos( '.', [ 0, 2, 1 ] )
+  call feedkeys( "\<CR>", 'xt' )
+
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \       '- Scope: Locals',
+        \       ' \*- t (Test): {...}',
+        \       '   \*- i (int): 0',
+        \       '   \*- c (char): 0 ''\\0\{1,3}''',
+        \       '   \*- fffff (float): 0',
+        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  call setpos( '.', [ 0, 3, 1 ] )
+
+  " We can't just fire the keys to the inpit prompt because we use inputsave()
+  " and inputrestore(), so mock that out and fire away.
+  py3 <<EOF
+from unittest import mock
+with mock.patch( 'vimspector.utils.InputSave' ):
+  vim.eval( 'feedkeys( "\<C-CR>\<C-u>100\<CR>", "xt" )' )
+EOF
+
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \       '- Scope: Locals',
+        \       ' \*- t (Test): {...}',
+        \       '   \*- i (int): 100',
+        \       '   \*- c (char): 0 ''\\0\{1,3}''',
+        \       '   \*- fffff (float): 0',
+        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  " Now set it via the more comforable scripting interface
+  call vimspector#SetVariableValue( '1234' )
+
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \       '- Scope: Locals',
+        \       ' \*- t (Test): {...}',
+        \       '   \*- i (int): 1234',
+        \       '   \*- c (char): 0 ''\\0\{1,3}''',
+        \       '   \*- fffff (float): 0',
+        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  " Something fails
+  call vimspector#SetVariableValue( 'this is invalid' )
+
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \       '- Scope: Locals',
+        \       ' \*- t (Test): {...}',
+        \       '   \*- i (int): 1234',
+        \       '   \*- c (char): 0 ''\\0\{1,3}''',
+        \       '   \*- fffff (float): 0',
+        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+function! Test_SetVariableValue_Watch()
+  let fn =  'testdata/cpp/simple/struct.cpp'
+  call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
+        \   configuration: 'run-to-breakpoint'
+        \ } } )
+
+  " Make sure the Test t is initialised
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 26, 1 )
+
+  call win_gotoid( g:vimspector_session_windows.watches )
+  call feedkeys( "it\<CR>", 'xt' )
+
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       'Watches: ----',
+        \       'Expression: t',
+        \       ' *+ Result: {...}',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.watches ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+  call assert_equal( 'cpp',
+                   \ getbufvar(
+                   \   winbufnr( g:vimspector_session_windows.watches ),
+                   \   '&syntax' ) )
+
+  " Expand
+  call win_gotoid( g:vimspector_session_windows.watches )
+  call setpos( '.', [ 0, 3, 1 ] )
+  call feedkeys( "\<CR>", 'xt' )
+
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \       'Watches: ----',
+        \       'Expression: t',
+        \       ' \*- Result: {...}',
+        \       '   \*- i (int): 0',
+        \       '   \*- c (char): 0 ''\\0\{1,3}''',
+        \       '   \*- fffff (float): 0',
+        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.watches ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  call setpos( '.', [ 0, 4, 1 ] )
+
+  " We can't just fire the keys to the inpit prompt because we use inputsave()
+  " and inputrestore(), so mock that out and fire away.
+  " Note: mapleder is ,
+  py3 <<EOF
+from unittest import mock
+with mock.patch( 'vimspector.utils.InputSave' ):
+  vim.eval( 'feedkeys( ",\<CR>\<C-u>100\<CR>", "xt" )' )
+EOF
+
+
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \       'Watches: ----',
+        \       'Expression: t',
+        \       ' \*- Result: {...}',
+        \       '   \*- i (int): 100',
+        \       '   \*- c (char): 0 ''\\0\{1,3}''',
+        \       '   \*- fffff (float): 0',
+        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.watches ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  " Now set it via the more comforable scripting interface
+  call vimspector#SetVariableValue( '1234' )
+
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \       'Watches: ----',
+        \       'Expression: t',
+        \       ' \*- Result: {...}',
+        \       '   \*- i (int): 1234',
+        \       '   \*- c (char): 0 ''\\0\{1,3}''',
+        \       '   \*- fffff (float): 0',
+        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.watches ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+function! Test_SetVariableValue_Balloon()
+  let fn =  'testdata/cpp/simple/struct.cpp'
+  call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
+        \   configuration: 'run-to-breakpoint'
+        \ } } )
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 26, 1 )
+
+  " leader is ,
+  xmap <buffer> <Leader>d <Plug>VimspectorBalloonEval
+  nmap <buffer> <Leader>d <Plug>VimspectorBalloonEval
+
+  "evaluate the prev line
+  call setpos( '.', [ 0, 24, 8 ] )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 24, 8 )
+  call feedkeys( ',d', 'xt' )
+
+  call WaitForAssert( {->
+        \   assert_notequal( v:none, g:vimspector_session_windows.eval )
+        \ } )
+
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \       '{...}',
+        \       ' - i: 0',
+        \       ' - c: 0 ''\\0\{1,3}''',
+        \       ' - fffff: 0',
+        \       ' + another_test: ',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.eval ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  " Move down to the ffff line
+
+  call feedkeys( 'jjj', 'xt' )
+  " We can't just fire the keys to the inpit prompt because we use inputsave()
+  " and inputrestore(), so mock that out and fire away.
+  " Note: mapleder is ,
+  py3 <<EOF
+from unittest import mock
+with mock.patch( 'vimspector.utils.InputSave' ):
+  vim.eval( 'feedkeys( "\<C-CR>\<C-u>100\<CR>", "xt" )' )
+EOF
+
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \       '{...}',
+        \       ' - i: 0',
+        \       ' - c: 0 ''\\0\{1,3}''',
+        \       ' - fffff: 100',
+        \       ' + another_test: ',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.eval ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
