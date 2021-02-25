@@ -135,18 +135,21 @@ function! vimspector#internal#balloon#MouseFilter( winid, key ) abort
 endfunction
 
 function! s:MatchKey( key, candidates ) abort
-  let mapped = ''
   for candidate in a:candidates
-    try
-      " Try and expand the key code. Note this won't work for non-special keys
-      " and it won't work for multple keys, which is kinda shitty.
-      "
-      " There's no vim api to run expand_keycodes() i don't think.
-      execute 'let mapped = "\' . candidate . '"'
-      if mapped ==# a:key
-        return v:true
-      endif
-    endtry
+    " If the mapping string looks like a special character, then try and
+    " expand it. This is... a hack. The whole thing only works if the mapping
+    " is a single key (anyway), and so we assume any string starting with < is a
+    " special key (which will be the common case) and try and map it. If it
+    " fails... it fails.
+    if candidate[ 0 ] == '<'
+      try
+        execute 'let candidate = "\' . candidate . '"'
+      endtry
+    endif
+
+    if candidate ==# a:key
+      return v:true
+    endif
   endfor
 
   return v:false

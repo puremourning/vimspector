@@ -152,7 +152,7 @@ augroup END
 let g:vimspector_mappings = {
       \   'stack_trace': {},
       \   'variables': {
-      \    'set_value': [ '<Tab>', '<C-CR>' ],
+      \    'set_value': [ '<Tab>', '<C-CR>', 'C' ],
       \   }
       \ }
 
