@@ -532,7 +532,7 @@ function Test_EvaluateInput()
   call WaitForAssert( {->
         \   assert_equal(
         \     [
-        \       '@"hello\r\n"'
+        \       '@"hello"'
         \     ],
         \     getbufline( bufnr( 'vimspector.Console' ), '$', '$' )
         \   )
@@ -543,8 +543,8 @@ function Test_EvaluateInput()
   call WaitForAssert( {->
         \   assert_equal(
         \     [
-        \       'Evaluating: -exec print printf("hello\n")',
-        \       '@"hello\r\n"'
+        \       'Evaluating: -exec print printf("hello")',
+        \       '@"hello"'
         \     ],
         \     getbufline( bufnr( 'vimspector.Console' ), len-1, '$' )
         \   )
