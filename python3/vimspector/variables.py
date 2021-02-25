@@ -518,7 +518,7 @@ class VariablesView( object ):
       },
     } )
 
-  def SetVariableValue( self, buf = None, line_num = None ):
+  def SetVariableValue( self, new_value = None, buf = None, line_num = None ):
     variable: Variable
     view: View
 
@@ -532,9 +532,10 @@ class VariablesView( object ):
     if not variable.IsContained():
       return
 
-    new_value = utils.AskForInput( 'New Value: ',
-                                   variable.variable.get( 'value', '' ),
-                                   completion = 'expr' )
+    if new_value is None:
+      new_value = utils.AskForInput( 'New Value: ',
+                                     variable.variable.get( 'value', '' ),
+                                     completion = 'expr' )
 
     if new_value is None:
       return

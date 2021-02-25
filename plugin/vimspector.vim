@@ -129,6 +129,7 @@ augroup VimspectorUserAutoCmds
   autocmd user VimspectorDebugEnded     silent
 augroup END
 
+" FIXME: Only register this _while_ debugging is active
 augroup Vimspector
   autocmd!
   autocmd BufNew * call vimspector#OnBufferCreated( expand( '<afile>' ) )
