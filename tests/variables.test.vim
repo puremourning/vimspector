@@ -470,7 +470,7 @@ function! Test_ExpandWatch()
 endfunction
 
 
-function Test_EvaluateInput()
+function Test_EvaluateConsole()
   let fn =  'testdata/cpp/simple/struct.cpp'
   call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
         \   configuration: 'run-to-breakpoint'
@@ -513,7 +513,7 @@ function Test_EvaluateInput()
 endfunction
 
 
-function Test_EvaluateConsole()
+function Test_EvaluateInput()
   let fn =  'testdata/cpp/simple/struct.cpp'
   call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
         \   configuration: 'run-to-breakpoint'
