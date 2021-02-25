@@ -255,9 +255,13 @@ function! vimspector#Evaluate( ... ) abort
   endif
 
   if a:0 == 0
-    let l:expr = input( 'Enter eval expression: ' )
+    let l:expr = input( 'Enter eval expression: ' , '', 'custom,vimspector#CompleteExpr' )
   else
     let l:expr = a:1
+  endif
+
+  if l:expr ==# ''
+    return
   endif
 
   py3 _vimspector_session.ShowOutput( 'Console' )
