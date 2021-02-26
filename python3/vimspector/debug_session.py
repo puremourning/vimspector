@@ -21,6 +21,7 @@ import shlex
 import subprocess
 import functools
 import vim
+import importlib
 
 from vimspector import ( breakpoints,
                          code,
@@ -888,8 +889,21 @@ class DebugSession( object ):
                                                  self._splash_screen,
                                                  "Unable to start adapter" )
     else:
+      if 'custom_handler' in self._adapter:
+        spec = self._adapter[ 'custom_handler' ]
+        if isinstance( spec, dict ):
+          module = spec[ 'module' ]
+          cls = spec[ 'class' ]
+        else:
+          module, cls = spec.rsplit( '.', 1 )
+
+        CustomHandler = getattr( importlib.import_module( module ), cls )
+        handlers = [ CustomHandler( self ), self ]
+      else:
+        handlers = [ self ]
+
       self._connection = debug_adapter_connection.DebugAdapterConnection(
-        self,
+        handlers,
         lambda msg: utils.Call(
           "vimspector#internal#{}#Send".format( self._connection_type ),
           msg ) )
