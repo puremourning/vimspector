@@ -184,6 +184,30 @@ They're also run by CI, so please check for lint failures. The canonical
 definition of the command to run is the command run in CI, i.e. in
 `.git/workflows/build.yml`.
 
+### Debugging Vimspector
+
+You can debug vimspector's python code using vimspector! We can use debugpy,
+from within Vim's embedded python and connect to it. Here's how:
+
+1. In one instance of vim, run the following to get debugpy to start listening
+   for us to connect: `:py3 __import__( 'vimspector', fromlist=[ 'developer' ]
+   ).developer.SetUpDebugpy()`
+
+2. In another instance of Vim, set a breakpoint in the vimspector python code
+   you want to debug and launch vimspector (e.g. `<F5>`). Select the `Python:
+   attach to vim` profile. This will attach to the debugpy running in the other
+   vim.
+
+3. Back in the first vim (the debuggee), trigger the vimspector code in
+   question, e.g. by starting to debug something else.
+
+4. You'll see it pause, and the 2nd vim (the debugger), you should be able to
+   step through and inspect as with any other python remote debugging.
+
+NB. It's also possible to debug the vimscript code using vimspector, but this
+requires unreleased vim patches and a fair amount of faff. You can always use
+`:debug` (see the help) for this though. 
+
 # Code of conduct
 
 Please see [code of conduct](CODE_OF_CONDUCT.md).
