@@ -195,9 +195,9 @@ function! vimspector#Stop( ... ) abort
     return
   endif
   if a:0 == 0
-    options = {}
+    let options = {}
   else
-    options = a:1
+    let options = a:1
   endif
   py3 _vimspector_session.Stop( **vim.eval( 'options' ) )
 endfunction

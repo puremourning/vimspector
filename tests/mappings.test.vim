@@ -114,6 +114,26 @@ function! Test_Use_Mappings_HUMAN()
         \ vimspector#test#signs#AssertPCIsAtLineInBuffer( 'simple.cpp', 9 )
         \ } )
 
+  " Stop
+  call feedkeys( "\<F3>", 'xt' )
+  call WaitForAssert( {->
+        \ assert_equal( [],
+        \               getbufline( g:vimspector_session_windows.variables,
+        \                           1,
+        \                           '$' ) )
+        \ } )
+  call WaitForAssert( {->
+        \ assert_equal( [],
+        \               getbufline( g:vimspector_session_windows.stack_trace,
+        \                           1,
+        \                           '$' ) )
+        \ } )
+  call WaitForAssert( {->
+        \ assert_equal( [],
+        \               getbufline( g:vimspector_session_windows.watches,
+        \                           1,
+        \                           '$' ) )
+        \ } )
 
   call vimspector#test#setup#Reset()
 
