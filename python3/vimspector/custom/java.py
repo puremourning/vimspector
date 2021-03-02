@@ -23,12 +23,18 @@ class JavaDebugAdapter( object ):
 
   def OnEvent_hotcodereplace( self, message ):
     # Hack for java debug server hot-code-replace
-    if utils.Call( 'confirm',
-                   'Code has changed, hot reload?',
-                   '&Yes,&No',
-                   1,
-                   'Question' ) == 1:
-      self.debug_session._connection.DoRequest( None, {
-        'command': 'redefineClasses',
-        'arguments': {},
-      } )
+    body = message.get( 'body' ) or {}
+
+    if body.get( 'type' ) != 'hotcodereplace':
+      return
+
+    if body.get( 'changeType' ) == 'BUILD_COMPLETE':
+      if utils.AskForInput( 'Code has changed, hot reload? [Y/N] ',
+                            'Y' ).upper()[ 0 ] == 'Y':
+        self.debug_session._connection.DoRequest( None, {
+          'command': 'redefineClasses',
+          'arguments': {},
+        } )
+    elif body.get( 'message' ):
+      utils.UserMessage( 'Hot code replace: ' + body[ 'message' ] )
+
