@@ -29,12 +29,15 @@ class JavaDebugAdapter( object ):
       return
 
     if body.get( 'changeType' ) == 'BUILD_COMPLETE':
-      if utils.AskForInput( 'Code has changed, hot reload? [Y/N] ',
-                            'Y' ).upper()[ 0 ] == 'Y':
-        self.debug_session._connection.DoRequest( None, {
-          'command': 'redefineClasses',
-          'arguments': {},
-        } )
+      def handler( result ):
+        if result == 1:
+          self.debug_session._connection.DoRequest( None, {
+            'command': 'redefineClasses',
+            'arguments': {},
+          } )
+
+      utils.Confirm( self.debug_session._api_prefix,
+                     'Code has changed, hot reload?',
+                     handler )
     elif body.get( 'message' ):
       utils.UserMessage( 'Hot code replace: ' + body[ 'message' ] )
-

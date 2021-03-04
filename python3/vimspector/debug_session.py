@@ -911,39 +911,52 @@ class DebugSession( object ):
     self._logger.info( 'Debug Adapter Started' )
 
   def _StopDebugAdapter( self, interactive = False, callback = None ):
-    self._splash_screen = utils.DisplaySplash(
-      self._api_prefix,
-      self._splash_screen,
-      "Shutting down debug adapter..." )
+    def disconnect( arguments = {} ):
+      self._splash_screen = utils.DisplaySplash(
+        self._api_prefix,
+        self._splash_screen,
+        "Shutting down debug adapter..." )
 
-    def handler( *args ):
-      self._splash_screen = utils.HideSplash( self._api_prefix,
-                                              self._splash_screen )
+      def handler( *args ):
+        self._splash_screen = utils.HideSplash( self._api_prefix,
+                                                self._splash_screen )
 
-      if callback:
-        self._logger.debug( "Setting server exit handler before disconnect" )
-        assert not self._run_on_server_exit
-        self._run_on_server_exit = callback
+        if callback:
+          self._logger.debug( "Setting server exit handler before disconnect" )
+          assert not self._run_on_server_exit
+          self._run_on_server_exit = callback
 
-      vim.eval( 'vimspector#internal#{}#StopDebugSession()'.format(
-        self._connection_type ) )
+        vim.eval( 'vimspector#internal#{}#StopDebugSession()'.format(
+          self._connection_type ) )
 
-    arguments = {}
-    if ( interactive and
-         self._server_capabilities.get( 'supportTerminateDebuggee' ) ):
-      if self._stackTraceView.AnyThreadsRunning():
-        choice = utils.AskForInput( "Terminate debuggee [Y/N/default]? ", "" )
-        if choice == "Y" or choice == "y":
+      self._connection.DoRequest( handler, {
+        'command': 'disconnect',
+        'arguments': {},
+      }, failure_handler = handler, timeout = 5000 )
+
+    if not interactive:
+      disconnect()
+    elif not self._server_capabilities.get( 'supportTerminateDebuggee' ):
+      disconnect()
+    elif not self._stackTraceView.AnyThreadsRunning():
+      disconnect()
+    else:
+      def handle_choice( choice ):
+        arguments = {}
+        if choice == 1:
           arguments[ 'terminateDebuggee' ] = True
-        elif choice == "N" or choice == 'n':
+        elif choice == 0:
           arguments[ 'terminateDebuggee' ] = False
+        elif choice == -1:
+          # Abort
+          return
 
-    self._connection.DoRequest( handler, {
-      'command': 'disconnect',
-      'arguments': arguments,
-    }, failure_handler = handler, timeout = 5000 )
+        disconnect( arguments )
 
-    # TODO: Use the 'tarminate' request if supportsTerminateRequest set
+      utils.Confirm( self._api_prefix,
+                     "Terminate debuggee?",
+                     handle_choice,
+                     default_value = 3 )
 
 
   def _PrepareAttach( self, adapter_config, launch_config ):
