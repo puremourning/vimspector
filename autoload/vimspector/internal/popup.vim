@@ -32,6 +32,37 @@ function! vimspector#internal#popup#HideSplash( id ) abort
   call popup_hide( a:id )
 endfunction
 
+function! s:YesNoDefaultFilter( default_value, id, key ) abort
+  if a:key ==# "\<CR>" || a:key ==# 'D' || a:key ==# 'd'
+    call popup_close( a:id, a:default_value )
+  endif
+
+  return popup_filter_yesno( a:id, a:key )
+endfunction
+
+function! s:ConfirmCallback( confirm_id, id, result ) abort
+  py3 __import__( 'vimspector', fromlist = [ 'utils' ] ).utils.ConfirmCallback(
+        \ int( vim.eval( 'a:confirm_id' ) ),
+        \ int( vim.eval( 'a:result' ) ) )
+endfunction
+
+function! vimspector#internal#popup#Confirm(
+      \ confirm_id,
+      \ text,
+      \ default_value ) abort
+  let text = a:text
+  if type( a:text ) != v:t_list
+    let text = [ a:text ]
+  endif
+
+  call extend( text, [ '', '(Y)es (N)o (D)efault' ] )
+
+  return popup_dialog( text, {
+        \   'callback': function( 's:ConfirmCallback', [ a:confirm_id ] ),
+        \   'filter': function( 's:YesNoDefaultFilter', [ a:default_value ] )
+        \ } )
+endfunction
+
 " Boilerplate {{{
 let &cpoptions=s:save_cpo
 unlet s:save_cpo

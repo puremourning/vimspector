@@ -80,6 +80,28 @@ function! vimspector#internal#neopopup#HideSplash( id ) abort
   unlet s:db[ a:id ]
 endfunction
 
+function! vimspector#internal#neopopup#Confirm( confirm_id,
+                                              \ text,
+                                              \ default_value ) abort
+  let result = confirm( a:text, '&Yes &No &Default', 3 )
+
+  " Map the results to what popup_menu_filter would return (ok s:ConfirmCallback
+  " in popup.vim)
+  if result == 2
+    " No is represented as 0
+    let result = 0
+  elseif result == 0
+    " User pressed ESC/ctrl-c
+    let result = -1
+  elseif result == 3
+    " Default
+    let result = a:default_value
+  endif
+
+  py3 __import__( 'vimspector', fromlist = [ 'utils' ] ).utils.ConfirmCallback(
+        \ int( vim.eval( 'a:confirm_id' ) ),
+        \ int( vim.eval( 'result' ) ) )
+endfunction
 " Boilerplate {{{
 let &cpoptions=s:save_cpo
 unlet s:save_cpo
