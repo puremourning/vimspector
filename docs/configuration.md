@@ -634,7 +634,9 @@ Vimspector then orchestrates the various tools to set you up.
           // %CMD% replaced with the remote-cmdLine configured in the launch
           // configuration. (mandatory)
           "runCommand": [
-            "python", "-m", "debugpy", "--listen", "0.0.0.0:${port}",
+            "python", "-m", "debugpy",
+            "--listen", "0.0.0.0:${port}",
+            "--wait-for-client",
             "%CMD%"
           ]
           
@@ -848,7 +850,9 @@ port.
           // %CMD% replaced with the remote-cmdLine configured in the launch
           // configuration. (mandatory)
           "runCommand": [
-            "python", "-m", "debugpy", "--listen", "0.0.0.0:${port}",
+            "python", "-m", "debugpy",
+            "--listen", "0.0.0.0:${port}",
+            "--wait-for-client",
             "%CMD%"
           ]
           

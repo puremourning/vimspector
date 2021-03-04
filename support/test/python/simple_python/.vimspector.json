@@ -24,6 +24,24 @@
         },
         "delay": "5000m"
       }
+    },
+    "python-remote-ssh": {
+      "variables": {
+        "port": "8765"
+      },
+      "port": "${port}",
+      "host": "${host}",
+      "launch": {
+        "remote": {
+          "host": "${host}",
+          "account": "${account}",
+          "runCommand": [
+            "python3", "-m", "debugpy", "--listen", "0.0.0.0:${port}",
+                                        "--wait-for-client",
+                                        "%CMD%"
+          ]
+        }
+      }
     }
   },
   "configurations": {
@@ -163,6 +181,23 @@
         "program": "${file}",
         "stopOnEntry": false,
         "console": "integratedTerminal"
+      }
+    },
+    "run - remote host": {
+      "adapter": "python-remote-ssh",
+      "remote-cmdLine": [
+        "${remoteRoot}/main.py"
+      ],
+      "remote-request": "launch",
+      "configuration": {
+        "request": "attach",
+        "redirectOutput": true,
+        "pathMappings": [
+          {
+            "localRoot": "${workspaceRoot}",
+            "remoteRoot": "${remoteRoot}"
+          }
+        ]
       }
     }
   }
