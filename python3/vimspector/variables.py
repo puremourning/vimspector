@@ -473,6 +473,8 @@ class VariablesView( object ):
     self._DrawWatches()
 
   def _GetVariable( self, buf = None, line_num = None ):
+    none = ( None, None )
+
     if buf is None:
       buf = vim.current.buffer
 
@@ -487,10 +489,10 @@ class VariablesView( object ):
            and buf == self._variable_eval_view.buf ):
       view = self._variable_eval_view
     else:
-      return None
+      return none
 
     if line_num not in view.lines:
-      return None
+      return none
 
     return view.lines[ line_num ], view
 
