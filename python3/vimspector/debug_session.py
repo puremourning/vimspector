@@ -1016,7 +1016,36 @@ class DebugSession( object ):
       self._disassemblyView.OnWindowScrolled( win_id )
 
 
-  @CurrentSession()
+  @ParentOnly()
+  def AddDataBreakpoint( self, opts, buf = None, line_num = None ):
+    # Use the parent session, because the _connection_ comes from the
+    # variable/watch result that is actually chosen
+
+    def add_bp( conn, msg ):
+      breakpoint_info = msg.get( 'body' )
+      if not breakpoint_info:
+        utils.UserMessage( "Can't set data breakpoint here" )
+        return
+
+      if breakpoint_info[ 'dataId' ] is None:
+        utils.UserMessage(
+          f"Can't set data breakpoint here: {breakpoint_info[ 'description' ]}"
+        )
+        return
+
+      access_types = breakpoint_info.get( 'accessTypes' )
+      if access_types and 'accessType' not in opts:
+        access_type = utils.SelectFromList( 'What type of access?',
+                                            access_types )
+        if access_type is not None:
+          opts[ 'accessType' ] = access_type
+
+      self._breakpoints.AddDataBreakpoint( conn,
+                                           breakpoint_info,
+                                           opts )
+
+    self._variablesView.GetDataBreakpointInfo( add_bp, buf, line_num )
+
   @IfConnected()
   def AddWatch( self, expression ):
     self._variablesView.AddWatch( self._connection,
