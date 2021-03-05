@@ -219,6 +219,7 @@ class ProjectBreakpoints( object ):
     self._func_breakpoints = []
     self._exception_breakpoints = None
     self._configured_breakpoints = {}
+    self._data_breakponts = []
 
     self._server_capabilities = {}
 
@@ -807,7 +808,19 @@ class ProjectBreakpoints( object ):
       # 'condition': ...,
       # 'hitCondition': ...,
     } )
+    self.UpdateUI()
 
+
+  def AddDataBreakpoint( self,
+                         conn: DebugAdapterConnection,
+                         info,
+                         options ):
+    self._data_breakponts.append( {
+      'state': 'ENABLED',
+      'conn': conn.GetSessionId(),
+      'info': info,
+      'options': options
+    } )
     self.UpdateUI()
 
 
@@ -1013,6 +1026,40 @@ class ProjectBreakpoints( object ):
           failure_handler = response_received
         )
 
+    if self._data_breakponts and self._server_capabilities[
+      'supportsDataBreakpoints' ]:
+      connection: DebugAdapterConnection
+      for connection in self._connections:
+        bp_idxs = []
+        breakpoints = []
+        for bp in self._data_breakponts:
+          if bp[ 'state' ] != 'ENABLED':
+            continue
+          if bp[ 'conn' ] == connection.GetSessionId():
+            continue
+          if not bp[ 'info' ].get( 'dataId' ):
+            continue
+
+          data_bp = {}
+          data_bp.update( bp[ 'options' ] )
+          data_bp[ 'dataId' ] = bp[ 'info' ][ 'dataId' ]
+          breakpoints.append( data_bp )
+          bp_idxs.append( [ len( breakpoints ), bp ] )
+
+        if breakpoints:
+          self._awaiting_bp_responses += 1
+          connection.DoRequest(
+            lambda msg, conn=connection, idxs=bp_idxs: response_handler(
+              conn,
+              msg,
+              idxs ),
+            {
+              'command': 'setDataBreakpoints',
+              'arguments': breakpoints,
+            },
+            failure_handler = response_received
+          )
+
     if self._exception_breakpoints:
       for connection in self._connections:
         self._awaiting_bp_responses += 1
@@ -1111,6 +1158,11 @@ class ProjectBreakpoints( object ):
       if bps:
         line[ file_name ] = bps
 
+    # TODO: Some way to persis data breakpoints? Currently they require
+    # variablesReference, which is clearly not something that can be persisted
+    #
+    # That said, the spec now seems to support data bps on expressions, though i
+    # can't see any servers which support that.
     return {
       'line': line,
       'function': self._func_breakpoints,
@@ -1174,6 +1226,11 @@ class ProjectBreakpoints( object ):
         if 'sign_id' in bp:
           signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
           del bp[ 'sign_id' ]
+
+    # TODO could/should we show a sign in the variables view when there's a data
+    # brakpoint on the variable? Not sure how best to actually do that, but
+    # maybe the variable view can pass that info when calling AddDataBreakpoint,
+    # such as the variablesReference/name
 
 
   def _SignToLine( self, file_name, bp ):

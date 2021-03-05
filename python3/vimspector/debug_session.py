@@ -1005,6 +1005,21 @@ class DebugSession( object ):
 
   @CurrentSession()
   @IfConnected()
+  def AddDataBreakpoint( self, opts, buf = None, line_num = None ):
+    def add_bp( breakpoint_info ):
+      if breakpoint_info[ 'dataId' ] is None:
+        utils.UserMessage(
+          "Can't set data breakpoint here: { breakpoint_info[ 'description' ] }"
+        )
+        return
+
+      # TODO: Ask the user about the possible DataBreakpointAccessType's and add
+      # that in to opts here
+      self._breakpoints.AddDataBreakpoint( breakpoint_info[ 'dataId' ], opts )
+
+    self._variablesView.GetDataBreakpointInfo( add_bp, buf, line_num )
+
+  @IfConnected()
   def AddWatch( self, expression ):
     self._variablesView.AddWatch( self._connection,
                                   self._stackTraceView.GetCurrentFrame(),
