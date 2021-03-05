@@ -41,11 +41,11 @@ function! s:Enabled() abort
   return s:enabled
 endfunction
 
-function! vimspector#Launch() abort
+function! vimspector#Launch( ... ) abort
   if !s:Enabled()
     return
   endif
-  py3 _vimspector_session.Start()
+  py3 _vimspector_session.Start( *vim.eval( 'a:000' ) )
 endfunction
 
 function! vimspector#LaunchWithSettings( settings ) abort
