@@ -62,8 +62,17 @@ class Expandable:
   def VariablesReference( self ):
     assert False
 
+  @abc.abstractmethod
+  def FrameID( self ):
+    assert False
+
+  @abc.abstractmethod
+  def EvaluateName( self ):
+    assert False
+
+  @abc.abstractmethod
   def MemoryReference( self ):
-    assert None
+    assert False
 
   @abc.abstractmethod
   def HoverText( self ):
@@ -82,6 +91,12 @@ class Scope( Expandable ):
   def MemoryReference( self ):
     return None
 
+  def FrameID( self ):
+    return None
+
+  def EvaluateName( self ):
+    return self.scope[ 'name' ]
+
   def Update( self, scope ):
     self.scope = scope
 
@@ -91,8 +106,12 @@ class Scope( Expandable ):
 
 class WatchResult( Expandable ):
   """Holds the result of a Watch expression with expand/collapse."""
-  def __init__( self, connection: DebugAdapterConnection, result: dict ):
+  def __init__( self,
+                connection: DebugAdapterConnection,
+                watch,
+                result: dict ):
     super().__init__( connection )
+    self.watch = watch
     self.result = result
     # A new watch result is marked as changed
     self.changed = True
@@ -102,6 +121,12 @@ class WatchResult( Expandable ):
 
   def MemoryReference( self ):
     return self.result.get( 'memoryReference' )
+
+  def FrameID( self ):
+    return self.watch.expression.get( 'frameId' )
+
+  def EvaluateName( self ):
+    return self.watch.expression.get( 'expression' )
 
   def Update( self, result ):
     self.changed = False
@@ -129,7 +154,8 @@ class Variable( Expandable ):
   """Holds one level of an expanded value tree. Also itself expandable."""
   def __init__( self,
                 connection: DebugAdapterConnection,
-                container: Expandable, variable: dict ):
+                container: Expandable,
+                variable: dict ):
     super().__init__( connection = connection, container = container )
     self.variable = variable
     # A new variable appearing is marked as changed
@@ -140,6 +166,12 @@ class Variable( Expandable ):
 
   def MemoryReference( self ):
     return self.variable.get( 'memoryReference' )
+
+  def FrameID( self ):
+    return self.container.FrameID()
+
+  def EvaluateName( self ):
+    return self.variable.get( 'evaluateName', self.variable[ 'name' ] )
 
   def Update( self, variable ):
     self.changed = False
@@ -536,7 +568,9 @@ class VariablesView( object ):
     if watch.result is not None:
       watch.result.Update( message[ 'body' ] )
     else:
-      watch.result = WatchResult( watch.connection, message[ 'body' ] )
+      watch.result = WatchResult( watch.connection,
+                                  watch[ 'frameId' ],
+                                  message[ 'body' ] )
 
     if ( watch.result.IsExpandable() and
          watch.result.IsExpanded() ):
@@ -668,10 +702,40 @@ class VariablesView( object ):
     # Get a memoryReference for use in a ReadMemory request
     variable, _ = self._GetVariable( None, None )
     if variable is None:
+      return None, None
+
+    return variable.connection, variable.MemoryReference()
+
+
+  def GetDataBreakpointInfo( self,
+                             then,
+                             buf = None,
+                             line_num = None ):
+    variable: Expandable
+    view: View
+
+    if not self._server_capabilities.get( 'supportsDataBreakpoints' ):
       return None
 
-    # TODO: Return the connection too!
-    return variable.connection, variable.MemoryReference()
+    variable, view = self._GetVariable( buf, line_num )
+    if variable is None:
+      return None
+
+    arguments = {
+      'name': variable.EvaluateName()
+    }
+    frameId = variable.FrameID()
+    if frameId:
+      arguments[ 'frameId' ] = frameId
+
+    if variable.IsContained():
+      arguments[ 'variablesReference' ] = (
+        variable.container.VariablesReference() )
+
+    variable.connection.DoRequest( lambda msg: then( msg[ 'body' ] ), {
+      'command': 'dataBreakpointInfo',
+      'arguments': arguments,
+    } )
 
 
   def _DrawVariables( self, view, variables, indent_len, is_short = False ):
