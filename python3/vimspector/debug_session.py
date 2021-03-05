@@ -100,7 +100,7 @@ class DebugSession( object ):
 
     return launch_config_file, configurations
 
-  def Start( self, launch_variables = None ):
+  def Start( self, force_choose=False, launch_variables = None ):
     # We mutate launch_variables, so don't mutate the default argument.
     # https://docs.python-guide.org/writing/gotchas/#mutable-default-arguments
     if launch_variables is None:
@@ -135,6 +135,11 @@ class DebugSession( object ):
 
     if 'configuration' in launch_variables:
       configuration_name = launch_variables.pop( 'configuration' )
+    elif force_choose:
+      # Always display the menu
+      configuration_name = utils.SelectFromList(
+        'Which launch configuration?',
+        sorted( configurations.keys() ) )
     elif ( len( configurations ) == 1 and
            next( iter( configurations.values() ) ).get( "autoselect", True ) ):
       configuration_name = next( iter( configurations.keys() ) )
