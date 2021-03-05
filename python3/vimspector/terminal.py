@@ -34,7 +34,8 @@ def LaunchTerminal( api_prefix,
     window_for_start = vim.current.window
 
   if term.window is not None and term.window.valid:
-    assert term.buffer_number
+    if not term.buffer_number:
+      raise AssertionError
     window_for_start = term.window
     if ( term.window.buffer.number == term.buffer_number
          and int( utils.Call( 'vimspector#internal#{}term#IsFinished'.format(

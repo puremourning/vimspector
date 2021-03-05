@@ -180,7 +180,7 @@ class DebugSession( object ):
               *shlex.split( response ),
               then = lambda: self.Start( new_launch_variables ) )
             return
-          elif response is None:
+          if response is None:
             return
 
         utils.UserMessage( f"The specified adapter '{adapter}' is not "
@@ -393,7 +393,7 @@ class DebugSession( object ):
     if self._connection:
       self._logger.debug( "Stop debug adapter with callback : self._Reset()" )
       self._StopDebugAdapter( interactive = interactive,
-                              callback = lambda: self._Reset() )
+                              callback = self._Reset )
     else:
       self._Reset()
 
@@ -801,7 +801,8 @@ class DebugSession( object ):
 
       if callback:
         self._logger.debug( "Setting server exit handler before disconnect" )
-        assert not self._run_on_server_exit
+        if self._run_on_server_exit:
+          raise AssertionError
         self._run_on_server_exit = callback
 
       vim.eval( 'vimspector#internal#{}#StopDebugSession()'.format(
@@ -884,7 +885,7 @@ class DebugSession( object ):
             return
           launch_config[ prop ] = pid
         return
-      elif attach_config[ 'pidSelect' ] == 'none':
+      if attach_config[ 'pidSelect' ] == 'none':
         return
 
       raise ValueError( 'Unrecognised pidSelect {0}'.format(
@@ -953,7 +954,7 @@ class DebugSession( object ):
 
     if is_ssh_cmd:
       return self._GetSSHCommand( remote )
-    elif is_docker_cmd:
+    if is_docker_cmd:
       return self._GetDockerCommand( remote )
     raise ValueError( 'Could not determine remote exec command' )
 
@@ -963,7 +964,7 @@ class DebugSession( object ):
 
     if isinstance( commands, list ):
       return commands
-    elif commands is not None:
+    if commands is not None:
       raise ValueError( "Invalid commands; must be list" )
 
     command = remote[ pfx + 'Command' ]
@@ -1290,7 +1291,7 @@ class DebugSession( object ):
     self.SetLineBreakpoint( file_name,
                             line,
                             { 'temporary': True },
-                            lambda: self.Continue() )
+                            self.Continue )
 
 
   def ClearTemporaryBreakpoints( self ):

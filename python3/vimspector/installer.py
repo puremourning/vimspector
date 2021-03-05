@@ -582,9 +582,8 @@ def DownloadFileTo( url,
       if ValidateCheckSumSHA256( file_path, checksum ):
         Print( "Checksum matches for {}, using it".format( file_path ) )
         return file_path
-      else:
-        Print( "Checksum doesn't match for {}, removing it".format(
-          file_path ) )
+      Print( "Checksum doesn't match for {}, removing it".format(
+        file_path ) )
 
     Print( "Removing existing {}".format( file_path ) )
     os.remove( file_path )

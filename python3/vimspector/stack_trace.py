@@ -58,7 +58,7 @@ class Thread:
   def State( self ):
     if self.state == Thread.PAUSED:
       return self.stopped_event.get( 'description' ) or 'paused'
-    elif self.state == Thread.RUNNING:
+    if self.state == Thread.RUNNING:
       return 'running'
     return 'terminated'
 
@@ -393,8 +393,7 @@ class StackTraceView( object ):
       # The assumption here is that we _will_ eventually find something to jump
       # to
       return True
-    else:
-      return do_jump()
+    return do_jump()
 
 
   def PauseContinueThread( self ):

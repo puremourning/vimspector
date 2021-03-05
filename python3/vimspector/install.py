@@ -20,10 +20,9 @@ import os
 def GetOS():
   if platform.system() == 'Darwin':
     return 'macos'
-  elif platform.system() == 'Windows':
+  if platform.system() == 'Windows':
     return 'windows'
-  else:
-    return 'linux'
+  return 'linux'
 
 
 def mkdirs( p ):

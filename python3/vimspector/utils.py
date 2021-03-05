@@ -753,11 +753,10 @@ def GetVisualSelection( bufnr ):
 def DisplaySplash( api_prefix, splash, text ):
   if splash:
     return Call( f'vimspector#internal#{api_prefix}popup#UpdateSplash',
-                 splash,
-                 text )
-  else:
-    return Call( f'vimspector#internal#{api_prefix}popup#DisplaySplash',
-                 text )
+                   splash,
+                   text )
+  return Call( f'vimspector#internal#{api_prefix}popup#DisplaySplash',
+               text )
 
 
 def HideSplash( api_prefix, splash ):
