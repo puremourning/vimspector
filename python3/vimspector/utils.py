@@ -390,13 +390,17 @@ def ConfirmCallback( confirm_id, result ):
   handler( result )
 
 
-def Confirm( api_prefix, prompt, handler, default_value = 1 ):
+def Confirm( api_prefix, prompt, handler, default_value = 3, options = None ):
   global CONFIRM_ID
+  if not options:
+    options = [ '(Y)es', '(N)o', '(D)efault' ]
+
   CONFIRM_ID += 1
   CONFIRM[ CONFIRM_ID ] = handler
   Call( f'vimspector#internal#{ api_prefix }popup#Confirm',
         CONFIRM_ID,
         prompt,
+        options,
         default_value )
 
 
