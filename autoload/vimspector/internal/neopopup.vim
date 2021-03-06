@@ -83,6 +83,9 @@ endfunction
 function! vimspector#internal#neopopup#Confirm( confirm_id,
                                               \ text,
                                               \ default_value ) abort
+
+  " Neovim doesn't have an equivalent of popup_dialog, and it's way too much
+  " effort to write one, so we just use confirm().
   let result = confirm( a:text, '&Yes &No &Default', 3 )
 
   " Map the results to what popup_menu_filter would return (ok s:ConfirmCallback
