@@ -152,7 +152,9 @@ class ProjectBreakpoints( object ):
 
 
   def _PutLineBreakpoint( self, file_name, line, options ):
-    self._line_breakpoints[ os.path.abspath( file_name ) ].append( {
+    abs_name = os.path.abspath( file_name )
+    path = abs_name if os.path.isfile( abs_name ) else file_name
+    self._line_breakpoints[ path ].append( {
       'state': 'ENABLED',
       'line': line,
       'options': options,
