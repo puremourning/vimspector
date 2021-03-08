@@ -1,6 +1,7 @@
 let s:fn='../support/test/python/simple_python/main.py'
 
 function! SetUp()
+  let g:vimspector_ui_mode = get( s:, 'vimspector_ui_mode', 'horizontal' )
   call vimspector#test#setup#SetUpWithMappings( 'HUMAN' )
 endfunction
 
@@ -16,12 +17,17 @@ function! s:StartDebugging()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 23, 1 )
 endfunction
 
+function! SetUp_Test_StandardLayout()
+  call vimspector#test#setup#PushOption( 'columns', 200 )
+endfunction
+
 function! Test_StandardLayout()
   call s:StartDebugging()
 
   call vimspector#StepOver()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 25, 1 )
 
+  call assert_equal( 'horizontal', g:vimspector_session_windows.mode )
   call assert_equal(
         \ [ 'row', [
         \   [ 'col', [
@@ -42,6 +48,247 @@ function! Test_StandardLayout()
   call vimspector#test#setup#Reset()
   %bwipe!
 endfunction
+
+function! TearDown_Test_StandardLayout()
+  call vimspector#test#setup#PopOption( 'columns' )
+endfunction
+
+function! SetUp_Test_NarrowLayout()
+  call vimspector#test#setup#PushOption( 'columns', 100 )
+  let s:vimspector_ui_mode = 'vertical'
+endfunction
+
+function! Test_NarrowLayout()
+  call s:StartDebugging()
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 25, 1 )
+
+  call assert_equal( 'vertical', g:vimspector_session_windows.mode )
+  call assert_equal(
+        \ [ 'col', [
+        \   [ 'row', [
+        \     [ 'leaf', g:vimspector_session_windows.variables ],
+        \     [ 'leaf', g:vimspector_session_windows.watches ],
+        \     [ 'leaf', g:vimspector_session_windows.stack_trace ],
+        \   ] ],
+        \   [ 'leaf', g:vimspector_session_windows.code ],
+        \   [ 'leaf', g:vimspector_session_windows.terminal ],
+        \   [ 'leaf', g:vimspector_session_windows.output ],
+        \ ] ],
+        \ winlayout( g:vimspector_session_windows.tabpage ) )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+function! TearDown_Test_NarrowLayout()
+  unlet s:vimspector_ui_mode
+  call vimspector#test#setup#PopOption( 'columns' )
+endfunction
+
+function! SetUp_Test_AutoLayoutTerminalVert()
+  let s:vimspector_ui_mode = 'auto'
+  call vimspector#test#setup#PushOption( 'columns', 250 )
+  call vimspector#test#setup#PushOption( 'lines', 30 )
+endfunction
+
+function! Test_AutoLayoutTerminalVert()
+  call s:StartDebugging()
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 25, 1 )
+
+  call assert_equal( 'horizontal', g:vimspector_session_windows.mode )
+  call assert_equal(
+        \ [ 'row', [
+        \   [ 'col', [
+        \     [ 'leaf', g:vimspector_session_windows.variables ],
+        \     [ 'leaf', g:vimspector_session_windows.watches ],
+        \     [ 'leaf', g:vimspector_session_windows.stack_trace ],
+        \   ] ],
+        \   [ 'col', [
+        \     [ 'row', [
+        \       [ 'leaf', g:vimspector_session_windows.code ],
+        \       [ 'leaf', g:vimspector_session_windows.terminal ],
+        \     ] ],
+        \     [ 'leaf', g:vimspector_session_windows.output ],
+        \   ] ]
+        \ ] ],
+        \ winlayout( g:vimspector_session_windows.tabpage ) )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+function! TearDown_Test_AutoLayoutTerminalVert()
+  unlet s:vimspector_ui_mode
+  call vimspector#test#setup#PopOption( 'lines' )
+  call vimspector#test#setup#PopOption( 'columns' )
+endfunction
+
+function! SetUp_Test_AutoLayoutTerminalHorizVert()
+  let s:vimspector_ui_mode = 'auto'
+  " Wide enough to be horizontal layout, but not wide enough to fully fit the
+  " terminal, with enough rows to fit the max terminal below
+  call vimspector#test#setup#PushOption( 'columns',
+        \ 50 + 82 + 3 + 2 + 12 )
+  call vimspector#test#setup#PushOption( 'lines', 50 )
+endfunction
+
+function! Test_AutoLayoutTerminalHorizVert()
+  call s:StartDebugging()
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 25, 1 )
+
+  call assert_equal( 'horizontal', g:vimspector_session_windows.mode )
+  call assert_equal(
+        \ [ 'row', [
+        \   [ 'col', [
+        \     [ 'leaf', g:vimspector_session_windows.variables ],
+        \     [ 'leaf', g:vimspector_session_windows.watches ],
+        \     [ 'leaf', g:vimspector_session_windows.stack_trace ],
+        \   ] ],
+        \   [ 'col', [
+        \     [ 'leaf', g:vimspector_session_windows.code ],
+        \     [ 'leaf', g:vimspector_session_windows.terminal ],
+        \     [ 'leaf', g:vimspector_session_windows.output ],
+        \   ] ]
+        \ ] ],
+        \ winlayout( g:vimspector_session_windows.tabpage ) )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+function! TearDown_Test_AutoLayoutTerminalHorizVert()
+  unlet s:vimspector_ui_mode
+  call vimspector#test#setup#PopOption( 'lines' )
+  call vimspector#test#setup#PopOption( 'columns' )
+endfunction
+
+function! SetUp_Test_AutoLayoutTerminalHorizVertButNotEnoughLines()
+  let s:vimspector_ui_mode = 'auto'
+  " Wide enough to be horizontal layout, but not wide enough to fully fit the
+  " terminal, with enough rows to fit the max terminal below, but there are not
+  " enough lines to do this
+  call vimspector#test#setup#PushOption( 'columns',
+        \ 50 + 82 + 3 + 2 + 12 )
+  call vimspector#test#setup#PushOption( 'lines', 20 )
+endfunction
+
+function! Test_AutoLayoutTerminalHorizVertButNotEnoughLines()
+  call s:StartDebugging()
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 25, 1 )
+
+  call assert_equal( 'horizontal', g:vimspector_session_windows.mode )
+  call assert_equal(
+        \ [ 'row', [
+        \   [ 'col', [
+        \     [ 'leaf', g:vimspector_session_windows.variables ],
+        \     [ 'leaf', g:vimspector_session_windows.watches ],
+        \     [ 'leaf', g:vimspector_session_windows.stack_trace ],
+        \   ] ],
+        \   [ 'col', [
+        \     [ 'row', [
+        \       [ 'leaf', g:vimspector_session_windows.code ],
+        \       [ 'leaf', g:vimspector_session_windows.terminal ],
+        \     ] ],
+        \     [ 'leaf', g:vimspector_session_windows.output ],
+        \   ] ],
+        \ ] ],
+        \ winlayout( g:vimspector_session_windows.tabpage ) )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+function! TearDown_Test_AutoLayoutTerminalHorizVertButNotEnoughLines()
+  unlet s:vimspector_ui_mode
+  call vimspector#test#setup#PopOption( 'lines' )
+  call vimspector#test#setup#PopOption( 'columns' )
+endfunction
+
+function! SetUp_Test_AutoLayoutTerminalHoriz()
+  let s:vimspector_ui_mode = 'vertical'
+  " Vertical layout, but we split the terminal horizonally
+  call vimspector#test#setup#PushOption( 'columns', 200 )
+  call vimspector#test#setup#PushOption( 'lines', 50 )
+endfunction
+
+function! Test_AutoLayoutTerminalHoriz()
+  call s:StartDebugging()
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 25, 1 )
+
+  call assert_equal( 'vertical', g:vimspector_session_windows.mode )
+  call assert_equal(
+        \ [ 'col', [
+        \   [ 'row', [
+        \     [ 'leaf', g:vimspector_session_windows.variables ],
+        \     [ 'leaf', g:vimspector_session_windows.watches ],
+        \     [ 'leaf', g:vimspector_session_windows.stack_trace ],
+        \   ] ],
+        \   [ 'row', [
+        \     [ 'leaf', g:vimspector_session_windows.code ],
+        \     [ 'leaf', g:vimspector_session_windows.terminal ],
+        \   ] ],
+        \   [ 'leaf', g:vimspector_session_windows.output ],
+        \ ] ],
+        \ winlayout( g:vimspector_session_windows.tabpage ) )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+function! TearDown_Test_AutoLayoutTerminalHoriz()
+  unlet s:vimspector_ui_mode
+  call vimspector#test#setup#PopOption( 'lines' )
+  call vimspector#test#setup#PopOption( 'columns' )
+endfunction
+
+function! SetUp_Test_AutoLayoutTerminalVertVert()
+  let s:vimspector_ui_mode = 'auto'
+  " Not wide enough to go horizontal, but wide enough to put the terminal and
+  " code vertically split
+  call vimspector#test#setup#PushOption( 'columns', 80 )
+  call vimspector#test#setup#PushOption( 'lines', 30 )
+endfunction
+
+function! Test_AutoLayoutTerminalVertVert()
+  call s:StartDebugging()
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 25, 1 )
+
+  call assert_equal( 'vertical', g:vimspector_session_windows.mode )
+  call assert_equal(
+        \ [ 'col', [
+        \   [ 'row', [
+        \     [ 'leaf', g:vimspector_session_windows.variables ],
+        \     [ 'leaf', g:vimspector_session_windows.watches ],
+        \     [ 'leaf', g:vimspector_session_windows.stack_trace ],
+        \   ] ],
+        \   [ 'leaf', g:vimspector_session_windows.code ],
+        \   [ 'leaf', g:vimspector_session_windows.terminal ],
+        \   [ 'leaf', g:vimspector_session_windows.output ],
+        \ ] ],
+        \ winlayout( g:vimspector_session_windows.tabpage ) )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+function! TearDown_Test_AutoLayoutTerminalVertVert()
+  unlet s:vimspector_ui_mode
+  call vimspector#test#setup#PopOption( 'lines' )
+  call vimspector#test#setup#PopOption( 'columns' )
+endfunction
+
 
 function! Test_CloseVariables()
   call s:StartDebugging()
