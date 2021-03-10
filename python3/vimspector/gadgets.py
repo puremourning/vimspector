@@ -233,7 +233,7 @@ GADGETS = {
       'format': 'tar',
     },
     'all': {
-      'version': '1.2.0-635'
+      'version': '1.2.0-738'
     },
     'macos': {
       'file_name': 'netcoredbg-osx.tar.gz',
