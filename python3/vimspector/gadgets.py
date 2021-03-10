@@ -237,7 +237,7 @@ GADGETS = {
     },
     'macos': {
       'file_name': 'netcoredbg-osx.tar.gz',
-      'version': '1.2.0-536',
+      'version': '1.2.0-635',
       'checksum':
         '71c773e34d358950f25119bade7e3081c4c2f9d71847bd49027ca5792e918beb',
     },
