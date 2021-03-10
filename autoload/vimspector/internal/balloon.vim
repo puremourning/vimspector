@@ -177,9 +177,13 @@ function! vimspector#internal#balloon#CursorFilter( winid, key ) abort
                 \ . 'line_num = ' . line( '.', a:winid )
                 \ . ')' )
     return 1
+  elseif popup_filter_menu( a:winid, a:key )
+    return 1
+  else
+    " Any other key dismisses the popup
+    call vimspector#internal#balloon#Close()
+    return 1
   endif
-
-  return popup_filter_menu( a:winid, a:key )
 endfunction
 
 " }}}
