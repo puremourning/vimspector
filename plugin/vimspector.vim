@@ -67,6 +67,11 @@ nnoremap <silent> <Plug>VimspectorBalloonEval
 xnoremap <silent> <Plug>VimspectorBalloonEval
       \ :<c-u>call vimspector#ShowEvalBalloon( 1 )<CR>
 
+nnoremap <silent> <Plug>VimspectorUpFrame
+      \ :<c-u>call vimspector#UpFrame()<CR>
+nnoremap <silent> <Plug>VimspectorDownFrame
+      \ :<c-u>call vimspector#DownFrame()<CR>
+
 if s:mappings ==# 'VISUAL_STUDIO'
   nmap <F5>         <Plug>VimspectorContinue
   nmap <S-F5>       <Plug>VimspectorStop

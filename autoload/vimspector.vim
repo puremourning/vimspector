@@ -234,6 +234,20 @@ function! vimspector#GoToFrame() abort
   py3 _vimspector_session.ExpandFrameOrThread()
 endfunction
 
+function! vimspector#UpFrame() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.UpFrame()
+endfunction
+
+function! vimspector#DownFrame() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.DownFrame()
+endfunction
+
 function! vimspector#AddWatch( ... ) abort
   if !s:Enabled()
     return
