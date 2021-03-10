@@ -1,7 +1,7 @@
 let s:fn='../support/test/python/simple_python/main.py'
 
 function! SetUp()
-  let g:vimspector_ui_mode = 'horizontal'
+  let g:vimspector_ui_mode = get( s:, 'vimspector_ui_mode', 'horizontal' )
   call vimspector#test#setup#SetUpWithMappings( 'HUMAN' )
 endfunction
 
@@ -43,6 +43,40 @@ function! Test_StandardLayout()
   call vimspector#test#setup#Reset()
   %bwipe!
 endfunction
+
+function! SetUp_Test_NarrowLayout()
+  let s:vimspector_ui_mode = 'vertical'
+endfunction
+
+function! Test_NarrowLayout()
+  call s:StartDebugging()
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 25, 1 )
+
+  call assert_equal(
+        \ [ 'col', [
+        \   [ 'row', [
+        \     [ 'leaf', g:vimspector_session_windows.variables ],
+        \     [ 'leaf', g:vimspector_session_windows.watches ],
+        \     [ 'leaf', g:vimspector_session_windows.stack_trace ],
+        \   ] ],
+        \   [ 'row', [
+        \     [ 'leaf', g:vimspector_session_windows.code ],
+        \     [ 'leaf', g:vimspector_session_windows.terminal ],
+        \   ] ],
+        \   [ 'leaf', g:vimspector_session_windows.output ],
+        \ ] ],
+        \ winlayout( g:vimspector_session_windows.tabpage ) )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+function! TearDown_Test_NarrowLayout()
+  unlet s:vimspector_ui_mode
+endfunction
+
 
 function! Test_CloseVariables()
   call s:StartDebugging()
