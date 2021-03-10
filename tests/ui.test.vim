@@ -1,6 +1,7 @@
 let s:fn='../support/test/python/simple_python/main.py'
 
 function! SetUp()
+  let g:vimspector_ui_mode = 'horizontal'
   call vimspector#test#setup#SetUpWithMappings( 'HUMAN' )
 endfunction
 

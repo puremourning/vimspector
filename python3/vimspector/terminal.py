@@ -23,12 +23,12 @@ def LaunchTerminal( api_prefix,
   env = params.get( 'env' ) or {}
 
   term_options = {
-    # Use a vsplit in widw mode, and a horizontal split in narrow mode
+    # Use a vsplit in wide mode, and a horizontal split in narrow mode
     'vertical': (
       # Use a vsplit if we're in horizontal mode, or if we're in vertical mode,
       # but there's enough space for the code and the terminal horizontally
       # (this gives more vertical space, which becomes at at premium)
-      vim.vars[ 'vimspector_session_windows' ][ 'mode' ] == 'horizontal' or
+      settings.Get( 'ui_mode' ) == 'horizontal' or
       vim.options[ 'columns' ] >= (
         settings.Int( 'terminal_maxwidth' ) +
           settings.Int( 'code_minwidth' ) +
