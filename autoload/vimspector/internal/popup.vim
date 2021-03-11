@@ -12,6 +12,7 @@
 " WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 " See the License for the specific language governing permissions and
 " limitations under the License.
+scriptencoding utf-8
 
 
 " Boilerplate {{{
@@ -36,7 +37,7 @@ let s:current_selection = 0
 let s:selections = []
 let s:text = []
 
-function! s:UpdatePopup( id )
+function! s:UpdatePopup( id ) abort
   let buf = copy( s:text )
   call extend( buf, s:DrawButtons() )
   call popup_settext( a:id, buf )
@@ -128,7 +129,7 @@ function! vimspector#internal#popup#Confirm(
   return popup_dialog( buf, config  )
 endfunction
 
-function! vimspector#internal#popup#SetBorderChars( config )
+function! vimspector#internal#popup#SetBorderChars( config ) abort
   " When ambiwidth is single, use prettier characters for the border. This
   " would look silly when ambiwidth is double.
   if &ambiwidth ==# 'single' && &encoding ==? 'utf-8'
