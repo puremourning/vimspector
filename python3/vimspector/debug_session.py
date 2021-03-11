@@ -657,8 +657,6 @@ class DebugSession( object ):
 
     mode = settings.Get( 'ui_mode' )
 
-    self._logger.debug( 'ui_mode = %s', mode )
-
     if mode == 'auto':
       # Go vertical if there isn't enough horizontal space for at least:
       #  the left bar width
@@ -670,13 +668,23 @@ class DebugSession( object ):
                     + settings.Int( 'code_minwidth' )
                     + 1 + settings.Int( 'terminal_minwidth' ) )
 
+      min_height = ( settings.Int( 'code_minheight' ) + 1 +
+                     settings.Int( 'topbar_height' ) + 1 +
+                     settings.Int( 'bottombar_height' ) + 1 +
+                     2 )
+
       mode = ( 'vertical'
                if vim.options[ 'columns' ] < min_width
                else 'horizontal' )
 
-      self._logger.debug( 'min_width: %s, actual: %s - result: %s',
+      if vim.options[ 'lines' ] < min_height:
+        mode = 'horizontal'
+
+      self._logger.debug( 'min_width/height: %s/%s, actual: %s/%s - result: %s',
                           min_width,
+                          min_height,
                           vim.options[ 'columns' ],
+                          vim.options[ 'lines' ],
                           mode )
 
     if mode == 'vertical':

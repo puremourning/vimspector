@@ -256,7 +256,7 @@ function! SetUp_Test_AutoLayoutTerminalVertVert()
   " Not wide enough to go horizontal, but wide enough to put the terminal and
   " code vertically split
   call vimspector#test#setup#PushOption( 'columns', 80 )
-  call vimspector#test#setup#PushOption( 'lines', 30 )
+  call vimspector#test#setup#PushOption( 'lines', 50 )
 endfunction
 
 function! Test_AutoLayoutTerminalVertVert()
