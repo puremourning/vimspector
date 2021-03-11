@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from vimspector.debug_session import DebugSession
-from vimspector import utils
+from vimspector import utils, settings
 
 
 class JavaDebugAdapter( object ):
@@ -36,8 +36,16 @@ class JavaDebugAdapter( object ):
             'arguments': {},
           } )
 
-      utils.Confirm( self.debug_session._api_prefix,
-                     'Code has changed, hot reload?',
-                     handler )
+      mode = settings.Get( 'java_hotcodereplace_mode' )
+      if mode == 'ask':
+        utils.Confirm( self.debug_session._api_prefix,
+                       'Code has changed, hot reload?',
+                       handler,
+                       default_value = 1 )
+      elif mode == 'always':
+        self.debug_session._connection.DoRequest( None, {
+          'command': 'redefineClasses',
+          'arguments': {},
+        } )
     elif body.get( 'message' ):
       utils.UserMessage( 'Hot code replace: ' + body[ 'message' ] )

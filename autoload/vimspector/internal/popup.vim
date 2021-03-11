@@ -42,12 +42,9 @@ function! s:UpdatePopup( id )
   call popup_settext( a:id, buf )
 endfunction
 
-function! s:YesNoDefaultFilter( default_value, id, key ) abort
+function! s:ConfirmKeyFilter( keys, id, key ) abort
   if a:key ==# "\<CR>"
     call popup_close( a:id, s:current_selection + 1 )
-    return 1
-  elseif a:key ==# 'D' || a:key ==# 'd'
-    call popup_close( a:id, a:default_value )
     return 1
   elseif index( [ "\<Tab>", "\<Right>" ], a:key ) >= 0
     let s:current_selection = ( s:current_selection + 1 ) % len( s:selections )
@@ -58,9 +55,19 @@ function! s:YesNoDefaultFilter( default_value, id, key ) abort
           \ ? len( s:selections ) - 1: s:current_selection - 1
     call s:UpdatePopup( a:id )
     return 1
+  elseif a:key ==# "\<Esc>" || a:key ==# "\<C-c>"
+    call popup_close( a:id, -1 )
+    return 1
   endif
 
-  return popup_filter_yesno( a:id, a:key )
+  let index = 1
+  for key in a:keys
+    if a:key ==? key
+      call popup_close( a:id, index )
+      return 1
+    endif
+    let index += 1
+  endfor
 endfunction
 
 function! s:ConfirmCallback( confirm_id, id, result ) abort
@@ -90,7 +97,8 @@ function! vimspector#internal#popup#Confirm(
       \ confirm_id,
       \ text,
       \ options,
-      \ default_value ) abort
+      \ default_value,
+      \ keys ) abort
 
   silent! call prop_type_add( 'VimspectorSelectedItem', {
         \ 'highlight': 'PMenuSel'
@@ -112,7 +120,7 @@ function! vimspector#internal#popup#Confirm(
 
   let config = {
         \   'callback': function( 's:ConfirmCallback', [ a:confirm_id ] ),
-        \   'filter': function( 's:YesNoDefaultFilter', [ a:default_value ] ),
+        \   'filter': function( 's:ConfirmKeyFilter', [ a:keys ] ),
         \   'mapping': v:false,
         \ }
   let config = vimspector#internal#popup#SetBorderChars( config )
