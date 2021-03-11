@@ -83,7 +83,7 @@ in the issue report.
 The minimal vimrc is in `support/test/minimal_vimrc` and can be used as follows:
 
 ```
-vim -Nu /path/to/vimspector/support/minimal_vimrc
+vim --clean -Nu /path/to/vimspector/support/minimal_vimrc
 ```
 
 ## Pull Requests
