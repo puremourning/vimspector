@@ -949,10 +949,12 @@ class DebugSession( object ):
       def handle_choice( choice ):
         arguments = {}
         if choice == 1:
+          # yes
           arguments[ 'terminateDebuggee' ] = True
-        elif choice == 0:
+        elif choice == 2:
+          # no
           arguments[ 'terminateDebuggee' ] = False
-        elif choice == -1:
+        else:
           # Abort
           return
 
@@ -961,7 +963,9 @@ class DebugSession( object ):
       utils.Confirm( self._api_prefix,
                      "Terminate debuggee?",
                      handle_choice,
-                     default_value = 3 )
+                     default_value = 3,
+                     options = [ '(Y)es', '(N)o', '(D)efault' ],
+                     keys = [ 'y', 'n', 'd' ] )
 
 
   def _PrepareAttach( self, adapter_config, launch_config ):

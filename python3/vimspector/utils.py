@@ -390,18 +390,26 @@ def ConfirmCallback( confirm_id, result ):
   handler( result )
 
 
-def Confirm( api_prefix, prompt, handler, default_value = 3, options = None ):
-  global CONFIRM_ID
+def Confirm( api_prefix,
+             prompt,
+             handler,
+             default_value = 2,
+             options: list = None,
+             keys: list = None ):
   if not options:
-    options = [ '(Y)es', '(N)o', '(D)efault' ]
+    options = [ '(Y)es', '(N)o' ]
+  if not keys:
+    keys = [ 'y', 'n' ]
 
+  global CONFIRM_ID
   CONFIRM_ID += 1
   CONFIRM[ CONFIRM_ID ] = handler
   Call( f'vimspector#internal#{ api_prefix }popup#Confirm',
         CONFIRM_ID,
         prompt,
         options,
-        default_value )
+        default_value,
+        keys )
 
 
 def AppendToBuffer( buf, line_or_lines, modified=False ):

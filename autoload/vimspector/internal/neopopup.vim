@@ -82,29 +82,52 @@ endfunction
 
 function! vimspector#internal#neopopup#Confirm( confirm_id,
                                               \ text,
-                                              \ default_value ) abort
+                                              \ options,
+                                              \ default_value,
+                                              \ keys ) abort
 
   " Neovim doesn't have an equivalent of popup_dialog, and it's way too much
   " effort to write one, so we just use confirm().
-  let result = confirm( a:text, '&Yes &No &Default', 3 )
+  let prompt = a:text
+  for opt in a:options
+    let prompt .= ' ' . opt
+  endfor
+  let prompt .= ': '
+
+  " Annoyingly we can't use confirm() here because for some reason it doesn't
+  " render properly in a channel callback. So we use input() and mimic dialog
+  " behaviour.
+  try
+    let result = input( prompt, a:keys[ a:default_value - 1 ] )
+  catch /.*/
+    let result = -1
+  endtry
 
   " Map the results to what popup_menu_filter would return (ok s:ConfirmCallback
   " in popup.vim)
-  if result == 2
-    " No is represented as 0
-    let result = 0
-  elseif result == 0
+  if result == ''
     " User pressed ESC/ctrl-c
     let result = -1
-  elseif result == 3
-    " Default
-    let result = a:default_value
+  else
+    let index = 1
+    for k in a:keys
+      if k ==? result
+        let result = index
+        break
+      endif
+      let index += 2
+    endfor
+
+    if index >= len( a:keys )
+      let result = -1
+    endif
   endif
 
   py3 __import__( 'vimspector', fromlist = [ 'utils' ] ).utils.ConfirmCallback(
         \ int( vim.eval( 'a:confirm_id' ) ),
         \ int( vim.eval( 'result' ) ) )
 endfunction
+
 " Boilerplate {{{
 let &cpoptions=s:save_cpo
 unlet s:save_cpo
