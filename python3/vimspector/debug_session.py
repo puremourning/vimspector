@@ -655,6 +655,45 @@ class DebugSession( object ):
     vim.command( 'tab split' )
     self._uiTab = vim.current.tabpage
 
+    mode = settings.Get( 'ui_mode' )
+
+    if mode == 'auto':
+      # Go vertical if there isn't enough horizontal space for at least:
+      #  the left bar width
+      #  + the code min width
+      #  + the terminal min width
+      #  + enough space for a sign column and number column?
+      min_width = ( settings.Int( 'sidebar_width' )
+                    + 1 + 2 + 3
+                    + settings.Int( 'code_minwidth' )
+                    + 1 + settings.Int( 'terminal_minwidth' ) )
+
+      min_height = ( settings.Int( 'code_minheight' ) + 1 +
+                     settings.Int( 'topbar_height' ) + 1 +
+                     settings.Int( 'bottombar_height' ) + 1 +
+                     2 )
+
+      mode = ( 'vertical'
+               if vim.options[ 'columns' ] < min_width
+               else 'horizontal' )
+
+      if vim.options[ 'lines' ] < min_height:
+        mode = 'horizontal'
+
+      self._logger.debug( 'min_width/height: %s/%s, actual: %s/%s - result: %s',
+                          min_width,
+                          min_height,
+                          vim.options[ 'columns' ],
+                          vim.options[ 'lines' ],
+                          mode )
+
+    if mode == 'vertical':
+      self._SetUpUIVertical()
+    else:
+      self._SetUpUIHorizontal()
+
+
+  def _SetUpUIHorizontal( self ):
     # Code window
     code_window = vim.current.window
     self._codeView = code.CodeView( code_window, self._api_prefix )
@@ -695,6 +734,66 @@ class DebugSession( object ):
     # TODO: If/when we support multiple sessions, we'll need some way to
     # indicate which tab was created and store all the tabs
     vim.vars[ 'vimspector_session_windows' ] = {
+      'mode': 'horizontal',
+      'tabpage': self._uiTab.number,
+      'code': utils.WindowID( code_window, self._uiTab ),
+      'stack_trace': utils.WindowID( stack_trace_window, self._uiTab ),
+      'variables': utils.WindowID( vars_window, self._uiTab ),
+      'watches': utils.WindowID( watch_window, self._uiTab ),
+      'output': utils.WindowID( output_window, self._uiTab ),
+      'eval': None # this is going to be updated every time eval popup is opened
+    }
+    with utils.RestoreCursorPosition():
+      with utils.RestoreCurrentWindow():
+        with utils.RestoreCurrentBuffer( vim.current.window ):
+          vim.command( 'doautocmd User VimspectorUICreated' )
+
+
+  def _SetUpUIVertical( self ):
+    # Code window
+    code_window = vim.current.window
+    self._codeView = code.CodeView( code_window, self._api_prefix )
+
+    # Call stack
+    vim.command(
+      f'topleft { settings.Int( "topbar_height" ) }new' )
+    stack_trace_window = vim.current.window
+    one_third = int( vim.eval( 'winwidth( 0 )' ) ) / 3
+    self._stackTraceView = stack_trace.StackTraceView( self,
+                                                       stack_trace_window )
+
+
+    # Watches
+    vim.command( 'leftabove vertical new' )
+    watch_window = vim.current.window
+
+    # Variables
+    vim.command( 'leftabove vertical new' )
+    vars_window = vim.current.window
+
+
+    with utils.LetCurrentWindow( vars_window ):
+      vim.command( f'{ one_third }wincmd |' )
+    with utils.LetCurrentWindow( watch_window ):
+      vim.command( f'{ one_third }wincmd |' )
+    with utils.LetCurrentWindow( stack_trace_window ):
+      vim.command( f'{ one_third }wincmd |' )
+
+    self._variablesView = variables.VariablesView( vars_window,
+                                                   watch_window )
+
+
+    # Output/logging
+    vim.current.window = code_window
+    vim.command( f'rightbelow { settings.Int( "bottombar_height" ) }new' )
+    output_window = vim.current.window
+    self._outputView = output.DAPOutputView( output_window,
+                                             self._api_prefix )
+
+    # TODO: If/when we support multiple sessions, we'll need some way to
+    # indicate which tab was created and store all the tabs
+    vim.vars[ 'vimspector_session_windows' ] = {
+      'mode': 'vertical',
       'tabpage': self._uiTab.number,
       'code': utils.WindowID( code_window, self._uiTab ),
       'stack_trace': utils.WindowID( stack_trace_window, self._uiTab ),

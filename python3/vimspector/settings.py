@@ -20,11 +20,20 @@ from vimspector import utils
 
 DEFAULTS = {
   # UI
-  'bottombar_height':  10,
-  'sidebar_width':     50,
-  'code_minwidth':     82,
-  'terminal_maxwidth': 80,
-  'terminal_minwidth': 10,
+  'ui_mode':            'auto',
+  'bottombar_height':   10,
+
+  # For ui_mode = 'horizontal':
+  'sidebar_width':      50,
+  'code_minwidth':      82,
+  'terminal_maxwidth':  80,
+  'terminal_minwidth':  10,
+
+  # For ui_mode = 'vertical':
+  'topbar_height':      15,
+  'code_minheight':     20,
+  'terminal_maxheight': 15,
+  'terminal_minheight': 5,
 
   # Signs
   'sign_priority': {
