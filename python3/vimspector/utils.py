@@ -378,6 +378,7 @@ def AskForInput( prompt, default_value = None, completion = None ):
 CONFIRM = {}
 CONFIRM_ID = 0
 
+
 def ConfirmCallback( confirm_id, result ):
   try:
     handler = CONFIRM.pop( confirm_id )
