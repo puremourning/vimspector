@@ -35,6 +35,7 @@ class TestExpandReferencesInDict( unittest.TestCase ):
       'one': '${one}',
       'two': '${one} and ${two}',
       'three': '${three}',
+      'three_with_default': '${three_with_default:${three\\}}', # uses calculus
       'four': '${four}',
       'five': '${five}',
       'list': [ '*${words}' ],
@@ -58,6 +59,7 @@ class TestExpandReferencesInDict( unittest.TestCase ):
       'one': 'one',
       'two': 'one and TWO',
       'three': '3',
+      'three_with_default': '3',
       'four': 'typed text',
       'five': '5ive!',
       'list': [ 'these', 'are', 'some', 'words' ],
