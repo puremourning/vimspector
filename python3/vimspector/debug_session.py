@@ -571,6 +571,14 @@ class DebugSession( object ):
   def ExpandFrameOrThread( self ):
     self._stackTraceView.ExpandFrameOrThread()
 
+  @IfConnected()
+  def UpFrame( self ):
+    self._stackTraceView.UpFrame()
+
+  @IfConnected()
+  def DownFrame( self ):
+    self._stackTraceView.DownFrame()
+
   def ToggleLog( self ):
     if self._HasUI():
       return self.ShowOutput( 'Vimspector' )

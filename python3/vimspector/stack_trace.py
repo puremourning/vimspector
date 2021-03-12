@@ -367,6 +367,46 @@ class StackTraceView( object ):
       self._JumpToFrame( frame )
 
 
+
+  def _GetFrameOffset( self, delta ):
+    thread: Thread
+    for thread in self._threads:
+      if thread.id != self._current_thread:
+        continue
+
+      if not thread.stacktrace:
+        return
+
+      frame_idx = None
+      for index, frame in enumerate( thread.stacktrace ):
+        if frame == self._current_frame:
+          frame_idx = index
+          break
+
+      if frame_idx is not None:
+        target_idx = frame_idx + delta
+        if target_idx >= 0 and target_idx < len( thread.stacktrace ):
+          return thread.stacktrace[ target_idx ]
+
+      break
+
+
+  def UpFrame( self ):
+    frame = self._GetFrameOffset( 1 )
+    if not frame:
+      utils.UserMessage( 'Top of stack' )
+    else:
+      self._JumpToFrame( frame, 'up' )
+
+
+  def DownFrame( self ):
+    frame = self._GetFrameOffset( -1 )
+    if not frame:
+      utils.UserMessage( 'Bottom of stack' )
+    else:
+      self._JumpToFrame( frame, 'down' )
+
+
   def AnyThreadsRunning( self ):
     for thread in self._threads:
       if thread.state != Thread.TERMINATED:
