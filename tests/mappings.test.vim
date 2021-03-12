@@ -141,3 +141,29 @@ function! Test_Use_Mappings_HUMAN()
   %bwipeout!
 endfunction
 
+
+function! SetUp_Test_Use_Mappings_HUMAN_ForceMenu()
+  let g:vimspector_enable_mappings = 'HUMAN'
+endfunction
+
+function! Test_Use_Mappings_HUMAN_ForceMenu()
+  call ThisTestIsFlaky()
+  lcd testdata/cpp/simple
+  edit simple.cpp
+  call setpos( '.', [ 0, 15, 1 ] )
+
+  " Comma is the leader
+  py3 <<EOF
+from unittest import mock
+with mock.patch( 'vimspector.utils.SelectFromList', return_value=1 ) as sfl:
+  vim.eval( 'feedkeys( ",\<F5>", "xt" )' )
+  sfl.assert_called()
+EOF
+
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
+
+  call vimspector#test#setup#Reset()
+
+  lcd -
+  %bwipeout!
+endfunction

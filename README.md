@@ -695,17 +695,17 @@ loading vimspector**:
 let g:vimspector_enable_mappings = 'VISUAL_STUDIO'
 ```
 
-| Key               | Function                                                  | API |
-| ---               | ---                                                       | --- |
-| `F5`              | When debugging, continue. Otherwise start debugging.      | `vimspector#Continue()` |
-| `Shift F5`        | Stop debugging.                                           | `vimspector#Stop()` |
-| `Ctrl Shift F5`   | Restart debugging with the same configuration.            | `vimspector#Restart()` |
-| `F6`              | Pause debuggee.                                            | `vimspector#Pause()` |
-| `F9`              | Toggle line breakpoint on the current line.               | `vimspector#ToggleBreakpoint()` |
-| `Shift F9`        | Add a function breakpoint for the expression under cursor | `vimspector#AddFunctionBreakpoint( '<cexpr>' )` |
-| `F10`             | Step Over                                                 | `vimspector#StepOver()` |
-| `F11`             | Step Into                                                 | `vimspector#StepInto()` |
-| `Shift F11`       | Step out of current function scope                        | `vimspector#StepOut()` |
+| Key             | Function                                                  | API                                             |
+| ---             | ---                                                       | ---                                             |
+| `F5`            | When debugging, continue. Otherwise start debugging.      | `vimspector#Continue()`                         |
+| `Shift F5`      | Stop debugging.                                           | `vimspector#Stop()`                             |
+| `Ctrl Shift F5` | Restart debugging with the same configuration.            | `vimspector#Restart()`                          |
+| `F6`            | Pause debuggee.                                           | `vimspector#Pause()`                            |
+| `F9`            | Toggle line breakpoint on the current line.               | `vimspector#ToggleBreakpoint()`                 |
+| `Shift F9`      | Add a function breakpoint for the expression under cursor | `vimspector#AddFunctionBreakpoint( '<cexpr>' )` |
+| `F10`           | Step Over                                                 | `vimspector#StepOver()`                         |
+| `F11`           | Step Into                                                 | `vimspector#StepInto()`                         |
+| `Shift F11`     | Step out of current function scope                        | `vimspector#StepOut()`                          |
 
 ## Human Mode
 
@@ -720,19 +720,20 @@ loading vimspector**:
 let g:vimspector_enable_mappings = 'HUMAN'
 ```
 
-| Key          | Function                                                  | API                                                          |
-| ---          | ---                                                       | ---                                                          |
-| `F5`         | When debugging, continue. Otherwise start debugging.      | `vimspector#Continue()`                                      |
-| `F3`         | Stop debugging.                                           | `vimspector#Stop()`                                          |
-| `F4`         | Restart debugging with the same configuration.            | `vimspector#Restart()`                                       |
-| `F6`         | Pause debuggee.                                            | `vimspector#Pause()`                                         |
-| `F9`         | Toggle line breakpoint on the current line.               | `vimspector#ToggleBreakpoint()`                              |
+| Key          | Function                                                  | API                                                               |
+| ---          | ---                                                       | ---                                                               |
+| `F5`         | When debugging, continue. Otherwise start debugging.      | `vimspector#Continue()`                                           |
+| `<Leader>F5` | Start debugging, do not default the debug profile         | `vimspector#Launch( v:true )`                                     |
+| `F3`         | Stop debugging.                                           | `vimspector#Stop()`                                               |
+| `F4`         | Restart debugging with the same configuration.            | `vimspector#Restart()`                                            |
+| `F6`         | Pause debuggee.                                           | `vimspector#Pause()`                                              |
+| `F9`         | Toggle line breakpoint on the current line.               | `vimspector#ToggleBreakpoint()`                                   |
 | `<leader>F9` | Toggle conditional line breakpoint on the current line.   | `vimspector#ToggleBreakpoint( { trigger expr, hit count expr } )` |
-| `F8`         | Add a function breakpoint for the expression under cursor | `vimspector#AddFunctionBreakpoint( '<cexpr>' )`              |
-| `<leader>F8` | Run to Cursor                                             | `vimspector#RunToCursor()`                                   |
-| `F10`        | Step Over                                                 | `vimspector#StepOver()`                                      |
-| `F11`        | Step Into                                                 | `vimspector#StepInto()`                                      |
-| `F12`        | Step out of current function scope                        | `vimspector#StepOut()`                                       |
+| `F8`         | Add a function breakpoint for the expression under cursor | `vimspector#AddFunctionBreakpoint( '<cexpr>' )`                   |
+| `<leader>F8` | Run to Cursor                                             | `vimspector#RunToCursor()`                                        |
+| `F10`        | Step Over                                                 | `vimspector#StepOver()`                                           |
+| `F11`        | Step Into                                                 | `vimspector#StepInto()`                                           |
+| `F12`        | Step out of current function scope                        | `vimspector#StepOut()`                                            |
 
 In addition, I recommend adding a mapping to `<Plug>VimspectorBalloonEval`, in
 normal and visual modes, for example:
@@ -745,6 +746,10 @@ nmap <Leader>di <Plug>VimspectorBalloonEval
 " for visual mode, the visually selected text
 xmap <Leader>di <Plug>VimspectorBalloonEval
 ```
+
+If you would like to have custom mappings, or mappings active only while
+debugging, then take a look at the
+[customisation sectoin](#custom-mappings-while-debugging).
 
 # Usage and API
 
