@@ -356,3 +356,117 @@ function! Test_Multiple_Threads_Step()
   call vimspector#test#setup#Reset()
   %bwipe!
 endfunction
+
+function! Test_UpDownStack()
+  let fn='../support/test/python/simple_python/main.py'
+  exe 'edit ' . fn
+  call setpos( '.', [ 0, 6, 1 ] )
+
+  call vimspector#SetLineBreakpoint( fn, 15 )
+  call vimspector#LaunchWithSettings( { 'configuration': 'run' } )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 15, 1 )
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \         '- Thread 1: MainThread (paused)',
+        \         '  2: DoSomething@main.py:15',
+        \         '  3: __init__@main.py:8',
+        \         '  4: Main@main.py:23',
+        \         '  5: <module>@main.py:29',
+        \     ],
+        \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  call vimspector#DownFrame()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 15, 1 )
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \         '- Thread 1: MainThread (paused)',
+        \         '  2: DoSomething@main.py:15',
+        \         '  3: __init__@main.py:8',
+        \         '  4: Main@main.py:23',
+        \         '  5: <module>@main.py:29',
+        \     ],
+        \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  call vimspector#UpFrame()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 8, 1 )
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \         '- Thread 1: MainThread (paused)',
+        \         '  2: DoSomething@main.py:15',
+        \         '  3: __init__@main.py:8',
+        \         '  4: Main@main.py:23',
+        \         '  5: <module>@main.py:29',
+        \     ],
+        \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  call feedkeys( "\<Plug>VimspectorUpFrame", 'x' )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 23, 1 )
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \         '- Thread 1: MainThread (paused)',
+        \         '  2: DoSomething@main.py:15',
+        \         '  3: __init__@main.py:8',
+        \         '  4: Main@main.py:23',
+        \         '  5: <module>@main.py:29',
+        \     ],
+        \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  call feedkeys( "\<Plug>VimspectorDownFrame", 'x' )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 8, 1 )
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \         '- Thread 1: MainThread (paused)',
+        \         '  2: DoSomething@main.py:15',
+        \         '  3: __init__@main.py:8',
+        \         '  4: Main@main.py:23',
+        \         '  5: <module>@main.py:29',
+        \     ],
+        \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  call vimspector#DownFrame()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 15, 1 )
+  call WaitForAssert( {->
+        \   AssertMatchist(
+        \     [
+        \         '- Thread 1: MainThread (paused)',
+        \         '  2: DoSomething@main.py:15',
+        \         '  3: __init__@main.py:8',
+        \         '  4: Main@main.py:23',
+        \         '  5: <module>@main.py:29',
+        \     ],
+        \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+
+  call vimspector#ClearBreakpoints()
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
