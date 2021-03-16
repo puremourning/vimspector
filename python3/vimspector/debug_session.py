@@ -954,9 +954,10 @@ class DebugSession( object ):
         elif choice == 2:
           # no
           arguments[ 'terminateDebuggee' ] = False
-        else:
+        elif choice <= 0:
           # Abort
           return
+        # Else, use server default
 
         disconnect( arguments )
 
