@@ -218,7 +218,8 @@ class DebugAdapterConnection( object ):
 
     if len( self._buffer ) < content_length:
       # Need more data
-      assert self._state == 'READ_BODY'
+      if self._state != 'READ_BODY':
+        raise AssertionError
       return
 
     payload = str( self._buffer[ : content_length ], 'utf-8' )

@@ -115,7 +115,8 @@ class OutputView( object ):
     return self._window.valid
 
   def UseWindow( self, win ):
-    assert not self._window.valid
+    if self._window.valid:
+      raise AssertionError
     self._window = win
     # TODO: Sorting of the WinBar ?
     for category, _ in self._buffers.items():
@@ -165,7 +166,8 @@ class OutputView( object ):
       buf_to_delete = self._window.buffer
 
     if file_name is not None:
-      assert cmd is None
+      if cmd is not None:
+        raise AssertionError
       if install.GetOS() == "windows":
         # FIXME: Can't display fiels in windows (yet?)
         return

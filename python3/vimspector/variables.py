@@ -54,7 +54,8 @@ class Expandable:
 
   @abc.abstractmethod
   def VariablesReference( self ):
-    assert False
+    if not False:
+      raise AssertionError
 
 
 class Scope( Expandable ):
@@ -582,7 +583,8 @@ class VariablesView( object ):
 
 
   def _DrawVariables( self, view, variables, indent, is_short = False ):
-    assert indent > 0
+    if indent <= 0:
+      raise AssertionError
     for variable in variables:
       text = ''
       if is_short:
@@ -661,7 +663,8 @@ class VariablesView( object ):
     if not watch.result:
       return
 
-    assert is_short or indent > 0
+    if not ( is_short or indent > 0 ):
+      raise AssertionError
 
     if is_short:
       # The first result is always expanded in a hover (short format)

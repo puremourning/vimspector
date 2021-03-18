@@ -292,7 +292,8 @@ class ProjectBreakpoints( object ):
 
 
   def SendBreakpoints( self, doneHandler = None ):
-    assert self._breakpoints_handler is not None
+    if self._breakpoints_handler is None:
+      raise AssertionError
 
     # Clear any existing breakpoints prior to sending new ones
     self._breakpoints_handler.ClearBreakpoints()
