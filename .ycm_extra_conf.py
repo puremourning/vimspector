@@ -42,7 +42,17 @@ def Settings( **kwargs ):
     return {
       'sys_path': [
         p.join( PATH_TO_THIS_DIR, 'python3' )
-      ]
+      ],
+      'ls': {
+        'python': {
+          'analysis': {
+            'extraPaths': [
+              p.join( PATH_TO_THIS_DIR, 'python3' ),
+            ],
+            'useLibraryCodeForTypes': True
+          }
+        }
+      }
     }
 
   if IgnoreExtraConf:
