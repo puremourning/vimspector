@@ -29,14 +29,14 @@ class PendingRequest( object ):
 
 
 class DebugAdapterConnection( object ):
-  def __init__( self, handler, send_func ):
+  def __init__( self, handlers, send_func ):
     self._logger = logging.getLogger( __name__ )
     utils.SetUpLogging( self._logger )
 
     self._Write = send_func
     self._SetState( 'READ_HEADER' )
     self._buffer = bytes()
-    self._handler = handler
+    self._handlers = handlers
     self._next_message_id = 0
     self._outstanding_requests = {}
 
@@ -124,7 +124,7 @@ class DebugAdapterConnection( object ):
 
   def Reset( self ):
     self._Write = None
-    self._handler = None
+    self._handlers = None
 
     while self._outstanding_requests:
       _, request = self._outstanding_requests.popitem()
@@ -237,7 +237,7 @@ class DebugAdapterConnection( object ):
 
 
   def _OnMessageReceived( self, message ):
-    if not self._handler:
+    if not self._handlers:
       return
 
     if message[ 'type' ] == 'response':
@@ -270,25 +270,21 @@ class DebugAdapterConnection( object ):
         self._logger.error( 'Request failed: {0}'.format( reason ) )
         if request.failure_handler:
           request.failure_handler( reason, message )
-        elif 'OnFailure' in dir( self._handler ):
-          self._handler.OnFailure( reason, request.msg, message )
         else:
-          utils.UserMessage( 'Request failed: {0}'.format( reason ) )
+          for h in self._handlers:
+            if 'OnFailure' in dir( h ):
+              h.OnFailure( reason, request.msg, message )
+
     elif message[ 'type' ] == 'event':
       method = 'OnEvent_' + message[ 'event' ]
-      if method in dir( self._handler ):
-        getattr( self._handler, method )( message )
-      else:
-        utils.UserMessage( 'Unhandled event: {0}'.format( message[ 'event' ] ),
-                           persist = True )
+      for h in self._handlers:
+        if method in dir( h ):
+          getattr( h, method )( message )
     elif message[ 'type' ] == 'request':
       method = 'OnRequest_' + message[ 'command' ]
-      if method in dir( self._handler ):
-        getattr( self._handler, method )( message )
-      else:
-        utils.UserMessage(
-          'Unhandled request: {0}'.format( message[ 'command' ] ),
-          persist = True )
+      for h in self._handlers:
+        if method in dir( h ):
+          getattr( h, method )( message )
 
 
 def _KillTimer( request ):

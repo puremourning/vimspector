@@ -21,6 +21,7 @@ import shlex
 import subprocess
 import functools
 import vim
+import importlib
 
 from vimspector import ( breakpoints,
                          code,
@@ -99,7 +100,7 @@ class DebugSession( object ):
 
     return launch_config_file, configurations
 
-  def Start( self, launch_variables = None ):
+  def Start( self, force_choose=False, launch_variables = None ):
     # We mutate launch_variables, so don't mutate the default argument.
     # https://docs.python-guide.org/writing/gotchas/#mutable-default-arguments
     if launch_variables is None:
@@ -134,6 +135,11 @@ class DebugSession( object ):
 
     if 'configuration' in launch_variables:
       configuration_name = launch_variables.pop( 'configuration' )
+    elif force_choose:
+      # Always display the menu
+      configuration_name = utils.SelectFromList(
+        'Which launch configuration?',
+        sorted( configurations.keys() ) )
     elif ( len( configurations ) == 1 and
            next( iter( configurations.values() ) ).get( "autoselect", True ) ):
       configuration_name = next( iter( configurations.keys() ) )
@@ -888,8 +894,21 @@ class DebugSession( object ):
                                                  self._splash_screen,
                                                  "Unable to start adapter" )
     else:
+      if 'custom_handler' in self._adapter:
+        spec = self._adapter[ 'custom_handler' ]
+        if isinstance( spec, dict ):
+          module = spec[ 'module' ]
+          cls = spec[ 'class' ]
+        else:
+          module, cls = spec.rsplit( '.', 1 )
+
+        CustomHandler = getattr( importlib.import_module( module ), cls )
+        handlers = [ CustomHandler( self ), self ]
+      else:
+        handlers = [ self ]
+
       self._connection = debug_adapter_connection.DebugAdapterConnection(
-        self,
+        handlers,
         lambda msg: utils.Call(
           "vimspector#internal#{}#Send".format( self._connection_type ),
           msg ) )
@@ -897,39 +916,58 @@ class DebugSession( object ):
     self._logger.info( 'Debug Adapter Started' )
 
   def _StopDebugAdapter( self, interactive = False, callback = None ):
-    self._splash_screen = utils.DisplaySplash(
-      self._api_prefix,
-      self._splash_screen,
-      "Shutting down debug adapter..." )
-
-    def handler( *args ):
-      self._splash_screen = utils.HideSplash( self._api_prefix,
-                                              self._splash_screen )
-
-      if callback:
-        self._logger.debug( "Setting server exit handler before disconnect" )
-        assert not self._run_on_server_exit
-        self._run_on_server_exit = callback
-
-      vim.eval( 'vimspector#internal#{}#StopDebugSession()'.format(
-        self._connection_type ) )
-
     arguments = {}
-    if ( interactive and
-         self._server_capabilities.get( 'supportTerminateDebuggee' ) ):
-      if self._stackTraceView.AnyThreadsRunning():
-        choice = utils.AskForInput( "Terminate debuggee [Y/N/default]? ", "" )
-        if choice == "Y" or choice == "y":
+
+    def disconnect():
+      self._splash_screen = utils.DisplaySplash(
+        self._api_prefix,
+        self._splash_screen,
+        "Shutting down debug adapter..." )
+
+      def handler( *args ):
+        self._splash_screen = utils.HideSplash( self._api_prefix,
+                                                self._splash_screen )
+
+        if callback:
+          self._logger.debug( "Setting server exit handler before disconnect" )
+          assert not self._run_on_server_exit
+          self._run_on_server_exit = callback
+
+        vim.eval( 'vimspector#internal#{}#StopDebugSession()'.format(
+          self._connection_type ) )
+
+      self._connection.DoRequest( handler, {
+        'command': 'disconnect',
+        'arguments': arguments,
+      }, failure_handler = handler, timeout = 5000 )
+
+    if not interactive:
+      disconnect()
+    elif not self._server_capabilities.get( 'supportTerminateDebuggee' ):
+      disconnect()
+    elif not self._stackTraceView.AnyThreadsRunning():
+      disconnect()
+    else:
+      def handle_choice( choice ):
+        if choice == 1:
+          # yes
           arguments[ 'terminateDebuggee' ] = True
-        elif choice == "N" or choice == 'n':
+        elif choice == 2:
+          # no
           arguments[ 'terminateDebuggee' ] = False
+        elif choice <= 0:
+          # Abort
+          return
+        # Else, use server default
 
-    self._connection.DoRequest( handler, {
-      'command': 'disconnect',
-      'arguments': arguments,
-    }, failure_handler = handler, timeout = 5000 )
+        disconnect()
 
-    # TODO: Use the 'tarminate' request if supportsTerminateRequest set
+      utils.Confirm( self._api_prefix,
+                     "Terminate debuggee?",
+                     handle_choice,
+                     default_value = 3,
+                     options = [ '(Y)es', '(N)o', '(D)efault' ],
+                     keys = [ 'y', 'n', 'd' ] )
 
 
   def _PrepareAttach( self, adapter_config, launch_config ):

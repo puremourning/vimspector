@@ -59,7 +59,10 @@ DEFAULTS = {
       'expand_or_jump': [ '<CR>', '<2-LeftMouse>' ],
       'focus_thread': [ '<leader><CR>' ],
     }
-  }
+  },
+
+  # Custom
+  'java_hotcodereplace_mode': 'ask',
 }
 
 
