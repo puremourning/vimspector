@@ -103,8 +103,10 @@ function! vimspector#internal#neopopup#Confirm( confirm_id,
     let result = -1
   endtry
 
-  " Map the results to what popup_menu_filter would return (ok s:ConfirmCallback
-  " in popup.vim)
+  " Map the results to what the vim popup stuff would return (s:ConfirmCallback
+  " in popup.vim), i.e.:
+  "  - 1-based index of selected item, or
+  "  - -1 or 0 for cancellation
   if result == ''
     " User pressed ESC/ctrl-c
     let result = -1
@@ -115,10 +117,10 @@ function! vimspector#internal#neopopup#Confirm( confirm_id,
         let result = index
         break
       endif
-      let index += 2
+      let index += 1
     endfor
 
-    if index >= len( a:keys )
+    if index > len( a:keys )
       let result = -1
     endif
   endif

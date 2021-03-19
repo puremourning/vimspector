@@ -916,7 +916,9 @@ class DebugSession( object ):
     self._logger.info( 'Debug Adapter Started' )
 
   def _StopDebugAdapter( self, interactive = False, callback = None ):
-    def disconnect( arguments = {} ):
+    arguments = {}
+
+    def disconnect():
       self._splash_screen = utils.DisplaySplash(
         self._api_prefix,
         self._splash_screen,
@@ -936,7 +938,7 @@ class DebugSession( object ):
 
       self._connection.DoRequest( handler, {
         'command': 'disconnect',
-        'arguments': {},
+        'arguments': arguments,
       }, failure_handler = handler, timeout = 5000 )
 
     if not interactive:
@@ -947,7 +949,6 @@ class DebugSession( object ):
       disconnect()
     else:
       def handle_choice( choice ):
-        arguments = {}
         if choice == 1:
           # yes
           arguments[ 'terminateDebuggee' ] = True
@@ -959,7 +960,7 @@ class DebugSession( object ):
           return
         # Else, use server default
 
-        disconnect( arguments )
+        disconnect()
 
       utils.Confirm( self._api_prefix,
                      "Terminate debuggee?",
