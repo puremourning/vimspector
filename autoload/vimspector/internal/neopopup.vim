@@ -87,16 +87,16 @@ function! vimspector#internal#neopopup#Confirm( confirm_id,
                                               \ keys ) abort
 
   " Neovim doesn't have an equivalent of popup_dialog, and it's way too much
-  " effort to write one, so we just use confirm().
+  " effort to write one, so we just use confirm()...
+  " Annoyingly we can't use confirm() here because for some reason it doesn't
+  " render properly in a channel callback. So we use input() and mimic dialog
+  " behaviour.
   let prompt = a:text
   for opt in a:options
     let prompt .= ' ' . opt
   endfor
   let prompt .= ': '
 
-  " Annoyingly we can't use confirm() here because for some reason it doesn't
-  " render properly in a channel callback. So we use input() and mimic dialog
-  " behaviour.
   try
     let result = input( prompt, a:keys[ a:default_value - 1 ] )
   catch /.*/
