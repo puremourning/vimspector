@@ -50,3 +50,59 @@ function! vimspector#test#setup#Reset() abort
   call popup_clear()
 endfunction
 
+let s:g_stack = {}
+
+function! vimspector#test#setup#PushGlobal( name, value ) abort
+  if !has_key( s:g_stack, a:name )
+    let s:g_stack[ a:name ] = []
+  endif
+
+  let old_value = get( g:, a:name, v:null )
+  call add( s:g_stack[ a:name ], old_value )
+  let g:[ a:name ] = a:value
+
+  return old_value
+endfunction
+
+function! vimspector#test#setup#PopGlobal( name ) abort
+  if !has_key( s:g_stack, a:name ) || len( s:g_stack[ a:name ] ) == 0
+    return v:null
+  endif
+
+  let old_value = s:g_stack[ a:name ][ -1 ]
+  call remove( s:g_stack[ a:name ], -1 )
+
+  if old_value is v:null
+    silent! call remove( g:, a:name )
+  else
+    let g:[ a:name ] = old_value
+  endif
+
+  return old_value
+endfunction
+
+let s:o_stack = {}
+
+function! vimspector#test#setup#PushOption( name, value ) abort
+  if !has_key( s:o_stack, a:name )
+    let s:o_stack[ a:name ] = []
+  endif
+
+  let old_value = v:null
+  execute 'let old_value = &' . a:name
+  call add( s:o_stack[ a:name ], old_value )
+  execute 'set ' . a:name . '=' . a:value
+  return old_value
+endfunction
+
+function! vimspector#test#setup#PopOption( name ) abort
+  if !has_key( s:o_stack, a:name ) || len( s:o_stack[ a:name ] ) == 0
+    return v:null
+  endif
+
+  let old_value = s:o_stack[ a:name ][ -1 ]
+  call remove( s:o_stack[ a:name ], -1 )
+
+  execute 'set ' . a:name . '=' . old_value
+  return old_value
+endfunction

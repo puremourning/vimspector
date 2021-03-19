@@ -17,12 +17,12 @@ assignees: ''
 
 > Please answer the following questions
 
-* Does your issue reproduce using `vim -Nu /path/to/vimspector/support/minimal_vimrc` ? \[Yes/No]
+* Does your issue reproduce using `vim --clean -Nu /path/to/vimspector/support/minimal_vimrc` ? \[Yes/No]
 * If you are using Neovim, does your issue reproduce using Vim? \[Yes/No]
 
 > List of steps to reproduce:
 
-> 1. Run `vim -Nu /path/to/vimspector/support/minimal_vimrc`
+> 1. Run `vim ---clean Nu /path/to/vimspector/support/minimal_vimrc`
 > 2. Open _this project_...
 > 3. Press _this sequence of keys_
 

@@ -69,7 +69,6 @@ function! vimspector#internal#balloon#CreateTooltip( is_hover, ... ) abort
       \ 'resize': 1,
       \ 'close': 'button',
       \ 'callback': 'vimspector#internal#balloon#CloseCallback',
-      \ 'mapping': 0
       \ }
 
     " When ambiwidth is single, use prettier characters for the border. This
@@ -86,6 +85,7 @@ function! vimspector#internal#balloon#CreateTooltip( is_hover, ... ) abort
       let config[ 'filter' ] = 'vimspector#internal#balloon#CursorFilter'
       let config[ 'moved' ] = 'any'
       let config[ 'cursorline' ] = 1
+      let config[ 'mapping' ] = 0
       let s:popup_win_id = popup_atcursor( body, config )
     endif
 

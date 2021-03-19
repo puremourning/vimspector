@@ -494,7 +494,6 @@ def _Substitute( template, mapping ):
     if mo.group( 'braceddefault' ) is not None:
       named = mo.group( 'defname' )
       if named not in mapping:
-        ''
         raise MissingSubstitution(
           named,
           mo.group( 'default' ).replace( '\\}', '}' ) )
@@ -536,8 +535,11 @@ def ExpandReferencesInString( orig_s,
         if default_value is None and e.default_value is not None:
           try:
             default_value = _Substitute( e.default_value, mapping )
-          except MissingSubstitution:
-            default_value = e.default_value
+          except MissingSubstitution as e2:
+            if e2.name in calculus:
+              default_value = calculus[ e2.name ]()
+            else:
+              default_value = e.default_value
 
         mapping[ key ] = AskForInput( 'Enter value for {}: '.format( key ),
                                       default_value )
