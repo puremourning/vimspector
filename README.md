@@ -59,6 +59,7 @@ For detailed explanatin of the `.vimspector.json` format, see the
        * [Console autocompletion](#console-autocompletion)
        * [Log View](#log-view)
     * [Closing debugger](#closing-debugger)
+    * [Terminate debuggee](#terminate-debuggee)
  * [Debug profile configuration](#debug-profile-configuration)
     * [C, C  , Rust, etc.](#c-c-rust-etc)
        * [C   Remote debugging](#c-remote-debugging)
@@ -76,6 +77,7 @@ For detailed explanatin of the `.vimspector.json` format, see the
        * [Debug cli application](#debug-cli-application)
     * [JavaScript, TypeScript, etc.](#javascript-typescript-etc)
     * [Java](#java)
+       * [Hot code replace](#hot-code-replace)
        * [Usage with YouCompleteMe](#usage-with-youcompleteme)
        * [Other LSP clients](#other-lsp-clients)
     * [Lua](#lua)
@@ -91,7 +93,7 @@ For detailed explanatin of the `.vimspector.json` format, see the
     * [Example](#example)
  * [FAQ](#faq)
 
-<!-- Added by: ben, at: Sun 21 Feb 2021 21:15:32 GMT -->
+<!-- Added by: ben, at: Fri 19 Mar 2021 22:57:28 GMT -->
 
 <!--te-->
 
@@ -1590,6 +1592,20 @@ adapters, so this means that you need a compatible Language Server Protocol
 editor plugin to use Java. I recommend [YouCompleteMe][], which has full support
 for jdt.ls, and most importantly a trivial way to load the debug adapter and to
 use it with Vimspector.
+
+### Hot code replace
+
+When using the [java debug server][java-debug-server], Vimspector supports the
+hot code replace custom feature. By default, when the underlying class files
+change, vimspector asks the user if they wish to reload these classes at
+runtime.
+
+This behaviour can be customised:
+
+* `let g:ycm_java_hotcodereplace_mode = 'ask'` - the default, ask the user for
+  each reload.
+* `let g:ycm_java_hotcodereplace_mode = 'always'` - don't ask, always reload
+* `let g:ycm_java_hotcodereplace_mode = 'never'` - don't ask, never reload
 
 ### Usage with YouCompleteMe
 

@@ -159,7 +159,8 @@ GADGETS = {
         "port": "${DAPPort}",
         "configuration": {
           "cwd": "${workspaceRoot}"
-        }
+        },
+        'custom_handler': 'vimspector.custom.java.JavaDebugAdapter'
       }
     },
   },

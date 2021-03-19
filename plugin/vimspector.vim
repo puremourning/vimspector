@@ -35,6 +35,8 @@ let s:mappings = get( g:, 'vimspector_enable_mappings', '' )
 
 nnoremap <silent> <Plug>VimspectorContinue
       \ :<c-u>call vimspector#Continue()<CR>
+nnoremap <silent> <Plug>VimspectorLaunch
+      \ :<c-u>call vimspector#Launch( v:true )<CR>
 nnoremap <silent> <Plug>VimspectorStop
       \ :<c-u>call vimspector#Stop()<CR>
 nnoremap <silent> <Plug>VimspectorRestart
@@ -84,6 +86,7 @@ if s:mappings ==# 'VISUAL_STUDIO'
   nmap <S-F11>      <Plug>VimspectorStepOut
 elseif s:mappings ==# 'HUMAN'
   nmap <F5>         <Plug>VimspectorContinue
+  nmap <leader><F5> <Plug>VimspectorLaunch
   nmap <F3>         <Plug>VimspectorStop
   nmap <F4>         <Plug>VimspectorRestart
   nmap <F6>         <Plug>VimspectorPause

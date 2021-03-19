@@ -375,6 +375,44 @@ def AskForInput( prompt, default_value = None, completion = None ):
       return None
 
 
+CONFIRM = {}
+CONFIRM_ID = 0
+
+
+def ConfirmCallback( confirm_id, result ):
+  try:
+    handler = CONFIRM.pop( confirm_id )
+  except KeyError:
+    UserMessage( f"Internal error: unexpected callback id { confirm_id }",
+                 persist = True,
+                 error = True )
+    return
+
+  handler( result )
+
+
+def Confirm( api_prefix,
+             prompt,
+             handler,
+             default_value = 2,
+             options: list = None,
+             keys: list = None ):
+  if not options:
+    options = [ '(Y)es', '(N)o' ]
+  if not keys:
+    keys = [ 'y', 'n' ]
+
+  global CONFIRM_ID
+  CONFIRM_ID += 1
+  CONFIRM[ CONFIRM_ID ] = handler
+  Call( f'vimspector#internal#{ api_prefix }popup#Confirm',
+        CONFIRM_ID,
+        prompt,
+        options,
+        default_value,
+        keys )
+
+
 def AppendToBuffer( buf, line_or_lines, modified=False ):
   line = 1
   try:
@@ -403,8 +441,10 @@ def AppendToBuffer( buf, line_or_lines, modified=False ):
 
 
 
-def ClearBuffer( buf ):
+def ClearBuffer( buf, modified = False ):
   buf[ : ] = None
+  if not modified:
+    buf.options[ 'modified' ] = False
 
 
 def SetBufferContents( buf, lines, modified=False ):
