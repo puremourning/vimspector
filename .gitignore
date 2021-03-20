@@ -20,3 +20,4 @@ support/test/csharp/*.exe*
 configurations/
 venv/
 test-base/
+tags
