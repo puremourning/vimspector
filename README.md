@@ -151,7 +151,7 @@ runtime dependencies). They are categorised by their level of support:
 | C, C++, Rust etc.  | Tested       | `--all` or `--enable-c` (or cpp)   | vscode-cpptools                    | mono-core                                  |
 | Rust, C, C++, etc. | Supported    | `--force-enable-rust`              | CodeLLDB                           | Python 3                                   |
 | Python             | Tested       | `--all` or `--enable-python`       | debugpy                            | Python 2.7 or Python 3                     |
-| Go                 | Tested       | `--enable-go`                      | vscode-go                          | Go, [Delve][]                              |
+| Go                 | Tested       | `--enable-go`                      | vscode-go                          | Node, Go, [Delve][]                        |
 | TCL                | Supported    | `--all` or `--enable-tcl`          | tclpro                             | TCL 8.5                                    |
 | Bourne Shell       | Supported    | `--all` or `--enable-bash`         | vscode-bash-debug                  | Bash v??                                   |
 | Lua                | Supported    | `--all` or `--enable-lua`          | local-lua-debugger-vscode          | Node >=12.13.0, Npm, Lua interpreter       |
