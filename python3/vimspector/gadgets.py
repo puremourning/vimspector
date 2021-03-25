@@ -128,7 +128,8 @@ GADGETS = {
           # doesn't support the custom messages)
           # https://github.com/puremourning/vimspector/issues/141
           "subProcess": False,
-        }
+        },
+        'custom_handler': 'vimspector.custom.python.Debugpy'
       }
     },
   },
