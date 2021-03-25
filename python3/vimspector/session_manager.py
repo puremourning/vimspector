@@ -15,6 +15,9 @@
 
 from vimspector.debug_session import DebugSession
 
+# Singleton
+_session_manager = None
+
 
 class SessionManager:
   next_session_id = 0
@@ -41,6 +44,13 @@ class SessionManager:
   def GetSession( self, session_id ):
     return self.sessions.get( session_id )
 
-
   def CurrentSession( self ):
     return self.GetSession( self.current_session )
+
+
+def Get():
+  global _session_manager
+  if _session_manager is None:
+    _session_manager = SessionManager()
+
+  return _session_manager

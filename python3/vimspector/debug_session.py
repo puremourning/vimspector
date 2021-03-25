@@ -1581,12 +1581,13 @@ class DebugSession( object ):
     self._on_init_complete_handlers = []
 
     self._logger.debug( "LAUNCH!" )
-    self._launch_config = {}
-    # TODO: Should we use core_utils.override for this? That would strictly be a
-    # change in behaviour as dicts in the specific configuration would merge
-    # with dicts in the adapter, where before they would overlay
-    self._launch_config.update( self._adapter.get( 'configuration', {} ) )
-    self._launch_config.update( self._configuration[ 'configuration' ] )
+    if self._launch_config is None:
+      self._launch_config = {}
+      # TODO: Should we use core_utils.override for this? That would strictly be
+      # a change in behaviour as dicts in the specific configuration would merge
+      # with dicts in the adapter, where before they would overlay
+      self._launch_config.update( self._adapter.get( 'configuration', {} ) )
+      self._launch_config.update( self._configuration[ 'configuration' ] )
 
     request = self._configuration.get(
       'remote-request',
