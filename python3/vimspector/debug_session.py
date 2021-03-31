@@ -47,14 +47,15 @@ class DebugSession( object ):
   def __init__( self, session_id, session_manager, api_prefix ):
     self.session_id = session_id
     self.manager = session_manager
-    self._logger = logging.getLogger( __name__ )
-    utils.SetUpLogging( self._logger )
+    self._logger = logging.getLogger( __name__ + '.' + str( session_id ) )
+    utils.SetUpLogging( self._logger, session_id )
 
     self._api_prefix = api_prefix
 
     self._render_emitter = utils.EventEmitter()
 
-    self._logger.info( "**** INITIALISING NEW VIMSPECTOR SESSION ****" )
+    self._logger.info( "**** INITIALISING NEW VIMSPECTOR SESSION FOR ID "
+                       f"{session_id } ****" )
     self._logger.info( "API is: {}".format( api_prefix ) )
     self._logger.info( 'VIMSPECTOR_HOME = %s', VIMSPECTOR_HOME )
     self._logger.info( 'gadgetDir = %s',
@@ -67,8 +68,9 @@ class DebugSession( object ):
     self._saved_variables_data = None
     self._outputView = None
     self._codeView = None
-    self._breakpoints = breakpoints.ProjectBreakpoints(
-      self._render_emitter, self._IsPCPresentAt )
+    self._breakpoints = breakpoints.ProjectBreakpoints( session_id,
+                                                        self._render_emitter,
+                                                        self._IsPCPresentAt )
     self._splash_screen = None
     self._remote_term = None
     self._adapter_term = None
@@ -529,6 +531,8 @@ class DebugSession( object ):
     else:
       ResetUI()
 
+    # FIXME: vimspector_session_windows is totally buseted with multiple
+    # sessions
     utils.SetSessionWindows( {
       'breakpoints': vim.vars[ 'vimspector_session_windows' ].get(
         'breakpoints' )
@@ -907,6 +911,15 @@ class DebugSession( object ):
 
   def _SetUpUI( self ):
     vim.command( 'tab split' )
+
+    # Switch to this session now that we've made it visible. Note that the
+    # TabEnter autocmd does trigger when the above is run, but that's before the
+    # following line assigns the tab to this session, so when we try to find
+    # this session by tab number, it's not found. So we have to manually switch
+    # to it when creating a new tab.
+    utils.Call( 'vimspector#internal#state#SwitchToSession',
+                self.session_id )
+
     self._uiTab = vim.current.tabpage
 
     mode = settings.Get( 'ui_mode' )
@@ -950,10 +963,11 @@ class DebugSession( object ):
   def _SetUpUIHorizontal( self ):
     # Code window
     code_window = vim.current.window
-    self._codeView = code.CodeView( code_window,
-      self._api_prefix,
-      self._render_emitter,
-      self._breakpoints.IsBreakpointPresentAt )
+    self._codeView = code.CodeView( self.session_id,
+                                    code_window,
+                                    self._api_prefix,
+                                    self._render_emitter,
+                                    self._breakpoints.IsBreakpointPresentAt )
 
     # Call stack
     vim.command(
@@ -978,14 +992,17 @@ class DebugSession( object ):
     with utils.LetCurrentWindow( stack_trace_window ):
       vim.command( f'{ one_third }wincmd _' )
 
-    self._variablesView = variables.VariablesView( vars_window, watch_window )
+    self._variablesView = variables.VariablesView( self,
+                                                   vars_window,
+                                                   watch_window )
 
     # Output/logging
     vim.current.window = code_window
     vim.command( f'rightbelow { settings.Int( "bottombar_height" ) }new' )
     output_window = vim.current.window
     self._outputView = output.DAPOutputView( output_window,
-                                             self._api_prefix )
+                                             self._api_prefix,
+                                              session_id = self.session_id )
 
     # TODO: If/when we support multiple sessions, we'll need some way to
     # indicate which tab was created and store all the tabs
@@ -1010,7 +1027,8 @@ class DebugSession( object ):
   def _SetUpUIVertical( self ):
     # Code window
     code_window = vim.current.window
-    self._codeView = code.CodeView( code_window,
+    self._codeView = code.CodeView( self.session_id,
+                                    code_window,
                                     self._api_prefix,
                                     self._render_emitter,
                                     self._breakpoints.IsBreakpointPresentAt )
@@ -1040,7 +1058,9 @@ class DebugSession( object ):
     with utils.LetCurrentWindow( stack_trace_window ):
       vim.command( f'{ one_third }wincmd |' )
 
-    self._variablesView = variables.VariablesView( vars_window, watch_window )
+    self._variablesView = variables.VariablesView( self,
+                                                   vars_window,
+                                                   watch_window )
 
 
     # Output/logging
@@ -1048,7 +1068,8 @@ class DebugSession( object ):
     vim.command( f'rightbelow { settings.Int( "bottombar_height" ) }new' )
     output_window = vim.current.window
     self._outputView = output.DAPOutputView( output_window,
-                                             self._api_prefix )
+                                             self._api_prefix,
+                                             session_id = self.session_id )
 
     # TODO: If/when we support multiple sessions, we'll need some way to
     # indicate which tab was created and store all the tabs

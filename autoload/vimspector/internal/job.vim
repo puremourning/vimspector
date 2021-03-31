@@ -29,7 +29,8 @@ function! s:_OnServerData( session_id, channel, data ) abort
     return
   endif
 
-  py3 _vimspector_session.OnChannelData( vim.eval( 'a:data' ) )
+  py3 _VimspectorSession( vim.eval( 'a:session_id' ) ).OnChannelData(
+        \ vim.eval( 'a:data' ) )
 endfunction
 
 function! s:_OnServerError( session_id, channel, data ) abort
@@ -39,7 +40,8 @@ function! s:_OnServerError( session_id, channel, data ) abort
     return
   endif
 
-  py3 _vimspector_session.OnServerStderr( vim.eval( 'a:data' ) )
+  py3 _VimspectorSession( vim.eval( 'a:session_id' ) ).OnServerStderr(
+        \ vim.eval( 'a:data' ) )
 endfunction
 
 
@@ -58,7 +60,8 @@ function! s:_OnExit( session_id, channel, status ) abort
   if has_key( s:jobs, a:session_id )
     unlet s:jobs[ a:session_id ]
   endif
-  py3 _vimspector_session.OnServerExit( vim.eval( 'a:status' ) )
+  py3 _VimspectorSession( vim.eval( 'a:session_id' ) ).OnServerExit(
+        \ vim.eval( 'a:status' ) )
 endfunction
 
 function! s:_OnClose( session_id, channel ) abort

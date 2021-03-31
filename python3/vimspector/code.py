@@ -19,14 +19,18 @@ import os
 
 from vimspector import utils, terminal, signs
 
+NEXT_SIGN_ID = 1
+
 
 class CodeView( object ):
   def __init__( self,
-    window,
-    api_prefix,
-    render_event_emitter,
-    IsBreakpointPresentAt ):
+                session_id,
+                window,
+                api_prefix,
+                render_event_emitter,
+                IsBreakpointPresentAt ):
 
+    self.session_id = session_id
     self._window = window
     self._api_prefix = api_prefix
     self._render_subject = render_event_emitter.subscribe( self._DisplayPC )
@@ -35,11 +39,10 @@ class CodeView( object ):
     self._terminal = None
     self.current_syntax = None
 
-    self._logger = logging.getLogger( __name__ )
+    self._logger = logging.getLogger( __name__ + '.' + str( session_id ) )
     utils.SetUpLogging( self._logger )
 
-    # FIXME: This ID is by group, so should be module scope
-    self._next_sign_id = 1
+    self._next_sign_id = 1000 * self.session_id + 1
     self._signs = {
       'vimspectorPC': None,
     }
@@ -107,8 +110,9 @@ class CodeView( object ):
     self._UndisplayPC( clear_pc = False )
 
     # FIXME: Do we relly need to keep using up IDs ?
-    self._signs[ 'vimspectorPC' ] = self._next_sign_id
-    self._next_sign_id += 1
+    global NEXT_SIGN_ID
+    self._signs[ 'vimspectorPC' ] = NEXT_SIGN_ID
+    NEXT_SIGN_ID += 1
 
     # If there's also a breakpoint on this line, use vimspectorPCBP
     sign =  'vimspectorPCBP' if self._IsBreakpointPresentAt(
@@ -206,7 +210,9 @@ class CodeView( object ):
     if not self._window.valid:
       return False
 
-    buf_name = os.path.join( '_vimspector_mem', memoryReference )
+    buf_name = os.path.join( '_vimspector_mem',
+                             self.session_id,
+                             memoryReference )
     buf = utils.BufferForFile( buf_name )
     self._scratch_buffers.append( buf )
     utils.SetUpHiddenBuffer( buf, buf_name )

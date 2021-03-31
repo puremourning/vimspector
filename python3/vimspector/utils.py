@@ -34,13 +34,30 @@ LOG_FILE = os.path.expanduser( os.path.join( '~', '.vimspector.log' ) )
 _log_handler = logging.FileHandler( LOG_FILE, mode = 'w' )
 
 _log_handler.setFormatter(
-    logging.Formatter( '%(asctime)s - %(levelname)s - %(message)s' ) )
+  logging.Formatter( '%(asctime)s - %(levelname)s - %(filename)s:%(lineno)s - '
+                     '%(context)s - %(message)s' ) )
 
 
-def SetUpLogging( logger ):
+class ContextLogFilter( logging.Filter ):
+  context: str
+
+  def __init__( self, context ):
+    self.context = str( context )
+
+  def filter( self, record: logging.LogRecord ):
+    if self.context is None:
+      record.context = 'UNKNOWN'
+    else:
+      record.context = self.context
+
+    return True
+
+
+def SetUpLogging( logger, context = None ):
   logger.setLevel( logging.DEBUG )
   if _log_handler not in logger.handlers:
     logger.addHandler( _log_handler )
+    logger.addFilter( ContextLogFilter( context ) )
 
 
 _logger = logging.getLogger( __name__ )
@@ -430,6 +447,8 @@ def Confirm( api_prefix,
              default_value = 2,
              options: list = None,
              keys: list = None ):
+  # TODO: Implement a queue here? If calling code calls Confirm (async) multiple
+  # times, we... well what happens?!
   if not options:
     options = [ '(Y)es', '(N)o' ]
   if not keys:
@@ -957,3 +976,12 @@ class EventEmitter( object ):
 def Base64ToHexDump( data ):
   data = base64.b64decode( data )
   return list( hexdump( data, 'generator' ) )
+
+
+def BufferNameForSession( name, session_id ):
+  if session_id == 0:
+    # Hack for backward compat - don't suffix with the ID for the "first"
+    # session
+    return name
+
+  return f'{name}[{session_id}]'

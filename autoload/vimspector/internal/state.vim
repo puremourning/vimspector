@@ -28,11 +28,22 @@ endif
 
 function! vimspector#internal#state#Reset() abort
   try
-    py3 import vim
-    py3 _vimspector_session =  __import__(
-          \ "vimspector",
-          \ fromlist=[ "session_manager" ] ).session_manager.Get().NewSession(
-          \   vim.eval( 's:prefix' ) )
+    py3 <<EOF
+
+import vim
+
+_vimspector_session_man = __import__(
+  "vimspector",
+  fromlist=[ "session_manager" ] ).session_manager.Get()
+
+# Deprecated
+_vimspector_session = _vimspector_session_man.NewSession(
+  vim.eval( 's:prefix' ) )
+
+def _VimspectorSession( session_id ):
+  return _vimspector_session_man.GetSession( int( session_id ) )
+
+EOF
   catch /.*/
     echohl WarningMsg
     echom 'Exception while loading vimspector:' v:exception
@@ -61,6 +72,9 @@ function! vimspector#internal#state#TabClosed( afile ) abort
 # noevim helpfully provides the tab number that was closed in <afile>, so we
 # use that there (it also doens't correctly invalidate tab objects:
 # https://github.com/neovim/neovim/issues/16327)
+#
+# TODO: set a tab-local variable, or a global which maps tabs to session IDs
+# This probably doesn't work now with multiple-sessions
 
 if '_vimspector_session' in globals() and _vimspector_session:
   if int( vim.eval( 's:is_neovim' ) ) and _vimspector_session.IsUITab(
@@ -71,6 +85,22 @@ if '_vimspector_session' in globals() and _vimspector_session:
 
 EOF
 endfunction
+
+function! vimspector#internal#state#SwitchToSession( id ) abort
+  py3 _vimspector_session = _VimspectorSession( vim.eval( 'a:id' ) )
+endfunction
+
+
+function! vimspector#internal#state#OnTabEnter() abort
+  py3 <<EOF
+session = _vimspector_session_man.SessionForTab(
+  int( vim.eval( 'tabpagenr()' ) ) )
+
+if session is not None:
+  _vimspector_session = session
+EOF
+endfunction
+
 
 " Boilerplate {{{
 let &cpoptions=s:save_cpo

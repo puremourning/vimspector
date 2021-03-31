@@ -8,7 +8,26 @@
         "type": "python",
         "cwd": "${workspaceRoot}",
         "program": "${file}",
-        "stopOnEntry": false,
+        "stopOnEntry": true,
+        "console": "integratedTerminal",
+        "subProcess": true
+      },
+      "breakpoints": {
+        "exception": {
+          "raised": "N",
+          "uncaught": "Y",
+          "userUnhandled": ""
+        }
+      }
+    },
+    "attach": {
+      "adapter": "multi-session",
+      "configuration": {
+        "request": "attach",
+        "type": "python",
+        "cwd": "${workspaceRoot}",
+        "program": "${file}",
+        "stopOnEntry": true,
         "console": "integratedTerminal",
         "subProcess": true
       },

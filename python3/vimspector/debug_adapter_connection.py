@@ -38,8 +38,8 @@ class DebugAdapterConnection( object ):
                 send_func,
                 sync_timeout = None,
                 async_timeout = None ):
-    self._logger = logging.getLogger( __name__ )
-    utils.SetUpLogging( self._logger )
+    self._logger = logging.getLogger( __name__ + '.' + str( session_id ) )
+    utils.SetUpLogging( self._logger, session_id )
 
     if not sync_timeout:
       sync_timeout = DEFAULT_SYNC_TIMEOUT

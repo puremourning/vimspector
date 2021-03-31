@@ -22,7 +22,6 @@ _session_manager = None
 class SessionManager:
   next_session_id = 0
   sessions = {}
-  current_session = None
 
 
   def NewSession( self, *args, **kwargs ):
@@ -31,21 +30,24 @@ class SessionManager:
     session = DebugSession( session_id, self, *args, **kwargs )
     self.sessions[ session_id ] = session
 
-    if self.current_session is None:
-      self.current_session = session.session_id
-
     return session
 
 
   def DestroySession( self, session: DebugSession ):
+    # TODO: Call this!
     del self.sessions[ session.session_id ]
 
 
   def GetSession( self, session_id ):
     return self.sessions.get( session_id )
 
-  def CurrentSession( self ):
-    return self.GetSession( self.current_session )
+
+  def SessionForTab( self, tabnr ):
+    for _, session in self.sessions.items():
+      if session._HasUI() and session._uiTab.number == int( tabnr ):
+        return session
+
+    return None
 
 
 def Get():
