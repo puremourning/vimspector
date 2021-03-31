@@ -3,25 +3,16 @@ import multiprocessing as mp
 
 
 def First():
-  for _ in range( 100 ):
-    print( "in first" )
+  for i in range( 10 ):
+    print( f"in first x {i}" )
     time.sleep( 0.1 )
 
 
-def Second():
-  for _ in range( 100 ):
-    print( "in second" )
-    time.sleep( 0.1 )
+if __name__ == '__main__':
+  print( "main" )
+  p1 = mp.Process( target=First )
 
+  p1.start()
+  p1.join()
 
-print( "main" )
-p1 = mp.Process( target=First )
-p2 = mp.Process( target=Second )
-
-p1.start()
-p2.start()
-
-p1.join()
-p2.join()
-
-print( "Done" )
+  print( "Done" )
