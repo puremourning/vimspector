@@ -211,6 +211,7 @@ augroup Vimspector
         \   if !g:vimspector_resetting
         \ |   call vimspector#internal#state#TabClosed( expand( '<afile>' ) )
         \ | endif
+  autocmd TabEnter * call vimspector#internal#state#OnTabEnter()
 augroup END
 
 " boilerplate {{{

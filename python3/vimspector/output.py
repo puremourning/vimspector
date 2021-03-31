@@ -59,13 +59,17 @@ class OutputView( object ):
   files or the output of commands."""
   _buffers: typing.Dict[ str, TabBuffer ]
 
-  def __init__( self, window, api_prefix ):
+  def __init__( self, window, api_prefix, session_id = None ):
     self._window = window
     self._buffers = {}
     self._api_prefix = api_prefix
     VIEWS.add( self )
-    # FIXME: hack?
-    self._session_id = hash( self )
+
+    if session_id is None:
+      # FIXME: hack?
+      self._session_id = hash( self )
+    else:
+      self._session_id = session_id
 
   def Print( self, category, text: typing.Union[ str, list ] ):
     if not isinstance( text, list ):
@@ -193,9 +197,9 @@ class OutputView( object ):
 
     if cmd is not None:
       out = utils.SetUpCommandBuffer(
-        self._session_id, # TODO: not really a session id
+        self._session_id,
         cmd,
-        category,
+        utils.BufferNameForSession( category, self._session_id ),
         self._api_prefix,
         completion_handler = completion_handler )
 
@@ -207,6 +211,8 @@ class OutputView( object ):
         name = 'vimspector.Console'
       else:
         name = 'vimspector.Output:{0}'.format( category )
+
+      name = utils.BufferNameForSession( name, self._session_id )
 
       tab_buffer = TabBuffer( utils.NewEmptyBuffer(), len( self._buffers ) )
 
@@ -270,8 +276,8 @@ class OutputView( object ):
 
 class DAPOutputView( OutputView ):
   """Specialised OutputView which adds the DAP Console (REPL)"""
-  def __init__( self, *args ):
-    super().__init__( *args )
+  def __init__( self, *args, **kwargs ):
+    super().__init__( *args, **kwargs )
 
     self._connection = None
     for b in set( BUFFER_MAP.values() ):

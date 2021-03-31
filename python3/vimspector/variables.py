@@ -211,10 +211,11 @@ def AddExpandMappings( mappings = None ):
 
 
 class VariablesView( object ):
-  def __init__( self, variables_win, watches_win ):
-    self._logger = logging.getLogger( __name__ )
-    utils.SetUpLogging( self._logger )
+  def __init__( self, session, variables_win, watches_win ):
+    self._logger = logging.getLogger( __name__ + '.' + str( session.session_id ) )
+    utils.SetUpLogging( self._logger, session.session_id )
 
+    self._session = session
     self._connection = None
     self._current_syntax = ''
     self._server_capabilities = None
@@ -227,7 +228,10 @@ class VariablesView( object ):
     # Set up the "Variables" buffer in the variables_win
     self._scopes: typing.List[ Scope ] = []
     self._vars = View( variables_win, {}, self._DrawScopes )
-    utils.SetUpHiddenBuffer( self._vars.buf, 'vimspector.Variables' )
+    utils.SetUpHiddenBuffer(
+      self._vars.buf,
+      utils.BufferNameForSession( 'vimspector.Variables',
+                                  self._session.session_id ) )
     with utils.LetCurrentWindow( variables_win ):
       if utils.UseWinBar():
         vim.command( 'nnoremenu <silent> 1.1 WinBar.Set '
@@ -240,11 +244,14 @@ class VariablesView( object ):
     # there)
     self._watches: typing.List[ Watch ] = []
     self._watch = View( watches_win, {}, self._DrawWatches )
-    utils.SetUpPromptBuffer( self._watch.buf,
-                             'vimspector.Watches',
-                             'Expression: ',
-                             'vimspector#AddWatchPrompt',
-                             'vimspector#OmniFuncWatch' )
+    utils.SetUpPromptBuffer(
+      self._watch.buf,
+      utils.BufferNameForSession( 'vimspector.Watches',
+                                  self._session.session_id ),
+      'Expression: ',
+      'vimspector#AddWatchPrompt',
+      'vimspector#OmniFuncWatch' )
+
     with utils.LetCurrentWindow( watches_win ):
       AddExpandMappings( mappings )
       for mapping in utils.GetVimList( mappings, 'delete' ):

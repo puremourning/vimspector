@@ -28,9 +28,8 @@ function! s:_OnServerData( session_id, channel, data ) abort
     return
   endif
 
-  py3 << EOF
-_vimspector_session.OnChannelData( vim.eval( 'a:data' ) )
-EOF
+  py3 _VimspectorSession( vim.eval( 'a:session_id' ) ).OnChannelData(
+        \ vim.eval( 'a:data' ) )
 endfunction
 
 function! s:_OnClose( session_id, channel ) abort
@@ -42,7 +41,7 @@ function! s:_OnClose( session_id, channel ) abort
   echom 'Channel closed'
   redraw
   unlet s:channels[ a:session_id ]
-  py3 _vimspector_session.OnServerExit( 0 )
+  py3 _VimspectorSession( vim.eval( 'a:session_id' ) ).OnServerExit( 0 )
 endfunction
 
 function! vimspector#internal#channel#StartDebugSession(
@@ -101,9 +100,8 @@ function! vimspector#internal#channel#Send( session_id, msg ) abort
 endfunction
 
 function! vimspector#internal#channel#Timeout( session_id, id ) abort
-  py3 << EOF
-_vimspector_session.OnRequestTimeout( vim.eval( 'a:id' ) )
-EOF
+  py3 _VimspectorSession( vim.eval( 'a:session_id' ) ).OnRequestTimeout(
+        \ vim.eval( 'a:id' ) )
 endfunction
 
 function! s:_ChannelExists( session_id ) abort
@@ -151,7 +149,7 @@ function! vimspector#internal#channel#StopDebugSession( session_id ) abort
     call s:_OnServerData( s:channels[ a:session_id ], data )
   endwhile
   if has_key( s:channels, a:session_id )
-    call s:_OnClose( s:channels[ a:session_id ] )
+    call s:_OnClose( a:session_id, s:channels[ a:session_id ] )
   endif
 endfunction
 

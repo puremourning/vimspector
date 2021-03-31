@@ -173,20 +173,34 @@ class BreakpointsView( object ):
     self._UpdateView( breakpoint_list, show=False )
 
 
+# FIXME: THis really should be project scope and not associated with a debug
+# session. Breakpoints set by the user should be independent and breakpoints for
+# the current active session should be associated with the session when they are
+# in use.
+#
+# Questions include:
+#  1. what happens if we set/chnage a breakpiont in session #2 while session #1
+#  is active ? Maybe we re-send the breakpoints to _all_ active sessions?
+#
+# More...
 class ProjectBreakpoints( object ):
   def __init__( self,
+                session_id,
                 render_event_emitter,
                 IsPCPresentAt,
                 disassembly_manager: disassembly.DisassemblyView ):
     self._connection = None
-    self._logger = logging.getLogger( __name__ )
+    self._logger = logging.getLogger( __name__ + '.' + str( session_id ) )
+    utils.SetUpLogging( self._logger, session_id )
+
     self._render_subject = render_event_emitter.subscribe( self.Refresh )
     self._IsPCPresentAt = IsPCPresentAt
     self._disassembly_manager = disassembly_manager
     utils.SetUpLogging( self._logger )
 
 
-    # These are the user-entered breakpoints.
+    # These are the user-entered breakpoints. NOTE: if updating this, also
+    # update Copy()
     self._line_breakpoints = defaultdict( list )
     self._func_breakpoints = []
     self._exception_breakpoints = None
@@ -194,7 +208,7 @@ class ProjectBreakpoints( object ):
 
     self._server_capabilities = {}
 
-    self._next_sign_id = 1
+    self._next_sign_id = 1000 * session_id + 1
     self._awaiting_bp_responses = 0
     self._pending_send_breakpoints = None
 
@@ -224,6 +238,14 @@ class ProjectBreakpoints( object ):
                         text = '●',
                         double_text = '●',
                         texthl = 'LineNr' )
+
+
+  def Copy( self, other: 'ProjectBreakpoints' ):
+    self._line_breakpoints = dict( other._line_breakpoints )
+    self._func_breakpoints = list( other._func_breakpoints )
+    if other._exception_breakpoints is not None:
+      self._exception_breakpoints = dict( other._exception_breakpoints )
+    self._configured_breakpoints = dict( other._configured_breakpoints )
 
 
   def ConnectionUp( self, connection ):
@@ -334,6 +356,7 @@ class ProjectBreakpoints( object ):
       self.ClearFunctionBreakpoint( bp.get( 'filename' ) )
     else:
       self.ClearLineBreakpoint( bp.get( 'filename' ), bp.get( 'lnum' ) )
+
 
   def BreakpointsAsQuickFix( self ):
     qf = []
