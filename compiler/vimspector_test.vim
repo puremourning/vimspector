@@ -155,7 +155,9 @@ if ! has( 'gui_running' )
   " å is the right-option+q
   nnoremap <buffer> å :cfirst<CR>
   " å is the right-option+a
-  nnoremap <buffer> œ :FuncLine<CR>
+  nnoremap <buffer> œ :cnext<CR>
+  " å is the right-option+f
+  nnoremap <buffer> ƒ :FuncLine<CR>
   " Ω is the right-option+z
   nnoremap <buffer> Ω :cprevious<CR>
 endif
