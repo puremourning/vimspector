@@ -47,6 +47,16 @@ function! vimspector#internal#state#GetAPIPrefix() abort
   return s:prefix
 endfunction
 
+function! vimspector#internal#state#TabClosed() abort
+  py3 << EOF
+
+if ( '_vimspector_session' in globals() and _vimspector_session
+     and not _vimspector_session._HasUI() ):
+  _vimspector_session.Reset( interactive = False )
+
+EOF
+endfunction
+
 " Boilerplate {{{
 let &cpoptions=s:save_cpo
 unlet s:save_cpo

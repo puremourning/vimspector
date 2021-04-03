@@ -6,6 +6,16 @@ function! ClearDown()
   call vimspector#test#setup#ClearDown()
 endfunction
 
+let s:fn='../support/test/python/simple_python/main.py'
+
+function! s:StartDebugging()
+  exe 'edit ' . s:fn
+  call vimspector#SetLineBreakpoint( s:fn, 23 )
+  call vimspector#LaunchWithSettings( { 'configuration': 'run' } )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 23, 1 )
+endfunction
+
+
 function! Test_Step_With_Different_Tabpage()
   lcd testdata/cpp/simple
   edit simple.cpp
@@ -152,5 +162,35 @@ function! Test_All_Buffers_Deleted_Installer()
   call vimspector#test#setup#Reset()
   set hidden&
   au! Test_All_Buffers_Deleted_Installer
+  %bwipe!
+endfunction
+
+function! Test_Close_Tab_No_Vimspector()
+  tabnew
+  q
+  %bwipe!
+endfunction
+
+function! Test_Close_Tab_With_Vimspector()
+  call s:StartDebugging()
+  call vimspector#test#setup#WaitForReset()
+  call s:StartDebugging()
+  tabclose!
+  %bwipe!
+endfunction
+
+function! Test_Close_Tab_With_Vimspector()
+  call s:StartDebugging()
+  tabedit newfile
+  tabclose
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 25, 1 )
+
+  tabclose!
+  call vimspector#test#setup#WaitForReset()
+
+  call s:StartDebugging()
+  call vimspector#test#setup#Reset()
   %bwipe!
 endfunction

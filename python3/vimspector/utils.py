@@ -117,6 +117,9 @@ def CleanUpCommand( name, api_prefix ):
 
 
 def CleanUpHiddenBuffer( buf ):
+  if not buf.valid:
+    return
+
   try:
     vim.command( 'bdelete! {}'.format( buf.number ) )
   except vim.error as e:
