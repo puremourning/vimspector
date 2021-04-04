@@ -789,6 +789,8 @@ and have to tell cpptools a few more options.
         "remote": {
           "host": "${host}",
           "account": "${account}",
+          // or, alternatively "container": "${ContainerID}"
+
           "runCommand": [ 
             "gdbserver",
             "--once",
@@ -796,14 +798,19 @@ and have to tell cpptools a few more options.
             "--disable-randomisation",
             "0.0.0.0:${port}",
             "%CMD%"
-        }
+        },
+        "delay": "1000m" // optional
       },
       "attach": {
         "remote": {
           "host": "${host}",
           "account": "${account}",
+          // or, alternatively "container": "${ContainerID}"
+
           "pidCommand": [
-            "/path/to/secret/script/GetPIDForService", "${ServiceName}"
+             // e.g. "/path/to/secret/script/GetPIDForService", "${ServiceName}"
+             // or...
+             "pgrep", "executable"
           ],
           "attachCommand": [ 
             "gdbserver",
@@ -820,12 +827,13 @@ and have to tell cpptools a few more options.
           // application never attaches, try using the following to manually
           // force the trap signal.
           //
-          "initCompleteCommand": [
-            "kill",
-            "-TRAP",
-            "%PID%"
-          ]
-        }
+          // "initCompleteCommand": [
+          //   "kill",
+          //   "-TRAP",
+          //   "%PID%"
+          // ]
+        },
+        "delay": "1000m" // optional
       }
     }
   },
@@ -835,22 +843,27 @@ and have to tell cpptools a few more options.
       "remote-cmdLine": [ "/path/to/the/remote/executable", "args..." ],
       "remote-request": "launch",
       "configuration": {
-        "request": "attach", // yes, attach!
+        "request": "launch",
         
         "program": "/path/to/the/local/executable",
+        "cwd": "${workspaceRoot},
         "MIMode": "gdb",
-        "miDebuggerAddress": "${host}:${port}"
+        "miDebuggerServerAddress": "${host}:${port}",
+        "sourceFileMap#json": "{\"${RemoteRoot}\": \"${workspaceRoot}\"}"
       }
     },
     "remote attach": {
       "adapter": "cpptools-remote",
       "remote-request": "attach",
       "configuration": {
-        "request": "attach",
+        "request": "launch",
         
         "program": "/path/to/the/local/executable",
+        "cwd": "${workspaceRoot},
         "MIMode": "gdb",
-        "miDebuggerAddress": "${host}:${port}"
+        "miDebuggerServerAddress": "${host}:${port}",
+        "sourceFileMap#json": "{\"${RemoteRoot}\": \"${workspaceRoot}\"}"
+      }
     }
   }
 }
