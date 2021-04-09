@@ -239,7 +239,7 @@ GADGETS = {
     'macos': {
       'file_name': 'netcoredbg-osx.tar.gz',
       'checksum':
-        '71c773e34d358950f25119bade7e3081c4c2f9d71847bd49027ca5792e918beb',
+        '994e0d001f53af058c94468336dfd1f166a3f3540c9e0de4f9f45f59e6c969fe',
     },
     'linux': {
       'file_name': 'netcoredbg-linux-bionic-amd64.tar.gz',
