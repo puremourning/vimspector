@@ -13,6 +13,13 @@
 " See the License for the specific language governing permissions and
 " limitations under the License.
 
+if !has( 'python3' )
+  echohl WarningMsg
+  echom 'Vimspector unavailable: Requires Vim compiled with +python3'
+  echohl None
+  finish
+endif
+
 " Boilerplate {{{
 let s:save_cpo = &cpoptions
 set cpoptions&vim

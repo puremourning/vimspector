@@ -13,6 +13,9 @@
 " See the License for the specific language governing permissions and
 " limitations under the License.
 
+if !has( 'python3' )
+  finish
+endif
 
 " Boilerplate {{{
 let s:save_cpo = &cpoptions

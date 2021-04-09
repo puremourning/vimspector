@@ -271,7 +271,7 @@ JSON value `true`, and the suffix is stripped fom the key, resulting in the
 following:
 
 ```json
-  "stopOnEntry#json": true
+  "stopOnEntry": true
 ```
 
 Which is what we need.
