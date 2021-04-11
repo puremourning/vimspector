@@ -1,25 +1,52 @@
 {
-    "configurations": {
-      "launch - netcoredbg": {
-        "adapter": "netcoredbg",
-        "configuration": {
-          "request": "launch",
-          "program": "${workspaceRoot}/bin/Debug/netcoreapp2.2/csharp.dll",
-          "args": [],
-          "stopAtEntry": true
-        }
+  "adapters": {
+    "netcoredbg-debuglog": {
+      "attach": {
+        "pidProperty": "processId",
+        "pidSelect": "ask"
       },
-      "launch - mono": {
-        "adapter": "vscode-mono-debug",
-        "configuration": {
-          "request": "launch",
-          "program": "${workspaceRoot}/Program.exe",
-          "console": "integratedTerminal",
-          "cwd": "${workspaceRoot}",
-          "args": [],
-          "env": {}
-        }
+      "command": [
+        "${gadgetDir}/netcoredbg/netcoredbg",
+        "--interpreter=vscode",
+        "--engineLogging=${workspaceRoot}/netcoredbg.engine.log",
+        "--log=${workspaceRoot}/netcoredbg.log"
+      ],
+      "configuration": {
+        "cwd": "${workspaceRoot}"
+      },
+      "name": "netcoredbg"
+    }
+  },
+  "configurations": {
+    "launch - netcoredbg": {
+      "adapter": "netcoredbg",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/bin/Debug/netcoreapp2.2/csharp.dll",
+        "args": [],
+        "stopAtEntry": true
+      }
+    },
+    "launch - netcoredbg - with debug log": {
+      "adapter": "netcoredbg-debuglog",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/bin/Debug/netcoreapp2.2/csharp.dll",
+        "args": [],
+        "stopAtEntry": true
+      }
+    },
+    "launch - mono": {
+      "adapter": "vscode-mono-debug",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/Program.exe",
+        "console": "integratedTerminal",
+        "cwd": "${workspaceRoot}",
+        "args": [],
+        "env": {}
       }
     }
+  }
 }
 
