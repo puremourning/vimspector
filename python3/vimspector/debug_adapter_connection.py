@@ -226,7 +226,12 @@ class DebugAdapterConnection( object ):
 
     # self._logger.debug( 'Message received (raw): %s', payload )
 
-    message = json.loads( payload )
+    try:
+      message = json.loads( payload, strict = False )
+    except Exception:
+      self._logger.exception( "Invalid message received: %s", payload )
+      self._SetState( 'READ_HEADER' )
+      raise
 
     self._logger.debug( 'Message received: {0}'.format( message ) )
 
