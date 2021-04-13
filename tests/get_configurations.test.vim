@@ -12,6 +12,7 @@ function Test_Get_Configurations()
   let configs = vimspector#GetConfigurations()
   call assert_equal([
               \ 'launch - netcoredbg',
+              \ 'launch - netcoredbg - with debug log',
               \ 'launch - mono',
               \ ], configs)
 

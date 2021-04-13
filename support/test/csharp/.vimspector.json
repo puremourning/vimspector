@@ -18,6 +18,11 @@
     }
   },
   "configurations": {
+    //
+    // NOTE:
+    // If you add to this, you must update tests/get_configurations.test.vim
+    //
+
     "launch - netcoredbg": {
       "adapter": "netcoredbg",
       "configuration": {
