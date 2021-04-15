@@ -234,12 +234,12 @@ GADGETS = {
       'format': 'tar',
     },
     'all': {
-      'version': '1.2.0-761'
+      'version': '1.2.0-782'
     },
     'macos': {
       'file_name': 'netcoredbg-osx.tar.gz',
       'checksum':
-        '994e0d001f53af058c94468336dfd1f166a3f3540c9e0de4f9f45f59e6c969fe',
+        '',
     },
     'linux': {
       'file_name': 'netcoredbg-linux-bionic-amd64.tar.gz',
