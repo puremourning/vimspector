@@ -2070,6 +2070,10 @@ hi link jsonComment Comment
    Debug adapters (for some reason) send telemetry data to clients. Vimspector simply
    displays this information in the output window. It *does not* and *will not ever*
    collect, use, forward or otherwise share any data with any third parties.
+10. Do I _have_ to put a `.vimspector.json` in the root of every project? No, you
+    can put all of your adapter and debug configs in a [single directory](https://puremourning.github.io/vimspector/configuration.html#debug-configurations) if you want to, but note
+    the caveat that `${workspaceRoot}` won't be calculated correctly in that case.
+    The vimsepctor author uses this [a lot](https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf).
 
 
 [ycmd]: https://github.com/Valloric/ycmd
