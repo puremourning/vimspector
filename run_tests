@@ -91,7 +91,8 @@ if [ "$INSTALL" = "1" ] || [ "$INSTALL" = "script" ]; then
   if ! python3 $(dirname $0)/install_gadget.py \
                --basedir ${BASEDIR} \
                ${INSTALLER_ARGS} \
-               --all; then
+               --all \
+               --force-enable-csharp; then
     echo "Script installation reported errors" >&2
     exit 1
   fi
@@ -102,7 +103,7 @@ if [ "$INSTALL" = "1" ] || [ "$INSTALL" = "vim" ]; then
                --cmd "${BASEDIR_CMD}" \
                -c 'autocmd User VimspectorInstallSuccess qa!' \
                -c 'autocmd User VimspectorInstallFailed cquit!' \
-               -c "VimspectorInstall --all"; then
+               -c "VimspectorInstall --all netcoredbg"; then
     echo "Vim installation reported errors" >&2
     exit 1
   fi
@@ -143,6 +144,9 @@ echo "%SETUP - Building test programs..."
 set -e
   pushd tests/testdata/cpp/simple
     make clean all
+  popd
+  pushd support/test/csharp
+    dotnet build
   popd
 set +e
 echo "%DONE - built test programs"

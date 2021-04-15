@@ -29,7 +29,7 @@
         "request": "launch",
         "program": "${workspaceRoot}/bin/Debug/netcoreapp3.1/csharp.dll",
         "args": [],
-        "stopAtEntry": true
+        "stopAtEntry": false
       }
     },
     "launch - netcoredbg - with debug log": {
@@ -38,7 +38,7 @@
         "request": "launch",
         "program": "${workspaceRoot}/bin/Debug/netcoreapp3.1/csharp.dll",
         "args": [],
-        "stopAtEntry": true
+        "stopAtEntry": false
       }
     },
     "launch - mono": {

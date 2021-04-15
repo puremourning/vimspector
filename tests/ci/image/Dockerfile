@@ -70,6 +70,12 @@ RUN mkdir -p /home/linuxbrew/.linuxbrew &&\
 
 RUN /home/linuxbrew/.linuxbrew/bin/brew install golang
 
+# dotnet
+RUN curl -sSL https://dot.net/v1/dotnet-install.sh \
+        | bash /dev/stdin --channel LTS --install-dir /usr/share/dotnet && \
+        update-alternatives --install /usr/bin/dotnet dotnet \
+                                                      /usr/share/dotnet/dotnet 1
+
 # clean up
 RUN /home/linuxbrew/.linuxbrew/bin/brew cleanup && \
     rm -rf ~/.cache && \
