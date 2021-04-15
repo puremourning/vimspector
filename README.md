@@ -68,7 +68,6 @@ For detailed explanatin of the `.vimspector.json` format, see the
     * [Python](#python)
        * [Python Remote Debugging](#python-remote-debugging)
        * [Python Remote launch and attach](#python-remote-launch-and-attach)
-       * [Legacy: vscode-python](#legacy-vscode-python)
     * [TCL](#tcl)
     * [C♯](#c)
     * [Go](#go)
@@ -145,23 +144,24 @@ runtime dependencies). They are categorised by their level of support:
 * `Supported` : Fully supported, frequently used and manually tested
 * `Experimental`: Working, but not frequently used and rarely tested
 * `Legacy`: No longer supported, please migrate your config
+* `Retired`: No longer included or supported.
 
-| Language           | Status       | Switch (for `install_gadget.py`)   | Adapter (for `:VimspectorInstall`) | Dependencies                               |
-|--------------------|--------------|------------------------------------|------------------------------------|--------------------------------------------|
-| C, C++, Rust etc.  | Tested       | `--all` or `--enable-c` (or cpp)   | vscode-cpptools                    | mono-core                                  |
-| Rust, C, C++, etc. | Supported    | `--force-enable-rust`              | CodeLLDB                           | Python 3                                   |
-| Python             | Tested       | `--all` or `--enable-python`       | debugpy                            | Python 2.7 or Python 3                     |
-| Go                 | Tested       | `--enable-go`                      | vscode-go                          | Node, Go, [Delve][]                        |
-| TCL                | Supported    | `--all` or `--enable-tcl`          | tclpro                             | TCL 8.5                                    |
-| Bourne Shell       | Supported    | `--all` or `--enable-bash`         | vscode-bash-debug                  | Bash v??                                   |
-| Lua                | Supported    | `--all` or `--enable-lua`          | local-lua-debugger-vscode          | Node >=12.13.0, Npm, Lua interpreter       |
-| Node.js            | Supported    | `--force-enable-node`              | vscode-node-debug2                 | 6 < Node < 12, Npm                         |
-| Javascript         | Supported    | `--force-enable-chrome`            | debugger-for-chrome                | Chrome                                     |
-| Java               | Supported    | `--force-enable-java  `            | vscode-java-debug                  | Compatible LSP plugin (see [later](#java)) |
-| C# (dotnet core)   | Experimental | `--force-enable-csharp`            | netcoredbg                         | DotNet core                                |
-| C# (mono)          | Experimental | `--force-enable-csharp`            | vscode-mono-debug                  | Mono                                       |
-| F#, VB, etc.       | Experimental | `--force-enable-fsharp` (or vbnet) | netcoredbg                         | DotNet core                                |
-| Python.legacy      | Legacy       | `--force-enable-python.legacy`     | vscode-python                      | Node 10, Python 2.7 or Python 3            |
+| Language           | Status    | Switch (for `install_gadget.py`) | Adapter (for `:VimspectorInstall`) | Dependencies                               |
+|--------------------|-----------|----------------------------------|------------------------------------|--------------------------------------------|
+| C, C++, Rust etc.  | Tested    | `--all` or `--enable-c` (or cpp) | vscode-cpptools                    | mono-core                                  |
+| Rust, C, C++, etc. | Supported | `--force-enable-rust`            | CodeLLDB                           | Python 3                                   |
+| Python             | Tested    | `--all` or `--enable-python`     | debugpy                            | Python 2.7 or Python 3                     |
+| Go                 | Tested    | `--enable-go`                    | vscode-go                          | Node, Go, [Delve][]                        |
+| TCL                | Supported | `--all` or `--enable-tcl`        | tclpro                             | TCL 8.5                                    |
+| Bourne Shell       | Supported | `--all` or `--enable-bash`       | vscode-bash-debug                  | Bash v??                                   |
+| Lua                | Supported | `--all` or `--enable-lua`        | local-lua-debugger-vscode          | Node >=12.13.0, Npm, Lua interpreter       |
+| Node.js            | Supported | `--force-enable-node`            | vscode-node-debug2                 | 6 < Node < 12, Npm                         |
+| Javascript         | Supported | `--force-enable-chrome`          | debugger-for-chrome                | Chrome                                     |
+| Java               | Supported | `--force-enable-java  `          | vscode-java-debug                  | Compatible LSP plugin (see [later](#java)) |
+| C# (dotnet core)   | Tested    | `--force-enable-csharp`          | netcoredbg                         | DotNet core                                |
+| F#, VB, etc.       | Supported | `--force-enable-[fsharp,vbnet]`  | `, `--force-enable-vbnet`          | netcoredbg                                 | DotNet core |
+| C# (mono)          | _Retired_ | N/A                              | N/A                                | N/A                                        |
+| Python.legacy      | _Retired_ | N/A                              | N/A                                | N/A                                        |
 
 ## Other languages
 
@@ -526,13 +526,6 @@ Example:
         "${gadgetDir}/vscode-cpptools/debugAdapters/OpenDebugAD7"
       ],
       "name": "cppdbg"
-    },
-    "vscode-python": {
-      "command": [
-        "node",
-        "${gadgetDir}/vscode-python/out/client/debugger/debugAdapter/main.js"
-      ],
-      "name": "vscode-python"
     }
   }
 }
@@ -1264,10 +1257,6 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
   headers/libs to build a C python extension for performance.
 * Full options: https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
 
-
-**Migrating from `vscode-python`**: change `"adapter": "vscode-python"` to
-`"adapter": "debugpy"`.
-
 ```json
 {
   "configurations": {
@@ -1334,34 +1323,6 @@ debugpy](https://github.com/microsoft/debugpy/wiki/Debugging-over-SSH).
 If you're feeling fancy, checkout the [reference guide][remote-debugging] for
 an example of getting Vimspector to remotely launch and attach.
 
-### Legacy: vscode-python
-
-* No longer installed by default - please pass `--force-enable-python.legacy` if
-  you just want to continue using your working setup.
-* [vscode-python](https://github.com/Microsoft/vscode-python)
-* NOTE: You must be running `node` 10. See [this issue](https://github.com/puremourning/vimspector/issues/105)
-
-```json
-{
-  "configurations": {
-    "<name>: Launch": {
-      "adapter": "vscode-python",
-      "configuration": {
-        "name": "<name>: Launch",
-        "type": "python",
-        "request": "launch",
-        "cwd": "<working directory>",
-        "stopOnEntry": true,
-        "console": "externalTerminal",
-        "debugOptions": [],
-        "program": "<path to main python file>"
-      }
-    }
-    ...
-  }
-}
-```
-
 ## TCL
 
 * TCL (TclProDebug)
@@ -1385,35 +1346,8 @@ netcoredbg`
         "program": "${workspaceRoot}/bin/Debug/netcoreapp2.2/csharp.dll",
         "args": [],
         "stopAtEntry": true,
-        "cwd": "${workspaceRoot}"
-      }
-    }
-  }
-}
-```
-
-* C# - mono
-
-Install with `install_gadget.py --force-enable-csharp` or `:VimspectorInstall
-vscode-mono-debug`.
-
-***Known not to work.***
-
-```json
-{
-  "configurations": {
-    "launch - mono": {
-      "adapter": "vscode-mono-debug",
-      "configuration": {
-        "request": "launch",
-        "program": "${workspaceRoot}/bin/Debug/netcoreapp2.2/csharp.dll",
-        "args": [],
         "cwd": "${workspaceRoot}",
-        "runtimeExecutable": "mono",
-        "runtimeArgs": [],
-        "env": [],
-        "externalConsole": false,
-        "console": "integratedTerminal"
+        "env": {}
       }
     }
   }
