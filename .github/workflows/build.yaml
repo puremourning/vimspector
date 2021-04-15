@@ -114,7 +114,7 @@ jobs:
     - name: 'Install .NET Core SDK 3.1'
       uses: actions/setup-dotnet@v1.7.2
       with:
-        dotnet-version: 3.1
+        dotnet-version: '3.1'
 
     - run: vim --version
       name: 'Print vim version information'

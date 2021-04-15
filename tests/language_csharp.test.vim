@@ -44,7 +44,7 @@ function! Test_Run_To_Cursor()
 
   call vimspector#SetLineBreakpoint( fn, 31 )
   call vimspector#LaunchWithSettings( {
-        \ 'configuration': 'launch - netcoredbg'
+        \ 'configuration': 'launch - netcoredbg - with debug log'
         \ } )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 31, 7 )
   call WaitForAssert( {->
