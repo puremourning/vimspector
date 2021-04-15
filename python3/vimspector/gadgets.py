@@ -86,29 +86,6 @@ GADGETS = {
       },
     },
   },
-  'vscode-python': {
-    'language': 'python.legacy',
-    'enabled': False,
-    'download': {
-      'url': 'https://github.com/Microsoft/vscode-python/releases/download/'
-             '${version}/${file_name}',
-    },
-    'all': {
-      'version': '2019.11.50794',
-      'file_name': 'ms-python-release.vsix',
-      'checksum':
-        '6a9edf9ecabed14aac424e6007858068204a3638bf3bb4f235bd6035d823acc6',
-    },
-    'adapters': {
-      "vscode-python": {
-        "name": "vscode-python",
-        "command": [
-          "node",
-          "${gadgetDir}/vscode-python/out/client/debugger/debugAdapter/main.js",
-        ],
-      }
-    },
-  },
   'debugpy': {
     'language': 'python',
     'download': {
@@ -234,12 +211,12 @@ GADGETS = {
       'format': 'tar',
     },
     'all': {
-      'version': '1.2.0-761'
+      'version': '1.2.0-782'
     },
     'macos': {
       'file_name': 'netcoredbg-osx.tar.gz',
       'checksum':
-        '994e0d001f53af058c94468336dfd1f166a3f3540c9e0de4f9f45f59e6c969fe',
+        '',
     },
     'linux': {
       'file_name': 'netcoredbg-linux-bionic-amd64.tar.gz',
@@ -265,41 +242,6 @@ GADGETS = {
         },
         "configuration": {
           "cwd": "${workspaceRoot}"
-        }
-      },
-    }
-  },
-  'vscode-mono-debug': {
-    'language': 'csharp',
-    'enabled': False,
-    'download': {
-      'url': 'https://marketplace.visualstudio.com/_apis/public/gallery/'
-             'publishers/ms-vscode/vsextensions/mono-debug/${version}/'
-             'vspackage',
-      'target': 'vscode-mono-debug.vsix.gz',
-      'format': 'zip.gz',
-    },
-    'all': {
-      'file_name': 'vscode-mono-debug.vsix',
-      'version': '0.16.2',
-      'checksum':
-          '121eca297d83daeeb1e6e1d791305d1827998dbd595c330086b3b94d33dba3b9',
-    },
-    'adapters': {
-      'vscode-mono-debug': {
-        "name": "mono-debug",
-        "command": [
-          "mono",
-          "${gadgetDir}/vscode-mono-debug/bin/Release/mono-debug.exe"
-        ],
-        "attach": {
-          "pidSelect": "none"
-        },
-        "configuration": {
-          "cwd": "${workspaceRoot}",
-          "console": "integratedTerminal",
-          "args": [],
-          "env": {}
         }
       },
     }

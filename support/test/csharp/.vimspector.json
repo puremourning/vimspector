@@ -27,18 +27,18 @@
       "adapter": "netcoredbg",
       "configuration": {
         "request": "launch",
-        "program": "${workspaceRoot}/bin/Debug/netcoreapp2.2/csharp.dll",
+        "program": "${workspaceRoot}/bin/Debug/netcoreapp3.1/csharp.dll",
         "args": [],
-        "stopAtEntry": true
+        "stopAtEntry": false
       }
     },
     "launch - netcoredbg - with debug log": {
       "adapter": "netcoredbg-debuglog",
       "configuration": {
         "request": "launch",
-        "program": "${workspaceRoot}/bin/Debug/netcoreapp2.2/csharp.dll",
+        "program": "${workspaceRoot}/bin/Debug/netcoreapp3.1/csharp.dll",
         "args": [],
-        "stopAtEntry": true
+        "stopAtEntry": false
       }
     },
     "launch - mono": {

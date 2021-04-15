@@ -111,6 +111,16 @@ jobs:
         path: gadgets/macos/download
       name: Cache gadgets
 
+    - name: 'Install .NET Core SDK 3.1'
+      uses: actions/setup-dotnet@v1.7.2
+      with:
+        dotnet-version: 3.1
+
+    - uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: ^11
+      name: "Switch to xcode 11 because of .NET debugging bug"
+
     - run: vim --version
       name: 'Print vim version information'
 
@@ -143,7 +153,7 @@ jobs:
     #   if: failure()
     #   with:
     #     NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-    #     SSH_PASS: ${{ secrets.SSH_PASS }}
+    #     SSH_PASS: ${{ secrets.SSH_PASS }} # [V]imspector
 
   PublishRelease:
     runs-on: 'ubuntu-16.04'
