@@ -9,9 +9,8 @@ pull_request_rules:
       # CI https://doc.mergify.io/conditions.html#github-actions
       - status-success=PythonLint
       - status-success=VimscriptLint
+      - status-success=Linux
       - status-success=MacOS
-
-
     actions: &merge-actions
       merge:
         method: merge
