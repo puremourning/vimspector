@@ -3,7 +3,7 @@
 For a tutorial and usage overview, take a look at the
 [Vimspector website][website].
 
-For detailed explanatin of the `.vimspector.json` format, see the
+For detailed explanation of the `.vimspector.json` format, see the
 [reference guide][vimspector-ref].
 
 ![Build](https://github.com/puremourning/vimspector/workflows/Build/badge.svg?branch=master) [![Gitter](https://badges.gitter.im/vimspector/Lobby.svg)](https://gitter.im/vimspector/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
@@ -99,7 +99,7 @@ For detailed explanatin of the `.vimspector.json` format, see the
 # Features and Usage
 
 The plugin is a capable Vim graphical debugger for multiple languages.
-It's mostly tested for c++, python and TCL, but in theory supports any
+It's mostly tested for C++, Python and TCL, but in theory supports any
 language that Visual Studio Code supports (but see caveats).
 
 The [Vimspector website][website] has an overview of the UI, along with basic
