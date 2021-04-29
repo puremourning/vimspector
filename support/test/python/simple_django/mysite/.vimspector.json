@@ -1,0 +1,16 @@
+{
+  "$shema": "https://puremourning.github.com/vimspector/schema/vimspector.schema.json",
+  "configurations": {
+    "django": {
+      "adapter": "debugpy",
+      "configuration": {
+        "request":  "launch",
+        "stopOnEntry": true,
+        "python": "${VIRTUAL_ENV}/bin/python3",
+        "program": "${workspaceRoot}/manage.py",
+        "args": [ "runserver", "localhost:5555", "--noreload" ],
+        "django": true
+      }
+    }
+  }
+}
