@@ -159,15 +159,16 @@ function! s:_OnCommandEvent( category, id, data, event ) abort
       call setbufvar( buffer, '&modified', 0 )
     endtry
 
-    " if the buffer is visible, scroll it
+    " if the buffer is visible, scroll it, but don't allow autocommands to fire,
+    " as this may close the current window!
     let w = bufwinnr( buffer )
     if w > 0
       let cw = winnr()
       try
-        execute w . 'wincmd w'
-        normal! Gz-
+        noautocmd execute w . 'wincmd w'
+        noautocmd normal! Gz-
       finally
-        execute cw . 'wincmd w'
+        noautocmd execute cw . 'wincmd w'
       endtry
     endif
   elseif a:event ==# 'exit'
