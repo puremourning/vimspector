@@ -71,6 +71,10 @@ class ProjectBreakpoints( object ):
                         texthl = 'LineNr' )
 
 
+  def _file_name( self, file_name ):
+    abs_name = os.path.abspath( file_name )
+    return abs_name if os.path.isfile( abs_name ) else file_name
+
   def ConnectionUp( self, connection ):
     self._connection = connection
 
@@ -142,7 +146,7 @@ class ProjectBreakpoints( object ):
     self.UpdateUI()
 
   def _FindLineBreakpoint( self, file_name, line ):
-    file_name = os.path.abspath( file_name )
+    file_name = self._file_name( file_name )
     for index, bp in enumerate( self._line_breakpoints[ file_name ] ):
       self._SignToLine( file_name, bp )
       if bp[ 'line' ] == line:
@@ -152,7 +156,7 @@ class ProjectBreakpoints( object ):
 
 
   def _PutLineBreakpoint( self, file_name, line, options ):
-    self._line_breakpoints[ os.path.abspath( file_name ) ].append( {
+    self._line_breakpoints[ self._file_name( file_name ) ].append( {
       'state': 'ENABLED',
       'line': line,
       'options': options,
@@ -168,7 +172,7 @@ class ProjectBreakpoints( object ):
   def _DeleteLineBreakpoint( self, bp, file_name, index ):
     if 'sign_id' in bp:
       signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
-    del self._line_breakpoints[ os.path.abspath( file_name ) ][ index ]
+    del self._line_breakpoints[ self._file_name( file_name ) ][ index ]
 
 
   def ToggleBreakpoint( self, options ):
