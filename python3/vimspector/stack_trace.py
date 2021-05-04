@@ -102,7 +102,8 @@ class StackTraceView( object ):
     self._scratch_buffers = []
 
     # FIXME: This ID is by group, so should be module scope
-    self._next_sign_id = 1
+    self._current_thread_sign_id = 0 # 1 when used
+    self._current_frame_sign_id = 0 # 2 when used
 
     utils.SetUpHiddenBuffer( self._buf, 'vimspector.StackTrace' )
     utils.SetUpUIWindow( win )
@@ -127,6 +128,7 @@ class StackTraceView( object ):
                      ':call vimspector#SetCurrentThread()<CR>' )
 
     win.options[ 'cursorline' ] = False
+    win.options[ 'signcolumn' ] = 'auto'
 
 
     if not signs.SignDefined( 'vimspectorCurrentThread' ):
@@ -134,6 +136,13 @@ class StackTraceView( object ):
                         text = '▶ ',
                         double_text = '▶',
                         texthl = 'MatchParen',
+                        linehl = 'CursorLine' )
+
+    if not signs.SignDefined( 'vimspectorCurrentFrame' ):
+      signs.DefineSign( 'vimspectorCurrentFrame',
+                        text = '▶ ',
+                        double_text = '▶',
+                        texthl = 'Special',
                         linehl = 'CursorLine' )
 
     self._line_to_frame = {}
@@ -157,9 +166,12 @@ class StackTraceView( object ):
     self._sources = {}
     self._requesting_threads = StackTraceView.ThreadRequestState.NO
     self._pending_thread_request = None
-    if self._next_sign_id:
-      signs.UnplaceSign( self._next_sign_id, 'VimspectorStackTrace' )
-    self._next_sign_id = 0
+    if self._current_thread_sign_id:
+      signs.UnplaceSign( self._current_thread_sign_id, 'VimspectorStackTrace' )
+    self._current_thread_sign_id = 0
+    if self._current_frame_sign_id:
+      signs.UnplaceSign( self._current_frame_sign_id, 'VimspectorStackTrace' )
+    self._current_frame_sign_id = 0
 
     with utils.ModifiableScratchBuffer( self._buf ):
       utils.ClearBuffer( self._buf )
@@ -273,10 +285,10 @@ class StackTraceView( object ):
     self._line_to_frame.clear()
     self._line_to_thread.clear()
 
-    if self._next_sign_id:
-      signs.UnplaceSign( self._next_sign_id, 'VimspectorStackTrace' )
+    if self._current_thread_sign_id:
+      signs.UnplaceSign( self._current_thread_sign_id, 'VimspectorStackTrace' )
     else:
-      self._next_sign_id = 1
+      self._current_thread_sign_id = 1
 
     with utils.ModifiableScratchBuffer( self._buf ):
       with utils.RestoreCursorPosition():
@@ -290,7 +302,7 @@ class StackTraceView( object ):
             f'({thread.State()})' )
 
           if self._current_thread == thread.id:
-            signs.PlaceSign( self._next_sign_id,
+            signs.PlaceSign( self._current_thread_sign_id,
                              'VimspectorStackTrace',
                              'vimspectorCurrentThread',
                              self._buf.name,
@@ -421,6 +433,7 @@ class StackTraceView( object ):
         # Should this set the current _Thread_ too ? If i jump to a frame in
         # Thread 2, should that become the focussed thread ?
         self._current_frame = frame
+        self._DrawThreads()
         return self._session.SetCurrentFrame( self._current_frame, reason )
       return False
 
@@ -518,6 +531,11 @@ class StackTraceView( object ):
     if not thread.IsExpanded():
       return
 
+    if self._current_frame_sign_id:
+      signs.UnplaceSign( self._current_frame_sign_id, 'VimspectorStackTrace' )
+    else:
+      self._current_frame_sign_id = 2
+
     for frame in thread.stacktrace:
       if frame.get( 'source' ):
         source = frame[ 'source' ]
@@ -541,6 +559,13 @@ class StackTraceView( object ):
                                        frame[ 'name' ],
                                        source[ 'name' ],
                                        frame[ 'line' ] ) )
+
+      if self._current_frame[ 'id' ] == frame[ 'id' ]:
+        signs.PlaceSign( self._current_frame_sign_id,
+                         'VimspectorStackTrace',
+                         'vimspectorCurrentFrame',
+                         self._buf.name,
+                         line )
 
       self._line_to_frame[ line ] = ( thread, frame )
 
