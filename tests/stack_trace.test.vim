@@ -379,6 +379,20 @@ function! Test_UpDownStack()
         \                 '$' )
         \   )
         \ } )
+  call win_gotoid( g:vimspector_session_windows.stack_trace )
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorStackTrace',
+          \ 1,
+          \ 'vimspectorCurrentThread',
+          \ 200 ) } )
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorStackTrace',
+          \ 2,
+          \ 'vimspectorCurrentFrame',
+          \ 200 ) } )
+  wincmd w
 
   call vimspector#DownFrame()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 15, 1 )
@@ -396,6 +410,21 @@ function! Test_UpDownStack()
         \                 '$' )
         \   )
         \ } )
+  call win_gotoid( g:vimspector_session_windows.stack_trace )
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorStackTrace',
+          \ 1,
+          \ 'vimspectorCurrentThread',
+          \ 200 ) } )
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorStackTrace',
+          \ 2,
+          \ 'vimspectorCurrentFrame',
+          \ 200 ) } )
+  wincmd w
+
 
   call vimspector#UpFrame()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 8, 1 )
@@ -413,6 +442,21 @@ function! Test_UpDownStack()
         \                 '$' )
         \   )
         \ } )
+  call win_gotoid( g:vimspector_session_windows.stack_trace )
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorStackTrace',
+          \ 1,
+          \ 'vimspectorCurrentThread',
+          \ 200 ) } )
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorStackTrace',
+          \ 3,
+          \ 'vimspectorCurrentFrame',
+          \ 200 ) } )
+  wincmd w
+
 
   call feedkeys( "\<Plug>VimspectorUpFrame", 'x' )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 23, 1 )
@@ -430,6 +474,21 @@ function! Test_UpDownStack()
         \                 '$' )
         \   )
         \ } )
+  call win_gotoid( g:vimspector_session_windows.stack_trace )
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorStackTrace',
+          \ 1,
+          \ 'vimspectorCurrentThread',
+          \ 200 ) } )
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorStackTrace',
+          \ 4,
+          \ 'vimspectorCurrentFrame',
+          \ 200 ) } )
+  wincmd w
+
 
   call feedkeys( "\<Plug>VimspectorDownFrame", 'x' )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 8, 1 )
@@ -447,6 +506,21 @@ function! Test_UpDownStack()
         \                 '$' )
         \   )
         \ } )
+  call win_gotoid( g:vimspector_session_windows.stack_trace )
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorStackTrace',
+          \ 1,
+          \ 'vimspectorCurrentThread',
+          \ 200 ) } )
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorStackTrace',
+          \ 3,
+          \ 'vimspectorCurrentFrame',
+          \ 200 ) } )
+  wincmd w
+
 
   call vimspector#DownFrame()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 15, 1 )
@@ -464,6 +538,21 @@ function! Test_UpDownStack()
         \                 '$' )
         \   )
         \ } )
+  call win_gotoid( g:vimspector_session_windows.stack_trace )
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorStackTrace',
+          \ 1,
+          \ 'vimspectorCurrentThread',
+          \ 200 ) } )
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorStackTrace',
+          \ 2,
+          \ 'vimspectorCurrentFrame',
+          \ 200 ) } )
+  wincmd w
+
 
 
   call vimspector#ClearBreakpoints()

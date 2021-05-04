@@ -1007,6 +1007,8 @@ be changed manually to "switch to" that thread.
   to set the "focussed" thread to the currently selected one. If the selected
   line is a stack frame, set the focussed thread to the thread of that frame and
   jump to that frame in the code window.
+* The current frame when a breakpoint is hit or if manuall jumping is also
+  highlighted.
 
 ![stack trace](https://puremourning.github.io/vimspector-web/img/vimspector-callstack-window.png)
 
@@ -1700,22 +1702,26 @@ Vimsector uses them, they will not be replaced. So to customise the signs,
 define them in your `vimrc`.
 
 
-| Sign                   | Description                         | Priority |
-|------------------------|-------------------------------------|----------|
-| `vimspectorBP`         | Line breakpoint                     | 9        |
-| `vimspectorBPCond`     | Conditional line breakpoint         | 9        |
-| `vimspectorBPDisabled` | Disabled breakpoint                 | 9        |
-| `vimspectorPC`         | Program counter (i.e. current line) | 200      |
-| `vimspectorPCBP`       | Program counter and breakpoint      | 200      |
+| Sign                      | Description                             | Priority |
+|---------------------------|-----------------------------------------|----------|
+| `vimspectorBP`            | Line breakpoint                         | 9        |
+| `vimspectorBPCond`        | Conditional line breakpoint             | 9        |
+| `vimspectorBPDisabled`    | Disabled breakpoint                     | 9        |
+| `vimspectorPC`            | Program counter (i.e. current line)     | 200      |
+| `vimspectorPCBP`          | Program counter and breakpoint          | 200      |
+| `vimspectorCurrentThread` | Focussed thread in stack trace view     | 200      |
+| `vimspectorCurrentFrame`  | Current stack frame in stack trace view | 200      |
 
 The default symbols are the equivalent of something like the following:
 
 ```viml
-sign define vimspectorBP         text=\ ● texthl=WarningMsg
-sign define vimspectorBPCond     text=\ ◆ texthl=WarningMsg
-sign define vimspectorBPDisabled text=\ ● texthl=LineNr
-sign define vimspectorPC         text=\ ▶ texthl=MatchParen linehl=CursorLine
-sign define vimspectorPCBP       text=●▶  texthl=MatchParen linehl=CursorLine
+sign define vimspectorBP            text=\ ● texthl=WarningMsg
+sign define vimspectorBPCond        text=\ ◆ texthl=WarningMsg
+sign define vimspectorBPDisabled    text=\ ● texthl=LineNr
+sign define vimspectorPC            text=\ ▶ texthl=MatchParen linehl=CursorLine
+sign define vimspectorPCBP          text=●▶  texthl=MatchParen linehl=CursorLine
+sign define vimspectorCurrentThread text=▶   texthl=MatchParen linehl=CursorLine
+sign define vimspectorCurrentFrame  text=▶   texthl=Special    linehl=CursorLine
 ```
 
 If the signs don't display properly, your font probably doesn't contain these
@@ -1723,11 +1729,13 @@ glyphs. You can easily change them by defining the sign in your vimrc. For
 example, you could put this in your `vimrc` to use some simple ASCII symbols:
 
 ```viml
-sign define vimspectorBP text=o          texthl=WarningMsg
-sign define vimspectorBPCond text=o?     texthl=WarningMsg
-sign define vimspectorBPDisabled text=o! texthl=LineNr
-sign define vimspectorPC text=\ >        texthl=MatchParen
-sign define vimspectorPCBP text=o>       texthl=MatchParen
+sign define vimspectorBP text=o             texthl=WarningMsg
+sign define vimspectorBPCond text=o?        texthl=WarningMsg
+sign define vimspectorBPDisabled text=o!    texthl=LineNr
+sign define vimspectorPC text=\ >           texthl=MatchParen
+sign define vimspectorPCBP text=o>          texthl=MatchParen
+sign define vimspectorCurrentThread text=>  texthl=MatchParen
+sign define vimspectorCurrentFrame text=>   texthl=Special
 ```
 
 ## Sign priority
