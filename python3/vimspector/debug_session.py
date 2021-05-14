@@ -113,6 +113,7 @@ class DebugSession( object ):
     self._launch_config = None
 
     current_file = utils.GetBufferFilepath( vim.current.buffer )
+    current_line_number = vim.current.window.cursor[0]
     adapters = {}
     launch_config_file, configurations = self.GetConfigurations( adapters )
 
@@ -231,6 +232,7 @@ class DebugSession( object ):
       'workspaceFolder': self._workspace_root,
       'gadgetDir': install.GetGadgetDir( VIMSPECTOR_HOME ),
       'file': current_file,
+      'lineNumber': current_line_number,
     }
 
     calculus = {
