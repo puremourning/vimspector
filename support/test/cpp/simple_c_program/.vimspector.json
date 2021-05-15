@@ -15,6 +15,15 @@
         "program": "${workspaceRoot}/test",
         "stopAtEntry": true
       }
+    },
+    "cpptools": {
+      "adapter": "vscode-cpptools",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/test",
+        "stopOnEntry": true,
+        "MIMode": "lldb"
+      }
     }
   }
 }
