@@ -99,7 +99,7 @@ function! ThisTestIsFlaky()
   let g:test_is_flaky = v:true
 endfunction
 
-function! AssertMatchist( expected, actual ) abort
+function! AssertMatchList( expected, actual ) abort
   let ret = assert_equal( len( a:expected ), len( a:actual ) )
   let len = min( [ len( a:expected ), len( a:actual ) ] )
   let idx = 0

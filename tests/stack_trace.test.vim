@@ -30,7 +30,7 @@ function! Test_Multiple_Threads_Continue()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, thread_l, 1 )
   call cursor( 1, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '- Thread [0-9]\+: .* (paused)',
         \         '  .*: .*@threads.cpp:' . string( thread_l )
@@ -45,7 +45,7 @@ function! Test_Multiple_Threads_Continue()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, thread_l, 1 )
   call cursor( 1, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '- Thread [0-9]\+: .* (paused)',
         \         '  .*: .*@threads.cpp:' . string( thread_l )
@@ -56,7 +56,7 @@ function! Test_Multiple_Threads_Continue()
         \   )
         \ } )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '+ Thread [0-9]\+: .* (paused)',
         \     ],
@@ -70,7 +70,7 @@ function! Test_Multiple_Threads_Continue()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, thread_l, 1 )
   call cursor( 1, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '- Thread [0-9]\+: .* (paused)',
         \         '  .*: .*@threads.cpp:' . string( thread_l )
@@ -81,7 +81,7 @@ function! Test_Multiple_Threads_Continue()
         \   )
         \ } )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '+ Thread [0-9]\+: .* (paused)',
         \     ],
@@ -95,7 +95,7 @@ function! Test_Multiple_Threads_Continue()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, thread_l, 1 )
   call cursor( 1, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '- Thread [0-9]\+: .* (paused)',
         \         '  .*: .*@threads.cpp:' . string( thread_l )
@@ -106,7 +106,7 @@ function! Test_Multiple_Threads_Continue()
         \   )
         \ } )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '+ Thread [0-9]\+: .* (paused)',
         \     ],
@@ -121,7 +121,7 @@ function! Test_Multiple_Threads_Continue()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, thread_l, 1 )
   call cursor( 1, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '- Thread [0-9]\+: .* (paused)',
         \         '  .*: .*@threads.cpp:' . string( thread_l )
@@ -132,7 +132,7 @@ function! Test_Multiple_Threads_Continue()
         \   )
         \ } )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '+ Thread [0-9]\+: .* (paused)',
         \     ],
@@ -146,7 +146,7 @@ function! Test_Multiple_Threads_Continue()
   " So we break out of the loop
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, notify_l, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '- Thread [0-9]\+: .* (paused)',
         \         '  .*: .*@threads.cpp:' . string( notify_l )
@@ -157,7 +157,7 @@ function! Test_Multiple_Threads_Continue()
         \   )
         \ } )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '+ Thread [0-9]\+: .* (paused)',
         \     ],
@@ -192,7 +192,7 @@ function! Test_Multiple_Threads_Step()
 
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, thread_l, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '- Thread [0-9]\+: .* (paused)',
         \         '  .*: .*@threads.cpp:' . string( thread_l )
@@ -205,7 +205,7 @@ function! Test_Multiple_Threads_Step()
   call vimspector#StepOver()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, thread_n, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '+ Thread [0-9]\+: .* (paused)',
         \     ],
@@ -218,7 +218,7 @@ function! Test_Multiple_Threads_Step()
 
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, thread_l, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '+ Thread [0-9]\+: .* (paused)',
         \     ],
@@ -230,7 +230,7 @@ function! Test_Multiple_Threads_Step()
   call vimspector#StepOver()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, thread_n, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '+ Thread [0-9]\+: .* (paused)',
         \         '+ Thread [0-9]\+: .* (paused)',
@@ -244,7 +244,7 @@ function! Test_Multiple_Threads_Step()
 
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, thread_l, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '+ Thread [0-9]\+: .* (paused)',
         \         '+ Thread [0-9]\+: .* (paused)',
@@ -257,7 +257,7 @@ function! Test_Multiple_Threads_Step()
   call vimspector#StepOver()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, thread_n, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '+ Thread [0-9]\+: .* (paused)',
         \         '+ Thread [0-9]\+: .* (paused)',
@@ -273,7 +273,7 @@ function! Test_Multiple_Threads_Step()
 
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, thread_l, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '+ Thread [0-9]\+: .* (paused)',
         \         '+ Thread [0-9]\+: .* (paused)',
@@ -287,7 +287,7 @@ function! Test_Multiple_Threads_Step()
   call vimspector#StepOver()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, thread_n, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '+ Thread [0-9]\+: .* (paused)',
         \         '+ Thread [0-9]\+: .* (paused)',
@@ -304,7 +304,7 @@ function! Test_Multiple_Threads_Step()
 
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, thread_l, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '+ Thread [0-9]\+: .* (paused)',
         \         '+ Thread [0-9]\+: .* (paused)',
@@ -319,7 +319,7 @@ function! Test_Multiple_Threads_Step()
   call vimspector#StepOver()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, thread_n, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '+ Thread [0-9]\+: .* (paused)',
         \         '+ Thread [0-9]\+: .* (paused)',
@@ -338,7 +338,7 @@ function! Test_Multiple_Threads_Step()
   " So we break out of the loop
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, notify_l, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '+ Thread [0-9]\+: .* (paused)',
         \         '+ Thread [0-9]\+: .* (paused)',
@@ -366,7 +366,7 @@ function! Test_UpDownStack()
   call vimspector#LaunchWithSettings( { 'configuration': 'run' } )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 15, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '- Thread 1: MainThread (paused)',
         \         '  2: DoSomething@main.py:15',
@@ -397,7 +397,7 @@ function! Test_UpDownStack()
   call vimspector#DownFrame()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 15, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '- Thread 1: MainThread (paused)',
         \         '  2: DoSomething@main.py:15',
@@ -429,7 +429,7 @@ function! Test_UpDownStack()
   call vimspector#UpFrame()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 8, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '- Thread 1: MainThread (paused)',
         \         '  2: DoSomething@main.py:15',
@@ -461,7 +461,7 @@ function! Test_UpDownStack()
   call feedkeys( "\<Plug>VimspectorUpFrame", 'x' )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 23, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '- Thread 1: MainThread (paused)',
         \         '  2: DoSomething@main.py:15',
@@ -493,7 +493,7 @@ function! Test_UpDownStack()
   call feedkeys( "\<Plug>VimspectorDownFrame", 'x' )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 8, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '- Thread 1: MainThread (paused)',
         \         '  2: DoSomething@main.py:15',
@@ -525,7 +525,7 @@ function! Test_UpDownStack()
   call vimspector#DownFrame()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 15, 1 )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \         '- Thread 1: MainThread (paused)',
         \         '  2: DoSomething@main.py:15',

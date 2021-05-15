@@ -211,7 +211,7 @@ function! Test_ExpandVariables()
   call feedkeys( "\<CR>", 'xt' )
 
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       '- Scope: Locals',
         \       ' \*- t (Test): {...}',
@@ -229,7 +229,7 @@ function! Test_ExpandVariables()
   " Step - stays expanded
   call vimspector#StepOver()
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       '- Scope: Locals',
         \       '  - t (Test): {...}',
@@ -278,7 +278,7 @@ function! Test_ExpandVariables()
   call setpos( '.', [ 0, 2, 1 ] )
   call feedkeys( "\<CR>", 'xt' )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       '- Scope: Locals',
         \       '  - t (Test): {...}',
@@ -378,7 +378,7 @@ function! Test_ExpandWatch()
   call feedkeys( "\<CR>", 'xt' )
 
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       'Watches: ----',
         \       'Expression: t',
@@ -397,7 +397,7 @@ function! Test_ExpandWatch()
   " Step - stays expanded
   call vimspector#StepOver()
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       'Watches: ----',
         \       'Expression: t',
@@ -449,7 +449,7 @@ function! Test_ExpandWatch()
   call setpos( '.', [ 0, 3, 1 ] )
   call feedkeys( "\<CR>", 'xt' )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       'Watches: ----',
         \       'Expression: t',
@@ -607,7 +607,7 @@ function! Test_EvaluateFailure()
   " Add a wtch
   call vimspector#AddWatch( 'test' )
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       'Watches: ----',
         \       'Expression: test',
@@ -658,7 +658,7 @@ function! Test_VariableEval()
         \ } )
 
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       '{...}',
         \       ' - i: 0',
@@ -690,7 +690,7 @@ function! Test_VariableEval()
         \ } )
 
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       '{...}',
         \       ' - i: 0',
@@ -724,7 +724,7 @@ function! Test_VariableEval()
         \ } )
 
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       'Evaluation error',
         \     ],
@@ -768,7 +768,7 @@ function! Test_VariableEvalExpand()
         \ } )
 
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       '{...}',
         \       ' - i: 0',
@@ -786,7 +786,7 @@ function! Test_VariableEvalExpand()
   call feedkeys( "jjjj\<CR>", 'xt' )
 
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       '{...}',
         \       ' - i: 0',
@@ -806,7 +806,7 @@ function! Test_VariableEvalExpand()
   call feedkeys( "\<CR>", 'xt' )
 
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       '{...}',
         \       ' - i: 0',
@@ -863,7 +863,7 @@ function! Test_SetVariableValue_Local()
   call feedkeys( "\<CR>", 'xt' )
 
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       '- Scope: Locals',
         \       ' \*- t (Test): {...}',
@@ -889,7 +889,7 @@ with mock.patch( 'vimspector.utils.InputSave' ):
 EOF
 
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       '- Scope: Locals',
         \       ' \*- t (Test): {...}',
@@ -908,7 +908,7 @@ EOF
   call vimspector#SetVariableValue( '1234' )
 
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       '- Scope: Locals',
         \       ' \*- t (Test): {...}',
@@ -927,7 +927,7 @@ EOF
   call vimspector#SetVariableValue( 'this is invalid' )
 
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       '- Scope: Locals',
         \       ' \*- t (Test): {...}',
@@ -983,7 +983,7 @@ function! Test_SetVariableValue_Watch()
   call feedkeys( "\<CR>", 'xt' )
 
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       'Watches: ----',
         \       'Expression: t',
@@ -1012,7 +1012,7 @@ EOF
 
 
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       'Watches: ----',
         \       'Expression: t',
@@ -1032,7 +1032,7 @@ EOF
   call vimspector#SetVariableValue( '1234' )
 
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       'Watches: ----',
         \       'Expression: t',
@@ -1075,7 +1075,7 @@ function! Test_SetVariableValue_Balloon()
         \ } )
 
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       '{...}',
         \       ' - i: 0',
@@ -1102,7 +1102,7 @@ with mock.patch( 'vimspector.utils.InputSave' ):
 EOF
 
   call WaitForAssert( {->
-        \   AssertMatchist(
+        \   AssertMatchList(
         \     [
         \       '{...}',
         \       ' - i: 0',
