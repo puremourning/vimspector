@@ -1070,6 +1070,8 @@ information when something goes wrong that's not a Vim traceback.
 If you just want to see the Vimspector log file, use `:VimspectorToggleLog`,
 which will tail it in a little window (doesn't work on Windows).
 
+You can see some debugging info with `:VimspectorDebugInfo`
+
 ## Closing debugger
 
 To close the debugger, use:

@@ -64,8 +64,11 @@ class OutputView( object ):
     self._api_prefix = api_prefix
     VIEWS.add( self )
 
-  def Print( self, categroy, text ):
-    self._Print( 'server', text.splitlines() )
+  def Print( self, category, text: typing.Union[ str, list ] ):
+    if not isinstance( text, list ):
+      text = text.splitlines()
+
+    self._Print( category, text )
 
   def OnOutput( self, event ):
     category = CategoryToBuffer( event.get( 'category' ) or 'output' )
@@ -104,12 +107,25 @@ class OutputView( object ):
 
   def Clear( self ):
     for category, tab_buffer in self._buffers.items():
-      if tab_buffer.is_job:
-        utils.CleanUpCommand( category, self._api_prefix )
-      utils.CleanUpHiddenBuffer( tab_buffer.buf )
+      self._CleanUpBuffer( category, tab_buffer )
 
     # FIXME: nunmenu the WinBar ?
     self._buffers = {}
+
+
+  def ClearCategory( self, category: str ):
+    if category not in self._buffers:
+      return
+
+    self._CleanUpBuffer( category, self._buffers[ category ] )
+
+
+  def _CleanUpBuffer( self, category: str, tab_buffer: TabBuffer ):
+    if tab_buffer.is_job:
+      utils.CleanUpCommand( category, self._api_prefix )
+
+    utils.CleanUpHiddenBuffer( tab_buffer.buf )
+
 
   def WindowIsValid( self ):
     return self._window.valid

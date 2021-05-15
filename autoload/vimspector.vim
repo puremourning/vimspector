@@ -557,6 +557,14 @@ function! vimspector#ShowEvalBalloon( is_visual ) abort
                 \ . '", 0 )' )
 endfunction
 
+function! vimspector#PrintDebugInfo() abort
+  if !s:Enabled()
+    return
+  endif
+
+  py3 _vimspector_session.PrintDebugInfo()
+endfunction
+
 
 " Boilerplate {{{
 let &cpoptions=s:save_cpo

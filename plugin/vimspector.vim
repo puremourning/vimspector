@@ -115,6 +115,9 @@ command! -bar -nargs=? -complete=custom,vimspector#CompleteOutput
 command! -bar
       \ VimspectorToggleLog
       \ call vimspector#ToggleLog()
+command! -bar
+      \ VimspectorDebugInfo
+      \ call vimspector#PrintDebugInfo()
 command! -nargs=1 -complete=custom,vimspector#CompleteExpr
       \ VimspectorEval
       \ call vimspector#Evaluate( <f-args> )
