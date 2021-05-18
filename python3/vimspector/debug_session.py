@@ -1270,6 +1270,37 @@ class DebugSession( object ):
       self._stackTraceView.LoadThreads( True )
 
 
+  @IfConnected()
+  @RequiresUI()
+  def PrintDebugInfo( self ):
+    def Line():
+      return ( "--------------------------------------------------------------"
+               "------------------" )
+
+    def Pretty( obj ):
+      if obj is None:
+        return [ "None" ]
+      return [ Line() ] + json.dumps( obj, indent=2 ).splitlines() + [ Line() ]
+
+
+    debugInfo = [
+      "Vimspector Debug Info",
+      Line(),
+      f"ConnectionType: { self._connection_type }",
+      "Adapter: " ] + Pretty( self._adapter ) + [
+      "Configuration: " ] + Pretty( self._configuration ) + [
+      f"API Prefix: { self._api_prefix }",
+      f"Launch/Init: { self._launch_complete } / { self._init_complete }",
+      f"Workspace Root: { self._workspace_root }",
+      "Launch Config: " ] + Pretty( self._launch_config ) + [
+      "Server Capabilities: " ] + Pretty( self._server_capabilities ) + [
+    ]
+
+    self._outputView.ClearCategory( 'DebugInfo' )
+    self._outputView.Print( "DebugInfo", debugInfo )
+    self.ShowOutput( "DebugInfo" )
+
+
   def OnEvent_loadedSource( self, msg ):
     pass
 

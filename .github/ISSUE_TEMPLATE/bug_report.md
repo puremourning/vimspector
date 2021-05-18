@@ -57,6 +57,12 @@ discussing on Gitter rather than raising an issue.
 * Version of Vimspector: (e.g. output of `git rev-parse HEAD` if cloned or the
   name of the tarball used to install otherwise)
 
+* Output of `:VimspectorDebugInfo`
+
+```
+paste here
+```
+
 * Output of `vim --version` or `nvim --version`
 
 ```
