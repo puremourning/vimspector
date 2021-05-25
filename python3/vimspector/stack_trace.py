@@ -560,7 +560,8 @@ class StackTraceView( object ):
                                        source[ 'name' ],
                                        frame[ 'line' ] ) )
 
-      if self._current_frame[ 'id' ] == frame[ 'id' ]:
+      if ( self._current_frame is not None and
+           self._current_frame[ 'id' ] == frame[ 'id' ] ):
         signs.PlaceSign( self._current_frame_sign_id,
                          'VimspectorStackTrace',
                          'vimspectorCurrentFrame',
