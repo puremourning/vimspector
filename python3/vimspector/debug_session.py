@@ -124,9 +124,6 @@ class DebugSession( object ):
 
     self._logger.info( "User requested start debug session with %s",
                        launch_variables )
-    self._configuration = None
-    self._adapter = None
-    self._launch_config = None
 
     current_file = utils.GetBufferFilepath( vim.current.buffer )
     adapters = {}
