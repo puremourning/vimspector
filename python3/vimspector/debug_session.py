@@ -740,13 +740,13 @@ class DebugSession( object ):
       return
 
     def handler( msg ):
-      self._codeView.ShowMemory( msg )
+      self._codeView.ShowMemory( memoryReference, msg )
 
     self._connection.DoRequest( handler, {
       'command': 'readMemory',
       'arguments': {
         'memoryReference': memoryReference,
-        'count': 10 # TODO: What
+        'count': 1024 # TODO: What
       }
     } )
 

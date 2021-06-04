@@ -24,9 +24,10 @@ import shlex
 import collections
 import re
 import typing
+import base64
 
 from vimspector.core_utils import memoize
-
+from vimspector.vendor.hexdump import hexdump
 
 LOG_FILE = os.path.expanduser( os.path.join( '~', '.vimspector.log' ) )
 
@@ -852,3 +853,8 @@ def UseWinBar():
   # Buggy neovim doesn't render correctly when the WinBar is defined:
   # https://github.com/neovim/neovim/issues/12689
   return not int( Call( 'has', 'nvim' ) )
+
+
+def Base64ToHexDump( data ):
+  data = base64.b64decode( data )
+  return list( hexdump( data, 'generator' ) )
