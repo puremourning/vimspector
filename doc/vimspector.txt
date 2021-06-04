@@ -49,13 +49,14 @@ Contents ~
   5. Variable or selection hover evaluation |vimspector-variable-or-selection-hover-evaluation|
   6. Watches                                               |vimspector-watches|
    1. Watch autocompletion                    |vimspector-watch-autocompletion|
-  7. Stack Traces                                     |vimspector-stack-traces|
-  8. Program Output                                 |vimspector-program-output|
+  7. Dump memory                                       |vimspector-dump-memory|
+  8. Stack Traces                                     |vimspector-stack-traces|
+  9. Program Output                                 |vimspector-program-output|
    1. Console                                              |vimspector-console|
    2. Console autocompletion                |vimspector-console-autocompletion|
    3. Log View                                            |vimspector-log-view|
-  9. Closing debugger                             |vimspector-closing-debugger|
-  10. Terminate debuggee                        |vimspector-terminate-debuggee|
+  10. Closing debugger                            |vimspector-closing-debugger|
+  11. Terminate debuggee                        |vimspector-terminate-debuggee|
  7. Debug profile configuration        |vimspector-debug-profile-configuration|
   1. C, C++, Rust, etc.                              |vimspector-c-c-rust-etc.|
    1. Data visualization / pretty printing |vimspector-data-visualization-pretty-printing|
@@ -155,6 +156,7 @@ Image: Build [3] Image: Matrix [5] Image: Gitter [7]
   - Variable or selection hover evaluation
   - Watches
   - Watch autocompletion
+  - Dump memory
   - Stack Traces
   - Program Output
   - Console
@@ -243,6 +245,7 @@ Supported debugging features ~
 - launch debuggee within Vim's embedded terminal
 - logging/stdout display
 - simple stable API for custom tooling (e.g. integrate with language server)
+- view hex dump of process memory
 
 -------------------------------------------------------------------------------
                                                *vimspector-supported-languages*
@@ -1325,6 +1328,25 @@ For YouCompleteMe, the following config works well:
     \   'VimspectorPrompt': [ '.', '->', ':', '<' ]
   }
 <
+-------------------------------------------------------------------------------
+                                                       *vimspector-dump-memory*
+Dump memory ~
+
+Some debug adapters provide a way to dump process memory associated with
+variables. This can be done from the Variables and Wathces windows with:
+
+- The WinBar option "Dump"
+- '<leader>m' mapping (by default, can be customised)
+- 'vimspector#ReadMemory()' function
+
+On doing this, you're asked to enter a number of bytes to read (from the
+location associated with the current cursor line) and an offset from that
+location. A new buffer is displayed in the Code Window containing a memory dump
+in hex and ascii, simmilar to the output of 'xxd'.
+
+**_NOTE_**: This feature is experimental and may change in any way based on
+user feedback.
+
 -------------------------------------------------------------------------------
                                                       *vimspector-stack-traces*
 Stack Traces ~

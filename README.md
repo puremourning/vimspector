@@ -54,6 +54,7 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Variable or selection hover evaluation](#variable-or-selection-hover-evaluation)
     * [Watches](#watches)
        * [Watch autocompletion](#watch-autocompletion)
+    * [Dump memory](#dump-memory)
     * [Stack Traces](#stack-traces)
     * [Program Output](#program-output)
        * [Console](#console)
@@ -94,7 +95,7 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Example](#example)
  * [FAQ](#faq)
 
-<!-- Added by: ben, at: Tue 28 Sep 2021 20:51:39 BST -->
+<!-- Added by: ben, at: Fri 31 Dec 2021 21:57:03 GMT -->
 
 <!--te-->
 
@@ -136,6 +137,7 @@ And a couple of brief demos:
 - launch debuggee within Vim's embedded terminal
 - logging/stdout display
 - simple stable API for custom tooling (e.g. integrate with language server)
+- view hex dump of process memory
 
 ## Supported languages
 
@@ -1077,6 +1079,23 @@ let g:ycm_semantic_triggers =  {
   \   'VimspectorPrompt': [ '.', '->', ':', '<' ]
 }
 ```
+
+## Dump memory
+
+Some debug adapters provide a way to dump process memory associated with
+variables. This can be done from the Variables and Wathces windows with:
+
+* The WinBar option "Dump"
+* `<leader>m` mapping (by default, can be customised)
+* `vimspector#ReadMemory()` function
+
+On doing this, you're asked to enter a number of bytes to read (from the
+location associated with the current cursor line) and an offset from that
+location. A new buffer is displayed in the Code Window containing a memory dump
+in hex and ascii, simmilar to the output of `xxd`.
+
+***NOTE***: This feature is experimental and may change in any way based on user
+feedback.
 
 ## Stack Traces
 

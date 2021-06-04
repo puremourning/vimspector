@@ -119,6 +119,8 @@ function! AssertMatchList( expected, actual ) abort
 endfunction
 
 
+" Like getbufline() but support negative numbers for "start" and "end"
+" A negative numbers means that many lines before '$'
 function! GetBufLine( buf, start, end  = '$' )
   if type( a:start ) != v:t_string && a:start < 0
     let start = getbufinfo( a:buf )[ 0 ].linecount + a:start
