@@ -733,20 +733,23 @@ class DebugSession( object ):
       return
 
     memoryReference = self._variablesView.GetMemoryReference( buf, line_num )
+    length = 1024 # TODO: WHat?
 
     if memoryReference is None:
       utils.UserMessage( "Cannot find memory reference for that",
                          error = True )
       return
 
+
+
     def handler( msg ):
-      self._codeView.ShowMemory( memoryReference, msg )
+      self._codeView.ShowMemory( memoryReference, length, msg )
 
     self._connection.DoRequest( handler, {
       'command': 'readMemory',
       'arguments': {
         'memoryReference': memoryReference,
-        'count': 1024 # TODO: What
+        'count': length,
       }
     } )
 

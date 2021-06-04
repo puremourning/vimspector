@@ -295,7 +295,7 @@ class CodeView( object ):
     return self._terminal.buffer_number
 
 
-  def ShowMemory( self, memoryReference, msg ):
+  def ShowMemory( self, memoryReference, length, msg ):
     if not self._window.valid:
       return False
 
@@ -308,6 +308,13 @@ class CodeView( object ):
       # equivalent output of say xxd
       data = msg.get( 'body', {} ).get( 'data', '' )
       utils.SetBufferContents( buf, utils.Base64ToHexDump( data ) )
+      buf[ 0:0 ] = [
+        f'Memory Dump for Reference {memoryReference} Length: {length} bytes',
+        '-' * 80,
+        'Offset    Bytes                                             Text',
+      ]
+
+    utils.SetSyntax( '', 'xxd', buf )
 
     utils.JumpToWindow( self._window )
     utils.OpenFileInCurrentWindow( buf_name )
