@@ -16,6 +16,7 @@
 import vim
 import logging
 import json
+import os
 from collections import defaultdict
 
 from vimspector import utils, terminal, signs
@@ -40,6 +41,7 @@ class CodeView( object ):
       'breakpoints': []
     }
     self._current_frame = None
+    self._scratch_buffers = []
 
     with utils.LetCurrentWindow( self._window ):
       if utils.UseWinBar():
@@ -173,6 +175,10 @@ class CodeView( object ):
     self.ClearBreakpoints()
     self.Clear()
 
+    for b in self._scratch_buffers:
+      utils.CleanUpHiddenBuffer( b )
+    self._scratch_buffers = []
+
   def AddBreakpoints( self, source, breakpoints ):
     for breakpoint in breakpoints:
       source = breakpoint.get( 'source' ) or source
@@ -287,3 +293,14 @@ class CodeView( object ):
     # FIXME: Change this tor return the PID rather than having debug_session
     # work that out
     return self._terminal.buffer_number
+
+
+  def ShowMemory( self, memoryReference, msg ):
+    buf_name = os.path.join( '_vimspector_mem', memoryReference )
+    buf = utils.BufferForFile( buf_name )
+    self._scratch_buffers.append( buf )
+    utils.SetUpHiddenBuffer( buf, buf_name )
+    with utils.ModifiableScratchBuffer( buf ):
+      utils.SetBufferContents(
+        buf,
+        msg.get( 'body', {} ).get( 'data', 'Cannot read memory' ) )
