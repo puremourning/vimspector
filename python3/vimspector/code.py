@@ -296,11 +296,18 @@ class CodeView( object ):
 
 
   def ShowMemory( self, memoryReference, msg ):
+    if not self._window.valid:
+      return False
+
     buf_name = os.path.join( '_vimspector_mem', memoryReference )
     buf = utils.BufferForFile( buf_name )
     self._scratch_buffers.append( buf )
     utils.SetUpHiddenBuffer( buf, buf_name )
     with utils.ModifiableScratchBuffer( buf ):
-      utils.SetBufferContents(
-        buf,
-        msg.get( 'body', {} ).get( 'data', 'Cannot read memory' ) )
+      # TODO: The data is encoded in base64, so we need to convert that to the
+      # equivalent output of say xxd
+      data = msg.get( 'body', {} ).get( 'data', '' )
+      utils.SetBufferContents( buf, utils.Base64ToHexDump( data ) )
+
+    utils.JumpToWindow( self._window )
+    utils.OpenFileInCurrentWindow( buf_name )
