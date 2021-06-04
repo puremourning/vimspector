@@ -250,6 +250,13 @@ function! vimspector#SetVariableValue( ... ) abort
   endif
 endfunction
 
+function! vimspector#ReadMemory() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.ReadMemory()
+endfunction
+
 function! vimspector#DeleteWatch() abort
   if !s:Enabled()
     return
