@@ -307,14 +307,14 @@ class CodeView( object ):
       # TODO: The data is encoded in base64, so we need to convert that to the
       # equivalent output of say xxd
       data = msg.get( 'body', {} ).get( 'data', '' )
-      utils.SetBufferContents( buf, utils.Base64ToHexDump( data ) )
-      buf[ 0:0 ] = [
+      utils.SetBufferContents( buf, [
         f'Memory Dump for Reference {memoryReference} Length: {length} bytes',
         '-' * 80,
         'Offset    Bytes                                             Text',
-      ]
+        '-' * 80,
+      ] )
+      utils.AppendToBuffer( buf, utils.Base64ToHexDump( data ) )
 
     utils.SetSyntax( '', 'xxd', buf )
-
     utils.JumpToWindow( self._window )
     utils.OpenFileInCurrentWindow( buf_name )
