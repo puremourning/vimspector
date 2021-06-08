@@ -733,13 +733,16 @@ class DebugSession( object ):
       return
 
     memoryReference = self._variablesView.GetMemoryReference( buf, line_num )
-    length = 1024 # TODO: WHat?
-
     if memoryReference is None:
       utils.UserMessage( "Cannot find memory reference for that",
                          error = True )
       return
 
+    length = utils.AskForInput( 'How much data to display? ',
+                                default_value = '1024' )
+
+    if length is None:
+      return
 
 
     def handler( msg ):
@@ -749,7 +752,7 @@ class DebugSession( object ):
       'command': 'readMemory',
       'arguments': {
         'memoryReference': memoryReference,
-        'count': length,
+        'count': int( length ),
       }
     } )
 
