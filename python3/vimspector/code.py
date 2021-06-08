@@ -295,7 +295,7 @@ class CodeView( object ):
     return self._terminal.buffer_number
 
 
-  def ShowMemory( self, memoryReference, length, msg ):
+  def ShowMemory( self, memoryReference, length, offset, msg ):
     if not self._window.valid:
       return False
 
@@ -308,7 +308,8 @@ class CodeView( object ):
       # equivalent output of say xxd
       data = msg.get( 'body', {} ).get( 'data', '' )
       utils.SetBufferContents( buf, [
-        f'Memory Dump for Reference {memoryReference} Length: {length} bytes',
+        f'Memory Dump for Reference {memoryReference} Length: {length} bytes'
+        f' Offset: {offset}',
         '-' * 80,
         'Offset    Bytes                                             Text',
         '-' * 80,
@@ -318,3 +319,6 @@ class CodeView( object ):
     utils.SetSyntax( '', 'xxd', buf )
     utils.JumpToWindow( self._window )
     utils.OpenFileInCurrentWindow( buf_name )
+
+    # TODO: Need to set up some mappings here that allow the user to browse
+    # around by setting the offset

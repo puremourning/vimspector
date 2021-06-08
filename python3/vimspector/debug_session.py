@@ -726,7 +726,7 @@ class DebugSession( object ):
     self._variablesView.SetVariableValue( new_value, buf, line_num )
 
   @IfConnected()
-  def ReadMemory( self, buf = None, line_num = None ):
+  def ReadMemory( self, offset = None, buf = None, line_num = None ):
     if not self._server_capabilities.get( 'supportsReadMemoryRequest' ):
       utils.UserMessage( "Server does not support memory request",
                          error = True )
@@ -744,15 +744,22 @@ class DebugSession( object ):
     if length is None:
       return
 
+    offset = utils.AskForInput( 'Location offset? ',
+                                default_value = '0' )
+
+    if offset is None:
+      return
+
 
     def handler( msg ):
-      self._codeView.ShowMemory( memoryReference, length, msg )
+      self._codeView.ShowMemory( memoryReference, length, offset, msg )
 
     self._connection.DoRequest( handler, {
       'command': 'readMemory',
       'arguments': {
         'memoryReference': memoryReference,
         'count': int( length ),
+        'offset': int( offset )
       }
     } )
 
