@@ -722,7 +722,7 @@ Vimspector then orchestrates the various tools to set you up.
       "variables": {
         // Just an example of how to specify a variable manually rather than
         // vimspector asking for input from the user
-        "ServiceName": "${fileBasenameNoExtention}"
+        "ServiceName": "${fileBasenameNoExtension}"
       },
 
       "adapter": "python-remote",
