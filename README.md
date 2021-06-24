@@ -290,7 +290,7 @@ If you just want to try out vimspector without changing your vim config, there
 are example projects for a number of languages in `support/test`, including:
 
 * Python (`support/test/python/simple_python`)
-* Go (`support/test/go/hello_world`)
+* Go (`support/test/go/hello_world` and `support/test/go/name-starts-with-vowel`)
 * Nodejs (`support/test/node/simple`)
 * Chrome (`support/test/chrome/`)
 * etc.
