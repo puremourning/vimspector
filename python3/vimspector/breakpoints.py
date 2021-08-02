@@ -34,6 +34,48 @@ class ServerBreakpointHandler( object ):
     pass
 
 
+class BreakpointsView( object ):
+  def __init__(self):
+    self._breakpoint_win_id = None
+
+  def _UpdateView( self, breakpoint_list, winid ):
+    qf = list(
+      map(
+        lambda el: '{}:{} {}'.format(
+          el.get( 'filename' ), el.get( 'lnum' ), el.get( 'text' )
+        ),
+        breakpoint_list
+      )
+    )
+    self._breakpoint_win_id = vim.eval(
+      'vimspector#internal#breakpoint#CreateBreakpointView({}, {})'
+      .format(
+        qf,
+        winid if winid else -1
+      )
+    )
+
+  def _CloseBreakpoints( self ):
+    if self._breakpoint_win_id:
+      vim.eval( 'vimspector#internal#breakpoint#CloseBreakpointView( {} )'
+        .format( self._breakpoint_win_id ) )
+    return
+
+  def ToggleBreakpointView( self, breakpoint_list ):
+    if self._breakpoint_win_id:
+      self._CloseBreakpoints()
+    else:
+      self._UpdateView( breakpoint_list, self._breakpoint_win_id )
+    return
+
+  def RefreshBreakpoints( self, breakpoint_list ):
+    if self._breakpoint_win_id:
+      self._UpdateView( breakpoint_list, self._breakpoint_win_id )
+
+  def CloseBreakpointsCallback( self ):
+    self._breakpoint_win_id = None
+
+
 class ProjectBreakpoints( object ):
   def __init__( self ):
     self._connection = None
@@ -51,6 +93,8 @@ class ProjectBreakpoints( object ):
     self._server_capabilities = {}
 
     self._next_sign_id = 1
+
+    self._breakpoints_view = BreakpointsView()
 
     if not signs.SignDefined( 'vimspectorBP' ):
       signs.DefineSign( 'vimspectorBP',
@@ -96,6 +140,11 @@ class ProjectBreakpoints( object ):
 
     # FIXME: If the adapter type changes, we should probably forget this ?
 
+  def CloseBreakpointsCallback( self ):
+    self._breakpoints_view.CloseBreakpointsCallback()
+
+  def ToggleBreakpointsView( self ):
+    self._breakpoints_view.ToggleBreakpointView( self.BreakpointsAsQuickFix() )
 
   def BreakpointsAsQuickFix( self ):
     # FIXME: Handling of breakpoints is a mess, split between _codeView and this
@@ -281,12 +330,16 @@ class ProjectBreakpoints( object ):
 
 
   def UpdateUI( self, then = None ):
-    if self._connection:
-      self.SendBreakpoints( then )
-    else:
-      self._ShowBreakpoints()
+    def callback():
+      self._breakpoints_view.RefreshBreakpoints( self.BreakpointsAsQuickFix() )
       if then:
         then()
+
+    if self._connection:
+      self.SendBreakpoints( callback )
+    else:
+      self._ShowBreakpoints()
+      callback()
 
 
   def SetBreakpointsHandler( self, handler ):
