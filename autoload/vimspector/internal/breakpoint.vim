@@ -31,6 +31,7 @@ endfunction
 
 function! vimspector#internal#breakpoint#CreateBreakpointView(lines, winid) abort
   let old_winid = win_getid()
+  let old_curs_pos = getpos( '.' )
   if a:winid < 0
     botright 10new
 
@@ -42,7 +43,7 @@ function! vimspector#internal#breakpoint#CreateBreakpointView(lines, winid) abor
     call win_gotoid(a:winid)
   endif
 
-  let curr_win = win_getid()
+  let curr_winid = win_getid()
 
   setlocal noreadonly
   setlocal modifiable
@@ -60,8 +61,24 @@ function! vimspector#internal#breakpoint#CreateBreakpointView(lines, winid) abor
           \ :call vimspector#internal#breakpoint#CloseBreakpointView(-1)
   augroup END
 
+  nnoremap <silent> <buffer> t
+          \ :<C-u>call py3eval( '_vimspector_session.ToggleBreakpointViewBreakpoint()' )<CR>
+  nnoremap <silent> <buffer> c
+          \ :<C-u>call py3eval( '_vimspector_session.ClearBreakpointViewBreakpoint()' )<CR>
+  nnoremap <silent> <buffer> <Enter>
+          \ :<C-u>call py3eval( '_vimspector_session.JumpToBreakpointViewBreakpoint()' )<CR>
+  nnoremap <silent> <buffer> <2-LeftMouse>
+          \ :<C-u>call py3eval( '_vimspector_session.JumpToBreakpointViewBreakpoint()' )<CR>
+
+  " restore focus to the initial window
   call win_gotoid( old_winid )
 
-  return curr_win
+  " if we were inside the breakpoint view already,
+  " also restore the cursor position
+  if old_winid == curr_winid
+    call setpos('.', old_curs_pos)
+  endif
+
+  return curr_winid
 endfunction
 
