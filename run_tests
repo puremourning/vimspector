@@ -21,7 +21,7 @@ out_fd=1
 
 while [ -n "$1" ]; do
   case "$1" in
-    "--basedir")
+    "--basedir"|"--base-dir"|"--test-base")
       shift
       SetBaseDir $1
       shift
@@ -36,7 +36,7 @@ while [ -n "$1" ]; do
       INSTALL=$1
       shift
       ;;
-    "--update")
+    "--update"|"--upgrade")
       UPDATE=1
       shift
       ;;
