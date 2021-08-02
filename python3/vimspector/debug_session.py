@@ -1549,8 +1549,18 @@ class DebugSession( object ):
   def ListBreakpoints( self ):
     self._breakpoints.ToggleBreakpointsView()
 
+  def ToggleBreakpointViewBreakpoint( self ):
+    self._breakpoints.ToggleBreakpointViewBreakpoint()
+
+  def ClearBreakpointViewBreakpoint( self ):
+    self._breakpoints.ClearBreakpointViewBreakpoint()
+
+  def JumpToBreakpointViewBreakpoint( self ):
+    self._breakpoints.JumpToBreakpointViewBreakpoint()
+
   def ToggleBreakpoint( self, options ):
     return self._breakpoints.ToggleBreakpoint( options )
+
 
   def RunTo( self, file_name, line ):
     self.ClearTemporaryBreakpoints()

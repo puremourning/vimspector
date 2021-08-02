@@ -35,18 +35,28 @@ class ServerBreakpointHandler( object ):
 
 
 class BreakpointsView( object ):
-  def __init__(self):
+  def __init__( self ):
     self._breakpoint_win_id = None
+    self._breakpoint_list = None
 
   def _UpdateView( self, breakpoint_list, winid ):
+    def formatEntry( el ):
+      prefix = ''
+      if el.get( 'type' ) == 'L':
+        prefix = '{}:{} '.format( el.get( 'filename' ), el.get( 'lnum' ) )
+
+      return '{}{}'.format(
+        prefix,
+        el.get( 'text' )
+      )
+
     qf = list(
       map(
-        lambda el: '{}:{} {}'.format(
-          el.get( 'filename' ), el.get( 'lnum' ), el.get( 'text' )
-        ),
+        formatEntry,
         breakpoint_list
       )
     )
+    self.breakpoint_list = breakpoint_list
     self._breakpoint_win_id = vim.eval(
       'vimspector#internal#breakpoint#CreateBreakpointView({}, {})'
       .format(
@@ -61,6 +71,16 @@ class BreakpointsView( object ):
         .format( self._breakpoint_win_id ) )
     return
 
+  def GetBreakpointForLine( self ):
+    curr_winid = vim.eval( 'win_getid()' )
+    if curr_winid != self._breakpoint_win_id:
+      return None
+
+    line_num = int( vim.eval( 'getpos( \'.\' )' )[ 1 ] )
+
+    index = max( 0, min( len( self.breakpoint_list ) - 1, line_num - 1 ) )
+    return self.breakpoint_list[ index ] if self._breakpoint_win_id else None
+
   def ToggleBreakpointView( self, breakpoint_list ):
     if self._breakpoint_win_id:
       self._CloseBreakpoints()
@@ -74,6 +94,7 @@ class BreakpointsView( object ):
 
   def CloseBreakpointsCallback( self ):
     self._breakpoint_win_id = None
+    self._breakpoint_list = None
 
 
 class ProjectBreakpoints( object ):
@@ -146,38 +167,61 @@ class ProjectBreakpoints( object ):
   def ToggleBreakpointsView( self ):
     self._breakpoints_view.ToggleBreakpointView( self.BreakpointsAsQuickFix() )
 
+  def ToggleBreakpointViewBreakpoint( self ):
+    bp = self._breakpoints_view.GetBreakpointForLine()
+    if bp:
+      if bp.get( 'type' ) == 'F':
+        self.ClearFunctionBreakpoint( bp.get( 'filename' ) )
+      else:
+        self._ToggleBreakpoint( None, bp.get( 'filename' ), bp.get( 'lnum' ) )
+
+  def JumpToBreakpointViewBreakpoint( self ):
+    bp = self._breakpoints_view.GetBreakpointForLine()
+    if bp and bp.get( 'type' ) != 'F':
+      isSuccess = int(
+        vim.eval(
+          "win_gotoid( bufwinid( \'{}\' ) )".format( bp.get( 'filename' ) )
+        )
+      )
+      if not isSuccess:
+        vim.command( "leftabove split {}".format( bp.get( 'filename' ) ) )
+
+      vim.eval( "setpos( '.', [0, {}, 1, 1] )".format( bp.get( 'lnum' ) ) )
+
+  def ClearBreakpointViewBreakpoint( self ):
+    bp = self._breakpoints_view.GetBreakpointForLine()
+    if bp:
+      if bp.get( 'type' ) == 'F':
+        self.ClearFunctionBreakpoint( bp.get( 'filename' ) )
+      else:
+        self.ClearLineBreakpoint( bp.get( 'filename' ), bp.get( 'lnum' ) )
+
   def BreakpointsAsQuickFix( self ):
-    # FIXME: Handling of breakpoints is a mess, split between _codeView and this
-    # object. This makes no sense and should be centralised so that we don't
-    # have this duplication and bug factory.
     qf = []
-    if self._connection and self._codeView:
-      qf = self._codeView.BreakpointsAsQuickFix()
-    else:
-      for file_name, breakpoints in self._line_breakpoints.items():
-        for bp in breakpoints:
-          self._SignToLine( file_name, bp )
-          qf.append( {
-            'filename': file_name,
-            'lnum': bp[ 'line' ],
-            'col': 1,
-            'type': 'L',
-            'valid': 1 if bp[ 'state' ] == 'ENABLED' else 0,
-            'text': "Line breakpoint - {}: {}".format(
-              bp[ 'state' ],
-              json.dumps( bp[ 'options' ] ) )
-          } )
-      # I think this shows that the qf list is not right for this.
-      for bp in self._func_breakpoints:
+    for file_name, breakpoints in self._line_breakpoints.items():
+      for bp in breakpoints:
+        self._SignToLine( file_name, bp )
         qf.append( {
-          'filename': '',
-          'lnum': 1,
+          'filename': file_name,
+          'lnum': bp[ 'line' ],
           'col': 1,
-          'type': 'F',
-          'valid': 1,
-          'text': "Function breakpoint: {}: {}".format( bp[ 'function' ],
-                                                        bp[ 'options' ] ),
+          'type': 'L',
+          'valid': 1 if bp[ 'state' ] == 'ENABLED' else 0,
+          'text': "Line breakpoint - {}: {}".format(
+            bp[ 'state' ],
+            json.dumps( bp[ 'options' ] ) )
         } )
+    # I think this shows that the qf list is not right for this.
+    for bp in self._func_breakpoints:
+      qf.append( {
+        'filename': bp[ 'function' ],
+        'lnum': 1,
+        'col': 1,
+        'type': 'F',
+        'valid': 1,
+        'text': "Function breakpoint: {}: {}".format( bp[ 'function' ],
+                                                      bp[ 'options' ] ),
+      } )
 
     return qf
 
@@ -226,11 +270,7 @@ class ProjectBreakpoints( object ):
       signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
     del self._line_breakpoints[ _NormaliseFileName( file_name ) ][ index ]
 
-
-  def ToggleBreakpoint( self, options ):
-    line, _ = vim.current.window.cursor
-    file_name = vim.current.buffer.name
-
+  def _ToggleBreakpoint( self, options, file_name, line ):
     if not file_name:
       return
 
@@ -247,6 +287,15 @@ class ProjectBreakpoints( object ):
 
     self.UpdateUI()
 
+  def ClearFunctionBreakpoint( self, function_name ):
+    self._func_breakpoints = [ item for item in self._func_breakpoints
+                                if item[ 'function' ] != function_name ]
+    self.UpdateUI()
+
+  def ToggleBreakpoint( self, options ):
+    line, _ = vim.current.window.cursor
+    file_name = vim.current.buffer.name
+    self._ToggleBreakpoint( options, file_name, line )
 
   def SetLineBreakpoint( self, file_name, line_num, options, then = None ):
     bp, _ = self._FindLineBreakpoint( file_name, line_num )
@@ -340,7 +389,6 @@ class ProjectBreakpoints( object ):
     else:
       self._ShowBreakpoints()
       callback()
-
 
   def SetBreakpointsHandler( self, handler ):
     # FIXME: Remove this temporary compat .layer
