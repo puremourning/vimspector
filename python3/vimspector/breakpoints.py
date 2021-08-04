@@ -36,11 +36,11 @@ class ServerBreakpointHandler( object ):
 
 class BreakpointsView( object ):
   def __init__( self ):
-    self._breakpoint_win_id = None
-    self._breakpoint_list = None
+    self._breakpoint_win = None
+    self._breakpoint_list = []
 
-  def _UpdateView( self, breakpoint_list, winid ):
-    def formatEntry( el ):
+  def _UpdateView( self, breakpoint_list ):
+    def _formatEntry( el ):
       prefix = ''
       if el.get( 'type' ) == 'L':
         prefix = '{}:{} '.format( el.get( 'filename' ), el.get( 'lnum' ) )
@@ -50,51 +50,69 @@ class BreakpointsView( object ):
         el.get( 'text' )
       )
 
-    qf = list(
+    if self._breakpoint_win is None or not self._breakpoint_win.valid:
+      vim.command( 'botright 10new' )
+      self._breakpoint_win = vim.current.window
+      utils.SetUpScratchBuffer(
+        self._breakpoint_win.buffer, "vimspector.Breakpoints"
+      )
+      mappings = [
+        [ "t", "Toggle" ],
+        [ "c", "Clear" ],
+        [ "<Enter>", "JumpTo" ],
+        [ "<2-LeftMouse>", "JumpTo" ]
+      ]
+      for mapping in mappings:
+        vim.command(
+          f'nnoremap <silent> <buffer> {mapping[0]} '
+          ':<C-u>call '
+          'py3eval('
+          f'\'_vimspector_session.{mapping[1]}BreakpointViewBreakpoint()\''
+          ') <CR>'
+        )
+
+    self._breakpoint_list = breakpoint_list
+
+    breakpoint_list = list(
       map(
-        formatEntry,
+        _formatEntry,
         breakpoint_list
       )
     )
-    self.breakpoint_list = breakpoint_list
-    self._breakpoint_win_id = vim.eval(
-      'vimspector#internal#breakpoint#CreateBreakpointView({}, {})'
-      .format(
-        qf,
-        winid if winid else -1
-      )
-    )
 
-  def _CloseBreakpoints( self ):
-    if self._breakpoint_win_id:
-      vim.eval( 'vimspector#internal#breakpoint#CloseBreakpointView( {} )'
-        .format( self._breakpoint_win_id ) )
-    return
+    with utils.ModifiableScratchBuffer( self._breakpoint_win.buffer ):
+      with utils.RestoreCursorPosition():
+        utils.SetBufferContents(
+          self._breakpoint_win.buffer, breakpoint_list
+        )
+
+  def CloseBreakpoints( self ):
+    if self._breakpoint_win and self._breakpoint_win.valid:
+      vim.command( "{}close".format( self._breakpoint_win.number ) )
 
   def GetBreakpointForLine( self ):
-    curr_winid = vim.eval( 'win_getid()' )
-    if curr_winid != self._breakpoint_win_id:
+    if (
+      self._breakpoint_win is None
+      or not self._breakpoint_win.valid
+      or vim.current.window.number != self._breakpoint_win.number
+      or not self._breakpoint_list
+    ):
       return None
 
     line_num = int( vim.eval( 'getpos( \'.\' )' )[ 1 ] )
 
-    index = max( 0, min( len( self.breakpoint_list ) - 1, line_num - 1 ) )
-    return self.breakpoint_list[ index ] if self._breakpoint_win_id else None
+    index = max( 0, min( len( self._breakpoint_list ) - 1, line_num - 1 ) )
+    return self._breakpoint_list[ index ]
 
   def ToggleBreakpointView( self, breakpoint_list ):
-    if self._breakpoint_win_id:
-      self._CloseBreakpoints()
+    if self._breakpoint_win and self._breakpoint_win.valid:
+      self.CloseBreakpoints()
     else:
-      self._UpdateView( breakpoint_list, self._breakpoint_win_id )
-    return
+      self._UpdateView( breakpoint_list )
 
   def RefreshBreakpoints( self, breakpoint_list ):
-    if self._breakpoint_win_id:
-      self._UpdateView( breakpoint_list, self._breakpoint_win_id )
-
-  def CloseBreakpointsCallback( self ):
-    self._breakpoint_win_id = None
-    self._breakpoint_list = None
+    if self._breakpoint_win and self._breakpoint_win.valid:
+      self._UpdateView( breakpoint_list )
 
 
 class ProjectBreakpoints( object ):
@@ -160,9 +178,6 @@ class ProjectBreakpoints( object ):
     # re-ask the user every time for the sane info.
 
     # FIXME: If the adapter type changes, we should probably forget this ?
-
-  def CloseBreakpointsCallback( self ):
-    self._breakpoints_view.CloseBreakpointsCallback()
 
   def ToggleBreakpointsView( self ):
     self._breakpoints_view.ToggleBreakpointView( self.BreakpointsAsQuickFix() )

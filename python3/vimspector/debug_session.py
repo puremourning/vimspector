@@ -1543,9 +1543,6 @@ class DebugSession( object ):
 
     self._stackTraceView.OnStopped( event )
 
-  def CloseBreakpointsCallback( self ):
-    self._breakpoints.CloseBreakpointsCallback()
-
   def ListBreakpoints( self ):
     self._breakpoints.ToggleBreakpointsView()
 
