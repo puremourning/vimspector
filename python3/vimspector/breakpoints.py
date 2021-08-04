@@ -61,6 +61,8 @@ class BreakpointsView( object ):
       )
       mappings = [
         [ "t", "Toggle" ],
+        [ "<F9>", "Toggle" ],
+        [ "d", "Clear" ],
         [ "c", "Clear" ],
         [ "<Enter>", "JumpTo" ],
         [ "<2-LeftMouse>", "JumpTo" ]
@@ -73,6 +75,9 @@ class BreakpointsView( object ):
           f'\'_vimspector_session.{mapping[1]}BreakpointViewBreakpoint()\''
           ') <CR>'
         )
+      vim.eval( "matchadd( 'WarningMsg', 'ENABLED', 100 )" )
+      vim.eval( "matchadd( 'LineNr', 'DISABLED', 100 )" )
+      vim.eval( "matchadd( 'Title', '\\v^\\S+:{0,}', 100 )" )
 
     self._breakpoint_list = breakpoint_list
 
@@ -242,7 +247,7 @@ class ProjectBreakpoints( object ):
         'col': 1,
         'type': 'F',
         'valid': 1,
-        'text': "Function breakpoint: {}: {}".format( bp[ 'function' ],
+        'text': "{}: Function breakpoint - {}".format( bp[ 'function' ],
                                                       bp[ 'options' ] ),
       } )
 
