@@ -43,7 +43,10 @@ class BreakpointsView( object ):
     def _formatEntry( el ):
       prefix = ''
       if el.get( 'type' ) == 'L':
-        prefix = '{}:{} '.format( el.get( 'filename' ), el.get( 'lnum' ) )
+        prefix = '{}:{} '.format(
+          os.path.basename( el.get( 'filename' ) ),
+          el.get( 'lnum' )
+        )
 
       return '{}{}'.format(
         prefix,
@@ -182,7 +185,12 @@ class ProjectBreakpoints( object ):
       if bp.get( 'type' ) == 'F':
         self.ClearFunctionBreakpoint( bp.get( 'filename' ) )
       else:
-        self._ToggleBreakpoint( None, bp.get( 'filename' ), bp.get( 'lnum' ) )
+        self._ToggleBreakpoint(
+          None,
+          bp.get( 'filename' ),
+          bp.get( 'lnum' ),
+          False
+        )
 
   def JumpToBreakpointViewBreakpoint( self ):
     bp = self._breakpoints_view.GetBreakpointForLine()
@@ -278,7 +286,7 @@ class ProjectBreakpoints( object ):
       signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
     del self._line_breakpoints[ os.path.abspath( file_name ) ][ index ]
 
-  def _ToggleBreakpoint( self, options, file_name, line ):
+  def _ToggleBreakpoint( self, options, file_name, line, shouldDelete = True ):
     if not file_name:
       return
 
@@ -289,6 +297,8 @@ class ProjectBreakpoints( object ):
     elif bp[ 'state' ] == 'ENABLED' and not self._connection:
       # DISABLE
       bp[ 'state' ] = 'DISABLED'
+    elif not shouldDelete:
+      bp[ 'state' ] = 'ENABLED'
     else:
       # DELETE
       self._DeleteLineBreakpoint( bp, file_name, index )
