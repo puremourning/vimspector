@@ -21,7 +21,7 @@ import os
 import logging
 
 import json
-from vimspector import utils, signs
+from vimspector import utils, signs, settings
 
 
 class ServerBreakpointHandler( object ):
@@ -54,30 +54,34 @@ class BreakpointsView( object ):
       )
 
     if self._breakpoint_win is None or not self._breakpoint_win.valid:
-      vim.command( 'botright 10new' )
+      vim.command( f'botright { settings.Int( "bottombar_height" ) }new' )
       self._breakpoint_win = vim.current.window
       utils.SetUpScratchBuffer(
         self._breakpoint_win.buffer, "vimspector.Breakpoints"
       )
-      mappings = [
-        [ "t", "Toggle" ],
-        [ "<F9>", "Toggle" ],
-        [ "d", "Clear" ],
-        [ "c", "Clear" ],
-        [ "<Enter>", "JumpTo" ],
-        [ "<2-LeftMouse>", "JumpTo" ]
-      ]
-      for mapping in mappings:
-        vim.command(
-          f'nnoremap <silent> <buffer> {mapping[0]} '
-          ':<C-u>call '
-          'py3eval('
-          f'\'_vimspector_session.{mapping[1]}BreakpointViewBreakpoint()\''
-          ') <CR>'
-        )
+
+      mappings = settings.Dict( 'mappings' )[ 'breakpoints' ]
+      for mapping in utils.GetVimList( mappings, 'toggle' ):
+        vim.command( f'nnoremap <silent> <buffer> { mapping } '
+                     ':<C-u>call '
+                     'vimspector#ToggleBreakpointViewBreakpoint()<CR>' )
+
+      for mapping in utils.GetVimList( mappings, 'delete' ):
+        vim.command( f'nnoremap <silent> <buffer> { mapping } '
+                     ':<C-u>call '
+                     'vimspector#DeleteBreakpointViewBreakpoint()<CR>' )
+
+      for mapping in utils.GetVimList( mappings, 'jump_to' ):
+        vim.command( f'nnoremap <silent> <buffer> { mapping } '
+                     ':<C-u>call '
+                     'vimspector#JumpToBreakpointViewBreakpoint()<CR>' )
+      # set highlighting
       vim.eval( "matchadd( 'WarningMsg', 'ENABLED', 100 )" )
       vim.eval( "matchadd( 'LineNr', 'DISABLED', 100 )" )
       vim.eval( "matchadd( 'Title', '\\v^\\S+:{0,}', 100 )" )
+
+      # we want to maintain the height of the window
+      self._breakpoint_win.options[ "winfixheight" ] = True
 
     self._breakpoint_list = breakpoint_list
 
@@ -96,7 +100,8 @@ class BreakpointsView( object ):
 
   def CloseBreakpoints( self ):
     if self._breakpoint_win and self._breakpoint_win.valid:
-      vim.command( "{}close".format( self._breakpoint_win.number ) )
+      with utils.LetCurrentTabpage( self._breakpoint_win.tabpage ):
+        vim.command( "{}close".format( self._breakpoint_win.number ) )
 
   def GetBreakpointForLine( self ):
     if (
@@ -114,7 +119,16 @@ class BreakpointsView( object ):
 
   def ToggleBreakpointView( self, breakpoint_list ):
     if self._breakpoint_win and self._breakpoint_win.valid:
+      old_tabpage_number = self._breakpoint_win.tabpage.number
+      # we want to grab current tabpage number now
+      # because closing breakpoint view might
+      # also close the entire tab
+      current_tabpage_number = vim.current.tabpage.number
       self.CloseBreakpoints()
+      # if we just closed breakpoint view in a different tab,
+      # we want to re-open it in the current tab
+      if old_tabpage_number != current_tabpage_number:
+        self._UpdateView( breakpoint_list )
     else:
       self._UpdateView( breakpoint_list )
 
