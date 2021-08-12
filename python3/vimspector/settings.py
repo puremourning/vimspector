@@ -63,6 +63,11 @@ DEFAULTS = {
     'stack_trace': {
       'expand_or_jump': [ '<CR>', '<2-LeftMouse>' ],
       'focus_thread': [ '<leader><CR>' ],
+    },
+    'breakpoints': {
+      'toggle': [ 't', '<F9>' ],
+      'delete': [ 'c', 'd' ],
+      'jump_to': [ '<2-LeftMouse>', '<Enter>' ]
     }
   },
 
