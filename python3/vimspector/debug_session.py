@@ -80,6 +80,7 @@ class DebugSession( object ):
     self._launch_complete = False
     self._on_init_complete_handlers = []
     self._server_capabilities = {}
+    vim.vars[ 'vimspector_session_windows' ] = {}
     self.ClearTemporaryBreakpoints()
 
   def GetConfigurations( self, adapters ):
@@ -416,7 +417,10 @@ class DebugSession( object ):
     if self._uiTab:
       self._logger.debug( "Clearing down UI" )
 
-      del vim.vars[ 'vimspector_session_windows' ]
+      vim.vars[ 'vimspector_session_windows' ] = {
+        'breakpoints': vim.vars[ 'vimspector_session_windows' ].get(
+                        'breakpoints' )
+      }
       vim.current.tabpage = self._uiTab
 
       self._splash_screen = utils.HideSplash( self._api_prefix,
@@ -845,7 +849,9 @@ class DebugSession( object ):
       'variables': utils.WindowID( vars_window, self._uiTab ),
       'watches': utils.WindowID( watch_window, self._uiTab ),
       'output': utils.WindowID( output_window, self._uiTab ),
-      'eval': None # this is going to be updated every time eval popup is opened
+      'eval': None, # updated every time eval popup is opened
+      'breakpoints': vim.vars[ 'vimspector_session_windows' ].get(
+                        'breakpoints' ) # same as above, but for breakpoints
     }
     with utils.RestoreCursorPosition():
       with utils.RestoreCurrentWindow():
@@ -904,7 +910,9 @@ class DebugSession( object ):
       'variables': utils.WindowID( vars_window, self._uiTab ),
       'watches': utils.WindowID( watch_window, self._uiTab ),
       'output': utils.WindowID( output_window, self._uiTab ),
-      'eval': None # this is going to be updated every time eval popup is opened
+      'eval': None, # updated every time eval popup is opened
+      'breakpoints': vim.vars[ 'vimspector_session_windows' ].get(
+                        'breakpoints' ) # same as above, but for breakpoints
     }
     with utils.RestoreCursorPosition():
       with utils.RestoreCurrentWindow():

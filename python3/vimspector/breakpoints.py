@@ -43,22 +43,24 @@ class BreakpointsView( object ):
     def _formatEntry( el ):
       prefix = ''
       if el.get( 'type' ) == 'L':
-        prefix = '{}:{} '.format(
-          os.path.basename( el.get( 'filename' ) ),
-          el.get( 'lnum' )
-        )
+        prefix = '{}:{} '.format( os.path.basename( el.get( 'filename' ) ),
+          el.get( 'lnum' ) )
 
-      return '{}{}'.format(
-        prefix,
-        el.get( 'text' )
-      )
+      return '{}{}'.format( prefix, el.get( 'text' ) )
 
     if self._breakpoint_win is None or not self._breakpoint_win.valid:
+
       vim.command( f'botright { settings.Int( "bottombar_height" ) }new' )
       self._breakpoint_win = vim.current.window
-      utils.SetUpScratchBuffer(
-        self._breakpoint_win.buffer, "vimspector.Breakpoints"
-      )
+
+      # neovim madness need to re-assign the dict to trigger rpc call
+      # see https://github.com/neovim/pynvim/issues/261
+      session_wins = vim.vars[ 'vimspector_session_windows' ]
+      session_wins[ 'breakpoints' ] = utils.WindowID( self._breakpoint_win )
+      vim.vars[ 'vimspector_session_windows' ] = session_wins
+
+      utils.SetUpScratchBuffer( self._breakpoint_win.buffer,
+                                "vimspector.Breakpoints" )
 
       mappings = settings.Dict( 'mappings' )[ 'breakpoints' ]
       for mapping in utils.GetVimList( mappings, 'toggle' ):
@@ -85,18 +87,11 @@ class BreakpointsView( object ):
 
     self._breakpoint_list = breakpoint_list
 
-    breakpoint_list = list(
-      map(
-        _formatEntry,
-        breakpoint_list
-      )
-    )
+    breakpoint_list = list( map( _formatEntry, breakpoint_list ) )
 
     with utils.ModifiableScratchBuffer( self._breakpoint_win.buffer ):
       with utils.RestoreCursorPosition():
-        utils.SetBufferContents(
-          self._breakpoint_win.buffer, breakpoint_list
-        )
+        utils.SetBufferContents( self._breakpoint_win.buffer, breakpoint_list )
 
   def CloseBreakpoints( self ):
     if self._breakpoint_win and self._breakpoint_win.valid:
@@ -210,22 +205,16 @@ class ProjectBreakpoints( object ):
       if bp.get( 'type' ) == 'F':
         self.ClearFunctionBreakpoint( bp.get( 'filename' ) )
       else:
-        self._ToggleBreakpoint(
-          None,
-          bp.get( 'filename' ),
-          bp.get( 'lnum' ),
-          False
-        )
+        self._ToggleBreakpoint( None, bp.get( 'filename' ), bp.get( 'lnum' ),
+                                False )
 
   def JumpToBreakpointViewBreakpoint( self ):
     bp = self._breakpoints_view.GetBreakpointForLine()
     if bp and bp.get( 'type' ) != 'F':
-      isSuccess = int(
-        vim.eval(
-          "win_gotoid( bufwinid( \'{}\' ) )".format( bp.get( 'filename' ) )
-        )
-      )
-      if not isSuccess:
+      success = int( vim.eval(
+          f'win_gotoid( bufwinid( \'{ bp[ "filename" ] }\' ) )' ) )
+
+      if not success:
         vim.command( "leftabove split {}".format( bp.get( 'filename' ) ) )
 
       vim.eval( "setpos( '.', [0, {}, 1, 1] )".format( bp.get( 'lnum' ) ) )
@@ -253,7 +242,6 @@ class ProjectBreakpoints( object ):
             bp[ 'state' ],
             json.dumps( bp[ 'options' ] ) )
         } )
-    # I think this shows that the qf list is not right for this.
     for bp in self._func_breakpoints:
       qf.append( {
         'filename': bp[ 'function' ],
@@ -323,7 +311,7 @@ class ProjectBreakpoints( object ):
     elif bp[ 'state' ] == 'ENABLED' and not self._connection:
       # DISABLE
       bp[ 'state' ] = 'DISABLED'
-    elif not shouldDelete:
+    elif not shouldDelete and not self._connection:
       bp[ 'state' ] = 'ENABLED'
     else:
       # DELETE
