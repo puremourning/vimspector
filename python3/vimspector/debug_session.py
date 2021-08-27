@@ -318,21 +318,6 @@ class DebugSession( object ):
       self._outputView.ConnectionUp( self._connection )
       self._breakpoints.ConnectionUp( self._connection )
 
-      class Handler( breakpoints.ServerBreakpointHandler ):
-        def __init__( self, codeView ):
-          self.codeView = codeView
-
-        def ClearBreakpoints( self ):
-          self.codeView.ClearBreakpoints()
-
-        def AddBreakpoints( self, source, message ):
-          if 'body' not in message:
-            return
-          self.codeView.AddBreakpoints( source,
-                                        message[ 'body' ][ 'breakpoints' ] )
-
-      self._breakpoints.SetBreakpointsHandler( Handler( self._codeView ) )
-
     if self._connection:
       self._logger.debug( "_StopDebugAdapter with callback: start" )
       self._StopDebugAdapter( interactive = False, callback = start )
@@ -1424,7 +1409,6 @@ class DebugSession( object ):
       else:
         self._OnInitializeComplete()
 
-    self._codeView.ClearBreakpoints()
     self._breakpoints.SetConfiguredBreakpoints(
       self._configuration.get( 'breakpoints', {} ) )
     self._breakpoints.SendBreakpoints( onBreakpointsDone )
@@ -1437,11 +1421,11 @@ class DebugSession( object ):
     reason = message[ 'body' ][ 'reason' ]
     bp = message[ 'body' ][ 'breakpoint' ]
     if reason == 'changed':
-      self._codeView.UpdateBreakpoint( bp )
+      self._breakpoints.UpdateVerifiedBreakpoint( bp )
     elif reason == 'new':
-      self._codeView.AddBreakpoint( bp )
+      self._breakpoints.AddVerifiedBreakpoints( [ bp ] )
     elif reason == 'removed':
-      self._codeView.RemoveBreakpoint( bp )
+      self._breakpoints.DeleteVerifiedBreakpoint( bp )
     else:
       utils.UserMessage(
         'Unrecognised breakpoint event (undocumented): {0}'.format( reason ),
@@ -1588,9 +1572,6 @@ class DebugSession( object ):
     return self._breakpoints.ClearLineBreakpoint( file_name, line_num )
 
   def ClearBreakpoints( self ):
-    if self._connection:
-      self._codeView.ClearBreakpoints()
-
     return self._breakpoints.ClearBreakpoints()
 
   def AddFunctionBreakpoint( self, function, options ):
