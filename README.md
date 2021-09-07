@@ -1368,6 +1368,8 @@ Requires:
 * [Delve][delve-install] installed, e.g. `go get -u github.com/go-delve/delve/cmd/dlv`
 * Delve to be in your PATH, or specify the `dlvToolPath` launch option
 
+NOTE: Vimspector uses the ["legacy" vscode-go debug adapter](https://github.com/golang/vscode-go/blob/master/docs/debugging-legacy.md) rather than the "built-in" DAP support in Delve. You can track https://github.com/puremourning/vimspector/issues/186 for that.
+
 ```json
 {
   "configurations": {
@@ -1385,7 +1387,7 @@ Requires:
 ```
 
 See the vscode-go docs for
-[troubleshooting information](https://github.com/golang/vscode-go/blob/master/docs/debugging.md#troubleshooting)
+[troubleshooting information](https://github.com/golang/vscode-go/blob/master/docs/debugging-legacy.md#troubleshooting)
 
 ## PHP
 
