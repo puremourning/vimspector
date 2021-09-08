@@ -194,6 +194,7 @@ function! Test_ExpandVariables()
         \     [
         \       '- Scope: Locals',
         \       ' *+ t (Test): {...}',
+        \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
         \                 1,
@@ -219,6 +220,7 @@ function! Test_ExpandVariables()
         \       '   \*- c (char): 0 ''\\0\{1,3}''',
         \       '   \*- fffff (float): 0',
         \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
         \                 1,
@@ -237,6 +239,7 @@ function! Test_ExpandVariables()
         \       '    - c (char): 0 ''\\0\{1,3}''',
         \       '    - fffff (float): 0',
         \       '    + another_test (AnotherTest):\( {...}\)\?',
+        \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
         \                 1,
@@ -253,6 +256,7 @@ function! Test_ExpandVariables()
         \     [
         \       '- Scope: Locals',
         \       '  + t (Test): {...}',
+        \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
         \                 1,
@@ -267,6 +271,7 @@ function! Test_ExpandVariables()
         \     [
         \       '- Scope: Locals',
         \       '  + t (Test): {...}',
+        \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
         \                 1,
@@ -286,6 +291,7 @@ function! Test_ExpandVariables()
         \       '   \*- c (char): 99 ''c''',
         \       '   \*- fffff (float): 0',
         \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
         \                 1,
@@ -302,6 +308,7 @@ function! Test_ExpandVariables()
         \   assert_equal(
         \     [
         \       '+ Scope: Locals',
+        \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
         \                 1,
@@ -316,6 +323,7 @@ function! Test_ExpandVariables()
         \   assert_equal(
         \     [
         \       '+ Scope: Locals',
+        \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
         \                 1,
@@ -331,6 +339,7 @@ function! Test_ExpandVariables()
         \   assert_equal(
         \     [
         \       '+ Scope: Locals',
+        \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
         \                 1,
@@ -846,6 +855,7 @@ function! Test_SetVariableValue_Local()
         \     [
         \       '- Scope: Locals',
         \       ' *+ t (Test): {...}',
+        \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
         \                 1,
@@ -871,6 +881,7 @@ function! Test_SetVariableValue_Local()
         \       '   \*- c (char): 0 ''\\0\{1,3}''',
         \       '   \*- fffff (float): 0',
         \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
         \                 1,
@@ -897,6 +908,7 @@ EOF
         \       '   \*- c (char): 0 ''\\0\{1,3}''',
         \       '   \*- fffff (float): 0',
         \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
         \                 1,
@@ -916,6 +928,7 @@ EOF
         \       '   \*- c (char): 0 ''\\0\{1,3}''',
         \       '   \*- fffff (float): 0',
         \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
         \                 1,
@@ -935,6 +948,7 @@ EOF
         \       '   \*- c (char): 0 ''\\0\{1,3}''',
         \       '   \*- fffff (float): 0',
         \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
         \                 1,
