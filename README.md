@@ -61,9 +61,10 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Closing debugger](#closing-debugger)
     * [Terminate debuggee](#terminate-debuggee)
  * [Debug profile configuration](#debug-profile-configuration)
-    * [C, C  , Rust, etc.](#c-c-rust-etc)
-       * [C   Remote debugging](#c-remote-debugging)
-       * [C   Remote launch and attach](#c-remote-launch-and-attach)
+    * [C, C++, Rust, etc.](#c-c-rust-etc)
+       * [Data visualization / pretty printing](#data-visualization--pretty-printing)
+       * [C++ Remote debugging](#c-remote-debugging)
+       * [C++ Remote launch and attach](#c-remote-launch-and-attach)
     * [Rust](#rust)
     * [Python](#python)
        * [Python Remote Debugging](#python-remote-debugging)
@@ -1170,6 +1171,38 @@ licensing.
         "request": "launch",
         "program": "<path to binary>",
         "stopAtEntry": true
+      }
+    }
+  }
+}
+```
+
+### Data visualization / pretty printing
+
+Depending on the backend you need to enable pretty printing of complex types manually.
+
+* LLDB: Pretty printing is enabled by default
+
+* GDB: To enable gdb pretty printers, consider the snippet below.  
+  It is not enough to have `set print pretty on` in your .gdbinit!
+
+```
+{
+  "configurations": {
+    "Launch": {
+      "adapter": "vscode-cpptools",
+      "configuration": {
+        "request": "launch",
+        "program": "<path to binary>",
+        ...
+        "MIMode": "gdb"
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          }
+        ],
       }
     }
   }
