@@ -30,12 +30,12 @@ GADGETS = {
                                                                 root,
                                                                 gadget ),
     'all': {
-      'version': '0.27.0',
+      'version': '1.6.0',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",
           "command": [
-            "${gadgetDir}/vscode-cpptools/debugAdapters/OpenDebugAD7"
+            "${gadgetDir}/vscode-cpptools/debugAdapters/bin/OpenDebugAD7"
           ],
           "attach": {
             "pidProperty": "processId",
@@ -53,17 +53,17 @@ GADGETS = {
     'linux': {
       'file_name': 'cpptools-linux.vsix',
       'checksum':
-        '3695202e1e75a03de18049323b66d868165123f26151f8c974a480eaf0205435',
+        'c25299bcfb46b22d41aa3f125df7184e6282a35ff9fb69c47def744cb4778f55',
     },
     'macos': {
       'file_name': 'cpptools-osx.vsix',
       'checksum':
-        'cb061e3acd7559a539e5586f8d3f535101c4ec4e8a48195856d1d39380b5cf3c',
+        'ae21cde361335b350402904991cf9f746fec685449ca9bd5d50227c3dec3719b',
     },
     'windows': {
       'file_name': 'cpptools-win32.vsix',
       'checksum':
-        'aa294368ed16d48c59e49c8000e146eae5a19ad07b654efed5db8ec93b24229e',
+        'ef7ac5831874a3c7dbf0feb826bfda2be579aff9b6d990622fff1d0d4ede00d1',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",

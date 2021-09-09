@@ -12,7 +12,7 @@
         "externalConsole": false,
         "stopAtEntry": true,
         "stopOnEntry": true,
-        "MImode": "${VIMSPECTOR_MIMODE}"
+        "MIMode": "${VIMSPECTOR_MIMODE}"
       },
       "breakpoints": {
         "exception": {
@@ -33,7 +33,7 @@
         "externalConsole": false,
         "stopAtEntry": false,
         "stopOnEntry": false,
-        "MImode": "${VIMSPECTOR_MIMODE}"
+        "MIMode": "${VIMSPECTOR_MIMODE}"
       },
       "breakpoints": {
         "exception": {
@@ -55,7 +55,7 @@
         "externalConsole": false,
         "stopAtEntry": false,
         "stopOnEntry": false,
-        "MImode": "${VIMSPECTOR_MIMODE}"
+        "MIMode": "${VIMSPECTOR_MIMODE}"
       },
       "breakpoints": {
         "exception": {
@@ -82,7 +82,7 @@
       "configuration": {
         "request": "launch",
         "program": "${workspaceRoot}/${fileBasenameNoExtension}",
-        "MImode": "${VIMSPECTOR_MIMODE}",
+        "MIMode": "${VIMSPECTOR_MIMODE}",
         "externalConsole": false,
         "args": [
           "CALCULATED_LIST", "${CALCULATED_LIST}",
