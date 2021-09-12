@@ -418,7 +418,6 @@ class DebugSession( object ):
       self._variablesView.Reset()
       self._outputView.Reset()
       self._codeView.Reset()
-      vim.command( 'tabclose!' )
       vim.command( 'doautocmd <nomodeline> User VimspectorDebugEnded' )
       self._stackTraceView = None
       self._variablesView = None
@@ -666,7 +665,6 @@ class DebugSession( object ):
 
 
   def _SetUpUI( self ):
-    vim.command( 'tab split' )
     self._uiTab = vim.current.tabpage
 
     mode = settings.Get( 'ui_mode' )
