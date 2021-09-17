@@ -41,7 +41,7 @@ jobs:
 
     - run: |
         eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
-        go get -u github.com/go-delve/delve/cmd/dlv
+        go install github.com/go-delve/delve/cmd/dlv@latest
       name: 'Install Delve for Go'
 
     - uses: actions/cache@v2
@@ -102,7 +102,7 @@ jobs:
         brew link --overwrite python@3.8
       name: 'Install vim and deps'
 
-    - run: go get -u github.com/go-delve/delve/cmd/dlv
+    - run: go install github.com/go-delve/delve/cmd/dlv@latest
       name: 'Install Delve for Go'
 
     - uses: actions/cache@v2
