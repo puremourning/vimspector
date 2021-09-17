@@ -95,6 +95,7 @@ jobs:
     - run: |
         brew update-reset
         brew doctor || true
+        brew unlink go || true
         for p in python@3.8 go tcl-tk llvm lua luajit love; do
           brew install $p || brew outdated $p || brew upgrade $p
         done
