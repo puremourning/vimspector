@@ -709,3 +709,24 @@ function! Test_VimspectorJumpedToFrame()
   lcd -
   %bwipe!
 endfunction
+
+function! Test_DebugInfo_NotConnected()
+  redir => debug_message
+  VimspectorDebugInfo
+  redir END
+
+  call assert_equal( 'Vimspector not connected, start a debug session first',
+        \ trim( debug_message ) )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+function! Test_DebugInfo_Connected()
+  call s:StartDebugging()
+
+  " Just make sure there are no errors for now
+  VimspectorDebugInfo
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
