@@ -157,6 +157,7 @@ runtime dependencies). They are categorised by their level of support:
 | Lua                | Supported | `--all` or `--enable-lua`        | local-lua-debugger-vscode          | Node >=12.13.0, Npm, Lua interpreter       |
 | Node.js            | Supported | `--force-enable-node`            | vscode-node-debug2                 | 6 < Node < 12, Npm                         |
 | Javascript         | Supported | `--force-enable-chrome`          | debugger-for-chrome                | Chrome                                     |
+| Javascript         | Supported | `--force-enable-firefox`         | debugger-for-firefox               | Firefox                                    |
 | Java               | Supported | `--force-enable-java  `          | vscode-java-debug                  | Compatible LSP plugin (see [later](#java)) |
 | C# (dotnet core)   | Tested    | `--force-enable-csharp`          | netcoredbg                         | DotNet core                                |
 | F#, VB, etc.       | Supported | `--force-enable-[fsharp,vbnet]`  | `, `--force-enable-vbnet`          | netcoredbg                                 | DotNet core |
@@ -292,7 +293,7 @@ are example projects for a number of languages in `support/test`, including:
 * Python (`support/test/python/simple_python`)
 * Go (`support/test/go/hello_world` and `support/test/go/name-starts-with-vowel`)
 * Nodejs (`support/test/node/simple`)
-* Chrome (`support/test/chrome/`)
+* Chrome/Firefox (`support/test/web/`)
 * etc.
 
 To test one of these out, cd to the directory and run:
@@ -1493,26 +1494,38 @@ Requires:
 }
 ```
 
-* Chrome
+* Chrome/Firefox
 
-This uses the chrome debugger, see
-https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome.
+This uses the chrome/firefox debugger (they are very similar), see
+https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome and
+https://marketplace.visualstudio.com/items?itemName=firefox-devtools.vscode-firefox-debug, respectively.
 
 It allows you to debug scripts running inside chrome from within Vim.
 
 * `./install_gadget.py --force-enable-chrome` or `:VimspectorInstall
   debugger-for-chrome`
-* Example: `support/test/chrome`
+* `./install_gadget.py --force-enable-firefox` or `:VimspectorInstall
+  debugger-for-firefox`
+* Example: `support/test/web`
 
 ```json
 {
   "configurations": {
-    "launch": {
+    "chrome": {
       "adapter": "chrome",
       "configuration": {
         "request": "launch",
         "url": "http://localhost:1234/",
         "webRoot": "${workspaceRoot}/www"
+      }
+    },
+    "firefox": {
+      "adapter": "firefox",
+      "configuration": {
+        "request": "launch",
+        "url": "http://localhost:1234/",
+        "webRoot": "${workspaceRoot}/www",
+        "reAttach": true
       }
     }
   }

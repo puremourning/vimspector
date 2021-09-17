@@ -359,6 +359,33 @@ GADGETS = {
       },
     },
   },
+  'debugger-for-firefox': {
+    'language': 'firefox',
+    'enabled': False,
+    'download': {
+      'url': 'https://marketplace.visualstudio.com/_apis/public/gallery'
+              '/publishers/firefox-devtools/vsextensions/'
+              'vscode-firefox-debug/${version}/vspackage',
+      'target': 'firefox-devtools.vscode-firefox-debug-2.9.4.vsix.gz',
+      'format': 'zip.gz',
+    },
+    'all': {
+      'version': '2.9.4',
+      'file_name': 'firefox-devtools.vscode-firefox-debug-2.9.4.vsix',
+      'checksum':
+        ''
+    },
+    'adapters': {
+      'firefox': {
+        'name': 'debugger-for-firefox',
+        'type': 'firefox',
+        'command': [
+          'node',
+          '${gadgetDir}/debugger-for-firefox/dist/adapter.bundle.js'
+        ],
+      },
+    },
+  },
   'debugger-for-chrome': {
     'language': 'chrome',
     'enabled': False,
