@@ -54,7 +54,7 @@ function s:SetUpTerminal()
   let padding = 4
   let cols = max( [ min( [ &columns - left_bar - code - padding, 80 ] ), 10 ] )
   call win_gotoid( terminal_win )
-  execute cols . 'wincmd |'
+  execute string(cols) . 'wincmd |'
 endfunction
 
 function! s:CustomiseWinBar()

@@ -30,12 +30,12 @@ GADGETS = {
                                                                 root,
                                                                 gadget ),
     'all': {
-      'version': '0.27.0',
+      'version': '1.6.0',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",
           "command": [
-            "${gadgetDir}/vscode-cpptools/debugAdapters/OpenDebugAD7"
+            "${gadgetDir}/vscode-cpptools/debugAdapters/bin/OpenDebugAD7"
           ],
           "attach": {
             "pidProperty": "processId",
@@ -53,17 +53,17 @@ GADGETS = {
     'linux': {
       'file_name': 'cpptools-linux.vsix',
       'checksum':
-        '3695202e1e75a03de18049323b66d868165123f26151f8c974a480eaf0205435',
+        'c25299bcfb46b22d41aa3f125df7184e6282a35ff9fb69c47def744cb4778f55',
     },
     'macos': {
       'file_name': 'cpptools-osx.vsix',
       'checksum':
-        'cb061e3acd7559a539e5586f8d3f535101c4ec4e8a48195856d1d39380b5cf3c',
+        'ae21cde361335b350402904991cf9f746fec685449ca9bd5d50227c3dec3719b',
     },
     'windows': {
       'file_name': 'cpptools-win32.vsix',
       'checksum':
-        'aa294368ed16d48c59e49c8000e146eae5a19ad07b654efed5db8ec93b24229e',
+        'ef7ac5831874a3c7dbf0feb826bfda2be579aff9b6d990622fff1d0d4ede00d1',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",
@@ -323,10 +323,10 @@ GADGETS = {
         '${version}/${file_name}',
     },
     'all': {
-      'version': 'v1.16.1',
-            'file_name': 'php-debug-1.16.1.vsix',
+            'version': 'v1.18.0',
+            'file_name': 'php-debug-1.18.0.vsix',
       'checksum':
-        '2eb6ff1100b6b3d2d160f243858f3524e269078b8154e108d015882e2c0d52c4',
+        'a44785e2a9bae68b52683705ec70cdf636a1cb282458718f2f8609f61a5a6515',
     },
     'adapters': {
       'vscode-php-debug': {
@@ -421,12 +421,12 @@ GADGETS = {
              '${version}/${file_name}',
     },
     'all': {
-      'version': 'v1.6.1',
+      'version': 'v1.6.5',
     },
     'macos': {
       'file_name': 'codelldb-x86_64-darwin.vsix',
       'checksum':
-        'b1c998e7421beea9f3ba21aa5706210bb2249eba93c99b809247ee831075262f',
+        'e7d9f4f8ec3c3774af6d1dbf11f0568db1417c4d51038927228cd07028725594',
       'make_executable': [
         'adapter/codelldb',
         'lldb/bin/debugserver',
@@ -437,7 +437,7 @@ GADGETS = {
     'linux': {
       'file_name': 'codelldb-x86_64-linux.vsix',
       'checksum':
-        'f2a36cb6971fd95a467cf1a7620e160914e8f11bf82929932ee0aa5afbf6ae6a',
+        'eda2cd9b3089dcc0524c273e91ffb5875fe08c930bf643739a2cd1846e1f98d6',
       'make_executable': [
         'adapter/codelldb',
         'lldb/bin/lldb',
@@ -448,7 +448,7 @@ GADGETS = {
     'windows': {
       'file_name': 'codelldb-x86_64-windows.vsix',
       'checksum':
-        'ca6a6525bf7719dc95265dc630b3cc817a8c0393b756fd242b710805ffdfb940',
+        '8ddebe8381a3d22dc3d95139c3797fda06b5cc34aadf300e13b1c516b9da95fe',
       'make_executable': []
     },
     'adapters': {

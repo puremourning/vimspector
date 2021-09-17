@@ -61,9 +61,10 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Closing debugger](#closing-debugger)
     * [Terminate debuggee](#terminate-debuggee)
  * [Debug profile configuration](#debug-profile-configuration)
-    * [C, C  , Rust, etc.](#c-c-rust-etc)
-       * [C   Remote debugging](#c-remote-debugging)
-       * [C   Remote launch and attach](#c-remote-launch-and-attach)
+    * [C, C++, Rust, etc.](#c-c-rust-etc)
+       * [Data visualization / pretty printing](#data-visualization--pretty-printing)
+       * [C++ Remote debugging](#c-remote-debugging)
+       * [C++ Remote launch and attach](#c-remote-launch-and-attach)
     * [Rust](#rust)
     * [Python](#python)
        * [Python Remote Debugging](#python-remote-debugging)
@@ -1177,6 +1178,38 @@ licensing.
 }
 ```
 
+### Data visualization / pretty printing
+
+Depending on the backend you need to enable pretty printing of complex types manually.
+
+* LLDB: Pretty printing is enabled by default
+
+* GDB: To enable gdb pretty printers, consider the snippet below.  
+  It is not enough to have `set print pretty on` in your .gdbinit!
+
+```
+{
+  "configurations": {
+    "Launch": {
+      "adapter": "vscode-cpptools",
+      "configuration": {
+        "request": "launch",
+        "program": "<path to binary>",
+        ...
+        "MIMode": "gdb"
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          }
+        ],
+      }
+    }
+  }
+}
+```
+
 ### C++ Remote debugging
 
 The cpptools documentation describes how to attach cpptools to gdbserver using
@@ -1369,6 +1402,8 @@ Requires:
 * [Delve][delve-install] installed, e.g. `go get -u github.com/go-delve/delve/cmd/dlv`
 * Delve to be in your PATH, or specify the `dlvToolPath` launch option
 
+NOTE: Vimspector uses the ["legacy" vscode-go debug adapter](https://github.com/golang/vscode-go/blob/master/docs/debugging-legacy.md) rather than the "built-in" DAP support in Delve. You can track https://github.com/puremourning/vimspector/issues/186 for that.
+
 ```json
 {
   "configurations": {
@@ -1386,7 +1421,7 @@ Requires:
 ```
 
 See the vscode-go docs for
-[troubleshooting information](https://github.com/golang/vscode-go/blob/master/docs/debugging.md#troubleshooting)
+[troubleshooting information](https://github.com/golang/vscode-go/blob/master/docs/debugging-legacy.md#troubleshooting)
 
 ## PHP
 

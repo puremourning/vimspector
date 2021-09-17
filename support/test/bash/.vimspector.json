@@ -1,0 +1,15 @@
+{
+  "$schema": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json",
+  "configurations": {
+    "Run Current Script": {
+      "adapter": "vscode-bash",
+      "autoselect": false,
+      "configuration": {
+        "request": "launch",
+        "program": "${file}",
+        "cwd": "${fileDirname}",
+        "args": [ "*${args}" ]
+      }
+    }
+  }
+}

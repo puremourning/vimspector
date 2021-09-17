@@ -13,7 +13,7 @@ defaults:
 
 jobs:
   PythonLint:
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-18.04
     container: 'puremourning/vimspector:test'
     steps:
     - uses: actions/checkout@v2
@@ -22,7 +22,7 @@ jobs:
     - name: 'Run flake8'
       run: '$HOME/.local/bin/flake8 python3/ *.py'
   VimscriptLint:
-    runs-on: 'ubuntu-16.04'
+    runs-on: 'ubuntu-18.04'
     container: 'puremourning/vimspector:test'
     steps:
     - uses: actions/checkout@v2
@@ -32,7 +32,7 @@ jobs:
       run: $HOME/.local/bin/vint autoload/ compiler/ plugin/ tests/ syntax/
 
   Linux:
-    runs-on: 'ubuntu-16.04'
+    runs-on: 'ubuntu-18.04'
     container:
       image: 'puremourning/vimspector:test'
       options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined
@@ -41,7 +41,7 @@ jobs:
 
     - run: |
         eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
-        go get -u github.com/go-delve/delve/cmd/dlv
+        go install github.com/go-delve/delve/cmd/dlv@latest
       name: 'Install Delve for Go'
 
     - uses: actions/cache@v2
@@ -95,14 +95,15 @@ jobs:
     - run: |
         brew update-reset
         brew doctor || true
-        for p in python@3.8 tcl-tk llvm lua luajit love; do
+        for p in python@3.8 go@1.16 tcl-tk llvm lua luajit love; do
           brew install $p || brew outdated $p || brew upgrade $p
         done
         brew install --cask macvim
         brew link --overwrite python@3.8
+        brew link --overwrite go@1.16
       name: 'Install vim and deps'
 
-    - run: go get -u github.com/go-delve/delve/cmd/dlv
+    - run: go install github.com/go-delve/delve/cmd/dlv@latest
       name: 'Install Delve for Go'
 
     - uses: actions/cache@v2
@@ -156,7 +157,7 @@ jobs:
     #     SSH_PASS: ${{ secrets.SSH_PASS }} # [V]imspector
 
   PublishRelease:
-    runs-on: 'ubuntu-16.04'
+    runs-on: 'ubuntu-18.04'
     needs:
       - Linux
       - MacOS

@@ -32,6 +32,7 @@ class TabBuffer( object ):
 BUFFER_MAP = {
   'console': 'Console',
   'stdout': 'Console',
+  'output': 'Console',
   'stderr': 'stderr',
   'telemetry': None,
 }
