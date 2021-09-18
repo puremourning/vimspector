@@ -359,7 +359,7 @@ GADGETS = {
       },
     },
   },
-  'debugger-for-firefox': {
+  'vscode-firefox-debug': {
     'language': 'firefox',
     'enabled': False,
     'download': {

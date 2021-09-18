@@ -158,7 +158,7 @@ runtime dependencies). They are categorised by their level of support:
 | Lua                | Supported | `--all` or `--enable-lua`        | local-lua-debugger-vscode          | Node >=12.13.0, Npm, Lua interpreter       |
 | Node.js            | Supported | `--force-enable-node`            | vscode-node-debug2                 | 6 < Node < 12, Npm                         |
 | Javascript         | Supported | `--force-enable-chrome`          | debugger-for-chrome                | Chrome                                     |
-| Javascript         | Supported | `--force-enable-firefox`         | debugger-for-firefox               | Firefox                                    |
+| Javascript         | Supported | `--force-enable-firefox`         | vscode-firefox-debug               | Firefox                                    |
 | Java               | Supported | `--force-enable-java  `          | vscode-java-debug                  | Compatible LSP plugin (see [later](#java)) |
 | C# (dotnet core)   | Tested    | `--force-enable-csharp`          | netcoredbg                         | DotNet core                                |
 | F#, VB, etc.       | Supported | `--force-enable-[fsharp,vbnet]`  | `, `--force-enable-vbnet`          | netcoredbg                                 | DotNet core |
@@ -1184,7 +1184,7 @@ Depending on the backend you need to enable pretty printing of complex types man
 
 * LLDB: Pretty printing is enabled by default
 
-* GDB: To enable gdb pretty printers, consider the snippet below.  
+* GDB: To enable gdb pretty printers, consider the snippet below.
   It is not enough to have `set print pretty on` in your .gdbinit!
 
 ```
