@@ -200,7 +200,7 @@ $ curl -L <url> | tar -C $HOME/.vim/pack zxvf -
 let g:vimspector_enable_mappings = 'HUMAN'
 ```
 
-3. Configure your project's debug profiles (create `.vimspector.json`)
+5. Configure your project's debug profiles (create `.vimspector.json`)
 
 Alternatively, you can clone the repo and select which gadgets are installed:
 
