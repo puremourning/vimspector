@@ -15,9 +15,9 @@
 
 from collections import defaultdict
 
-import abc
 import vim
 import os
+from functools import partial
 import logging
 
 import json
@@ -123,9 +123,11 @@ class BreakpointsView( object ):
 
 
 class ProjectBreakpoints( object ):
-  def __init__( self ):
+  def __init__( self, render_event_emitter, IsPCPresentAt ):
     self._connection = None
     self._logger = logging.getLogger( __name__ )
+    self._render_subject = render_event_emitter.subscribe( partial( self.Refresh, None ) )
+    self._IsPCPresentAt = IsPCPresentAt
     utils.SetUpLogging( self._logger )
 
     # These are the user-entered breakpoints.
@@ -161,7 +163,6 @@ class ProjectBreakpoints( object ):
 
   def ConnectionUp( self, connection ):
     self._connection = connection
-
 
   def SetServerCapabilities( self, server_capabilities ):
     self._server_capabilities = server_capabilities
@@ -303,7 +304,8 @@ class ProjectBreakpoints( object ):
 
     self.UpdateUI()
 
-
+  def IsBreakpointPresentAt( self, file_path, line ):
+    return self._FindLineBreakpoint( file_path, line )[ 0 ] is not None
 
   def _PutLineBreakpoint( self, file_name, line, options, id = None ):
     path =  os.path.abspath( file_name )
@@ -437,8 +439,7 @@ class ProjectBreakpoints( object ):
 
   def UpdateUI( self, then = None ):
     def callback():
-      self._breakpoints_view.RefreshBreakpoints( self.BreakpointsAsQuickFix() )
-      self._ShowBreakpoints()
+      self._render_subject.emit()
       if then:
         then()
 
@@ -468,8 +469,9 @@ class ProjectBreakpoints( object ):
         doneHandler()
 
     def response_handler( source, msg, temp_idxs = [] ):
-      breakpoints = ( msg.get( 'body' ) or {} ).get( 'breakpoints' ) or []
-      self._UpdateTemporaryBreakpoints( breakpoints, temp_idxs )
+      if msg:
+        breakpoints = ( msg.get( 'body' ) or {} ).get( 'breakpoints' ) or []
+        self._UpdateTemporaryBreakpoints( breakpoints, temp_idxs )
       response_received()
 
 
@@ -620,6 +622,7 @@ class ProjectBreakpoints( object ):
 
   def Refresh( self, file_name ):
     # TODO: Just this file ?
+    self._breakpoints_view.RefreshBreakpoints( self.BreakpointsAsQuickFix() )
     self._ShowBreakpoints()
 
 
