@@ -434,6 +434,12 @@ class VariablesView( object ):
 
     utils.UserMessage( 'No watch found' )
 
+
+  def SaveWatches( self ):
+    return {
+      'watches': [ watch.expression[ 'expression' ] for watch in self._watches ]
+    }
+
   def EvaluateWatches( self ):
     for watch in self._watches:
       self._connection.DoRequest(

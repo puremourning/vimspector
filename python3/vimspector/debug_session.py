@@ -77,19 +77,25 @@ class DebugSession( object ):
     self._connection = None
     self._init_complete = False
     self._launch_complete = False
+    self._workspace_root = None
+    self._session_save_path = None
     self._on_init_complete_handlers = []
     self._server_capabilities = {}
     self.ClearTemporaryBreakpoints()
 
   def GetConfigurations( self, adapters ):
-    current_file = utils.GetBufferFilepath( vim.current.buffer )
+    current_file_dir = os.path.dirname(
+      utils.GetBufferFilepath( vim.current.buffer ) )
     filetypes = utils.GetBufferFiletypes( vim.current.buffer )
     configurations = {}
 
-    for launch_config_file in PathsToAllConfigFiles( VIMSPECTOR_HOME,
-                                                     current_file,
-                                                     filetypes ):
-      self._logger.debug( f'Reading configurations from: {launch_config_file}' )
+    for launch_config_file, is_project_root_candidate in PathsToAllConfigFiles(
+      VIMSPECTOR_HOME,
+      current_file_dir,
+      filetypes ):
+
+      self._logger.debug( f'Reading configurations from: {launch_config_file}'
+                          + ( ' (root)' if is_project_root_candidate else '' ) )
       if not launch_config_file or not os.path.exists( launch_config_file ):
         continue
 
@@ -98,7 +104,7 @@ class DebugSession( object ):
         configurations.update( database.get( 'configurations' ) or {} )
         adapters.update( database.get( 'adapters' ) or {} )
 
-    return launch_config_file, configurations
+    return launch_config_file, is_project_root_candidate, configurations
 
   def Start( self, force_choose=False, launch_variables = None ):
     # We mutate launch_variables, so don't mutate the default argument.
@@ -113,8 +119,10 @@ class DebugSession( object ):
     self._launch_config = None
 
     current_file = utils.GetBufferFilepath( vim.current.buffer )
+    current_file_dir = os.path.dirname( current_file )
     adapters = {}
-    launch_config_file, configurations = self.GetConfigurations( adapters )
+    launch_config_file, use_cfg_root, configurations = self.GetConfigurations(
+      adapters )
 
     if not configurations:
       utils.UserMessage( 'Unable to find any debug configurations. '
@@ -124,7 +132,7 @@ class DebugSession( object ):
 
     glob.glob( install.GetGadgetDir( VIMSPECTOR_HOME ) )
     for gadget_config_file in PathsToAllGadgetConfigs( VIMSPECTOR_HOME,
-                                                       current_file ):
+                                                       current_file_dir ):
       self._logger.debug( f'Reading gadget config: {gadget_config_file}' )
       if not gadget_config_file or not os.path.exists( gadget_config_file ):
         continue
@@ -159,10 +167,19 @@ class DebugSession( object ):
     if not configuration_name or configuration_name not in configurations:
       return
 
-    if launch_config_file:
+    # Where should we store the saves session data
+    self._session_save_path = utils.PathToConfigFile(
+      '.vimspector.session',
+       current_file_dir )
+
+    if launch_config_file and use_cfg_root:
       self._workspace_root = os.path.dirname( launch_config_file )
+
+      if not self._session_save_path:
+        self._session_save_path = os.path.join( self._workspace_root,
+                                                '.vimspector.session' )
     else:
-      self._workspace_root = os.path.dirname( current_file )
+      self._workspace_root = current_file_dir
 
     configuration = configurations[ configuration_name ]
     adapter = configuration.get( 'adapter' )
@@ -239,7 +256,7 @@ class DebugSession( object ):
       'fileBasename': lambda: os.path.basename( current_file ),
       'fileBasenameNoExtension':
         lambda: splitext( os.path.basename( current_file ) )[ 0 ],
-      'fileDirname': lambda: os.path.dirname( current_file ),
+      'fileDirname': lambda: current_file_dir,
       'fileExtname': lambda: splitext( os.path.basename( current_file ) )[ 1 ],
       # NOTE: this is the window-local cwd for the current window, *not* Vim's
       # working directory.
@@ -282,6 +299,35 @@ class DebugSession( object ):
         configuration_name ), persist=True )
       return
 
+
+    if ( self._session_save_path and not
+         os.path.exists( self._session_save_path ) ):
+
+      def handle_choice_and_start( choice ):
+        if choice == 1:
+          # yes
+          # create the save file
+          pass
+        elif choice == 2:
+          # no
+          # unset the file
+          self._session_save_path = None
+        else:
+          # abort
+          return
+
+        self._StartWithConfiguration( configuration, adapter )
+
+
+      utils.Confirm( self._api_prefix,
+                     'Would you like to create a session file?\n\n'
+                     f'Will create { self._session_save_path }.',
+                     handle_choice_and_start,
+                     default_value = 1,
+                     options = [ '(Y)es', '(N)o', '(C)cancel' ],
+                     keys = [ 'y', 'n', 'c' ] )
+      return
+
     self._StartWithConfiguration( configuration, adapter )
 
   def _StartWithConfiguration( self, configuration, adapter ):
@@ -300,6 +346,7 @@ class DebugSession( object ):
       else:
         vim.current.tabpage = self._uiTab
 
+      self._WriteSessionFile()
       self._Prepare()
       self._StartDebugAdapter()
       self._Initialise()
@@ -330,6 +377,25 @@ class DebugSession( object ):
       return
 
     start()
+
+  def _WriteSessionFile( self ):
+    if not self._session_save_path:
+      return
+
+    with open( self._session_save_path, 'w' ) as f:
+      f.write( json.dumps( {
+        'breakpoints': {
+          'line': self._breakpoints._line_breakpoints,
+          'function': self._breakpoints._func_breakpoints,
+          'exception': self._breakpoints._exception_breakpoints,
+        },
+        'session': {
+          'user_choices': USER_CHOICES,
+        },
+        'variables': {
+          'watches': self._variablesView.SaveWatches()
+        }
+      } ) )
 
   def Restart( self ):
     if self._configuration is None or self._adapter is None:
@@ -405,6 +471,8 @@ class DebugSession( object ):
 
   def _Reset( self ):
     self._logger.info( "Debugging complete." )
+    self._WriteSessionFile()
+
     if self._uiTab:
       self._logger.debug( "Clearing down UI" )
 
@@ -918,6 +986,8 @@ class DebugSession( object ):
   def _StopDebugAdapter( self, interactive = False, callback = None ):
     arguments = {}
 
+    self._WriteSessionFile()
+
     def disconnect():
       self._splash_screen = utils.DisplaySplash(
         self._api_prefix,
@@ -1292,6 +1362,7 @@ class DebugSession( object ):
       f"API Prefix: { self._api_prefix }",
       f"Launch/Init: { self._launch_complete } / { self._init_complete }",
       f"Workspace Root: { self._workspace_root }",
+      f'Session File: { self._session_save_path }',
       "Launch Config: " ] + Pretty( self._launch_config ) + [
       "Server Capabilities: " ] + Pretty( self._server_capabilities ) + [
     ]
@@ -1326,6 +1397,7 @@ class DebugSession( object ):
     self._breakpoints.SetConfiguredBreakpoints(
       self._configuration.get( 'breakpoints', {} ) )
     self._breakpoints.SendBreakpoints( onBreakpointsDone )
+    self._WriteSessionFile()
 
   def OnEvent_thread( self, message ):
     self._stackTraceView.OnThreadEvent( message[ 'body' ] )
@@ -1491,27 +1563,26 @@ class DebugSession( object ):
     return self._breakpoints.AddFunctionBreakpoint( function, options )
 
 
-def PathsToAllGadgetConfigs( vimspector_base, current_file ):
+def PathsToAllGadgetConfigs( vimspector_base, current_file_dir ):
   yield install.GetGadgetConfigFile( vimspector_base )
   for p in sorted( glob.glob(
     os.path.join( install.GetGadgetConfigDir( vimspector_base ),
                   '*.json' ) ) ):
     yield p
 
-  yield utils.PathToConfigFile( '.gadgets.json',
-                                os.path.dirname( current_file ) )
+  yield utils.PathToConfigFile( '.gadgets.json', current_file_dir )
 
 
-def PathsToAllConfigFiles( vimspector_base, current_file, filetypes ):
+def PathsToAllConfigFiles( vimspector_base, current_file_dir, filetypes ):
   for ft in filetypes + [ '_all' ]:
     for p in sorted( glob.glob(
       os.path.join( install.GetConfigDirForFiletype( vimspector_base, ft ),
                     '*.json' ) ) ):
-      yield p
+      yield p, False
 
   for ft in filetypes:
     yield utils.PathToConfigFile( f'.vimspector.{ft}.json',
-                                  os.path.dirname( current_file ) )
+                                  current_file_dir ), True
 
-  yield utils.PathToConfigFile( '.vimspector.json',
-                                os.path.dirname( current_file ) )
+
+  yield utils.PathToConfigFile( '.vimspector.json', current_file_dir ), True
