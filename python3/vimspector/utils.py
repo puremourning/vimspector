@@ -868,3 +868,50 @@ def UseWinBar():
   # Buggy neovim doesn't render correctly when the WinBar is defined:
   # https://github.com/neovim/neovim/issues/12689
   return not int( Call( 'has', 'nvim' ) )
+
+
+class Subject( object ):
+  def __init__( self, id, emitter ):
+    self.__id = id
+    self.__emitter = emitter
+
+  def __str__( self ):
+    return str( self.__id )
+
+  def unsubscribe( self ):
+    self.__emitter.unsubscribe( self )
+
+  def emit( self ):
+    self.__emitter.emit()
+
+
+class EventEmitter( object ):
+  def __init__( self ):
+    super().__init__()
+    self.__next_id = 0
+    self.__callbacks = {}
+
+  def subscribe( self, callback ):
+    if not callback:
+      return None
+
+    self.__next_id += 1
+    subscription = Subject( self.__next_id, self )
+    self.__callbacks[ subscription ] = callback
+
+    return subscription
+
+  def unsubscribe( self, subscription ):
+    if not subscription:
+      return
+
+    del self.__callbacks[ subscription ]
+
+  def emit( self ):
+    for _, callback in self.__callbacks.items():
+      if callback:
+        callback()
+
+  def unsubscribe_all( self ):
+    self.__callbacks = {}
+

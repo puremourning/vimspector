@@ -50,6 +50,8 @@ class DebugSession( object ):
 
     self._api_prefix = api_prefix
 
+    self._render_emitter = utils.EventEmitter()
+
     self._logger.info( "**** INITIALISING NEW VIMSPECTOR SESSION ****" )
     self._logger.info( "API is: {}".format( api_prefix ) )
     self._logger.info( 'VIMSPECTOR_HOME = %s', VIMSPECTOR_HOME )
@@ -62,7 +64,9 @@ class DebugSession( object ):
     self._variablesView = None
     self._saved_variables_data = None
     self._outputView = None
-    self._breakpoints = breakpoints.ProjectBreakpoints()
+    self._codeView = None
+    self._breakpoints = breakpoints.ProjectBreakpoints( self._render_emitter,
+      self._IsPCPresentAt )
     self._splash_screen = None
     self._remote_term = None
 
@@ -396,6 +400,9 @@ class DebugSession( object ):
                               callback = lambda: self._Reset() )
     else:
       self._Reset()
+
+  def _IsPCPresentAt( self, file_path, line ):
+    return self._codeView and self._codeView.IsPCPresentAt( file_path, line )
 
   def _Reset( self ):
     self._logger.info( "Debugging complete." )
@@ -789,7 +796,8 @@ class DebugSession( object ):
   def _SetUpUIHorizontal( self ):
     # Code window
     code_window = vim.current.window
-    self._codeView = code.CodeView( code_window, self._api_prefix )
+    self._codeView = code.CodeView( code_window, self._api_prefix,
+      self._render_emitter, self._breakpoints.IsBreakpointPresentAt )
 
     # Call stack
     vim.command(
@@ -847,7 +855,8 @@ class DebugSession( object ):
   def _SetUpUIVertical( self ):
     # Code window
     code_window = vim.current.window
-    self._codeView = code.CodeView( code_window, self._api_prefix )
+    self._codeView = code.CodeView( code_window, self._api_prefix,
+      self._render_emitter, self._breakpoints.IsBreakpointPresentAt )
 
     # Call stack
     vim.command(
