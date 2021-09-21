@@ -41,6 +41,7 @@ DEFAULTS = {
     'vimspectorPCBP':          200,
     'vimspectorBP':            9,
     'vimspectorBPCond':        9,
+    'vimspectorBPLog':         9,
     'vimspectorBPDisabled':    9,
     'vimspectorCurrentThread': 200,
     'vimspectorCurrentFrame':  200,

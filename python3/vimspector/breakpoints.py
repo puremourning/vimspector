@@ -64,6 +64,12 @@ class ProjectBreakpoints( object ):
                         double_text = '◆',
                         texthl = 'WarningMsg' )
 
+    if not signs.SignDefined( 'vimspectorBPLog' ):
+      signs.DefineSign( 'vimspectorBPLog',
+                        text = '◆',
+                        double_text = '◆',
+                        texthl = 'SpellRare' )
+
     if not signs.SignDefined( 'vimspectorBPDisabled' ):
       signs.DefineSign( 'vimspectorBPDisabled',
                         text = '●',
@@ -484,6 +490,8 @@ class ProjectBreakpoints( object ):
           self._next_sign_id += 1
 
         sign = ( 'vimspectorBPDisabled' if bp[ 'state' ] != 'ENABLED'
+                 else 'vimspectorBPLog'
+                   if 'logMessage' in bp[ 'options' ]
                  else 'vimspectorBPCond'
                    if 'condition' in bp[ 'options' ]
                    or 'hitCondition' in bp[ 'options' ]

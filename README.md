@@ -44,7 +44,7 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Breakpoints](#breakpoints)
        * [Summary](#summary)
        * [Line breakpoints](#line-breakpoints)
-       * [Conditional breakpoints](#conditional-breakpoints)
+       * [Conditional breakpoints and logpoints](#conditional-breakpoints-and-logpoints)
        * [Exception breakpoints](#exception-breakpoints)
        * [Clear breakpoints](#clear-breakpoints)
        * [Run to Cursor](#run-to-cursor)
@@ -93,7 +93,7 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Example](#example)
  * [FAQ](#faq)
 
-<!-- Added by: ben, at: Fri 19 Mar 2021 22:57:28 GMT -->
+<!-- Added by: ben, at: Tue 21 Sep 2021 11:51:03 BST -->
 
 <!--te-->
 
@@ -653,22 +653,22 @@ personal and so you should work out what you like and use vim's powerful mapping
 features to set your own mappings. To that end, Vimspector defines the following
 `<Plug>` mappings:
 
-| Mapping                                       | Function                                                  | API                                                               |
-| ---                                           | ---                                                       | ---                                                               |
-| `<Plug>VimspectorContinue`                    | When debugging, continue. Otherwise start debugging.      | `vimspector#Continue()`                                           |
-| `<Plug>VimspectorStop`                        | Stop debugging.                                           | `vimspector#Stop()`                                               |
-| `<Plug>VimpectorRestart`                      | Restart debugging with the same configuration.            | `vimspector#Restart()`                                            |
-| `<Plug>VimspectorPause`                       | Pause debuggee.                                           | `vimspector#Pause()`                                              |
-| `<Plug>VimspectorToggleBreakpoint`            | Toggle line breakpoint on the current line.               | `vimspector#ToggleBreakpoint()`                                   |
-| `<Plug>VimspectorToggleConditionalBreakpoint` | Toggle conditional line breakpoint on the current line.   | `vimspector#ToggleBreakpoint( { trigger expr, hit count expr } )` |
-| `<Plug>VimspectorAddFunctionBreakpoint`       | Add a function breakpoint for the expression under cursor | `vimspector#AddFunctionBreakpoint( '<cexpr>' )`                   |
-| `<Plug>VimspectorRunToCursor`                 | Run to Cursor                                             | `vimspector#RunToCursor()`                                        |
-| `<Plug>VimspectorStepOver`                    | Step Over                                                 | `vimspector#StepOver()`                                           |
-| `<Plug>VimspectorStepInto`                    | Step Into                                                 | `vimspector#StepInto()`                                           |
-| `<Plug>VimspectorStepOut`                     | Step out of current function scope                        | `vimspector#StepOut()`                                            |
-| `<Plug>VimspectorUpFrame`                     | Move up a frame in the current call stack                 | `vimspector#UpFrame()`                                            |
-| `<Plug>VimspectorDownFrame`                   | Move down a frame in the current call stack               | `vimspector#DownFrame()`                                          |
-| `<Plug>VimspectorBalloonEval`                 | Evaluate expression under cursor (or visual) in popup     | *internal*                                                        |
+| Mapping                                       | Function                                                            | API                                                               |
+| ---                                           | ---                                                                 | ---                                                               |
+| `<Plug>VimspectorContinue`                    | When debugging, continue. Otherwise start debugging.                | `vimspector#Continue()`                                           |
+| `<Plug>VimspectorStop`                        | Stop debugging.                                                     | `vimspector#Stop()`                                               |
+| `<Plug>VimpectorRestart`                      | Restart debugging with the same configuration.                      | `vimspector#Restart()`                                            |
+| `<Plug>VimspectorPause`                       | Pause debuggee.                                                     | `vimspector#Pause()`                                              |
+| `<Plug>VimspectorToggleBreakpoint`            | Toggle line breakpoint on the current line.                         | `vimspector#ToggleBreakpoint()`                                   |
+| `<Plug>VimspectorToggleConditionalBreakpoint` | Toggle conditional line breakpoint or logpoint on the current line. | `vimspector#ToggleBreakpoint( { trigger expr, hit count expr } )` |
+| `<Plug>VimspectorAddFunctionBreakpoint`       | Add a function breakpoint for the expression under cursor           | `vimspector#AddFunctionBreakpoint( '<cexpr>' )`                   |
+| `<Plug>VimspectorRunToCursor`                 | Run to Cursor                                                       | `vimspector#RunToCursor()`                                        |
+| `<Plug>VimspectorStepOver`                    | Step Over                                                           | `vimspector#StepOver()`                                           |
+| `<Plug>VimspectorStepInto`                    | Step Into                                                           | `vimspector#StepInto()`                                           |
+| `<Plug>VimspectorStepOut`                     | Step out of current function scope                                  | `vimspector#StepOut()`                                            |
+| `<Plug>VimspectorUpFrame`                     | Move up a frame in the current call stack                           | `vimspector#UpFrame()`                                            |
+| `<Plug>VimspectorDownFrame`                   | Move down a frame in the current call stack                         | `vimspector#DownFrame()`                                          |
+| `<Plug>VimspectorBalloonEval`                 | Evaluate expression under cursor (or visual) in popup               | *internal*                                                        |
 
 
 These map roughly 1-1 with the API functions below.
@@ -729,7 +729,7 @@ let g:vimspector_enable_mappings = 'HUMAN'
 | `F4`         | `<Plug>VimspectorRestart`                     | Restart debugging with the same configuration.
 | `F6`         | `<Plug>VimspectorPause`                       | Pause debuggee.
 | `F9`         | `<Plug>VimspectorToggleBreakpoint`            | Toggle line breakpoint on the current line.
-| `<leader>F9` | `<Plug>VimspectorToggleConditionalBreakpoint` | Toggle conditional line breakpoint on the current line.
+| `<leader>F9` | `<Plug>VimspectorToggleConditionalBreakpoint` | Toggle conditional line breakpoint or logpoint on the current line.
 | `F8`         | `<Plug>VimspectorAddFunctionBreakpoint`       | Add a function breakpoint for the expression under cursor
 | `<leader>F8` | `<Plug>VimspectorRunToCursor`                 | Run to Cursor
 | `F10`        | `<Plug>VimspectorStepOver`                    | Step Over
@@ -1760,6 +1760,7 @@ define them in your `vimrc`.
 |---------------------------|-----------------------------------------|----------|
 | `vimspectorBP`            | Line breakpoint                         | 9        |
 | `vimspectorBPCond`        | Conditional line breakpoint             | 9        |
+| `vimspectorBPLog`         | Logpoint                                | 9        |
 | `vimspectorBPDisabled`    | Disabled breakpoint                     | 9        |
 | `vimspectorPC`            | Program counter (i.e. current line)     | 200      |
 | `vimspectorPCBP`          | Program counter and breakpoint          | 200      |
@@ -1771,6 +1772,7 @@ The default symbols are the equivalent of something like the following:
 ```viml
 sign define vimspectorBP            text=\ ● texthl=WarningMsg
 sign define vimspectorBPCond        text=\ ◆ texthl=WarningMsg
+sign define vimspectorBPLog         text=\ ◆ texthl=SpellRare
 sign define vimspectorBPDisabled    text=\ ● texthl=LineNr
 sign define vimspectorPC            text=\ ▶ texthl=MatchParen linehl=CursorLine
 sign define vimspectorPCBP          text=●▶  texthl=MatchParen linehl=CursorLine
@@ -1785,6 +1787,7 @@ example, you could put this in your `vimrc` to use some simple ASCII symbols:
 ```viml
 sign define vimspectorBP text=o             texthl=WarningMsg
 sign define vimspectorBPCond text=o?        texthl=WarningMsg
+sign define vimspectorBPLog text=!!         texthl=SpellRare
 sign define vimspectorBPDisabled text=o!    texthl=LineNr
 sign define vimspectorPC text=\ >           texthl=MatchParen
 sign define vimspectorPCBP text=o>          texthl=MatchParen
@@ -1813,6 +1816,7 @@ For example:
 let g:vimspector_sign_priority = {
   \    'vimspectorBP':         3,
   \    'vimspectorBPCond':     2,
+  \    'vimspectorBPLog':      2,
   \    'vimspectorBPDisabled': 1,
   \    'vimspectorPC':         999,
   \ }
