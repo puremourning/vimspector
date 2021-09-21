@@ -107,7 +107,19 @@
         "request": "launch",
         "program": "${workspaceRoot}/${fileBasenameNoExtension}",
         "cwd": "${workspaceRoot}",
-        "expressions": "native"
+        "expressions": "native",
+        "args": [
+          "A", "eh",
+          "B", "bee",
+          "C", "Sea",
+          "D", "Ceedy"
+        ]
+      },
+      "breakpoints": {
+        "exception": {
+          "cpp_throw": "",
+          "cpp_catch": ""
+        }
       }
     }
   },

@@ -38,5 +38,9 @@ int main ( int argc, char ** argv )
   printf( "HOME: %s\n", getenv( "HOME" ) );
 
   Test::TestStruct t{ true, {99} };
-  foo( t );
+  foo( t ); // ADL!
+
+  for ( int i = 0; i < 100 ; ++i ) {
+    Test::foo( { true, {i} } );
+  }
 }

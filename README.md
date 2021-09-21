@@ -863,7 +863,7 @@ is paused when the specified line is executed.
 For most debugging scenarios, users will just hit `<F9>` to create a line
 breakpoint on the current line and `<F5>` to launch the application.
 
-### Conditional breakpoints
+### Conditional breakpoints and logpoints
 
 Some debug adapters support conditional breakpoints. Note that vimspector does
 not tell you if the debugger doesn't support conditional breakpoints (yet). A
@@ -880,8 +880,12 @@ dictionary of options. The dictionary can have the following keys:
   times the breakpoint should be ignored. Should (probably?) not be used in
   combination with `condition`. Not supported by all debug adapters. For
   example, to break on the 3rd time hitting this line, enter `3`.
+* `logMessage`: An optional string to make this breakpoint a "logpoint" instead.
+  When triggered, this message is printed to the console rather than
+  interrupting execution. You can embed expressions in braces `{like this}`, for
+  example `#{ logMessage: "Iteration {i} or {num_entries / 2}" }`
 
-In both cases, the expression is evaluated by the debugger, so should be in
+In each case expressions are evaluated by the debugger, so should be in
 whatever dialect the debugger understands when evaluating expressions.
 
 When using the `<leader><F9>` mapping, the user is prompted to enter these

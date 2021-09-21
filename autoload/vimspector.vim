@@ -84,6 +84,25 @@ function! vimspector#ClearBreakpoints() abort
   py3 _vimspector_session.ClearBreakpoints()
 endfunction
 
+let s:extended_breakpoint_properties = [
+      \ { 'prop': 'condition', 'msg': 'Enter condition expression' },
+      \ { 'prop': 'hitCondition', 'msg': 'Enter hit count expression' },
+      \ { 'prop': 'logMessage',
+      \   'msg': 'Enter log expression (to make log point)' },
+    \ ]
+
+function! vimspector#ToggleAdvancedBreakpoint() abort
+  let options = {}
+  for spec in s:extended_breakpoint_properties
+    let response = input( spec.msg . ': ' )
+    if response !=# ''
+      let options[ spec.prop ] = response
+    endif
+  endfor
+
+  call vimspector#ToggleBreakpoint( options )
+endfunction
+
 function! vimspector#ToggleBreakpoint( ... ) abort
   if !s:Enabled()
     return
