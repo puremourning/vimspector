@@ -53,10 +53,7 @@ nnoremap <silent> <Plug>VimspectorPause
 nnoremap <silent> <Plug>VimspectorToggleBreakpoint
       \ :<c-u>call vimspector#ToggleBreakpoint()<CR>
 nnoremap <silent> <Plug>VimspectorToggleConditionalBreakpoint
-      \ :<c-u>call vimspector#ToggleBreakpoint(
-                    \ { 'condition': input( 'Enter condition expression: ' ),
-                    \   'hitCondition': input( 'Enter hit count expression: ' ) }
-                    \ )<CR>
+      \ :<c-u>call vimspector#ToggleAdvancedBreakpoint()<CR>
 nnoremap <silent> <Plug>VimspectorAddFunctionBreakpoint
       \ :<c-u>call vimspector#AddFunctionBreakpoint( expand( '<cexpr>' ) )<CR>
 nnoremap <silent> <Plug>VimspectorStepOver

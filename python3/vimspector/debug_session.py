@@ -1294,7 +1294,10 @@ class DebugSession( object ):
       f"Workspace Root: { self._workspace_root }",
       "Launch Config: " ] + Pretty( self._launch_config ) + [
       "Server Capabilities: " ] + Pretty( self._server_capabilities ) + [
-    ]
+      "Line Breakpoints: " ] + Pretty( self._breakpoints._line_breakpoints ) + [
+      "Server Breakpoints: " ] + Pretty( self._codeView._breakpoints ) + [
+      "Func Breakpoints: " ] + Pretty( self._breakpoints._func_breakpoints ) + [
+      "Ex Breakpoints: " ] + Pretty( self._breakpoints._exception_breakpoints )
 
     self._outputView.ClearCategory( 'DebugInfo' )
     self._outputView.Print( "DebugInfo", debugInfo )
