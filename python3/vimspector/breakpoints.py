@@ -484,7 +484,9 @@ class ProjectBreakpoints( object ):
           self._next_sign_id += 1
 
         sign = ( 'vimspectorBPDisabled' if bp[ 'state' ] != 'ENABLED'
-                 else 'vimspectorBPCond' if 'condition' in bp[ 'options' ]
+                 else 'vimspectorBPCond'
+                   if 'condition' in bp[ 'options' ]
+                   or 'hitCondition' in bp[ 'options' ]
                  else 'vimspectorBP' )
 
         if utils.BufferExists( file_name ):
