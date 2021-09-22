@@ -460,7 +460,9 @@ class DebugSession( object ):
       return True
     except OSError:
       self._logger.exception( f"Invalid session file { session_file }" )
-      utils.UserMessage( "Session file not found", persist=True, error=True )
+      utils.UserMessage( f"Session file { session_file } not found",
+                         persist=True,
+                         error=True )
       return False
     except json.JSONDecodeError:
       self._logger.exception( f"Invalid session file { session_file }" )

@@ -133,6 +133,13 @@ command! -bar -nargs=0
       \ VimspectorAbortInstall
       \ call vimspector#AbortInstall()
 
+" Session files
+command! -bar -nargs=? -complete=file
+      \ VimspectorLoadSession
+      \ call vimspector#ReadSessionFile( <f-args> )
+command! -bar -nargs=? -complete=file
+      \ VimspectorMkSession
+      \ call vimspector#WriteSessionFile( <f-args> )
 
 
 " Dummy autocommands so that we can call this whenever

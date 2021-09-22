@@ -584,20 +584,32 @@ function! vimspector#PrintDebugInfo() abort
   py3 _vimspector_session.PrintDebugInfo()
 endfunction
 
-function! vimspector#ReadSessionFile( file_name ) abort
+function! vimspector#ReadSessionFile( ... ) abort
   if !s:Enabled()
     return
   endif
 
-  py3 _vimspector_session.ReadSessionFile( vim.eval( 'a:file_name' ) )
+  if a:0 == 0
+    let file_name = '.vimspector.session'
+  else
+    let file_name = a:1
+  endif
+
+  py3 _vimspector_session.ReadSessionFile( vim.eval( 'file_name' ) )
 endfunction
 
-function! vimspector#WriteSessionFile( file_name ) abort
+function! vimspector#WriteSessionFile( ... ) abort
   if !s:Enabled()
     return
   endif
 
-  py3 _vimspector_session.WriteSessionFile( vim.eval( 'a:file_name' ) )
+  if a:0 == 0
+    let file_name = '.vimspector.session'
+  else
+    let file_name = a:1
+  endif
+
+  py3 _vimspector_session.WriteSessionFile( vim.eval( 'file_name' ) )
 endfunction
 
 " Boilerplate {{{
