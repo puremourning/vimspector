@@ -455,8 +455,6 @@ class DebugSession( object ):
         self._variablesView.Load( variables_data )
       else:
         self._saved_variables_data = variables_data
-
-      self.RefreshSigns()
       return True
     except OSError:
       self._logger.exception( f"Invalid session file { session_file }" )

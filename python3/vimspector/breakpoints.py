@@ -501,6 +501,8 @@ class ProjectBreakpoints( object ):
     self._func_breakpoints = save_data.get( 'function' , [] )
     self._exception_breakpoints = save_data.get( 'exception', None )
 
+    self.UpdateUI()
+
 
   def _ShowBreakpoints( self ):
     for file_name, line_breakpoints in self._line_breakpoints.items():
