@@ -268,6 +268,17 @@ class VariablesView( object ):
     utils.CleanUpHiddenBuffer( self._watch.buf )
     self.ClearTooltip()
 
+  def Save( self ):
+    return {
+      'watches': [
+        watch.expression[ 'expression' ] for watch in self._watches
+      ]
+    }
+
+  def Load( self, save_data ):
+    for expression in save_data.get( 'watches', [] ):
+      # It's not really possible to save the frameId, so we just supply None
+      self._watches.append( Watch.New( None, expression, 'watch' ) )
 
   def LoadScopes( self, frame ):
     def scopes_consumer( message ):

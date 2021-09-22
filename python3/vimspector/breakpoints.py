@@ -474,9 +474,32 @@ class ProjectBreakpoints( object ):
         self._exception_breakpoints[ 'exceptionOptions' ] = []
 
 
-  def Refresh( self, file_name ):
-    # TODO: Just this file ?
+  def Refresh( self ):
     self._ShowBreakpoints()
+
+
+  def Save( self ):
+    # Need to copy line breakpoitns, because we have to remove the 'sign_id'
+    # property. Otherwsie we might end up loading junk sign_ids
+    line = {}
+    for file_name, breakpoints in self._line_breakpoints.items():
+      bps = [ dict( bp ) for bp in breakpoints ]
+      for bp in bps:
+        bp.pop( 'sign_id', None )
+      line[ file_name ] = bps
+
+    return {
+      'line': line,
+      'function': self._func_breakpoints,
+      'exception': self._exception_breakpoints
+    }
+
+
+  def Load( self, save_data ):
+    self.ClearBreakpoints()
+    self._line_breakpoints = save_data.get( 'line', {} )
+    self._func_breakpoints = save_data.get( 'function' , [] )
+    self._exception_breakpoints = save_data.get( 'exception', None )
 
 
   def _ShowBreakpoints( self ):

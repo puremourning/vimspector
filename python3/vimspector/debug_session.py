@@ -60,6 +60,7 @@ class DebugSession( object ):
     self._logView = None
     self._stackTraceView = None
     self._variablesView = None
+    self._saved_variables_data = None
     self._outputView = None
     self._breakpoints = breakpoints.ProjectBreakpoints()
     self._splash_screen = None
@@ -306,6 +307,13 @@ class DebugSession( object ):
 
       self._stackTraceView.ConnectionUp( self._connection )
       self._variablesView.ConnectionUp( self._connection )
+
+      if self._saved_variables_data:
+        self._variablesView.Load( self._saved_variables_data )
+        # TODO: clear it ?
+        # TODO: store this stuff in module scope in variables.py ?
+        # TODO: hmmm...
+
       self._outputView.ConnectionUp( self._connection )
       self._breakpoints.ConnectionUp( self._connection )
 
@@ -429,6 +437,57 @@ class DebugSession( object ):
 
     # make sure that we're displaying signs in any still-open buffers
     self._breakpoints.UpdateUI()
+
+  def ReadSessionFile( self, session_file ):
+    try:
+      with open( session_file, 'r' ) as f:
+        session_data = json.load( f )
+
+      USER_CHOICES.update(
+        session_data.get( 'session', {} ).get( 'user_choices', {} ) )
+
+      self._breakpoints.Load( session_data.get( 'breakpoints' ) )
+
+      # We might not _have_ a self._variablesView yet so we need a
+      # mechanism where we save this for later and reload when it's ready
+      variables_data = session_data.get( 'variables', {} )
+      if self._variablesView:
+        self._variablesView.Load( variables_data )
+      else:
+        self._saved_variables_data = variables_data
+
+      self.RefreshSigns()
+      return True
+    except OSError:
+      self._logger.exception( f"Invalid session file { session_file }" )
+      utils.UserMessage( "Session file not found", persist=True, error=True )
+      return False
+    except json.JSONDecodeError:
+      self._logger.exception( f"Invalid session file { session_file }" )
+      utils.UserMessage( "The session file could not be read",
+                         persist = True,
+                         error = True )
+      return False
+
+
+  def WriteSessionFile( self, session_file ):
+    try:
+      with open( session_file, 'w' ) as f:
+        f.write( json.dumps( {
+          'breakpoints': self._breakpoints.Save(),
+          'session': {
+            'user_choices': USER_CHOICES,
+          },
+          'variables': self._variablesView.Save() if self._variablesView else {}
+        } ) )
+
+      return True
+    except OSError:
+      self._logger.exception( f"Unable to write session file { session_file }" )
+      utils.UserMessage( "The session file could not be read",
+                         persist = True,
+                         error = True )
+      return False
 
   @IfConnected()
   def StepOver( self ):
@@ -658,11 +717,11 @@ class DebugSession( object ):
 
     return items
 
-  def RefreshSigns( self, file_name ):
+  def RefreshSigns( self ):
     if self._connection:
-      self._codeView.Refresh( file_name )
+      self._codeView.Refresh()
     else:
-      self._breakpoints.Refresh( file_name )
+      self._breakpoints.Refresh()
 
 
   def _SetUpUI( self ):
