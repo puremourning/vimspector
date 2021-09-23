@@ -293,6 +293,10 @@ def TemporaryVimOption( opt, value ):
     vim.options[ opt ] = old_value
 
 
+def DirectoryOfCurrentFile():
+  return os.path.dirname( os.path.abspath( vim.current.buffer.name ) )
+
+
 def PathToConfigFile( file_name, from_directory = None ):
   if not from_directory:
     p = os.getcwd()

@@ -589,13 +589,7 @@ function! vimspector#ReadSessionFile( ... ) abort
     return
   endif
 
-  if a:0 == 0
-    let file_name = '.vimspector.session'
-  else
-    let file_name = a:1
-  endif
-
-  py3 _vimspector_session.ReadSessionFile( vim.eval( 'file_name' ) )
+  py3 _vimspector_session.ReadSessionFile( *vim.eval( 'a:000' ) )
 endfunction
 
 function! vimspector#WriteSessionFile( ... ) abort
@@ -603,13 +597,7 @@ function! vimspector#WriteSessionFile( ... ) abort
     return
   endif
 
-  if a:0 == 0
-    let file_name = '.vimspector.session'
-  else
-    let file_name = a:1
-  endif
-
-  py3 _vimspector_session.WriteSessionFile( vim.eval( 'file_name' ) )
+  py3 _vimspector_session.WriteSessionFile( *vim.eval( 'a:000' ) )
 endfunction
 
 " Boilerplate {{{

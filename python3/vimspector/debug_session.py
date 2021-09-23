@@ -438,7 +438,16 @@ class DebugSession( object ):
     # make sure that we're displaying signs in any still-open buffers
     self._breakpoints.UpdateUI()
 
-  def ReadSessionFile( self, session_file ):
+  def ReadSessionFile( self, session_file: str = None ):
+    if session_file is None:
+      session_file = self._DetectSessionFile( invent_one_if_not_found = False )
+
+    if session_file is None:
+      utils.UserMessage( "No session file found, specify a file name to load",
+                         persist=True,
+                         error = True )
+      return False
+
     try:
       with open( session_file, 'r' ) as f:
         session_data = json.load( f )
@@ -470,7 +479,10 @@ class DebugSession( object ):
       return False
 
 
-  def WriteSessionFile( self, session_file ):
+  def WriteSessionFile( self, session_file: str = None ):
+    if session_file is None:
+      session_file = self._DetectSessionFile( invent_one_if_not_found = True )
+
     try:
       with open( session_file, 'w' ) as f:
         f.write( json.dumps( {
@@ -488,6 +500,25 @@ class DebugSession( object ):
                          persist = True,
                          error = True )
       return False
+
+
+  def _DetectSessionFile( self, invent_one_if_not_found: bool ):
+    session_file_name = settings.Get( 'session_file_name' )
+    current_file = utils.GetBufferFilepath( vim.current.buffer )
+
+    # Search from the path of the file we're editing. But note that if we invent
+    # a file, we always use CWD as that's more like what would be expected.
+    file_path = utils.PathToConfigFile( session_file_name,
+                                        os.path.dirname( current_file ) )
+
+    if file_path:
+      return file_path
+
+    if invent_one_if_not_found:
+      return os.path.join( os.getcwd(), session_file_name )
+
+    return None
+
 
   @IfConnected()
   def StepOver( self ):
