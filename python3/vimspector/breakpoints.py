@@ -425,7 +425,8 @@ class ProjectBreakpoints( object ):
       # if it was moved, update the user-breakpoint so that we unset it
       # again properly
       user_bp[ 'line' ] = bp[ 'line' ]
-      user_bp[ 'id' ] = bp[ 'id' ]
+      # some adapters dont return id
+      user_bp[ 'id' ] = bp.get( 'id' )
 
 
   def AddFunctionBreakpoint( self, function, options ):
@@ -631,15 +632,15 @@ class ProjectBreakpoints( object ):
     self._breakpoints_view.RefreshBreakpoints( self.BreakpointsAsQuickFix() )
     self._ShowBreakpoints()
 
-
   def Save( self ):
-    # Need to copy line breakpoitns, because we have to remove the 'sign_id'
-    # property. Otherwsie we might end up loading junk sign_ids
+    # Need to copy line breakpoints, because we have to remove the 'sign_id'
+    # and 'id' properties. Otherwise we might end up loading junk
     line = {}
     for file_name, breakpoints in self._line_breakpoints.items():
       bps = [ dict( bp ) for bp in breakpoints ]
       for bp in bps:
         bp.pop( 'sign_id', None )
+        bp.pop( 'id', None )
       line[ file_name ] = bps
 
     return {

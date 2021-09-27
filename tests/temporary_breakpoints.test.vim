@@ -33,7 +33,7 @@ function Test_Run_To_Cursor_Simple()
   call vimspector#test#signs#AssertPCIsAtLineInBuffer( 'moo.py', 9 )
   " Check there is no breakpoint set on line 8
   call WaitForAssert( {->
-      \ vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 8 )
+      \ vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 8 )
       \ } )
   call vimspector#test#setup#Reset()
   lcd -
@@ -69,10 +69,10 @@ function Test_Run_To_Cursor_On_NonBreaking_Line()
   " I wonder if the relocated breakpoint can be matched with the _original_
   " breakpoint
   call WaitForAssert( {->
-      \ vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 7 )
+      \ vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 7 )
       \ } )
   call WaitForAssert( {->
-      \ vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 6 )
+      \ vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 6 )
       \ } )
   call vimspector#test#setup#Reset()
   lcd -
@@ -124,7 +124,7 @@ function Test_Run_To_Cursor_Hit_Another_Breakpoint()
 
   " The temporary breakpoint is still there
   call vimspector#test#signs#AssertSignGroupSingletonAtLine(
-        \ 'VimspectorCode',
+        \ 'VimspectorBP',
         \ 6,
         \ 'vimspectorBP',
         \ 9 )
@@ -138,7 +138,7 @@ function Test_Run_To_Cursor_Hit_Another_Breakpoint()
       \ vimspector#test#signs#AssertPCIsAtLineInBuffer( 'moo.py', 8 )
       \ } )
   call WaitForAssert( {->
-      \  vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 6 )
+      \  vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 6 )
       \ } )
 
   call vimspector#test#setup#Reset()
@@ -177,7 +177,7 @@ function! Test_StartDebuggingWithRunToCursor()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'moo.py', 1, 1 )
   call vimspector#test#signs#AssertPCIsAtLineInBuffer( 'moo.py', 1 )
   call vimspector#test#signs#AssertSignGroupSingletonAtLine(
-        \ 'VimspectorCode',
+        \ 'VimspectorBP',
         \ 9,
         \ 'vimspectorBP',
         \ 9 )
@@ -193,7 +193,7 @@ function! Test_StartDebuggingWithRunToCursor()
   call vimspector#test#signs#AssertPCIsAtLineInBuffer( 'moo.py', 8 )
 
   call WaitForAssert( {->
-      \ vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorCode', 9 )
+      \ vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 9 )
       \ } )
 
   lcd -

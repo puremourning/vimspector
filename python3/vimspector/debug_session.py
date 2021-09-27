@@ -747,8 +747,7 @@ class DebugSession( object ):
   def RefreshSigns( self ):
     if self._connection:
       self._codeView.Refresh()
-    else:
-      self._breakpoints.Refresh()
+    self._breakpoints.Refresh()
 
 
   def _SetUpUI( self ):
@@ -1408,6 +1407,7 @@ class DebugSession( object ):
 
   def OnEvent_initialized( self, message ):
     def onBreakpointsDone():
+      self._breakpoints.Refresh( None )
       if self._server_capabilities.get( 'supportsConfigurationDoneRequest' ):
         self._connection.DoRequest(
           lambda msg: self._OnInitializeComplete(),
