@@ -358,8 +358,11 @@ def InstallCppTools( name, root, gadget ):
   # It's hilarious, but the execute bits aren't set in the vsix. So they
   # actually have javascript code which does this. It's just a horrible horrible
   # hack that really is not funny.
-  MakeExecutable(
-    os.path.join( extension, 'debugAdapters', 'bin', 'OpenDebugAD7' ) )
+  for binary in [ 'OpenDebugAD7', 'OpenDebugAD7.exe' ]:
+    path = os.path.join( extension, 'debugAdapters', 'bin', binary )
+    if os.path.exists( path ):
+      MakeExecutable( path )
+
   with open( os.path.join( extension, 'package.json' ) ) as f:
     package = json.load( f )
     runtime_dependencies = package[ 'runtimeDependencies' ]
