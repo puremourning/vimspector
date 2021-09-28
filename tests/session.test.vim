@@ -217,8 +217,6 @@ function! Test_Save_Session_Specify_Path_While_Running_Watches()
   call WaitForAssert( { ->
         \ vimspector#test#signs#AssertPCIsAtLineInBuffer( moo, 6 ) } )
 
-  " FIXME: Fails here, i think because we add the watch with the 'wrong'
-  " frame ID, so this just gets NameError" name 'i' is not defined.
   call WaitForAssert( {->
         \   assert_equal(
         \     [

@@ -927,10 +927,11 @@ class DebugSession( object ):
 
     # the codeView.SetCurrentFrame already checked the frame was valid and
     # countained a valid source
+    assert frame
     self._variablesView.SetSyntax( self._codeView.current_syntax )
     self._stackTraceView.SetSyntax( self._codeView.current_syntax )
     self._variablesView.LoadScopes( frame )
-    self._variablesView.EvaluateWatches()
+    self._variablesView.EvaluateWatches( frame )
 
     if reason == 'stopped':
       self._breakpoints.ClearTemporaryBreakpoint( frame[ 'source' ][ 'path' ],
