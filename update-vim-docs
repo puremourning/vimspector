@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [ -z "$1" ] || [ ! -d "$1" ]; then
+  echo "Usage: $(basename $0) <path to vim-tools>"
+  exit 1
+fi
+
+pushd $(dirname $0)
+  python3 $1/html2vimdoc.py -f vimspector README.md > doc/vimspector.txt
+  python3 $1/html2vimdoc.py -f vimspector-ref \
+                               docs/configuration.md > doc/vimspector-ref.txt
+popd

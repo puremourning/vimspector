@@ -114,12 +114,33 @@ class Variable( Expandable ):
 
 class Watch:
   """Holds a user watch expression (DAP request) and the result (WatchResult)"""
-  def __init__( self, expression: dict ):
+  def __init__( self, expression: dict, tied_to_frame: bool ):
     self.result: WatchResult
     self.line = None
 
     self.expression = expression
+    self.tied_to_frame = tied_to_frame
     self.result = None
+
+  def SetCurrentFrame( self, frame ):
+    # OK this is a bit hacky. In Vimspector we have elected to associatet a
+    # frameId with a watch so that expressions that might match different things
+    # in different (current) stack frames always resolve unambiguously to the
+    # frame the user added the watch in. For exam,ple consider a stack like:
+    #
+    # TOP      int i = 0;
+    # MIDDLE   int i = 100;
+    # BOTTOM   int i = -1;
+    #
+    # When adding a watch for 'i' in MIDDLE, we should see '100', even if the
+    # 'current frame' is BOTTOM.
+    #
+    # However, if we _saved_ the watch to the file, we _don't know_ what the
+    # frameid should be!. Se, we just bung the current frame on it and it
+    # shimmers between frames as we step/move.
+
+    if not self.tied_to_frame:
+      self.expression[ 'frameId' ] = frame[ 'id' ]
 
   @staticmethod
   def New( frame, expression, context ):
@@ -130,7 +151,7 @@ class Watch:
     if frame:
       watch[ 'frameId' ] = frame[ 'id' ]
 
-    return Watch( watch )
+    return Watch( watch, bool( frame ) )
 
 
 class View:
@@ -268,6 +289,17 @@ class VariablesView( object ):
     utils.CleanUpHiddenBuffer( self._watch.buf )
     self.ClearTooltip()
 
+  def Save( self ):
+    return {
+      'watches': [
+        watch.expression[ 'expression' ] for watch in self._watches
+      ]
+    }
+
+  def Load( self, save_data ):
+    for expression in save_data.get( 'watches', [] ):
+      # It's not really possible to save the frameId, so we just supply None
+      self._watches.append( Watch.New( None, expression, 'watch' ) )
 
   def LoadScopes( self, frame ):
     def scopes_consumer( message ):
@@ -410,7 +442,7 @@ class VariablesView( object ):
 
   def AddWatch( self, frame, expression ):
     self._watches.append( Watch.New( frame, expression, 'watch' ) )
-    self.EvaluateWatches()
+    self.EvaluateWatches( frame )
 
   def DeleteWatch( self ):
     if vim.current.buffer != self._watch.buf:
@@ -434,8 +466,9 @@ class VariablesView( object ):
 
     utils.UserMessage( 'No watch found' )
 
-  def EvaluateWatches( self ):
+  def EvaluateWatches( self, current_frame: dict ):
     for watch in self._watches:
+      watch.SetCurrentFrame( current_frame )
       self._connection.DoRequest(
         partial( self._UpdateWatchExpression, watch ),
         {
