@@ -39,10 +39,11 @@ Contents ~
   2. Breakpoints                                       |vimspector-breakpoints|
    1. Summary                                              |vimspector-summary|
    2. Line breakpoints                            |vimspector-line-breakpoints|
-   3. Conditional breakpoints              |vimspector-conditional-breakpoints|
+   3. Conditional breakpoints and logpoints |vimspector-conditional-breakpoints-logpoints|
    4. Exception breakpoints                  |vimspector-exception-breakpoints|
    5. Clear breakpoints                          |vimspector-clear-breakpoints|
    6. Run to Cursor                                  |vimspector-run-to-cursor|
+   7. Save and restore                                |vimspector-save-restore|
   3. Stepping                                             |vimspector-stepping|
   4. Variables and scopes                         |vimspector-variables-scopes|
   5. Variable or selection hover evaluation |vimspector-variable-or-selection-hover-evaluation|
@@ -57,13 +58,13 @@ Contents ~
   10. Terminate debuggee                        |vimspector-terminate-debuggee|
  7. Debug profile configuration        |vimspector-debug-profile-configuration|
   1. C, C++, Rust, etc.                              |vimspector-c-c-rust-etc.|
-   1. C++ Remote debugging                      |vimspector-c-remote-debugging|
-   2. C++ Remote launch and attach          |vimspector-c-remote-launch-attach|
+   1. Data visualization / pretty printing |vimspector-data-visualization-pretty-printing|
+   2. C++ Remote debugging                      |vimspector-c-remote-debugging|
+   3. C++ Remote launch and attach          |vimspector-c-remote-launch-attach|
   2. Rust                                                     |vimspector-rust|
   3. Python                                                 |vimspector-python|
    1. Python Remote Debugging              |vimspector-python-remote-debugging|
    2. Python Remote launch and attach  |vimspector-python-remote-launch-attach|
-   3. Legacy: vscode-python                   |vimspector-legacy-vscode-python|
   4. TCL                                                       |vimspector-tcl|
   5. C♯                                                          |vimspector-c|
   6. Go                                                         |vimspector-go|
@@ -72,8 +73,9 @@ Contents ~
    2. Debug cli application                  |vimspector-debug-cli-application|
   8. JavaScript, TypeScript, etc.       |vimspector-javascript-typescript-etc.|
   9. Java                                                     |vimspector-java|
-   1. Usage with YouCompleteMe            |vimspector-usage-with-youcompleteme|
-   2. Other LSP clients                          |vimspector-other-lsp-clients|
+   1. Hot code replace                            |vimspector-hot-code-replace|
+   2. Usage with YouCompleteMe            |vimspector-usage-with-youcompleteme|
+   3. Other LSP clients                          |vimspector-other-lsp-clients|
   10. Lua                                                      |vimspector-lua|
   11. Other servers                                  |vimspector-other-servers|
  8. Customisation                                    |vimspector-customisation|
@@ -94,7 +96,7 @@ Introduction ~
 
 For a tutorial and usage overview, take a look at the Vimspector website [1].
 
-For detailed explanatin of the '.vimspector.json' format, see the reference
+For detailed explanation of the '.vimspector.json' format, see the reference
 guide [2].
 
 Image: Build (see reference [3]) Image: Gitter [4]
@@ -143,10 +145,11 @@ Image: Build (see reference [3]) Image: Gitter [4]
   - Breakpoints
   - Summary
   - Line breakpoints
-  - Conditional breakpoints
+  - Conditional breakpoints and logpoints
   - Exception breakpoints
   - Clear breakpoints
   - Run to Cursor
+  - Save and restore
   - Stepping
   - Variables and scopes
   - Variable or selection hover evaluation
@@ -158,17 +161,18 @@ Image: Build (see reference [3]) Image: Gitter [4]
   - Console autocompletion
   - Log View
   - Closing debugger
+  - Terminate debuggee
 
 - Debug profile configuration
 
-  - C, C , Rust, etc.
-  - C Remote debugging
-  - C Remote launch and attach
+  - C, C++, Rust, etc.
+  - Data visualization / pretty printing
+  - C++ Remote debugging
+  - C++ Remote launch and attach
   - Rust
   - Python
   - Python Remote Debugging
   - Python Remote launch and attach
-  - Legacy: vscode-python
   - TCL
   - C♯
   - Go
@@ -177,6 +181,7 @@ Image: Build (see reference [3]) Image: Gitter [4]
   - Debug cli application
   - JavaScript, TypeScript, etc.
   - Java
+  - Hot code replace
   - Usage with YouCompleteMe
   - Other LSP clients
   - Lua
@@ -200,7 +205,7 @@ Image: Build (see reference [3]) Image: Gitter [4]
 Features and Usage ~
 
 The plugin is a capable Vim graphical debugger for multiple languages. It's
-mostly tested for c++, python and TCL, but in theory supports any language that
+mostly tested for C++, Python and TCL, but in theory supports any language that
 Visual Studio Code supports (but see caveats).
 
 The Vimspector website [1] has an overview of the UI, along with basic
@@ -250,38 +255,41 @@ runtime dependencies). They are categorised by their level of support:
 - 'Supported' : Fully supported, frequently used and manually tested
 - 'Experimental': Working, but not frequently used and rarely tested
 - 'Legacy': No longer supported, please migrate your config
+- 'Retired': No longer included or supported.
 
-========================================================================================================================================================
-|     _Language_     |   _Status_   | _Switch (for 'install_gadget.py')_ | _Adapter (for ':VimspectorInstall')_ |            _Dependencies_            |
-========================================================================================================================================================
-| C, C++, Rust etc.  | Tested       | '--all' or '--enable-c' (or cpp)   | vscode-cpptools                      | mono-core                            |
---------------------------------------------------------------------------------------------------------------------------------------------------------
-| Rust, C, C++, etc. | Supported    | '--force-enable-rust'              | CodeLLDB                             | Python 3                             |
---------------------------------------------------------------------------------------------------------------------------------------------------------
-| Python             | Tested       | '--all' or '--enable-python'       | debugpy                              | Python 2.7 or Python 3               |
---------------------------------------------------------------------------------------------------------------------------------------------------------
-| Go                 | Tested       | '--enable-go'                      | vscode-go                            | Go, Delve [11]                       |
---------------------------------------------------------------------------------------------------------------------------------------------------------
-| TCL                | Supported    | '--all' or '--enable-tcl'          | tclpro                               | TCL 8.5                              |
---------------------------------------------------------------------------------------------------------------------------------------------------------
-| Bourne Shell       | Supported    | '--all' or '--enable-bash'         | vscode-bash-debug                    | Bash v??                             |
---------------------------------------------------------------------------------------------------------------------------------------------------------
-| Lua                | Supported    | '--all' or '--enable-lua'          | local-lua-debugger-vscode            | Node >=12.13.0, Npm, Lua interpreter |
---------------------------------------------------------------------------------------------------------------------------------------------------------
-| Node.js            | Supported    | '--force-enable-node'              | vscode-node-debug2                   | 6 < Node < 12, Npm                   |
---------------------------------------------------------------------------------------------------------------------------------------------------------
-| Javascript         | Supported    | '--force-enable-chrome'            | debugger-for-chrome                  | Chrome                               |
---------------------------------------------------------------------------------------------------------------------------------------------------------
-| Java               | Supported    | '--force-enable-java'              | vscode-java-debug                    | Compatible LSP plugin (see later)    |
---------------------------------------------------------------------------------------------------------------------------------------------------------
-| C# (dotnet core)   | Experimental | '--force-enable-csharp'            | netcoredbg                           | DotNet core                          |
---------------------------------------------------------------------------------------------------------------------------------------------------------
-| C# (mono)          | Experimental | '--force-enable-csharp'            | vscode-mono-debug                    | Mono                                 |
---------------------------------------------------------------------------------------------------------------------------------------------------------
-| F#, VB, etc.       | Experimental | '--force-enable-fsharp' (or vbnet) | netcoredbg                           | DotNet core                          |
---------------------------------------------------------------------------------------------------------------------------------------------------------
-| Python.legacy      | Legacy       | '--force-enable-python.legacy'     | vscode-python                        | Node 10, Python 2.7 or Python 3      |
---------------------------------------------------------------------------------------------------------------------------------------------------------
+=====================================================================================================================================================
+|     _Language_     |  _Status_ | _Switch (for 'install_gadget.py')_ | _Adapter (for ':VimspectorInstall')_ |            _Dependencies_            |
+=====================================================================================================================================================
+| C, C++, Rust etc.  | Tested    | '--all' or '--enable-c' (or cpp)   | vscode-cpptools                      | mono-core                            |
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+| Rust, C, C++, etc. | Supported | '--force-enable-rust'              | CodeLLDB                             | Python 3                             |
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+| Python             | Tested    | '--all' or '--enable-python'       | debugpy                              | Python 2.7 or Python 3               |
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+| Go                 | Tested    | '--enable-go'                      | vscode-go                            | Node, Go, Delve [11]                 |
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+| TCL                | Supported | '--all' or '--enable-tcl'          | tclpro                               | TCL 8.5                              |
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+| Bourne Shell       | Supported | '--all' or '--enable-bash'         | vscode-bash-debug                    | Bash v??                             |
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+| Lua                | Supported | '--all' or '--enable-lua'          | local-lua-debugger-vscode            | Node >=12.13.0, Npm, Lua interpreter |
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+| Node.js            | Supported | '--force-enable-node'              | vscode-node-debug2                   | 6 < Node < 12, Npm                   |
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+| Javascript         | Supported | '--force-enable-chrome'            | debugger-for-chrome                  | Chrome                               |
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+| Javascript         | Supported | '--force-enable-firefox'           | vscode-firefox-debug                 | Firefox                              |
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+| Java               | Supported | '--force-enable-java'              | vscode-java-debug                    | Compatible LSP plugin (see later)    |
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+| C# (dotnet core)   | Tested    | '--force-enable-csharp'            | netcoredbg                           | DotNet core                          |
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+| F#, VB, etc.       | Supported | '--force-enable-[fsharp,vbnet]'    | ','--force-enable-vbnet`             | netcoredbg                           |
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+| C# (mono)          | _Retired_ | N/A                                | N/A                                  | N/A                                  |
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+| Python.legacy      | _Retired_ | N/A                                | N/A                                  | N/A                                  |
+-----------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 -------------------------------------------------------------------------------
@@ -419,9 +427,10 @@ If you just want to try out vimspector without changing your vim config, there
 are example projects for a number of languages in 'support/test', including:
 
 - Python ('support/test/python/simple_python')
-- Go ('support/test/go/hello_world')
+- Go ('support/test/go/hello_world' and
+  'support/test/go/name-starts-with-vowel')
 - Nodejs ('support/test/node/simple')
-- Chrome ('support/test/chrome/')
+- Chrome/Firefox ('support/test/web/')
 - etc.
 
 To test one of these out, cd to the directory and run:
@@ -664,13 +673,6 @@ Example:
           "${gadgetDir}/vscode-cpptools/debugAdapters/OpenDebugAD7"
         ],
         "name": "cppdbg"
-      },
-      "vscode-python": {
-        "command": [
-          "node",
-          "${gadgetDir}/vscode-python/out/client/debugger/debugAdapter/main.js"
-        ],
-        "name": "vscode-python"
       }
     }
   }
@@ -815,37 +817,37 @@ personal and so you should work out what you like and use vim's powerful
 mapping features to set your own mappings. To that end, Vimspector defines the
 following '<Plug>' mappings:
 
-=================================================================================================================================================================================
-|                   _Mapping_                   |                         _Function_                        |                               _API_                               |
-=================================================================================================================================================================================
-| '<Plug>VimspectorContinue'                    | When debugging, continue. Otherwise start debugging.      | 'vimspector#Continue()'                                           |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| '<Plug>VimspectorStop'                        | Stop debugging.                                           | 'vimspector#Stop()'                                               |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| '<Plug>VimpectorRestart'                      | Restart debugging with the same configuration.            | 'vimspector#Restart()'                                            |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| '<Plug>VimspectorPause'                       | Pause debuggee.                                           | 'vimspector#Pause()'                                              |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| '<Plug>VimspectorToggleBreakpoint'            | Toggle line breakpoint on the current line.               | 'vimspector#ToggleBreakpoint()'                                   |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| '<Plug>VimspectorToggleConditionalBreakpoint' | Toggle conditional line breakpoint on the current line.   | 'vimspector#ToggleBreakpoint( { trigger expr, hit count expr } )' |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| '<Plug>VimspectorAddFunctionBreakpoint'       | Add a function breakpoint for the expression under cursor | "vimspector#AddFunctionBreakpoint( '<cexpr>' )"                   |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| '<Plug>VimspectorRunToCursor'                 | Run to Cursor                                             | 'vimspector#RunToCursor()'                                        |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| '<Plug>VimspectorStepOver'                    | Step Over                                                 | 'vimspector#StepOver()'                                           |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| '<Plug>VimspectorStepInto'                    | Step Into                                                 | 'vimspector#StepInto()'                                           |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| '<Plug>VimspectorStepOut'                     | Step out of current function scope                        | 'vimspector#StepOut()'                                            |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| '<Plug>VimspectorUpFrame'                     | Move up a frame in the current call stack                 | 'vimspector#UpFrame()'                                            |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| '<Plug>VimspectorDownFrame'                   | Move down a frame in the current call stack               | 'vimspector#DownFrame()'                                          |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| '<Plug>VimspectorBalloonEval'                 | Evaluate expression under cursor (or visual) in popup     | _internal_                                                        |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+===========================================================================================================================================================================================
+|                   _Mapping_                   |                              _Function_                             |                               _API_                               |
+===========================================================================================================================================================================================
+| '<Plug>VimspectorContinue'                    | When debugging, continue. Otherwise start debugging.                | 'vimspector#Continue()'                                           |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| '<Plug>VimspectorStop'                        | Stop debugging.                                                     | 'vimspector#Stop()'                                               |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| '<Plug>VimpectorRestart'                      | Restart debugging with the same configuration.                      | 'vimspector#Restart()'                                            |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| '<Plug>VimspectorPause'                       | Pause debuggee.                                                     | 'vimspector#Pause()'                                              |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| '<Plug>VimspectorToggleBreakpoint'            | Toggle line breakpoint on the current line.                         | 'vimspector#ToggleBreakpoint()'                                   |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| '<Plug>VimspectorToggleConditionalBreakpoint' | Toggle conditional line breakpoint or logpoint on the current line. | 'vimspector#ToggleBreakpoint( { trigger expr, hit count expr } )' |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| '<Plug>VimspectorAddFunctionBreakpoint'       | Add a function breakpoint for the expression under cursor           | "vimspector#AddFunctionBreakpoint( '<cexpr>' )"                   |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| '<Plug>VimspectorRunToCursor'                 | Run to Cursor                                                       | 'vimspector#RunToCursor()'                                        |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| '<Plug>VimspectorStepOver'                    | Step Over                                                           | 'vimspector#StepOver()'                                           |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| '<Plug>VimspectorStepInto'                    | Step Into                                                           | 'vimspector#StepInto()'                                           |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| '<Plug>VimspectorStepOut'                     | Step out of current function scope                                  | 'vimspector#StepOut()'                                            |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| '<Plug>VimspectorUpFrame'                     | Move up a frame in the current call stack                           | 'vimspector#UpFrame()'                                            |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| '<Plug>VimspectorDownFrame'                   | Move down a frame in the current call stack                         | 'vimspector#DownFrame()'                                          |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| '<Plug>VimspectorBalloonEval'                 | Evaluate expression under cursor (or visual) in popup               | _internal_                                                        |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 These map roughly 1-1 with the API functions below.
@@ -908,31 +910,31 @@ variables) are unfixable, try the following mappings, by adding the following
 >
   let g:vimspector_enable_mappings = 'HUMAN'
 <
-============================================================================================================================
-|    _Key_     |                   _Mapping_                   |                         _Function_                        |
-============================================================================================================================
-| 'F5'         | '<Plug>VimspectorContinue'                    | When debugging, continue. Otherwise start debugging.      |
-----------------------------------------------------------------------------------------------------------------------------
-| 'F3'         | '<Plug>VimspectorStop'                        | Stop debugging.                                           |
-----------------------------------------------------------------------------------------------------------------------------
-| 'F4'         | '<Plug>VimspectorRestart'                     | Restart debugging with the same configuration.            |
-----------------------------------------------------------------------------------------------------------------------------
-| 'F6'         | '<Plug>VimspectorPause'                       | Pause debuggee.                                           |
-----------------------------------------------------------------------------------------------------------------------------
-| 'F9'         | '<Plug>VimspectorToggleBreakpoint'            | Toggle line breakpoint on the current line.               |
-----------------------------------------------------------------------------------------------------------------------------
-| '<leader>F9' | '<Plug>VimspectorToggleConditionalBreakpoint' | Toggle conditional line breakpoint on the current line.   |
-----------------------------------------------------------------------------------------------------------------------------
-| 'F8'         | '<Plug>VimspectorAddFunctionBreakpoint'       | Add a function breakpoint for the expression under cursor |
-----------------------------------------------------------------------------------------------------------------------------
-| '<leader>F8' | '<Plug>VimspectorRunToCursor'                 | Run to Cursor                                             |
-----------------------------------------------------------------------------------------------------------------------------
-| 'F10'        | '<Plug>VimspectorStepOver'                    | Step Over                                                 |
-----------------------------------------------------------------------------------------------------------------------------
-| 'F11'        | '<Plug>VimspectorStepInto'                    | Step Into                                                 |
-----------------------------------------------------------------------------------------------------------------------------
-| 'F12'        | '<Plug>VimspectorStepOut'                     | Step out of current function scope                        |
-----------------------------------------------------------------------------------------------------------------------------
+======================================================================================================================================
+|    _Key_     |                   _Mapping_                   |                              _Function_                             |
+======================================================================================================================================
+| 'F5'         | '<Plug>VimspectorContinue'                    | When debugging, continue. Otherwise start debugging.                |
+--------------------------------------------------------------------------------------------------------------------------------------
+| 'F3'         | '<Plug>VimspectorStop'                        | Stop debugging.                                                     |
+--------------------------------------------------------------------------------------------------------------------------------------
+| 'F4'         | '<Plug>VimspectorRestart'                     | Restart debugging with the same configuration.                      |
+--------------------------------------------------------------------------------------------------------------------------------------
+| 'F6'         | '<Plug>VimspectorPause'                       | Pause debuggee.                                                     |
+--------------------------------------------------------------------------------------------------------------------------------------
+| 'F9'         | '<Plug>VimspectorToggleBreakpoint'            | Toggle line breakpoint on the current line.                         |
+--------------------------------------------------------------------------------------------------------------------------------------
+| '<leader>F9' | '<Plug>VimspectorToggleConditionalBreakpoint' | Toggle conditional line breakpoint or logpoint on the current line. |
+--------------------------------------------------------------------------------------------------------------------------------------
+| 'F8'         | '<Plug>VimspectorAddFunctionBreakpoint'       | Add a function breakpoint for the expression under cursor           |
+--------------------------------------------------------------------------------------------------------------------------------------
+| '<leader>F8' | '<Plug>VimspectorRunToCursor'                 | Run to Cursor                                                       |
+--------------------------------------------------------------------------------------------------------------------------------------
+| 'F10'        | '<Plug>VimspectorStepOver'                    | Step Over                                                           |
+--------------------------------------------------------------------------------------------------------------------------------------
+| 'F11'        | '<Plug>VimspectorStepInto'                    | Step Into                                                           |
+--------------------------------------------------------------------------------------------------------------------------------------
+| 'F12'        | '<Plug>VimspectorStepOut'                     | Step out of current function scope                                  |
+--------------------------------------------------------------------------------------------------------------------------------------
 
 
 In addition, I recommend adding a mapping to '<Plug>VimspectorBalloonEval', in
@@ -1051,6 +1053,9 @@ Summary ~
 
 - Use 'vimspector#ClearBreakpoints()' to clear all breakpoints
 
+- Use ':VimspectorMkSession' and ':VimspectorLoadSession' to save and restore
+  breakpoints
+
 Examples:
 
 - 'call vimspector#ToggleBreakpoint()' - toggle breakpoint on current line
@@ -1073,6 +1078,14 @@ Examples:
 
 - 'call vimspector#ClearBreakpoints()' - clear all breakpoints
 
+- 'VimspectorMkSession' - create '.vimspector.session'
+
+- 'VimspectorLoadSession' - read '.vimspector.session'
+
+- 'VimspectorMkSession my_session_file' - create 'my_session_file'
+
+- 'VimspectorLoadSession my_session_file' - read 'my_session_file'
+
 -------------------------------------------------------------------------------
                                                   *vimspector-line-breakpoints*
 Line breakpoints ~
@@ -1084,8 +1097,8 @@ For most debugging scenarios, users will just hit '<F9>' to create a line
 breakpoint on the current line and '<F5>' to launch the application.
 
 -------------------------------------------------------------------------------
-                                           *vimspector-conditional-breakpoints*
-Conditional breakpoints ~
+                                 *vimspector-conditional-breakpoints-logpoints*
+Conditional breakpoints and logpoints ~
 
 Some debug adapters support conditional breakpoints. Note that vimspector does
 not tell you if the debugger doesn't support conditional breakpoints (yet). A
@@ -1105,7 +1118,12 @@ dictionary of options. The dictionary can have the following keys:
   combination with 'condition'. Not supported by all debug adapters. For
   example, to break on the 3rd time hitting this line, enter '3'.
 
-In both cases, the expression is evaluated by the debugger, so should be in
+- 'logMessage': An optional string to make this breakpoint a "logpoint"
+  instead. When triggered, this message is printed to the console rather than
+  interrupting execution. You can embed expressions in braces '{like this}',
+  for example '#{ logMessage: "Iteration {i} or {num_entries / 2}" }'
+
+In each case expressions are evaluated by the debugger, so should be in
 whatever dialect the debugger understands when evaluating expressions.
 
 When using the '<leader><F9>' mapping, the user is prompted to enter these
@@ -1141,6 +1159,32 @@ Run to Cursor ~
 Use 'vimspector#RunToCursor' or '<leader><F8>': this creates a temporary
 breakpoint on the current line, then continues execution, clearing the
 breakpoint when it is hit.
+
+-------------------------------------------------------------------------------
+                                                      *vimspector-save-restore*
+Save and restore ~
+
+Vimspector can save and restore breakpoints (and some other stuff) to a session
+file. The following commands exist for htat:
+
+- 'VimspectorMkSession [file name]' - save the current set of line
+  breakpoints, logpoints, conditional breakpoints, function breakpoints and
+  exception breakpoint filters to the session file.
+
+- 'VimspectorLoadSession [file name]' - read breakpoints from the session
+  file and replace any currently set breakpoints. Prior to loading, all
+  current breakpoints are cleared (as if 'vimspector#ClearLineBreakpoints()'
+  was called).
+
+In both cases, the file name argument is optional. By default, the file is
+named '.vimspector.session', but this can be changed globally by setting
+'g:vimspector_session_file_name' to something else, or by manually specifying a
+path when calling the command.
+
+Advanced users may wish to automate the process of loading and saving, for
+example by adding 'VimEnter' and 'VimLeave' autocommands. It's recommented in
+that case to use 'silent!' to avoid annoying errors if the file can't be read
+or writtten.
 
 -------------------------------------------------------------------------------
                                                           *vimspector-stepping*
@@ -1263,6 +1307,9 @@ be changed manually to "switch to" that thread.
   focussed thread to the thread of that frame and jump to that frame in the
   code window.
 
+- The current frame when a breakpoint is hit or if manuall jumping is also
+  highlighted.
+
   Image: stack trace (see reference [28])
 
 The stack trace is represented by the buffer 'vimspector.StackTrace'.
@@ -1328,6 +1375,8 @@ information when something goes wrong that's not a Vim traceback.
 
 If you just want to see the Vimspector log file, use ':VimspectorToggleLog',
 which will tail it in a little window (doesn't work on Windows).
+
+You can see some debugging info with ':VimspectorDebugInfo'
 
 -------------------------------------------------------------------------------
                                                   *vimspector-closing-debugger*
@@ -1437,6 +1486,39 @@ licensing.
   }
 <
 -------------------------------------------------------------------------------
+                                *vimspector-data-visualization-pretty-printing*
+Data visualization / pretty printing ~
+
+Depending on the backend you need to enable pretty printing of complex types
+manually.
+
+- LLDB: Pretty printing is enabled by default
+
+- GDB: To enable gdb pretty printers, consider the snippet below. It is not
+  enough to have 'set print pretty on' in your .gdbinit!
+>
+  {
+    "configurations": {
+      "Launch": {
+        "adapter": "vscode-cpptools",
+        "configuration": {
+          "request": "launch",
+          "program": "<path to binary>",
+          ...
+          "MIMode": "gdb"
+          "setupCommands": [
+            {
+              "description": "Enable pretty-printing for gdb",
+              "text": "-enable-pretty-printing",
+              "ignoreFailures": true
+            }
+          ],
+        }
+      }
+    }
+  }
+<
+-------------------------------------------------------------------------------
                                                 *vimspector-c-remote-debugging*
 C++ Remote debugging ~
 
@@ -1525,9 +1607,6 @@ Python ~
 
 - Full options:
   https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
-
-**Migrating from 'vscode-python'**: change '"adapter": "vscode-python"' to
-'"adapter": "debugpy"'.
 >
   {
     "configurations": {
@@ -1592,40 +1671,12 @@ If you're feeling fancy, checkout the reference guide [31] for an example of
 getting Vimspector to remotely launch and attach.
 
 -------------------------------------------------------------------------------
-                                              *vimspector-legacy-vscode-python*
-Legacy: vscode-python ~
-
-- No longer installed by default - please pass '--force-enable-python.legacy'
-  if you just want to continue using your working setup.
-- vscode-python [37]
-- NOTE: You must be running 'node' 10. See this issue [38]
->
-  {
-    "configurations": {
-      "<name>: Launch": {
-        "adapter": "vscode-python",
-        "configuration": {
-          "name": "<name>: Launch",
-          "type": "python",
-          "request": "launch",
-          "cwd": "<working directory>",
-          "stopOnEntry": true,
-          "console": "externalTerminal",
-          "debugOptions": [],
-          "program": "<path to main python file>"
-        }
-      }
-      ...
-    }
-  }
-<
--------------------------------------------------------------------------------
                                                                *vimspector-tcl*
 TCL ~
 
 - TCL (TclProDebug)
 
-See my fork of TclProDebug [39] for instructions.
+See my fork of TclProDebug [37] for instructions.
 
 -------------------------------------------------------------------------------
                                                                  *vimspector-c*
@@ -1645,33 +1696,8 @@ netcoredbg'
           "program": "${workspaceRoot}/bin/Debug/netcoreapp2.2/csharp.dll",
           "args": [],
           "stopAtEntry": true,
-          "cwd": "${workspaceRoot}"
-        }
-      }
-    }
-  }
-<
-- C# - mono
-
-Install with 'install_gadget.py --force-enable-csharp' or ':VimspectorInstall
-vscode-mono-debug'.
-
-**_Known not to work._**
->
-  {
-    "configurations": {
-      "launch - mono": {
-        "adapter": "vscode-mono-debug",
-        "configuration": {
-          "request": "launch",
-          "program": "${workspaceRoot}/bin/Debug/netcoreapp2.2/csharp.dll",
-          "args": [],
           "cwd": "${workspaceRoot}",
-          "runtimeExecutable": "mono",
-          "runtimeArgs": [],
-          "env": [],
-          "externalConsole": false,
-          "console": "integratedTerminal"
+          "env": {}
         }
       }
     }
@@ -1686,8 +1712,12 @@ Go ~
 Requires:
 
 - 'install_gadget.py --enable-go' or ':VimspectorInstall vscode-go'
-- Delve [40] installed, e.g. 'go get -u github.com/go-delve/delve/cmd/dlv'
+- Delve [38] installed, e.g. 'go get -u github.com/go-delve/delve/cmd/dlv'
 - Delve to be in your PATH, or specify the 'dlvToolPath' launch option
+
+NOTE: Vimspector uses the "legacy" vscode-go debug adapter [39] rather than the
+"built-in" DAP support in Delve. You can track
+https://github.com/puremourning/vimspector/issues/186 for that.
 >
   {
     "configurations": {
@@ -1703,7 +1733,7 @@ Requires:
     }
   }
 <
-See the vscode-go docs for troubleshooting information [41]
+See the vscode-go docs for troubleshooting information [40]
 
 -------------------------------------------------------------------------------
                                                                *vimspector-php*
@@ -1822,25 +1852,40 @@ Requires:
     }
   }
 <
-- Chrome
+- Chrome/Firefox
 
-This uses the chrome debugger, see https://marketplace.visualstudio.com/items?i
-temName=msjsdiag.debugger-for-chrome.
+This uses the chrome/firefox debugger (they are very similar), see https://mark
+etplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome and https:
+//marketplace.visualstudio.com/items?itemName=firefox-devtools.vscode-firefox-d
+ebug, respectively.
 
 It allows you to debug scripts running inside chrome from within Vim.
 
 - './install_gadget.py --force-enable-chrome' or ':VimspectorInstall
   debugger-for-chrome'
-- Example: 'support/test/chrome'
+
+- './install_gadget.py --force-enable-firefox' or ':VimspectorInstall
+  debugger-for-firefox'
+
+- Example: 'support/test/web'
 >
   {
     "configurations": {
-      "launch": {
+      "chrome": {
         "adapter": "chrome",
         "configuration": {
           "request": "launch",
           "url": "http://localhost:1234/",
           "webRoot": "${workspaceRoot}/www"
+        }
+      },
+      "firefox": {
+        "adapter": "firefox",
+        "configuration": {
+          "request": "launch",
+          "url": "http://localhost:1234/",
+          "webRoot": "${workspaceRoot}/www",
+          "reAttach": true
         }
       }
     }
@@ -1850,20 +1895,35 @@ It allows you to debug scripts running inside chrome from within Vim.
                                                               *vimspector-java*
 Java ~
 
-Vimspector works well with the java debug server [42], which runs as a jdt.ls
+Vimspector works well with the java debug server [41], which runs as a jdt.ls
 (Java Language Server) plugin, rather than a standalone debug adapter.
 
 Vimspector is not in the business of running language servers, only debug
 adapters, so this means that you need a compatible Language Server Protocol
-editor plugin to use Java. I recommend YouCompleteMe [43], which has full
+editor plugin to use Java. I recommend YouCompleteMe [42], which has full
 support for jdt.ls, and most importantly a trivial way to load the debug
 adapter and to use it with Vimspector.
+
+-------------------------------------------------------------------------------
+                                                  *vimspector-hot-code-replace*
+Hot code replace ~
+
+When using the java debug server [41], Vimspector supports the hot code replace
+custom feature. By default, when the underlying class files change, vimspector
+asks the user if they wish to reload these classes at runtime.
+
+This behaviour can be customised:
+
+- "let g:ycm_java_hotcodereplace_mode = 'ask'" - the default, ask the user
+  for each reload.
+- "let g:ycm_java_hotcodereplace_mode = 'always'" - don't ask, always reload
+- "let g:ycm_java_hotcodereplace_mode = 'never'" - don't ask, never reload
 
 -------------------------------------------------------------------------------
                                           *vimspector-usage-with-youcompleteme*
 Usage with YouCompleteMe ~
 
-- Set up YCM for java [43].
+- Set up YCM for java [42].
 
 - Get Vimspector to download the java debug plugin: 'install_gadget.py
   --force-enable-java <other options...>' or ':VimspectorInstall
@@ -1927,24 +1987,24 @@ If you see "Unable to get DAP port - is JDT.LS initialized?", try running
 ':YcmCompleter ExecuteCommand vscode.java.startDebugSession' and note the
 output. If you see an error like 'ResponseFailedException: Request failed:
 -32601: No delegateCommandHandler for vscode.java.startDebugSession', make sure
-that: _Your YCM jdt.ls is actually working, see the YCM docs [44] for
+that: _Your YCM jdt.ls is actually working, see the YCM docs [43] for
 troubleshooting_ The YCM jdt.ls has had time to initialize before you start the
 debugger * That 'g:ycm_java_jdtls_extension_path' is set in '.vimrc' or prior
 to YCM starting
 
-For the launch arguments, see the vscode document [45].
+For the launch arguments, see the vscode document [44].
 
 -------------------------------------------------------------------------------
                                                  *vimspector-other-lsp-clients*
 Other LSP clients ~
 
-See this issue [46] for more background.
+See this issue [45] for more background.
 
 -------------------------------------------------------------------------------
                                                                *vimspector-lua*
 Lua ~
 
-Lua is supported through local-lua-debugger-vscode [47]. This debugger uses
+Lua is supported through local-lua-debugger-vscode [46]. This debugger uses
 stdio to communicate with the running process, so calls to 'io.read' will cause
 problems.
 
@@ -1999,7 +2059,7 @@ problems.
 Other servers ~
 
 - Java - vscode-javac. This works, but is not as functional as Java Debug
-  Server. Take a look at this comment [48] for instructions.
+  Server. Take a look at this comment [47] for instructions.
 
 ===============================================================================
                                                      *vimspector-customisation*
@@ -2015,38 +2075,50 @@ Vimsector uses the following signs internally. If they are defined before
 Vimsector uses them, they will not be replaced. So to customise the signs,
 define them in your 'vimrc'.
 
-=============================================================================
-|         _Sign_         |            _Description_            | _Priority_ |
-=============================================================================
-| 'vimspectorBP'         | Line breakpoint                     | 9          |
------------------------------------------------------------------------------
-| 'vimspectorBPCond'     | Conditional line breakpoint         | 9          |
------------------------------------------------------------------------------
-| 'vimspectorBPDisabled' | Disabled breakpoint                 | 9          |
------------------------------------------------------------------------------
-| 'vimspectorPC'         | Program counter (i.e. current line) | 200        |
------------------------------------------------------------------------------
-| 'vimspectorPCBP'       | Program counter and breakpoint      | 200        |
------------------------------------------------------------------------------
+====================================================================================
+|           _Sign_          |              _Description_              | _Priority_ |
+====================================================================================
+| 'vimspectorBP'            | Line breakpoint                         | 9          |
+------------------------------------------------------------------------------------
+| 'vimspectorBPCond'        | Conditional line breakpoint             | 9          |
+------------------------------------------------------------------------------------
+| 'vimspectorBPLog'         | Logpoint                                | 9          |
+------------------------------------------------------------------------------------
+| 'vimspectorBPDisabled'    | Disabled breakpoint                     | 9          |
+------------------------------------------------------------------------------------
+| 'vimspectorPC'            | Program counter (i.e. current line)     | 200        |
+------------------------------------------------------------------------------------
+| 'vimspectorPCBP'          | Program counter and breakpoint          | 200        |
+------------------------------------------------------------------------------------
+| 'vimspectorCurrentThread' | Focussed thread in stack trace view     | 200        |
+------------------------------------------------------------------------------------
+| 'vimspectorCurrentFrame'  | Current stack frame in stack trace view | 200        |
+------------------------------------------------------------------------------------
 
 
 The default symbols are the equivalent of something like the following:
 >
-  sign define vimspectorBP         text=\ ● texthl=WarningMsg
-  sign define vimspectorBPCond     text=\ ◆ texthl=WarningMsg
-  sign define vimspectorBPDisabled text=\ ● texthl=LineNr
-  sign define vimspectorPC         text=\ ▶ texthl=MatchParen linehl=CursorLine
-  sign define vimspectorPCBP       text=●▶  texthl=MatchParen linehl=CursorLine
+  sign define vimspectorBP            text=\ ● texthl=WarningMsg
+  sign define vimspectorBPCond        text=\ ◆ texthl=WarningMsg
+  sign define vimspectorBPLog         text=\ ◆ texthl=SpellRare
+  sign define vimspectorBPDisabled    text=\ ● texthl=LineNr
+  sign define vimspectorPC            text=\ ▶ texthl=MatchParen linehl=CursorLine
+  sign define vimspectorPCBP          text=●▶  texthl=MatchParen linehl=CursorLine
+  sign define vimspectorCurrentThread text=▶   texthl=MatchParen linehl=CursorLine
+  sign define vimspectorCurrentFrame  text=▶   texthl=Special    linehl=CursorLine
 <
 If the signs don't display properly, your font probably doesn't contain these
 glyphs. You can easily change them by defining the sign in your vimrc. For
 example, you could put this in your 'vimrc' to use some simple ASCII symbols:
 >
-  sign define vimspectorBP text=o          texthl=WarningMsg
-  sign define vimspectorBPCond text=o?     texthl=WarningMsg
-  sign define vimspectorBPDisabled text=o! texthl=LineNr
-  sign define vimspectorPC text=\ >        texthl=MatchParen
-  sign define vimspectorPCBP text=o>       texthl=MatchParen
+  sign define vimspectorBP text=o             texthl=WarningMsg
+  sign define vimspectorBPCond text=o?        texthl=WarningMsg
+  sign define vimspectorBPLog text=!!         texthl=SpellRare
+  sign define vimspectorBPDisabled text=o!    texthl=LineNr
+  sign define vimspectorPC text=\ >           texthl=MatchParen
+  sign define vimspectorPCBP text=o>          texthl=MatchParen
+  sign define vimspectorCurrentThread text=>  texthl=MatchParen
+  sign define vimspectorCurrentFrame text=>   texthl=Special
 <
 -------------------------------------------------------------------------------
                                                      *vimspector-sign-priority*
@@ -2068,6 +2140,7 @@ For example:
   let g:vimspector_sign_priority = {
     \    'vimspectorBP':         3,
     \    'vimspectorBPCond':     2,
+    \    'vimspectorBPLog':      2,
     \    'vimspectorBPDisabled': 1,
     \    'vimspectorPC':         999,
     \ }
@@ -2302,7 +2375,7 @@ FAQ ~
    require very-specific unique handling.
 
 3. How do I stop it starting a new Terminal.app on macOS? See this comment
-   [49]
+   [48]
 
 4. Can I specify answers to the annoying questions about exception
    breakpoints in my '.vimspector.json' ? Yes, see here [23].
@@ -2336,6 +2409,12 @@ FAQ ~
    clients. Vimspector simply displays this information in the output
    window. It _does not_ and _will not ever_ collect, use, forward or
    otherwise share any data with any third parties.
+
+4. Do I _have_ to put a '.vimspector.json' in the root of every project? No,
+   you can put all of your adapter and debug configs in a single directory
+   [49] if you want to, but note the caveat that '${workspaceRoot}' won't be
+   calculated correctly in that case. The vimsepctor author uses this a lot
+   [50].
 
 ===============================================================================
                                                         *vimspector-references*
@@ -2377,18 +2456,19 @@ References ~
 [34] https://github.com/microsoft/debugpy#debugpy-cli-usage
 [35] https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
 [36] https://github.com/microsoft/debugpy/wiki/Debugging-over-SSH
-[37] https://github.com/Microsoft/vscode-python
-[38] https://github.com/puremourning/vimspector/issues/105
-[39] https://github.com/puremourning/TclProDebug
-[40] https://github.com/go-delve/delve/tree/master/Documentation/installation
-[41] https://github.com/golang/vscode-go/blob/master/docs/debugging.md#troubleshooting
-[42] https://github.com/Microsoft/java-debug
-[43] https://github.com/ycm-core/YouCompleteMe#java-semantic-completion
-[44] https://github.com/ycm-core/YouCompleteMe#troubleshooting
-[45] https://code.visualstudio.com/docs/java/java-debugging
-[46] https://github.com/puremourning/vimspector/issues/3
-[47] https://github.com/tomblind/local-lua-debugger-vscode
-[48] https://github.com/puremourning/vimspector/issues/3#issuecomment-576916076
-[49] https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322
+[37] https://github.com/puremourning/TclProDebug
+[38] https://github.com/go-delve/delve/tree/master/Documentation/installation
+[39] https://github.com/golang/vscode-go/blob/master/docs/debugging-legacy.md
+[40] https://github.com/golang/vscode-go/blob/master/docs/debugging-legacy.md#troubleshooting
+[41] https://github.com/Microsoft/java-debug
+[42] https://github.com/ycm-core/YouCompleteMe#java-semantic-completion
+[43] https://github.com/ycm-core/YouCompleteMe#troubleshooting
+[44] https://code.visualstudio.com/docs/java/java-debugging
+[45] https://github.com/puremourning/vimspector/issues/3
+[46] https://github.com/tomblind/local-lua-debugger-vscode
+[47] https://github.com/puremourning/vimspector/issues/3#issuecomment-576916076
+[48] https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322
+[49] https://puremourning.github.io/vimspector/configuration.html#debug-configurations
+[50] https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf
 
 vim: ft=help
