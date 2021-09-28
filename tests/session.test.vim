@@ -6,10 +6,10 @@ function! ClearDown()
   call vimspector#test#setup#ClearDown()
 endfunction
 
-function! Test_Save_Session_Specify_Path_Not_Running_Breakpoints()
-  let moo = 'moo.py'
-  let cow = 'cow.py'
+function! Test_Save_Session_Specify_Path_Not_Running_LineBreakpoints()
   lcd ../support/test/python/multiple_files
+  let moo = getcwd() . '/moo.py'
+  let cow = getcwd() . '/cow.py'
 
   call vimspector#SetLineBreakpoint( moo, 6 )
   call vimspector#SetLineBreakpoint( moo, 9, { 'logMessage': 'test' } )
@@ -60,6 +60,10 @@ function! Test_Save_Session_Specify_Path_Not_Running_Breakpoints()
           \ 'VimspectorBP',
           \ 15 ) } )
 
+  " change directory then load, ensure that we find the right file for the
+  " breakpoint
+  lcd ../
+  %bwipeout!
   execute 'VimspectorLoadSession' save_file
 
   execute 'edit' moo
@@ -88,6 +92,14 @@ function! Test_Save_Session_Specify_Path_Not_Running_Breakpoints()
   lcd -
   silent! call delete( save_file )
   %bwipeout!
+endfunction
+
+function! Test_Save_Session_Funtion_Breakpoints()
+  " TODO
+endfunction
+
+function! Test_Save_Session_Exception_Breakpoints()
+  " TODO
 endfunction
 
 function! Test_Save_Session_Specify_Path_While_Running_Breakpoints()
@@ -166,15 +178,15 @@ function! Test_Save_Session_Specify_Path_While_Running_Breakpoints()
   %bwipeout!
 endfunction
 
-function! SetUp_Test_Save_Session_Specify_Path_While_Running_Watches()
+function! SetUp_Test_Save_Session_NoSpecify_Path_While_Running_Watches()
   let g:vimspector_session_file_name = tempname()
 endfunction
 
-function! TearDown_Test_Save_Session_Specify_Path_While_Running_Watches()
+function! TearDown_Test_Save_NoSession_Specify_Path_While_Running_Watches()
   unlet g:vimspector_session_file_name
 endfunction
 
-function! Test_Save_Session_Specify_Path_While_Running_Watches()
+function! Test_Save_Session_NoSpecify_Path_While_Running_Watches()
   let moo = 'moo.py'
   let cow = 'cow.py'
   lcd ../support/test/python/multiple_files
@@ -235,4 +247,8 @@ function! Test_Save_Session_Specify_Path_While_Running_Watches()
   call vimspector#test#setup#Reset()
   lcd -
   %bwipeout!
+endfunction
+
+function! Test_Save_User_Choices()
+  " TODO
 endfunction
