@@ -449,9 +449,9 @@ function! Test_Logpoint()
   " really base it off the user-entered breakpoints and show that this is a
   " logpoint not a breakpoint
   call vimspector#test#signs#AssertSignGroupSingletonAtLine(
-        \ 'VimspectorCode',
+        \ 'VimspectorBP',
         \ 14,
-        \ 'vimspectorBP',
+        \ 'vimspectorBPLog',
         \ 9 )
 
 

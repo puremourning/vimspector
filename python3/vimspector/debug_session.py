@@ -1387,7 +1387,6 @@ class DebugSession( object ):
       "Launch Config: " ] + Pretty( self._launch_config ) + [
       "Server Capabilities: " ] + Pretty( self._server_capabilities ) + [
       "Line Breakpoints: " ] + Pretty( self._breakpoints._line_breakpoints ) + [
-      "Server Breakpoints: " ] + Pretty( self._codeView._breakpoints ) + [
       "Func Breakpoints: " ] + Pretty( self._breakpoints._func_breakpoints ) + [
       "Ex Breakpoints: " ] + Pretty( self._breakpoints._exception_breakpoints )
 
@@ -1407,7 +1406,7 @@ class DebugSession( object ):
 
   def OnEvent_initialized( self, message ):
     def onBreakpointsDone():
-      self._breakpoints.Refresh( None )
+      self._breakpoints.Refresh()
       if self._server_capabilities.get( 'supportsConfigurationDoneRequest' ):
         self._connection.DoRequest(
           lambda msg: self._OnInitializeComplete(),

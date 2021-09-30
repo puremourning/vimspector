@@ -314,7 +314,8 @@ class ProjectBreakpoints( object ):
     return self._FindLineBreakpoint( file_path, line )[ 0 ] is not None
 
   def _PutLineBreakpoint( self, file_name, line, options, id = None ):
-    self._line_breakpoints[ _NormaliseFileName( file_name ) ].append( {
+    path = _NormaliseFileName( file_name )
+    self._line_breakpoints[ path ].append( {
       'state': 'ENABLED',
       'line': line,
       'options': options,

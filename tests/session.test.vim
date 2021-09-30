@@ -148,23 +148,23 @@ function! Test_Save_Session_Specify_Path_While_Running_Breakpoints()
 
   call WaitForAssert( {->
         \vimspector#test#signs#AssertSignGroupSingletonAtLine(
-          \ 'VimspectorCode',
+          \ 'VimspectorBP',
           \ 6,
           \ 'vimspectorBP',
           \ 9 ) } )
   call WaitForAssert( {->
         \vimspector#test#signs#AssertSignGroupSingletonAtLine(
-          \ 'VimspectorCode',
+          \ 'VimspectorBP',
           \ 9,
-          \ 'vimspectorBP',
+          \ 'vimspectorBPLog',
           \ 9 ) } )
 
   execute 'edit' cow
   call WaitForAssert( {->
         \vimspector#test#signs#AssertSignGroupSingletonAtLine(
-          \ 'VimspectorCode',
+          \ 'VimspectorBP',
           \ 15,
-          \ 'vimspectorBP',
+          \ 'vimspectorBPCond',
           \ 9 ) } )
 
   call vimspector#Continue()
