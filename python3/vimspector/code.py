@@ -16,14 +16,13 @@
 import vim
 import os
 import logging
-import json
-from collections import defaultdict
 
 from vimspector import utils, terminal, signs
 
 
 class CodeView( object ):
-  def __init__( self, window, api_prefix, render_event_emitter, IsBreakpointPresentAt ):
+  def __init__( self, window, api_prefix, render_event_emitter,
+    IsBreakpointPresentAt ):
     self._window = window
     self._api_prefix = api_prefix
     self._render_subject = render_event_emitter.subscribe( self._DisplayPC )
@@ -84,7 +83,7 @@ class CodeView( object ):
       signs.UnplaceSign( self._signs[ 'vimspectorPC' ], 'VimspectorCode' )
       self._signs[ 'vimspectorPC' ] = None
 
-  def IsPCPresentAt( self, file_path, line):
+  def IsPCPresentAt( self, file_path, line ):
     frame = self._current_frame
 
     if not frame:

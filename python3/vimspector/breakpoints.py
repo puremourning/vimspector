@@ -17,7 +17,6 @@ from collections import defaultdict
 
 import vim
 import os
-from functools import partial
 import logging
 
 import json
