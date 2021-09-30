@@ -151,7 +151,7 @@ runtime dependencies). They are categorised by their level of support:
 | Language           | Status    | Switch (for `install_gadget.py`) | Adapter (for `:VimspectorInstall`) | Dependencies                               |
 |--------------------|-----------|----------------------------------|------------------------------------|--------------------------------------------|
 | C, C++, Rust etc.  | Tested    | `--all` or `--enable-c` (or cpp) | vscode-cpptools                    | mono-core                                  |
-| Rust, C, C++, etc. | Supported | `--force-enable-rust`            | CodeLLDB                           | Python 3                                   |
+| Rust, C, C++, etc. | Supported | `--enable-rust`            | CodeLLDB                           | Python 3                                   |
 | Python             | Tested    | `--all` or `--enable-python`     | debugpy                            | Python 2.7 or Python 3                     |
 | Go                 | Tested    | `--enable-go`                    | vscode-go                          | Node, Go, [Delve][]                        |
 | TCL                | Supported | `--all` or `--enable-tcl`        | tclpro                             | TCL 8.5                                    |
@@ -1300,7 +1300,7 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
 `vscode-cpptools` and `lldb-vscode` above. However, support for rust is best in
 [`CodeLLDB`](https://github.com/vadimcn/vscode-lldb#features).
 
-* `./install_gadget.py --force-enable-rust` or `:VimspectorInstall CodeLLDB`
+* `./install_gadget.py --enable-rust` or `:VimspectorInstall CodeLLDB`
 * Example: `support/test/rust/vimspector_test`
 
 ```json
