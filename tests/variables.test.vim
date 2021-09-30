@@ -754,6 +754,78 @@ function! Test_VariableEval()
   %bwipe!
 endfunction
 
+function! Test_VariableEvalStrings()
+  let fn =  'testdata/cpp/simple/simple.cpp'
+  call s:StartDebugging( #{ fn: fn, line: 17, col: 1, launch: #{
+        \   configuration: 'run-to-breakpoint'
+        \ } } )
+
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 17, 1 )
+
+  " leader is ,
+  xmap <buffer> <Leader>d <Plug>VimspectorBalloonEval
+  nmap <buffer> <Leader>d <Plug>VimspectorBalloonEval
+
+  " select a singe 'a' and evaluate it
+  call feedkeys( "f'vf',d", 'xt' )
+
+  call WaitForAssert( {->
+        \ assert_notequal( v:none, g:vimspector_session_windows.eval )
+        \ } )
+
+  call WaitForAssert( {->
+        \   AssertMatchList(
+        \     [
+        \       "97 'a'"
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.eval ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  "Close
+  call feedkeys( "\<Esc>", 'xt' )
+  call WaitForAssert( {->
+        \ assert_equal( v:none, g:vimspector_session_windows.eval )
+        \ } )
+
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 18, 1 )
+
+  " select string \"abc\"
+  call feedkeys( 'f"vf",d', 'xt' )
+  call WaitForAssert( {->
+        \ assert_equal( v:none, g:vimspector_session_windows.eval )
+        \ } )
+
+  call WaitForAssert( {->
+        \   AssertMatchList(
+        \     [
+        \       '\[4\]',
+        \       ' - \[0\]: 97 ''a''',
+        \       ' - \[1\]: 98 ''b''',
+        \       ' - \[2\]: 99 ''c''',
+        \       ' - \[3\]: 0 ''\\000''',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.eval ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  "Close
+  call feedkeys( "\<Esc>", 'xt' )
+  call WaitForAssert( {->
+        \ assert_equal( v:none, g:vimspector_session_windows.eval )
+        \ } )
+
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
 function! Test_VariableEvalExpand()
   let fn =  'testdata/cpp/simple/struct.cpp'
   call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{

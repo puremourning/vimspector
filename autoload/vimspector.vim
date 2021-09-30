@@ -572,7 +572,7 @@ function! vimspector#ShowEvalBalloon( is_visual ) abort
 
   return py3eval( '_vimspector_session.ShowEvalBalloon('
                 \ . ' int( vim.eval( "winnr()" ) ), "'
-                \ . expr
+                \ . substitute(expr, '"', '\\"', 'g')
                 \ . '", 0 )' )
 endfunction
 
