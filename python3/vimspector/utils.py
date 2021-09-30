@@ -914,4 +914,3 @@ class EventEmitter( object ):
 
   def unsubscribe_all( self ):
     self.__callbacks = {}
-
