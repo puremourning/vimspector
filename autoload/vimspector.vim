@@ -51,6 +51,13 @@ function! vimspector#Launch( ... ) abort
   py3 _vimspector_session.Start( *vim.eval( 'a:000' ) )
 endfunction
 
+function! vimspector#LaunchWithConfigurations( configurations ) abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.Start( configs = vim.eval( 'a:configurations' ) )
+endfunction
+
 function! vimspector#LaunchWithSettings( settings ) abort
   if !s:Enabled()
     return
