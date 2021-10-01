@@ -800,6 +800,32 @@ See [our YouCompleteMe integration guide](#usage-with-youcompleteme) for
 another example where it can be used to specify the port to connect the [java
 debugger](#java---partially-supported)
 
+To launch with an ad-hoc config you can use:
+
+* `call vimspector#LaunchWithConfigurations( dict )`
+
+The argument is a `dict` wich is the `configurations` section of a .vimspector file
+Pass one configuration in and that will be selected as the one to run.
+For example:
+
+```viml
+   let pid = <some_exression>
+   call vimspector#LaunchWithConfigurations({
+               \  "attach": {
+               \    "adapter": "netcoredbg",
+               \    "configuration": {
+               \      "request": "attach",
+               \      "processId": proc_id
+               \    }
+               \  }
+               \})
+```
+
+This would launch the debugger and attach to the specified process without the need
+to have a local .vimspector file on disk.
+The `${workspaceRoot}` variable will point to the parent folder of the file that is
+currently open in vim.
+
 ### Debug configuration selection
 
 Vimspector uses the following logic to choose a configuration to launch:
