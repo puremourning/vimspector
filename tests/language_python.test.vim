@@ -67,21 +67,21 @@ function! Test_Python_Simple_Adhoc_Config()
   " Here we go. Start Debugging
   " call vimspector#LaunchWithSettings( { 'configuration': 'run' } )
   call vimspector#LaunchWithConfigurations({
-  \  "run": {
-  \    "adapter": "debugpy",
-  \    "configuration": {
-  \      "request": "launch",
-  \      "type": "python",
-  \      "cwd": "${workspaceRoot}",
-  \      "program": "${file}",
-  \      "stopOnEntry": v:false,
-  \      "console": "integratedTerminal"
+  \  'run': {
+  \    'adapter': 'debugpy',
+  \    'configuration': {
+  \      'request': 'launch',
+  \      'type': 'python',
+  \      'cwd': '${workspaceRoot}',
+  \      'program': '${file}',
+  \      'stopOnEntry': v:false,
+  \      'console': 'integratedTerminal'
   \    },
-  \    "breakpoints": {
-  \      "exception": {
-  \        "raised": "N",
-  \        "uncaught": "",
-  \        "userUnhandled": ""
+  \    'breakpoints': {
+  \      'exception': {
+  \        'raised': 'N',
+  \        'uncaught': '',
+  \        'userUnhandled': ''
   \      }
   \    }
   \  }

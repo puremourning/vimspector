@@ -66,16 +66,16 @@ function! Test_Go_Simple_Adhoc_Config()
 
   " Here we go. Start Debugging
   call vimspector#LaunchWithConfigurations({
-  \  "run": {
-  \    "adapter": "vscode-go",
-  \    "default": v:true,
-  \    "configuration": {
-  \      "request": "launch",
-  \      "program": "${workspaceRoot}/hello-world.go",
-  \      "mode": "debug",
-  \      "dlvToolPath": "$HOME/go/bin/dlv",
-  \      "trace": v:true,
-  \      "env": { "GO111MODULE": "off" }
+  \  'run': {
+  \    'adapter': 'vscode-go',
+  \    'default': v:true,
+  \    'configuration': {
+  \      'request': 'launch',
+  \      'program': '${workspaceRoot}/hello-world.go',
+  \      'mode': 'debug',
+  \      'dlvToolPath': '$HOME/go/bin/dlv',
+  \      'trace': v:true,
+  \      'env': { 'GO111MODULE': 'off' }
   \    }
   \  },
   \ })

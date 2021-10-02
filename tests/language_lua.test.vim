@@ -42,16 +42,16 @@ function! BaseTest_Adhoc_Config( configuration )
 
   call vimspector#SetLineBreakpoint( fn, 5 )
   call vimspector#LaunchWithConfigurations( {
-  \  "lua": {
-  \    "adapter": "lua-local",
-  \    "configuration": {
-  \      "request": "launch",
-  \      "type": "lua-local",
-  \      "cwd": "${workspaceFolder}",
-  \      "program": {
-  \        "lua": "lua",
-  \        "file": "simple.lua",
-  \        "stopOnEntry": false
+  \  'lua': {
+  \    'adapter': 'lua-local',
+  \    'configuration': {
+  \      'request': 'launch',
+  \      'type': 'lua-local',
+  \      'cwd': '${workspaceFolder}',
+  \      'program': {
+  \        'lua': 'lua',
+  \        'file': 'simple.lua',
+  \        'stopOnEntry': v:false
   \      }
   \    }
   \  },

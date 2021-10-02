@@ -17,13 +17,13 @@ function! Test_CSharp_Simple_Adhoc_Config()
 
   call vimspector#SetLineBreakpoint( fn, 31 )
   call vimspector#LaunchWithConfigurations( {
-    \ "launch - netcoredbg": {
-    \   "adapter": "netcoredbg",
-    \   "configuration": {
-    \     "request": "launch",
-    \     "program": "${workspaceRoot}/bin/Debug/netcoreapp3.1/csharp.dll",
-    \     "args": [],
-    \     "stopAtEntry": v:false
+    \ 'launch - netcoredbg': {
+    \   'adapter': 'netcoredbg',
+    \   'configuration': {
+    \     'request': 'launch',
+    \     'program': '${workspaceRoot}/bin/Debug/netcoreapp3.1/csharp.dll',
+    \     'args': [],
+    \     'stopAtEntry': v:false
     \   }
     \ }
   \ } )
