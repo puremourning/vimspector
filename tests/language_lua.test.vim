@@ -35,6 +35,52 @@ function! BaseTest( configuration )
   %bwipeout!
 endfunction
 
+function! BaseTest_Adhoc_Config( configuration )
+  let fn='simple.lua'
+  lcd ../support/test/lua/simple
+  exe 'edit ' . fn
+
+  call vimspector#SetLineBreakpoint( fn, 5 )
+  call vimspector#LaunchWithConfigurations( {
+  \  "lua": {
+  \    "adapter": "lua-local",
+  \    "configuration": {
+  \      "request": "launch",
+  \      "type": "lua-local",
+  \      "cwd": "${workspaceFolder}",
+  \      "program": {
+  \        "lua": "lua",
+  \        "file": "simple.lua",
+  \        "stopOnEntry": false
+  \      }
+  \    }
+  \  },
+  \ } )
+
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 5, 1 )
+  call WaitForAssert( {->
+        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( fn, 5 )
+        \ } )
+
+  " Step
+  call feedkeys( "\<F10>", 'xt' )
+
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 6, 1 )
+  call WaitForAssert( {->
+        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( fn, 6 )
+        \ } )
+
+  call vimspector#test#setup#Reset()
+
+  lcd -
+  %bwipeout!
+endfunction
+
+
+function! Test_Lua_Simple_Adhoc_Config()
+  call BaseTest_Adhoc_Config( 'lua' )
+endfunction
+
 
 function! Test_Lua_Simple()
   call BaseTest( 'lua' )
