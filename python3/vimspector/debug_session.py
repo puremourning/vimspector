@@ -302,7 +302,10 @@ class DebugSession( object ):
         vim.current.tabpage = self._uiTab
 
       self._Prepare()
-      self._StartDebugAdapter()
+      if not self._StartDebugAdapter():
+        self._logger.info( "Failed to launch or attach to the debug adapter" )
+        return
+
       self._Initialise()
 
       self._stackTraceView.ConnectionUp( self._connection )
@@ -948,7 +951,7 @@ class DebugSession( object ):
     if self._connection:
       utils.UserMessage( 'The connection is already created. Please try again',
                          persist = True )
-      return
+      return False
 
     self._logger.info( 'Starting debug adapter with: %s',
                        json.dumps( self._adapter ) )
@@ -965,7 +968,7 @@ class DebugSession( object ):
         port = utils.AskForInput( 'Enter port to connect to: ' )
         if port is None:
           self._Reset()
-          return
+          return False
         self._adapter[ 'port' ] = port
 
     self._connection_type = self._api_prefix + self._connection_type
@@ -981,9 +984,17 @@ class DebugSession( object ):
                      "  g:_vimspector_adapter_spec "
                      ")".format( self._connection_type ) ):
       self._logger.error( "Unable to start debug server" )
-      self._splash_screen = utils.DisplaySplash( self._api_prefix,
-                                                 self._splash_screen,
-                                                 "Unable to start adapter" )
+      self._splash_screen = utils.DisplaySplash(
+        self._api_prefix,
+        self._splash_screen,
+        [
+          "Unable to start or connect to debug adapter",
+          "",
+          "Check :messages and :VimspectorToggleLog for more information.",
+          "",
+          ":VimspectorReset to close down vimspector",
+        ] )
+      return False
     else:
       if 'custom_handler' in self._adapter:
         spec = self._adapter[ 'custom_handler' ]
@@ -1005,6 +1016,7 @@ class DebugSession( object ):
           msg ) )
 
     self._logger.info( 'Debug Adapter Started' )
+    return True
 
   def _StopDebugAdapter( self, interactive = False, callback = None ):
     arguments = {}
