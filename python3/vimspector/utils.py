@@ -796,7 +796,7 @@ def GetVisualSelection( bufnr ):
   return lines
 
 
-def DisplaySplash( api_prefix, splash, text ):
+def DisplaySplash( api_prefix: str, splash, text: typing.Union[ str, list ] ):
   if splash:
     return Call( f'vimspector#internal#{api_prefix}popup#UpdateSplash',
                  splash,
