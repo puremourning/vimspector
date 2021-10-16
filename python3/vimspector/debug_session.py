@@ -741,13 +741,13 @@ class DebugSession( object ):
     length = utils.AskForInput( 'How much data to display? ',
                                 default_value = '1024' )
 
-    if length is None:
+    if not length:
       return
 
     offset = utils.AskForInput( 'Location offset? ',
                                 default_value = '0' )
 
-    if offset is None:
+    if offset is None or offset == '':
       return
 
 
