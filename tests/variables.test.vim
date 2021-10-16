@@ -755,12 +755,12 @@ function! Test_VariableEval()
 endfunction
 
 function! Test_VariableEvalStrings()
-  let fn =  'testdata/cpp/simple/simple.cpp'
-  call s:StartDebugging( #{ fn: fn, line: 17, col: 1, launch: #{
+  let fn =  'testdata/cpp/simple/variables.cpp'
+  call s:StartDebugging( #{ fn: fn, line: 11, col: 1, launch: #{
         \   configuration: 'run-to-breakpoint'
         \ } } )
 
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 17, 1 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 11, 1 )
 
   " leader is ,
   xmap <buffer> <Leader>d <Plug>VimspectorBalloonEval
@@ -792,7 +792,7 @@ function! Test_VariableEvalStrings()
 
 
   call vimspector#StepOver()
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 18, 1 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 12, 1 )
 
   " select string \"abc\"
   call feedkeys( 'f"vf",d', 'xt' )
