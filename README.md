@@ -2103,7 +2103,9 @@ hi link jsonComment Comment
 10. Do I _have_ to put a `.vimspector.json` in the root of every project? No, you
     can put all of your adapter and debug configs in a [single directory](https://puremourning.github.io/vimspector/configuration.html#debug-configurations) if you want to, but note
     the caveat that `${workspaceRoot}` won't be calculated correctly in that case.
-    The vimsepctor author uses this [a lot](https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf).
+    The vimsepctor author uses this [a lot](https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf)
+11. I'm confused about remote debugging configuration, can you explain it?
+    eh... kind of. Reference: https://puremourning.github.io/vimspector/configuration.html#remote-debugging-support. Some explanations here too: https://github.com/puremourning/vimspector/issues/478#issuecomment-943515093
 
 
 [ycmd]: https://github.com/Valloric/ycmd
