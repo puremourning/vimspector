@@ -676,7 +676,7 @@ def ParseVariables( variables_list,
             "Unsupported variable defn {}: Missing 'shell'".format( n ) )
       else:
         new_variables[ n ] = ExpandReferencesInObject( v,
-                                                       mapping,
+                                                       new_mapping,
                                                        calculus,
                                                        user_choices )
 
