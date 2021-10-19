@@ -557,7 +557,7 @@ function! vimspector#OnBufferCreated( file_name ) abort
     return
   endif
 
-  py3 _vimspector_session.RefreshSigns( vim.eval( 'a:file_name' ) )
+  py3 _vimspector_session.RefreshSigns()
 endfunction
 
 function! vimspector#ShowEvalBalloon( is_visual ) abort
@@ -584,6 +584,21 @@ function! vimspector#PrintDebugInfo() abort
   py3 _vimspector_session.PrintDebugInfo()
 endfunction
 
+function! vimspector#ReadSessionFile( ... ) abort
+  if !s:Enabled()
+    return
+  endif
+
+  py3 _vimspector_session.ReadSessionFile( *vim.eval( 'a:000' ) )
+endfunction
+
+function! vimspector#WriteSessionFile( ... ) abort
+  if !s:Enabled()
+    return
+  endif
+
+  py3 _vimspector_session.WriteSessionFile( *vim.eval( 'a:000' ) )
+endfunction
 
 " Boilerplate {{{
 let &cpoptions=s:save_cpo

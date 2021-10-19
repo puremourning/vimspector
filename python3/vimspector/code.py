@@ -224,7 +224,7 @@ class CodeView( object ):
         return
 
 
-  def Refresh( self, file_name ):
+  def Refresh( self ):
     # TODO: jsut the file ?
     self.ShowBreakpoints()
 

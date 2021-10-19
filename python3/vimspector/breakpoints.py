@@ -147,8 +147,9 @@ class ProjectBreakpoints( object ):
 
     self.UpdateUI()
 
+
   def _FindLineBreakpoint( self, file_name, line ):
-    file_name = os.path.abspath( file_name )
+    file_name = _NormaliseFileName( file_name )
     for index, bp in enumerate( self._line_breakpoints[ file_name ] ):
       self._SignToLine( file_name, bp )
       if bp[ 'line' ] == line:
@@ -158,7 +159,7 @@ class ProjectBreakpoints( object ):
 
 
   def _PutLineBreakpoint( self, file_name, line, options ):
-    self._line_breakpoints[ os.path.abspath( file_name ) ].append( {
+    self._line_breakpoints[ _NormaliseFileName( file_name ) ].append( {
       'state': 'ENABLED',
       'line': line,
       'options': options,
@@ -174,7 +175,7 @@ class ProjectBreakpoints( object ):
   def _DeleteLineBreakpoint( self, bp, file_name, index ):
     if 'sign_id' in bp:
       signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
-    del self._line_breakpoints[ os.path.abspath( file_name ) ][ index ]
+    del self._line_breakpoints[ _NormaliseFileName( file_name ) ][ index ]
 
 
   def ToggleBreakpoint( self, options ):
@@ -474,9 +475,34 @@ class ProjectBreakpoints( object ):
         self._exception_breakpoints[ 'exceptionOptions' ] = []
 
 
-  def Refresh( self, file_name ):
-    # TODO: Just this file ?
+  def Refresh( self ):
     self._ShowBreakpoints()
+
+
+  def Save( self ):
+    # Need to copy line breakpoitns, because we have to remove the 'sign_id'
+    # property. Otherwsie we might end up loading junk sign_ids
+    line = {}
+    for file_name, breakpoints in self._line_breakpoints.items():
+      bps = [ dict( bp ) for bp in breakpoints ]
+      for bp in bps:
+        bp.pop( 'sign_id', None )
+      line[ file_name ] = bps
+
+    return {
+      'line': line,
+      'function': self._func_breakpoints,
+      'exception': self._exception_breakpoints
+    }
+
+
+  def Load( self, save_data ):
+    self.ClearBreakpoints()
+    self._line_breakpoints = save_data.get( 'line', {} )
+    self._func_breakpoints = save_data.get( 'function' , [] )
+    self._exception_breakpoints = save_data.get( 'exception', None )
+
+    self.UpdateUI()
 
 
   def _ShowBreakpoints( self ):
@@ -520,3 +546,8 @@ class ProjectBreakpoints( object ):
       bp[ 'line' ] = int( signs[ 0 ][ 'signs' ][ 0 ][ 'lnum' ] )
 
     return bp[ 'line' ]
+
+
+def _NormaliseFileName( file_name ):
+  absoluate_path = os.path.abspath( file_name )
+  return absoluate_path if os.path.isfile( absoluate_path ) else file_name

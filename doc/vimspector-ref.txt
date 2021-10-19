@@ -311,7 +311,7 @@ If the user accepts the default, the resulting string '"true"' is coerced to a
 JSON value 'true', and the suffix is stripped fom the key, resulting in the
 following:
 >
-  "stopOnEntry#json": true
+  "stopOnEntry": true
 <
 Which is what we need.
 
@@ -761,7 +761,7 @@ Vimspector then orchestrates the various tools to set you up.
         "variables": {
           // Just an example of how to specify a variable manually rather than
           // vimspector asking for input from the user
-          "ServiceName": "${fileBasenameNoExtention}"
+          "ServiceName": "${fileBasenameNoExtension}"
         },
   
         "adapter": "python-remote",

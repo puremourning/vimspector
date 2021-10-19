@@ -48,6 +48,7 @@ For detailed explanation of the `.vimspector.json` format, see the
        * [Exception breakpoints](#exception-breakpoints)
        * [Clear breakpoints](#clear-breakpoints)
        * [Run to Cursor](#run-to-cursor)
+       * [Save and restore](#save-and-restore)
     * [Stepping](#stepping)
     * [Variables and scopes](#variables-and-scopes)
     * [Variable or selection hover evaluation](#variable-or-selection-hover-evaluation)
@@ -93,7 +94,7 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Example](#example)
  * [FAQ](#faq)
 
-<!-- Added by: ben, at: Tue 21 Sep 2021 11:51:03 BST -->
+<!-- Added by: ben, at: Tue 28 Sep 2021 20:51:39 BST -->
 
 <!--te-->
 
@@ -150,7 +151,7 @@ runtime dependencies). They are categorised by their level of support:
 | Language           | Status    | Switch (for `install_gadget.py`) | Adapter (for `:VimspectorInstall`) | Dependencies                               |
 |--------------------|-----------|----------------------------------|------------------------------------|--------------------------------------------|
 | C, C++, Rust etc.  | Tested    | `--all` or `--enable-c` (or cpp) | vscode-cpptools                    | mono-core                                  |
-| Rust, C, C++, etc. | Supported | `--force-enable-rust`            | CodeLLDB                           | Python 3                                   |
+| Rust, C, C++, etc. | Supported | `--enable-rust`            | CodeLLDB                           | Python 3                                   |
 | Python             | Tested    | `--all` or `--enable-python`     | debugpy                            | Python 2.7 or Python 3                     |
 | Go                 | Tested    | `--enable-go`                    | vscode-go                          | Node, Go, [Delve][]                        |
 | TCL                | Supported | `--all` or `--enable-tcl`        | tclpro                             | TCL 8.5                                    |
@@ -839,6 +840,8 @@ breakpoints. This section describes the full API in vimscript functions.
 * Use `vimspector#ClearLineBreakpoint( file_name, line_num )` to
   remove a breakpoint at a specific file/line
 * Use `vimspector#ClearBreakpoints()` to clear all breakpoints
+* Use `:VimspectorMkSession` and `:VimspectorLoadSession` to save and restore
+  breakpoints
 
 Examples:
 
@@ -854,6 +857,10 @@ Examples:
 * `call vimspector#ClearLineBreakpoint( 'some_file.py', 10 )` - delete the
   breakpoint at `some_file.py:10`
 * `call vimspector#ClearBreakpoints()` - clear all breakpoints
+* `VimspectorMkSession` - create `.vimspector.session`
+* `VimspectorLoadSession` - read `.vimspector.session`
+* `VimspectorMkSession my_session_file` - create `my_session_file`
+* `VimspectorLoadSession my_session_file` - read `my_session_file`
 
 ### Line breakpoints
 
@@ -915,6 +922,29 @@ to clear all breakpoints including the memory of exception breakpoint choices.
 Use `vimspector#RunToCursor` or `<leader><F8>`: this creates a temporary
 breakpoint on the current line, then continues execution, clearing the
 breakpoint when it is hit.
+
+### Save and restore
+
+Vimspector can save and restore breakpoints (and some other stuff) to a session
+file. The following commands exist for htat:
+
+* `VimspectorMkSession [file name]` - save the current set of line breakpoints,
+  logpoints, conditional breakpoints, function breakpoints and exception
+  breakpoint filters to the session file.
+* `VimspectorLoadSession [file name]` - read breakpoints from the session file
+  and replace any currently set breakpoints. Prior to loading, all current
+  breakpoints are cleared (as if `vimspector#ClearLineBreakpoints()` was
+  called).
+
+In both cases, the file name argument is optional. By default, the file is named
+`.vimspector.session`, but this can be changed globally by setting
+`g:vimspector_session_file_name` to something else, or by manually specifying a
+path when calling the command.
+
+Advanced users may wish to automate the process of loading and saving, for
+example by adding `VimEnter` and `VimLeave` autocommands. It's recommented in
+that case to use `silent!` to avoid annoying errors if the file can't be read or
+writtten.
 
 ## Stepping
 
@@ -1270,7 +1300,7 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
 `vscode-cpptools` and `lldb-vscode` above. However, support for rust is best in
 [`CodeLLDB`](https://github.com/vadimcn/vscode-lldb#features).
 
-* `./install_gadget.py --force-enable-rust` or `:VimspectorInstall CodeLLDB`
+* `./install_gadget.py --enable-rust` or `:VimspectorInstall CodeLLDB`
 * Example: `support/test/rust/vimspector_test`
 
 ```json
@@ -2073,7 +2103,9 @@ hi link jsonComment Comment
 10. Do I _have_ to put a `.vimspector.json` in the root of every project? No, you
     can put all of your adapter and debug configs in a [single directory](https://puremourning.github.io/vimspector/configuration.html#debug-configurations) if you want to, but note
     the caveat that `${workspaceRoot}` won't be calculated correctly in that case.
-    The vimsepctor author uses this [a lot](https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf).
+    The vimsepctor author uses this [a lot](https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf)
+11. I'm confused about remote debugging configuration, can you explain it?
+    eh... kind of. Reference: https://puremourning.github.io/vimspector/configuration.html#remote-debugging-support. Some explanations here too: https://github.com/puremourning/vimspector/issues/478#issuecomment-943515093
 
 
 [ycmd]: https://github.com/Valloric/ycmd

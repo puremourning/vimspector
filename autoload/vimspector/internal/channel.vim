@@ -75,6 +75,7 @@ function! vimspector#internal#channel#StartDebugSession( config ) abort
         \           )
 
   if ch_status( s:ch ) !=# 'open'
+    unlet! s:ch
     echom 'Unable to connect to' l:addr
     redraw
     return v:false

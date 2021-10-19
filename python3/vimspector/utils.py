@@ -293,6 +293,10 @@ def TemporaryVimOption( opt, value ):
     vim.options[ opt ] = old_value
 
 
+def DirectoryOfCurrentFile():
+  return os.path.dirname( os.path.abspath( vim.current.buffer.name ) )
+
+
 def PathToConfigFile( file_name, from_directory = None ):
   if not from_directory:
     p = os.getcwd()
@@ -792,7 +796,7 @@ def GetVisualSelection( bufnr ):
   return lines
 
 
-def DisplaySplash( api_prefix, splash, text ):
+def DisplaySplash( api_prefix: str, splash, text: typing.Union[ str, list ] ):
   if splash:
     return Call( f'vimspector#internal#{api_prefix}popup#UpdateSplash',
                  splash,
