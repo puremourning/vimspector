@@ -1,5 +1,3 @@
-# Contributor Covenant Code of Conduct
-
 We, the maintainers, pledge to treat all contributors with respect and require that contributors reciprocate.
 
 The maintainers will not tolerate unwelcome, inpolite, abusive or unprofessional behaviour. 
