@@ -41,7 +41,6 @@ function! Test_Signs_Placed_Using_API_Are_Shown()
 
   call vimspector#ClearBreakpoints()
   call vimspector#test#signs#AssertSignGroupEmpty( 'VimspectorBP' )
-  call vimspector#test#signs#AssertSignGroupEmpty( 'VimspectorBP' )
 
   call vimspector#test#setup#Reset()
   %bwipeout!
@@ -437,9 +436,6 @@ function! Test_Logpoint()
         \ 20,
         \ v:null )
 
-  " FIXME: Display of braekpoints while debugging is kinda broken. we should
-  " really base it off the user-entered breakpoints and show that this is a
-  " logpoint not a breakpoint
   call vimspector#test#signs#AssertSignGroupSingletonAtLine(
         \ 'VimspectorBP',
         \ 14,
@@ -576,26 +572,13 @@ endfunction
 "   throw "xfail cpptools doesn't seem to honour conditions on function bps"
 " endfunction
 
-function! s:CheckQuickFixEntries( entry )
-  let lines = GetBufLine( winbufnr( g:vimspector_session_windows.breakpoints ), 1, '$' )
-
-  if len( a:entry ) != len( lines )
-    call assert_report(string(a:entry).' '.string(lines))
-    call assert_report( 'Expected to have '.len( a:entry ).' breakpoints, but got '.len( lines ) )
-    return 1
-  else
-    let i = 0
-    for key in a:entry
-      if assert_equal(key,
-                       \ lines[ i ] ) == 1
-        return 1
-      endif
-
-      let i = i+1
-    endfor
-  endif
-
-  return 0
+function! s:CheckBreakpointView( expected )
+  call WaitForAssert( {->
+          \ AssertMatchList( a:expected,
+          \ GetBufLine(
+                      \ winbufnr( g:vimspector_session_windows.breakpoints ),
+                      \ 1,
+                      \ '$' ) ) } )
 endfunction
 
 function! Test_ListBreakpoints()
@@ -606,7 +589,7 @@ function! Test_ListBreakpoints()
 
   call vimspector#ListBreakpoints()
   " buffer is never actually empty
-  call s:CheckQuickFixEntries( [ '' ] )
+  call s:CheckBreakpointView( [ '' ] )
   " Cursor jumps to the breakpoint window
   call assert_equal( win_getid(), g:vimspector_session_windows.breakpoints )
 
@@ -615,7 +598,7 @@ function! Test_ListBreakpoints()
 
   call vimspector#ToggleBreakpoint()
   " call vimspector#ListBreakpoints()
-  call s:CheckQuickFixEntries( [
+  call s:CheckBreakpointView( [
         \ 'simple.cpp:15 Line breakpoint - ENABLED: {}'
         \ ] )
   call vimspector#ListBreakpoints()
@@ -627,7 +610,7 @@ function! Test_ListBreakpoints()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
 
   call vimspector#ListBreakpoints()
-  call s:CheckQuickFixEntries( [
+  call s:CheckBreakpointView( [
         \ 'simple.cpp:15 Line breakpoint - ENABLED: {}'
         \ ] )
   call vimspector#ListBreakpoints()
@@ -641,11 +624,10 @@ function! Test_ListBreakpoints()
   call vimspector#ToggleBreakpoint()
 
   call vimspector#ListBreakpoints()
-  call WaitForAssert( {->
-          \ s:CheckQuickFixEntries( [
-            \ 'simple.cpp:15 Line breakpoint - ENABLED: {}',
-            \ 'simple.cpp:9 Line breakpoint - ENABLED: {}'
-            \ ] ) } )
+  call s:CheckBreakpointView( [
+        \ 'simple.cpp:15 Line breakpoint - ENABLED: {}',
+        \ 'simple.cpp:9 Line breakpoint - ENABLED: {}'
+        \ ] )
 
   call vimspector#ListBreakpoints()
 

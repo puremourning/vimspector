@@ -21,8 +21,12 @@ from vimspector import utils, terminal, signs
 
 
 class CodeView( object ):
-  def __init__( self, window, api_prefix, render_event_emitter,
+  def __init__( self,
+    window,
+    api_prefix,
+    render_event_emitter,
     IsBreakpointPresentAt ):
+
     self._window = window
     self._api_prefix = api_prefix
     self._render_subject = render_event_emitter.subscribe( self._DisplayPC )
@@ -89,7 +93,7 @@ class CodeView( object ):
     if not frame:
       return False
 
-    abs_path = os.path.abspath( file_path )
+    abs_path = utils.NormalizePath( file_path )
     return ( frame[ 'source' ][ 'path' ] == abs_path
       and frame[ 'line' ] == line )
 
@@ -148,7 +152,8 @@ class CodeView( object ):
     # Note: max() with 0 because some debug adapters (go) return 0 for the
     # column.
     try:
-      self._window.cursor = ( frame[ 'line' ], max( frame[ 'column' ] - 1, 0 ) )
+      utils.SetCursorPosInWindow( self._window, frame[ 'line' ],
+        frame[ 'column' ] - 1 )
     except vim.error:
       self._logger.exception( "Unable to jump to %s:%s in %s, maybe the file "
                               "doesn't exist",
