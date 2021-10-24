@@ -201,10 +201,19 @@ class ProjectBreakpoints( object ):
       success = int( vim.eval(
           f'win_gotoid( bufwinid( \'{ bp[ "filename" ] }\' ) )' ) )
 
-      if not success:
-        vim.command( "leftabove split {}".format( bp.get( 'filename' ) ) )
+      try:
+        if not success:
+          vim.command( "leftabove split {}".format( bp[ 'filename' ] ) )
 
-      vim.eval( "setpos( '.', [0, {}, 1, 1] )".format( bp.get( 'lnum' ) ) )
+        utils.SetCursorPosInWindow( vim.current.window, bp[ 'lnum' ], 1 )
+      except vim.error:
+        # 'filename' or 'lnum' might be missing,
+        # so don't trigger an exception here by refering to them
+        utils.UserMessage(
+          "Unable to jump to file",
+          persist = True,
+          error = True )
+
 
   def ClearBreakpointViewBreakpoint( self ):
     bp = self._breakpoints_view.GetBreakpointForLine()
@@ -259,7 +268,7 @@ class ProjectBreakpoints( object ):
 
 
   def _FindLineBreakpoint( self, file_name, line ):
-    file_name = _NormaliseFileName( file_name )
+    file_name = utils.NormalizePath( file_name )
     for index, bp in enumerate( self._line_breakpoints[ file_name ] ):
       self._SignToLine( file_name, bp )
       if bp[ 'line' ] == line:
@@ -267,27 +276,27 @@ class ProjectBreakpoints( object ):
 
     return None, None
 
-  def _FindVerifiedBreakpoint( self, breakpoint_id ):
+  def _FindPostedBreakpoint( self, breakpoint_id ):
     if breakpoint_id is None:
-      return None, None
+      return None, None, None
 
-    for _, breakpoint_list in self._line_breakpoints.items():
+    for filepath, breakpoint_list in self._line_breakpoints.items():
       for index, breakpoint in enumerate( breakpoint_list ):
         if 'id' in breakpoint and breakpoint[ 'id' ] == breakpoint_id:
-          return breakpoint, index
+          return breakpoint, index, filepath
 
-    return None, None
+    return None, None, None
 
-  def UpdateVerifiedBreakpoint( self, breakpoint ):
-    bp, _ = self._FindVerifiedBreakpoint( breakpoint.get( 'id' ) )
+  def UpdatePostedBreakpoint( self, breakpoint ):
+    bp, _, _ = self._FindPostedBreakpoint( breakpoint.get( 'id' ) )
     if bp is None:
       return
 
     # we are just updating position of the existing breakpoint
-    bp[ 'line' ]  = breakpoint.get( 'line' )
+    bp[ 'line' ]  = breakpoint[ 'line' ]
     self.UpdateUI()
 
-  def AddVerifiedBreakpoints( self, breakpoints ):
+  def AddPostedBreakpoints( self, breakpoints ):
     for breakpoint in breakpoints:
       source = breakpoint.get( 'source' )
       if not source or 'path' not in source:
@@ -295,18 +304,18 @@ class ProjectBreakpoints( object ):
           json.dumps( breakpoint ) ) )
         continue
 
-      self._PutLineBreakpoint( source.get( 'path' ), breakpoint.get( 'line' ),
-        None, breakpoint.get( 'id' ) )
+      self._PutLineBreakpoint( source.get( 'path' ),
+        breakpoint.get( 'line' ), None, breakpoint.get( 'id' ) )
 
     self._logger.debug( 'Breakpoints at this point: {0}'.format(
       json.dumps( self._line_breakpoints, indent = 2 ) ) )
 
 
-  def DeleteVerifiedBreakpoint( self, breakpoint ):
-    bp, index = self._FindVerifiedBreakpoint( breakpoint.get( 'id' ) )
+  def DeletePostedBreakpoint( self, breakpoint ):
+    bp, index, filepath = self._FindPostedBreakpoint( breakpoint.get( 'id' ) )
 
     if bp is not None:
-      self._DeleteLineBreakpoint( bp, bp.get( 'path' ), index )
+      self._DeleteLineBreakpoint( bp, filepath, index )
 
     self.UpdateUI()
 
@@ -314,13 +323,12 @@ class ProjectBreakpoints( object ):
     return self._FindLineBreakpoint( file_path, line )[ 0 ] is not None
 
   def _PutLineBreakpoint( self, file_name, line, options, id = None ):
-    path = _NormaliseFileName( file_name )
+    path = utils.NormalizePath( file_name )
     self._line_breakpoints[ path ].append( {
       'state': 'ENABLED',
       'line': line,
       'options': options,
       'id': id,
-      'path': path
       # 'sign_id': <filled in when placed>,
       #
       # Used by other breakpoint types (specified in options):
@@ -333,7 +341,7 @@ class ProjectBreakpoints( object ):
   def _DeleteLineBreakpoint( self, bp, file_name, index ):
     if 'sign_id' in bp:
       signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
-    del self._line_breakpoints[ _NormaliseFileName( file_name ) ][ index ]
+    del self._line_breakpoints[ utils.NormalizePath( file_name ) ][ index ]
 
   def _ToggleBreakpoint( self, options, file_name, line, shouldDelete = True ):
     if not file_name:
@@ -418,6 +426,7 @@ class ProjectBreakpoints( object ):
           f"{ user_bp[ 'line' ] } execution will continue...",
           persist = True,
           error = True )
+        continue
 
       self._logger.debug( f"Updating temporary breakpoint { user_bp } line "
                           f"{ user_bp[ 'line' ] } to { bp[ 'line' ] }" )
@@ -628,7 +637,6 @@ class ProjectBreakpoints( object ):
 
 
   def Refresh( self ):
-    # TODO: Just this file ?
     self._breakpoints_view.RefreshBreakpoints( self.BreakpointsAsQuickFix() )
     self._ShowBreakpoints()
 
@@ -699,8 +707,3 @@ class ProjectBreakpoints( object ):
       bp[ 'line' ] = int( signs[ 0 ][ 'signs' ][ 0 ][ 'lnum' ] )
 
     return bp[ 'line' ]
-
-
-def _NormaliseFileName( file_name ):
-  absoluate_path = os.path.abspath( file_name )
-  return absoluate_path if os.path.isfile( absoluate_path ) else file_name

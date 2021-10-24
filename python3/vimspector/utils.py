@@ -294,14 +294,14 @@ def TemporaryVimOption( opt, value ):
 
 
 def DirectoryOfCurrentFile():
-  return os.path.dirname( os.path.abspath( vim.current.buffer.name ) )
+  return os.path.dirname( NormalizePath( vim.current.buffer.name ) )
 
 
 def PathToConfigFile( file_name, from_directory = None ):
   if not from_directory:
     p = os.getcwd()
   else:
-    p = os.path.abspath( os.path.realpath( from_directory ) )
+    p = NormalizePath( os.path.realpath( from_directory ) )
 
   while True:
     candidate = os.path.join( p, file_name )
@@ -842,7 +842,7 @@ def GetVimList( vim_dict, name, default=None ):
 def GetVimspectorBase():
   return GetVimValue( vim.vars,
                      'vimspector_base_dir',
-                      os.path.abspath(
+                      NormalizePath(
                         os.path.join( os.path.dirname( __file__ ),
                                       '..',
                                       '..' ) ) )
@@ -868,6 +868,18 @@ def UseWinBar():
   # Buggy neovim doesn't render correctly when the WinBar is defined:
   # https://github.com/neovim/neovim/issues/12689
   return not int( Call( 'has', 'nvim' ) )
+
+
+def SetCursorPosInWindow( window, line, column = 1 ):
+  # simplify the interface and make column 1 based, same as line
+  column = max( 1, column )
+  # ofc column is actually 0 based in vim
+  window.cursor = ( line, column - 1 )
+
+
+def NormalizePath( filepath ):
+  absolute_path = os.path.abspath( filepath )
+  return absolute_path if os.path.isfile( absolute_path ) else filepath
 
 
 class Subject( object ):

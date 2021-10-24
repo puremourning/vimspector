@@ -65,8 +65,8 @@ class DebugSession( object ):
     self._saved_variables_data = None
     self._outputView = None
     self._codeView = None
-    self._breakpoints = breakpoints.ProjectBreakpoints( self._render_emitter,
-      self._IsPCPresentAt )
+    self._breakpoints = breakpoints.ProjectBreakpoints(
+      self._render_emitter, self._IsPCPresentAt )
     self._splash_screen = None
     self._remote_term = None
 
@@ -795,8 +795,10 @@ class DebugSession( object ):
   def _SetUpUIHorizontal( self ):
     # Code window
     code_window = vim.current.window
-    self._codeView = code.CodeView( code_window, self._api_prefix,
-      self._render_emitter, self._breakpoints.IsBreakpointPresentAt )
+    self._codeView = code.CodeView( code_window,
+      self._api_prefix,
+      self._render_emitter,
+      self._breakpoints.IsBreakpointPresentAt )
 
     # Call stack
     vim.command(
@@ -854,8 +856,10 @@ class DebugSession( object ):
   def _SetUpUIVertical( self ):
     # Code window
     code_window = vim.current.window
-    self._codeView = code.CodeView( code_window, self._api_prefix,
-      self._render_emitter, self._breakpoints.IsBreakpointPresentAt )
+    self._codeView = code.CodeView( code_window,
+                                    self._api_prefix,
+                                    self._render_emitter,
+                                    self._breakpoints.IsBreakpointPresentAt )
 
     # Call stack
     vim.command(
@@ -1429,11 +1433,11 @@ class DebugSession( object ):
     reason = message[ 'body' ][ 'reason' ]
     bp = message[ 'body' ][ 'breakpoint' ]
     if reason == 'changed':
-      self._breakpoints.UpdateVerifiedBreakpoint( bp )
+      self._breakpoints.UpdatePostedBreakpoint( bp )
     elif reason == 'new':
-      self._breakpoints.AddVerifiedBreakpoints( [ bp ] )
+      self._breakpoints.AddPostedBreakpoints( [ bp ] )
     elif reason == 'removed':
-      self._breakpoints.DeleteVerifiedBreakpoint( bp )
+      self._breakpoints.DeletePostedBreakpoint( bp )
     else:
       utils.UserMessage(
         'Unrecognised breakpoint event (undocumented): {0}'.format( reason ),
