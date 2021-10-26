@@ -311,10 +311,10 @@ GADGETS = {
              'v${version}/${file_name}'
     },
     'all': {
-      'version': '0.19.1',
-      'file_name': 'go-0.19.1.vsix',
+      'version': '0.30.0',
+      'file_name': 'go-0.30.0.vsix',
       'checksum':
-        '7f9dc014245b030d9f562b28f3ea9b1fd6e2708fac996c53ff6a707f8204ec64',
+        '',
     },
     'adapters': {
       'vscode-go': {
