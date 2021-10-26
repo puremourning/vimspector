@@ -486,6 +486,10 @@ class ProjectBreakpoints( object ):
     for file_name, breakpoints in self._line_breakpoints.items():
       bps = [ dict( bp ) for bp in breakpoints ]
       for bp in bps:
+        # Save the actual position not the currently stored one, in case user
+        # inserted more lines. This is more what the user expects, as it's where
+        # the sign is on their screen.
+        self._SignToLine( file_name, bp )
         bp.pop( 'sign_id', None )
       line[ file_name ] = bps
 
@@ -498,7 +502,7 @@ class ProjectBreakpoints( object ):
 
   def Load( self, save_data ):
     self.ClearBreakpoints()
-    self._line_breakpoints = save_data.get( 'line', {} )
+    self._line_breakpoints = defaultdict( list, save_data.get( 'line', {} ) )
     self._func_breakpoints = save_data.get( 'function' , [] )
     self._exception_breakpoints = save_data.get( 'exception', None )
 
