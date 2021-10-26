@@ -946,6 +946,15 @@ example by adding `VimEnter` and `VimLeave` autocommands. It's recommented in
 that case to use `silent!` to avoid annoying errors if the file can't be read or
 writtten.
 
+The simplest form of automation is to load the vimspector session whenever you
+start vim with a session file. This is as simple as doing this:
+
+```
+$ echo VimspectorLoadSession > Sessionx.vim
+```
+
+See `:help mksession` for details of the `*x.vim` file.
+
 ## Stepping
 
 * Step in/out, finish, continue, pause etc. using the WinBar, or mappings.
