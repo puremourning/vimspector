@@ -101,7 +101,10 @@ class DebugSession( object ):
 
     return launch_config_file, configurations
 
-  def Start( self, force_choose=False, launch_variables = None ):
+  def Start( self,
+             force_choose=False,
+             launch_variables = None,
+             adhoc_configurations = None ):
     # We mutate launch_variables, so don't mutate the default argument.
     # https://docs.python-guide.org/writing/gotchas/#mutable-default-arguments
     if launch_variables is None:
@@ -115,7 +118,13 @@ class DebugSession( object ):
 
     current_file = utils.GetBufferFilepath( vim.current.buffer )
     adapters = {}
-    launch_config_file, configurations = self.GetConfigurations( adapters )
+
+    launch_config_file = None
+    configurations = None
+    if adhoc_configurations:
+      configurations = adhoc_configurations
+    else:
+      launch_config_file, configurations = self.GetConfigurations( adapters )
 
     if not configurations:
       utils.UserMessage( 'Unable to find any debug configurations. '

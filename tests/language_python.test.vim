@@ -46,6 +46,63 @@ function! Test_Python_Simple()
   %bwipeout!
 endfunction
 
+function! Test_Python_Simple_Adhoc_Config()
+  let fn='main.py'
+  lcd ../support/test/python/simple_python
+  exe 'edit ' . fn
+  call setpos( '.', [ 0, 6, 1 ] )
+
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 6, 1 )
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 6 )
+
+  " Add the breakpoint
+  call feedkeys( "\<F9>", 'xt' )
+  call vimspector#test#signs#AssertSignGroupSingletonAtLine( 'VimspectorBP',
+                                                           \ 6,
+                                                           \ 'vimspectorBP',
+                                                           \ 9 )
+
+  call setpos( '.', [ 0, 1, 1 ] )
+
+  " Here we go. Start Debugging
+  " call vimspector#LaunchWithSettings( { 'configuration': 'run' } )
+  call vimspector#LaunchWithConfigurations({
+  \  'run': {
+  \    'adapter': 'debugpy',
+  \    'configuration': {
+  \      'request': 'launch',
+  \      'type': 'python',
+  \      'cwd': '${workspaceRoot}',
+  \      'program': '${file}',
+  \      'stopOnEntry': v:false,
+  \      'console': 'integratedTerminal'
+  \    },
+  \    'breakpoints': {
+  \      'exception': {
+  \        'raised': 'N',
+  \        'uncaught': '',
+  \        'userUnhandled': ''
+  \      }
+  \    }
+  \  }
+  \ })
+
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 6, 1 )
+
+  " Step
+  call feedkeys( "\<F10>", 'xt' )
+
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 7, 1 )
+  call WaitForAssert( {->
+        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( fn, 7 )
+        \ } )
+
+  call vimspector#test#setup#Reset()
+
+  lcd -
+  %bwipeout!
+endfunction
+
 function! SetUp_Test_Python_Remote_Attach()
   let g:vimspector_enable_mappings = 'HUMAN'
 endfunction
