@@ -439,6 +439,30 @@ If multiple debug configurations are found, and no explicit configuration was
 selected on Launch, the user is prompted to select a configuration, unless a
 single debug configuration is found with a key `"default": true`.
 
+To launch with an ad-hoc config you can use:
+
+* `call vimspector#LaunchWithConfigurations( dict )`
+
+As an example:
+
+```viml
+   let pid = <some_exression>
+   call vimspector#LaunchWithConfigurations({
+               \  "attach": {
+               \    "adapter": "netcoredbg",
+               \    "configuration": {
+               \      "request": "attach",
+               \      "processId": proc_id
+               \    }
+               \  }
+               \})
+```
+
+This would launch the debugger and attach to the specified process without the need
+to have a local .vimspector file on disk.
+The `${workspaceRoot}` variable will point to the parent folder of the file that is
+currently open in vim.
+
 #### Specifying a default configuration
 
 As noted, you can specify a default configuration with `"default": true`:

@@ -55,8 +55,8 @@ function! vimspector#LaunchWithConfigurations( configurations ) abort
   if !s:Enabled()
     return
   endif
-  py3 _vimspector_session.Start( adhoc_configurations =
-                                 \ vim.eval( 'a:configurations' ) )
+  py3 _vimspector_session.Start(
+        \ adhoc_configurations = vim.eval( 'a:configurations' ) )
 endfunction
 
 function! vimspector#LaunchWithSettings( settings ) abort

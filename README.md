@@ -823,7 +823,7 @@ For example:
 
 This would launch the debugger and attach to the specified process without the need
 to have a local .vimspector file on disk.
-The ${workspaceRoot} variable will point to the parent folder of the file that is
+The `${workspaceRoot}` variable will point to the parent folder of the file that is
 currently open in vim.
 
 ### Debug configuration selection
