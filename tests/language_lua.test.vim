@@ -35,10 +35,6 @@ function! BaseTest( configuration )
   %bwipeout!
 endfunction
 
-function! Test_Lua_Simple_Adhoc_Config()
-  call BaseTest_Adhoc_Config( 'lua' )
-endfunction
-
 
 function! Test_Lua_Simple()
   call BaseTest( 'lua' )
