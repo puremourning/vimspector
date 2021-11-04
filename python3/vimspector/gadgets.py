@@ -323,10 +323,10 @@ GADGETS = {
         '${version}/${file_name}',
     },
     'all': {
-            'version': 'v1.21.1',
-            'file_name': 'php-debug-1.21.1.vsix',
+            'version': 'v1.22.0',
+            'file_name': 'php-debug-1.22.0.vsix',
       'checksum':
-        '5c07e316eedbee671754364389a9faab9c622b8e99e772e9cc586a5cf96b01e5',
+        '9a908ea87d0fa0c3eae615253f81031bf5f0863d65b471c7ddde5b0d0c99f783',
     },
     'adapters': {
       'vscode-php-debug': {
