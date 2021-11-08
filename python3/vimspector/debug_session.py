@@ -211,12 +211,55 @@ class DebugSession( object ):
 
         utils.UserMessage( f"The specified adapter '{adapter}' is not "
                            "available. Did you forget to run "
-                           "'install_gadget.py'?",
+                           "'VimspectorInstall'?",
                            persist = True,
                            error = True )
         return
 
       adapter = adapter_dict
+
+    if not adapter:
+      utils.UserMessage( 'No adapter configured for {}'.format(
+        configuration_name ),
+        persist=True )
+      return
+
+    # Pull in anything from the base(s)
+    # FIXME: this is copypasta from above, but sharing the code is a little icky
+    # due to the way it returns from this method
+    while 'extends' in adapter:
+      base_adapter_name = adapter.pop( 'extends' )
+      base_adapter = adapters.get( base_adapter_name )
+
+      if base_adapter is None:
+        suggested_gadgets = installer.FindGadgetForAdapter( base_adapter_name )
+        if suggested_gadgets:
+          response = utils.AskForInput(
+            f"The specified base adapter '{base_adapter_name}' is not "
+            "installed. Would you like to install the following gadgets? ",
+            ' '.join( suggested_gadgets ) )
+          if response:
+            new_launch_variables = dict( launch_variables )
+            new_launch_variables[ 'configuration' ] = configuration_name
+
+            installer.RunInstaller(
+              self._api_prefix,
+              False, # Don't leave open
+              *shlex.split( response ),
+              then = lambda: self.Start( new_launch_variables ) )
+            return
+          elif response is None:
+            return
+
+        utils.UserMessage( f"The specified base adapter '{base_adapter_name}' "
+                           "is not available. Did you forget to run "
+                           "'VimspectorInstall'?",
+                           persist = True,
+                           error = True )
+        return
+
+      base_adapter.update( adapter )
+      adapter = base_adapter
 
     # Additional vars as defined by VSCode:
     #
@@ -295,11 +338,6 @@ class DebugSession( object ):
                                     USER_CHOICES )
     except KeyboardInterrupt:
       self._Reset()
-      return
-
-    if not adapter:
-      utils.UserMessage( 'No adapter configured for {}'.format(
-        configuration_name ), persist=True )
       return
 
     self._StartWithConfiguration( configuration, adapter )
