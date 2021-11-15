@@ -21,3 +21,4 @@ configurations/
 venv/
 test-base/
 tags
+Session.vim

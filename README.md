@@ -976,10 +976,15 @@ The simplest form of automation is to load the vimspector session whenever you
 start vim with a session file. This is as simple as doing this:
 
 ```
-$ echo VimspectorLoadSession > Sessionx.vim
+$ echo silent VimspectorLoadSession > Sessionx.vim
 ```
 
-See `:help mksession` for details of the `*x.vim` file.
+See `:help mksession` for details of the `*x.vim` file. You can also do
+something like this using `SessionLoadPost`:
+
+```viml
+autocmd SessionLoadPost * silent! VimspectorLoadSession
+```
 
 ## Stepping
 
