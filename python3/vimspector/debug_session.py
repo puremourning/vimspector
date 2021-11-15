@@ -62,6 +62,7 @@ class DebugSession( object ):
     self._variablesView = None
     self._saved_variables_data = None
     self._outputView = None
+    self._codeView = None
     self._breakpoints = breakpoints.ProjectBreakpoints()
     self._splash_screen = None
     self._remote_term = None
@@ -372,15 +373,18 @@ class DebugSession( object ):
       return wrapper
     return decorator
 
-  def _HasUI( self ):
+  def HasUI( self ):
     return self._uiTab and self._uiTab.valid
+
+  def IsUITab( self, tab_nubmer ):
+    return self.HasUI() and self._uiTab.number == tab_nubmer
 
   def RequiresUI( otherwise=None ):
     """Decorator, call fct if self._connected else echo warning"""
     def decorator( fct ):
       @functools.wraps( fct )
       def wrapper( self, *args, **kwargs ):
-        if not self._HasUI():
+        if not self.HasUI():
           utils.UserMessage(
             'Vimspector is not active',
             persist=False,
@@ -424,28 +428,43 @@ class DebugSession( object ):
       self._Reset()
 
   def _Reset( self ):
+    vim.vars[ 'vimspector_resetting' ] = 1
     self._logger.info( "Debugging complete." )
-    if self._uiTab:
-      self._logger.debug( "Clearing down UI" )
 
-      del vim.vars[ 'vimspector_session_windows' ]
-      vim.current.tabpage = self._uiTab
+    def ResetUI():
+      if self._stackTraceView:
+        self._stackTraceView.Reset()
+      if self._variablesView:
+        self._variablesView.Reset()
+      if self._outputView:
+        self._outputView.Reset()
+      if self._codeView:
+        self._codeView.Reset()
 
-      self._splash_screen = utils.HideSplash( self._api_prefix,
-                                              self._splash_screen )
-
-      self._stackTraceView.Reset()
-      self._variablesView.Reset()
-      self._outputView.Reset()
-      self._codeView.Reset()
-      vim.command( 'tabclose!' )
-      vim.command( 'doautocmd <nomodeline> User VimspectorDebugEnded' )
       self._stackTraceView = None
       self._variablesView = None
       self._outputView = None
       self._codeView = None
       self._remote_term = None
       self._uiTab = None
+
+    if self.HasUI():
+      self._logger.debug( "Clearing down UI" )
+      vim.current.tabpage = self._uiTab
+      self._splash_screen = utils.HideSplash( self._api_prefix,
+                                              self._splash_screen )
+      ResetUI()
+      vim.command( 'tabclose!' )
+    else:
+      ResetUI()
+
+    try:
+      del vim.vars[ 'vimspector_session_windows' ]
+    except KeyError:
+      pass
+
+    vim.command( 'doautocmd <nomodeline> User VimspectorDebugEnded' )
+    vim.vars[ 'vimspector_resetting' ] = 0
 
     # make sure that we're displaying signs in any still-open buffers
     self._breakpoints.UpdateUI()
@@ -688,7 +707,7 @@ class DebugSession( object ):
     self._stackTraceView.DownFrame()
 
   def ToggleLog( self ):
-    if self._HasUI():
+    if self.HasUI():
       return self.ShowOutput( 'Vimspector' )
 
     if self._logView and self._logView.WindowIsValid():
@@ -1005,6 +1024,7 @@ class DebugSession( object ):
         ] )
       return False
     else:
+      handlers = [ self ]
       if 'custom_handler' in self._adapter:
         spec = self._adapter[ 'custom_handler' ]
         if isinstance( spec, dict ):
@@ -1013,10 +1033,12 @@ class DebugSession( object ):
         else:
           module, cls = spec.rsplit( '.', 1 )
 
-        CustomHandler = getattr( importlib.import_module( module ), cls )
-        handlers = [ CustomHandler( self ), self ]
-      else:
-        handlers = [ self ]
+        try:
+          CustomHandler = getattr( importlib.import_module( module ), cls )
+          handlers = [ CustomHandler( self ), self ]
+        except ImportError:
+          self._logger.exception( "Unable to load custom adapter %s",
+                                  spec )
 
       self._connection = debug_adapter_connection.DebugAdapterConnection(
         handlers,

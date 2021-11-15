@@ -198,7 +198,7 @@ function! vimspector#internal#balloon#Close() abort
     call nvim_win_close( s:nvim_border_win_id, v:true )
 
     call vimspector#internal#balloon#CloseCallback()
-  else
+  elseif !empty( popup_getoptions( s:popup_win_id ) )
     call popup_close(s:popup_win_id)
   endif
 endfunction

@@ -152,9 +152,14 @@ augroup VimspectorUserAutoCmds
 augroup END
 
 " FIXME: Only register this _while_ debugging is active
+let g:vimspector_resetting = 0
 augroup Vimspector
   autocmd!
   autocmd BufNew * call vimspector#OnBufferCreated( expand( '<afile>' ) )
+  autocmd TabClosed *
+        \   if !g:vimspector_resetting
+        \ |   call vimspector#internal#state#TabClosed( expand( '<afile>' ) )
+        \ | endif
 augroup END
 
 " boilerplate {{{
