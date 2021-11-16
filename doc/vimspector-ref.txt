@@ -374,7 +374,8 @@ abbreviations:
 - '<vimspector home>' means the path to the Vimspector installation (such as
   '$HOME/.vim/pack/vimspector/start/vimspector')
 
-- '<OS>' is either 'macos' or 'linux' depending on the host operating system.
+- '<OS>' is either 'macos', 'linux' or 'windows' depending on the host
+  operating system.
 
 - '<filetype>' is the Vim filetype. Where multiple filetypes are in effect,
   typically all filetypes are checked.
