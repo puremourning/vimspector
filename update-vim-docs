@@ -7,6 +7,10 @@ if [ -z "$1" ] || [ ! -d "$1" ]; then
   exit 1
 fi
 
+if [ -f $1/env/bin/activate ]; then
+  . $1/env/bin/activate
+fi
+
 pushd $(dirname $0)
   python3 $1/html2vimdoc.py -f vimspector README.md > doc/vimspector.txt
   python3 $1/html2vimdoc.py -f vimspector-ref \

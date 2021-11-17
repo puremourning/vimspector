@@ -262,7 +262,7 @@ runtime dependencies). They are categorised by their level of support:
 =====================================================================================================================================================
 | C, C++, Rust etc.  | Tested    | '--all' or '--enable-c' (or cpp)   | vscode-cpptools                      | mono-core                            |
 -----------------------------------------------------------------------------------------------------------------------------------------------------
-| Rust, C, C++, etc. | Supported | '--enable-rust'              | CodeLLDB                             | Python 3                             |
+| Rust, C, C++, etc. | Supported | '--enable-rust'                    | CodeLLDB                             | Python 3                             |
 -----------------------------------------------------------------------------------------------------------------------------------------------------
 | Python             | Tested    | '--all' or '--enable-python'       | debugpy                              | Python 2.7 or Python 3               |
 -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1002,24 +1002,24 @@ To launch with an ad-hoc config you can use:
 
 - 'call vimspector#LaunchWithConfigurations( dict )'
 
-The argument is a `dict` wich is the `configurations` section of a .vimspector file
-Pass one configuration in and that will be selected as the one to run.
-For example:
-
-   vimspector#LaunchWithConfigurations({
-           \  "attach": {
-           \    "adapter": "netcoredbg",
-           \    "configuration": {
-           \      "request": "attach",
-           \      "processId": proc_id
-           \    }
-           \  }
-           \})
-
-This would launch the debugger and attach to the specified process without the need
-to have a local .vimspector file on disk.
-The ${workspaceRoot} variable will point to the parent folder of the file that is
-currently open in vim.
+The argument is a 'dict' wich is the 'configurations' section of a .vimspector
+file Pass one configuration in and that will be selected as the one to run. For
+example:
+>
+  let pid = <some_exression>
+  call vimspector#LaunchWithConfigurations({
+              \  "attach": {
+              \    "adapter": "netcoredbg",
+              \    "configuration": {
+              \      "request": "attach",
+              \      "processId": proc_id
+              \    }
+              \  }
+              \})
+<
+This would launch the debugger and attach to the specified process without the
+need to have a local .vimspector file on disk. The '${workspaceRoot}' variable
+will point to the parent folder of the file that is currently open in vim.
 
 -------------------------------------------------------------------------------
                                      *vimspector-debug-configuration-selection*
@@ -1044,7 +1044,8 @@ See the reference guide [21] for details.
                                                 *vimspector-get-configurations*
 Get configurations ~
 
-- Use 'vimspector#GetConfigurations()' to get a list of configurations
+- Use 'vimspector#GetConfigurations()' to get a list of configurations for
+  filetype of the current buffer
 
 For example, to get an array of configurations and fuzzy matching on the result
 >
@@ -1209,6 +1210,16 @@ example by adding 'VimEnter' and 'VimLeave' autocommands. It's recommented in
 that case to use 'silent!' to avoid annoying errors if the file can't be read
 or writtten.
 
+The simplest form of automation is to load the vimspector session whenever you
+start vim with a session file. This is as simple as doing this:
+>
+  $ echo silent VimspectorLoadSession > Sessionx.vim
+<
+See ':help mksession' for details of the '*x.vim' file. You can also do
+something like this using 'SessionLoadPost':
+>
+  autocmd SessionLoadPost * silent! VimspectorLoadSession
+<
 -------------------------------------------------------------------------------
                                                           *vimspector-stepping*
 Stepping ~
@@ -1467,6 +1478,7 @@ Example '.vimspector.json' (works with both 'vscode-cpptools' and
     "configurations": {
       "Launch": {
         "adapter": "vscode-cpptools",
+        "filetypes": [ "cpp", "c", "objc", "rust" ], // optional
         "configuration": {
           "request": "launch",
           "program": "<path to binary>",
@@ -1479,6 +1491,7 @@ Example '.vimspector.json' (works with both 'vscode-cpptools' and
       },
       "Attach": {
         "adapter": "vscode-cpptools",
+        "filetypes": [ "cpp", "c", "objc", "rust" ], // optional
         "configuration": {
           "request": "attach",
           "program": "<path to binary>",
@@ -1499,6 +1512,7 @@ licensing.
     "configurations": {
       "Launch": {
         "adapter": "vscode-cpptools",
+        "filetypes": [ "cpp", "c", "objc", "rust" ], // optional
         "configuration": {
           "request": "launch",
           "program": "<path to binary>",
@@ -1524,6 +1538,7 @@ manually.
     "configurations": {
       "Launch": {
         "adapter": "vscode-cpptools",
+        "filetypes": [ "cpp", "c", "objc", "rust" ], // optional
         "configuration": {
           "request": "launch",
           "program": "<path to binary>",
@@ -1608,6 +1623,7 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
     "configurations": {
       "launch": {
         "adapter": "CodeLLDB",
+        "filetypes": [ "rust" ],
         "configuration": {
           "request": "launch",
           "program": "${workspaceRoot}/target/debug/vimspector_test"
@@ -1635,6 +1651,7 @@ Python ~
     "configurations": {
       "<name>: Launch": {
         "adapter": "debugpy",
+        "filetypes": [ "pythyon" ],
         "configuration": {
           "name": "<name>: Launch",
           "type": "python",
@@ -1670,6 +1687,7 @@ to:
     "configurations": {
       "Python Attach": {
         "adapter": "multi-session",
+        "filetypes": [ "python" ], // optional
         "configuration": {
           "request": "attach",
           "pathMappings": [
@@ -1714,6 +1732,7 @@ netcoredbg'
     "configurations": {
       "launch - netcoredbg": {
         "adapter": "netcoredbg",
+        "filetypes": [ "csharp", "fsharp", "vbnet" ], // optional
         "configuration": {
           "request": "launch",
           "program": "${workspaceRoot}/bin/Debug/netcoreapp2.2/csharp.dll",
@@ -1746,6 +1765,7 @@ https://github.com/puremourning/vimspector/issues/186 for that.
     "configurations": {
       "run": {
         "adapter": "vscode-go",
+        "filetypes": [ "go" ], // optional
         "configuration": {
           "request": "launch",
           "program": "${fileDirname}",
@@ -1797,6 +1817,7 @@ lazy alternative
     "configurations": {
       "Listen for XDebug": {
         "adapter": "vscode-php-debug",
+        "filetypes": [ "php" ], // optional
         "configuration": {
           "name": "Listen for XDebug",
           "type": "php",
@@ -1810,6 +1831,7 @@ lazy alternative
       },
       "Launch currently open script": {
         "adapter": "vscode-php-debug",
+        "filetypes": [ "php" ], // optional
         "configuration": {
           "name": "Launch currently open script",
           "type": "php",
@@ -1863,6 +1885,7 @@ Requires:
     "configurations": {
       "run": {
         "adapter": "vscode-node",
+        "filetypes": [ "javascript", "typescript" ], // optional
         "configuration": {
           "request": "launch",
           "protocol": "auto",
@@ -1959,6 +1982,7 @@ Usage with YouCompleteMe ~
     "configurations": {
       "Java Attach": {
         "adapter": "vscode-java",
+        "filetypes": [ "java" ],
         "configuration": {
           "request": "attach",
           "hostName": "${host}",
@@ -2040,6 +2064,7 @@ problems.
     "configurations": {
       "lua": {
         "adapter": "lua-local",
+        "filetypes": [ "lua" ],
         "configuration": {
           "request": "launch",
           "type": "lua-local",
@@ -2052,6 +2077,7 @@ problems.
       },
       "luajit": {
         "adapter": "lua-local",
+        "filetypes": [ "lua" ],
         "configuration": {
           "request": "launch",
           "type": "lua-local",
@@ -2064,6 +2090,7 @@ problems.
       },
       "love": {
         "adapter": "lua-local",
+        "filetypes": [ "love" ],
         "configuration": {
           "request": "launch",
           "type": "lua-local",
@@ -2083,6 +2110,9 @@ Other servers ~
 
 - Java - vscode-javac. This works, but is not as functional as Java Debug
   Server. Take a look at this comment [47] for instructions.
+
+- See also the wiki [12] which has community-contributed plugin files for
+  some languages.
 
 ===============================================================================
                                                      *vimspector-customisation*
@@ -2437,7 +2467,12 @@ FAQ ~
    you can put all of your adapter and debug configs in a single directory
    [49] if you want to, but note the caveat that '${workspaceRoot}' won't be
    calculated correctly in that case. The vimsepctor author uses this a lot
-   [50].
+   [50]
+
+5. I'm confused about remote debugging configuration, can you explain it?
+   eh... kind of. Reference: https://puremourning.github.io/vimspector/confi
+   guration.html#remote-debugging-support. Some explanations here too: https
+   ://github.com/puremourning/vimspector/issues/478#issuecomment-943515093
 
 ===============================================================================
                                                         *vimspector-references*
