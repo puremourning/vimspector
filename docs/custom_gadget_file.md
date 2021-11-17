@@ -23,3 +23,6 @@ like the supported adapters.
 A _gadget definition_ is a file containing a single JSON object definition,
 describing the debug adapter and how to download and install it. This mechanism
 is crude but can be effective.
+
+The definition of the file format is
+[on the wiki](https://github.com/puremourning/vimspector/wiki/languages).

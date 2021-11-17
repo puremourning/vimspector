@@ -208,7 +208,7 @@ for name, gadget in gadgets.GADGETS.items():
   if not args.upgrade:
     manifest.Clear( name )
 
-  installer.InstallGagdet( name,
+  installer.InstallGadget( name,
                            gadget,
                            manifest,
                            succeeded,
@@ -220,7 +220,7 @@ for name, gadget in CUSTOM_GADGETS.items():
   if not args.upgrade:
     manifest.Clear( name )
 
-  installer.InstallGagdet( name,
+  installer.InstallGadget( name,
                            gadget,
                            manifest,
                            succeeded,

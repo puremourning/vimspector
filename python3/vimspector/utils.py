@@ -19,12 +19,13 @@ import os
 import contextlib
 import vim
 import json
-import functools
 import subprocess
 import shlex
 import collections
 import re
 import typing
+
+from vimspector.core_utils import memoize
 
 
 LOG_FILE = os.path.expanduser( os.path.join( '~', '.vimspector.log' ) )
@@ -729,26 +730,6 @@ def Call( vimscript_function, *args ):
 
   call += ')'
   return vim.eval( call )
-
-
-MEMO = {}
-
-
-def memoize( func ):
-  global MEMO
-
-  @functools.wraps( func )
-  def wrapper( *args, **kwargs ):
-    dct = MEMO.setdefault( func, {} )
-    key = ( args, frozenset( kwargs.items() ) )
-    try:
-      return dct[ key ]
-    except KeyError:
-      result = func( *args, **kwargs )
-      dct[ key ] = result
-      return result
-
-  return wrapper
 
 
 @memoize
