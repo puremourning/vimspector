@@ -418,6 +418,7 @@ typical example looks like this:
   "configurations": {
     "<configuation name>": {
       "adapter": "<adapter name>",
+      "filetypes": [ /* list of filetypes this applies to */ ],
       "configuration": {
         "request": "<launch or attach>",
         <debug configutation>
@@ -427,41 +428,85 @@ typical example looks like this:
 }
 ```
 
+#### Ad-hoc configurations
+
+You can tell vimspector to ignore any configuration files on disk, and just use
+a set of supplied 'ad-hoc' configurations. You do with as follows:
+
+```viml
+call vimspector#LaunchWithConfigurations( dict )
+```
+
+`dict` is the contents of the `configurations` block as a vim dictionary.
+
+For example:
+
+```viml
+   let pid = <some_exression>
+   call vimspector#LaunchWithConfigurations( {
+               \  "attach": {
+               \    "adapter": "netcoredbg",
+               \    "configuration": {
+               \      "request": "attach",
+               \      "processId": pid
+               \    }
+               \  }
+               \ } )
+```
+
+This would launch the debugger and attach to the specified process without the
+need to have a local .vimspector file on disk.  The `${workspaceRoot}` variable
+will point to the parent folder of the file that is currently open in vim.
+
+
 ### Configuration selection
 
 When starting debugging, you can specify which debug configuration to launch
 with `call vimspector#LaunchWithSettings( #{ configuration: 'name here' } )`.
 
-Otherwise, if there's only one configuration found, Vimspector will use that
-configuration, unless it contains a key `"autoselect": false`.
+Otherwise, vimspector tries to work out which one to laucnh.
 
-If multiple debug configurations are found, and no explicit configuration was
-selected on Launch, the user is prompted to select a configuration, unless a
-single debug configuration is found with a key `"default": true`.
+First it finds the configurations for the current filetype from the files, or
+ad-hoc dictionary, mentioned above.  Configurations are ignored if they specify
+a list of `filetypes` and the list doesn't contain the one of the current
+buffer's filetypes. (NOTE: the filetypes are Vim filetypes)
 
-To launch with an ad-hoc config you can use:
+If there's only one configuration found for the current filetypes, Vimspector
+will use that configuration, unless it contains a key `"autoselect": false`.
 
-* `call vimspector#LaunchWithConfigurations( dict )`
+If any single configuration is found with `"default": true`, that one is used.
 
-As an example:
+Otherwise, the user is propmted to select a configuration to use.
+
+#### Ad-hoc configurations
+
+You can tell vimspector to ignore any configuration files on disk, and just use
+a set of supplied 'ad-hoc' configurations. You do with as follows:
+
+```viml
+call vimspector#LaunchWithConfigurations( dict )
+```
+
+`dict` is the contents of the `configurations` block as a vim dictionary.
+
+For example:
 
 ```viml
    let pid = <some_exression>
-   call vimspector#LaunchWithConfigurations({
+   call vimspector#LaunchWithConfigurations( {
                \  "attach": {
                \    "adapter": "netcoredbg",
                \    "configuration": {
                \      "request": "attach",
-               \      "processId": proc_id
+               \      "processId": pid
                \    }
                \  }
-               \})
+               \ } )
 ```
 
-This would launch the debugger and attach to the specified process without the need
-to have a local .vimspector file on disk.
-The `${workspaceRoot}` variable will point to the parent folder of the file that is
-currently open in vim.
+This would launch the debugger and attach to the specified process without the
+need to have a local .vimspector file on disk.  The `${workspaceRoot}` variable
+will point to the parent folder of the file that is currently open in vim.
 
 #### Specifying a default configuration
 
@@ -484,8 +529,8 @@ As noted, you can specify a default configuration with `"default": true`:
 }
 ```
 
-If multiple configurations are found with `default` set to `true`, then the
-user is prompted anyway.
+If multiple configurations are found for the current filetype with `default` set
+to `true`, then the user is prompted anyway.
 
 #### Preventing automatic selection
 
@@ -506,6 +551,51 @@ central (as opposed to project-local) directory. For example:
 ```
 
 Setting `autoselect` to `false` overrides setting `default` to `true`.
+
+#### Default per filetype
+
+If you have a number of different types of files, say some Python and some
+javascript/node, you can specify the `filetypes` list in the `configuration`
+section.  As noted above, vimsepector will filter the list of configurations
+based on the filetypes of the current buffer. If the `filetypes` entry is not
+provided, it's assume to apply to all buffer filetypes.
+
+Example:
+
+```json
+{
+  "configurations": {
+    "Node": {
+      "adapter": "vscode-node",
+      "filetypes": [ "javascript" ],
+      "default": true,
+      "configuration": {
+        "request": "launch",
+        "protocol": "auto",
+        "stopOnEntry": true,
+        "console": "integratedTerminal",
+        "program": "${workspaceRoot}/test.js",
+        "cwd": "${workspaceRoot}"
+      }
+    },
+    "Python": {
+      "adapter": "debugpy",
+      "filetypes": [ "python" ],
+      "default": true,
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/test.py",
+        "stopOnEntry": true,
+        "cwd": "${workspaceRoot}"
+      }
+    }
+  }
+}
+
+```
+
+Note the filetypes in the list are Vim filetypes (see :help filetype). To check
+the filetypes for the current buffer, look at `:set filetype?`.
 
 ### Exception Breakpoints
 

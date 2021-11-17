@@ -248,6 +248,18 @@
                 "type": [ "string", "array" ],
                 "description": "Defines the value of the special token %CMD% in remote-launch 'runCommand(s)'. The value is inserted into the command line where an entry matching '%CMD%' is found in 'runCommand(s)' command array."
               },
+              "default": {
+                "type": "boolean",
+                "description": "When true, this configuration is picked by default"
+              },
+              "autoselect": {
+                "type": "boolean",
+                "description": "When false, this configuration is _never_ picked by default"
+              },
+              "filetypes": {
+                "type": "array",
+                "description": "List of Vim filetypes that this configuration applies to. The configuraiton is only used if one of the current filetypes appears in this list, or if this list is not supplied,"
+              },
               "configuration": {
                 "type": "object",
                 "required": [ "request" ],
@@ -264,12 +276,6 @@
               "breakpoints": {
                 "type": "object",
                 "properties": {
-                  "line": {
-                    "$comment": "TBA: Not supported yet"
-                  },
-                  "function": {
-                    "$comment": "TBA: Not supported yet"
-                  },
                   "exception": {
                     "type": "object",
                     "description": "Exception breakpoints configuration, mapping the server's exception filter to enabled/disable/default flag",
