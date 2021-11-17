@@ -1498,7 +1498,7 @@ Example '.vimspector.json' (works with both 'vscode-cpptools' and
           "MIMode": "<lldb or gdb>"
         }
       }
-      ...
+      // ...
     }
   }
 <
@@ -1542,15 +1542,15 @@ manually.
         "configuration": {
           "request": "launch",
           "program": "<path to binary>",
-          ...
-          "MIMode": "gdb"
+          // ...
+          "MIMode": "gdb",
           "setupCommands": [
             {
               "description": "Enable pretty-printing for gdb",
               "text": "-enable-pretty-printing",
               "ignoreFailures": true
             }
-          ],
+          ]
         }
       }
     }

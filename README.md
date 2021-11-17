@@ -1204,7 +1204,7 @@ For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
 
 * vscode-cpptools Linux/MacOS:
 
-```
+```json
 {
   "configurations": {
     "Launch": {
@@ -1229,7 +1229,7 @@ For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
         "MIMode": "<lldb or gdb>"
       }
     }
-    ...
+    // ...
   }
 }
 ```
@@ -1240,7 +1240,7 @@ For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
 `scoop install gdb`. Vimspector cannot use the visual studio debugger due to
 licensing.
 
-```
+```json
 {
   "configurations": {
     "Launch": {
@@ -1266,7 +1266,7 @@ manually.
 * GDB: To enable gdb pretty printers, consider the snippet below.
   It is not enough to have `set print pretty on` in your .gdbinit!
 
-```
+```json
 {
   "configurations": {
     "Launch": {
@@ -1275,15 +1275,15 @@ manually.
       "configuration": {
         "request": "launch",
         "program": "<path to binary>",
-        ...
-        "MIMode": "gdb"
+        // ...
+        "MIMode": "gdb",
         "setupCommands": [
           {
             "description": "Enable pretty-printing for gdb",
             "text": "-enable-pretty-printing",
             "ignoreFailures": true
           }
-        ],
+        ]
       }
     }
   }
