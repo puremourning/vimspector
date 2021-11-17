@@ -14,6 +14,8 @@
 # limitations under the License.
 
 import functools
+import typing
+from collections.abc import Mapping
 
 MEMO = {}
 
@@ -33,3 +35,45 @@ def memoize( func ):
       return result
 
   return wrapper
+
+
+def override( target_dict: typing.MutableMapping,
+              override_dict: typing.Mapping ):
+  """Apply the updates in |override| to the dict |target|. This is like
+  dict.update, but recursive. i.e. if the existing element is a dict, then
+  override elements of the sub-dict rather than wholesale replacing.
+  e.g.
+  override(
+    {
+      'outer': { 'inner': { 'key': 'oldValue', 'existingKey': True } }
+    },
+    {
+      'outer': { 'inner': { 'key': 'newValue' } },
+      'newKey': { 'newDict': True },
+    }
+  )
+  yields:
+    {
+      'outer': {
+        'inner': {
+           'key': 'newValue',
+           'existingKey': True
+        }
+      },
+      'newKey': { newDict: True }
+    }
+  """
+
+  for key, value in override_dict.items():
+    current_value = target_dict.get( key )
+    if not isinstance( current_value, Mapping ):
+      # Thing or Mapping overrides Thing or None
+      target_dict[ key ] = value
+    elif isinstance( value, Mapping ):
+      # Mapping overrides mapping, recurse
+      target_dict[ key ] = override( current_value, value )
+    else:
+      # Thing overrides Mapping
+      target_dict[ key ] = value
+
+  return target_dict

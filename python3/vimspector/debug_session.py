@@ -25,6 +25,7 @@ import importlib
 
 from vimspector import ( breakpoints,
                          code,
+                         core_utils,
                          debug_adapter_connection,
                          install,
                          output,
@@ -100,16 +101,17 @@ class DebugSession( object ):
         configurations.update( database.get( 'configurations' ) or {} )
         adapters.update( database.get( 'adapters' ) or {} )
 
+    filetype_configurations = configurations
     if filetypes:
       # filter out any configurations that have a 'filetypes' list set and it
       # doesn't contain one of the current filetypes
-      configurations = {
+      filetype_configurations = {
         k: c for k, c in configurations.items() if 'filetypes' not in c or any(
           ft in c[ 'filetypes' ] for ft in filetypes
         )
       }
 
-    return launch_config_file, configurations
+    return launch_config_file, filetype_configurations, configurations
 
   def Start( self,
              force_choose=False,
@@ -134,7 +136,9 @@ class DebugSession( object ):
     if adhoc_configurations:
       configurations = adhoc_configurations
     else:
-      launch_config_file, configurations = self.GetConfigurations( adapters )
+      ( launch_config_file,
+        configurations,
+        all_configurations ) = self.GetConfigurations( adapters )
 
     if not configurations:
       utils.UserMessage( 'Unable to find any debug configurations. '
@@ -184,7 +188,27 @@ class DebugSession( object ):
     else:
       self._workspace_root = os.path.dirname( current_file )
 
-    configuration = configurations[ configuration_name ]
+    try:
+      configuration = configurations[ configuration_name ]
+    except KeyError:
+      # Maybe the specified one by name that's not for this filetype? Let's try
+      # that one...
+      configuration = all_configurations[ configuration_name ]
+
+    current_configuration_name = configuration_name
+    while 'extends' in configuration:
+      base_configuration_name = configuration.pop( 'extends' )
+      base_configuration = all_configurations.get( base_configuration_name )
+      if base_configuration is None:
+        raise RuntimeError( f"The adapter { current_configuration_name } "
+                            f"extends configuration { base_configuration_name }"
+                            ", but this does not exist" )
+
+      core_utils.override( base_configuration, configuration )
+      current_configuration_name = base_configuration_name
+      configuration = base_configuration
+
+
     adapter = configuration.get( 'adapter' )
     if isinstance( adapter, str ):
       adapter_dict = adapters.get( adapter )
@@ -226,7 +250,7 @@ class DebugSession( object ):
 
     # Pull in anything from the base(s)
     # FIXME: this is copypasta from above, but sharing the code is a little icky
-    # due to the way it returns from this method
+    # due to the way it returns from this method (maybe use an exception?)
     while 'extends' in adapter:
       base_adapter_name = adapter.pop( 'extends' )
       base_adapter = adapters.get( base_adapter_name )
@@ -258,7 +282,7 @@ class DebugSession( object ):
                            error = True )
         return
 
-      base_adapter.update( adapter )
+      core_utils.override( base_adapter, adapter )
       adapter = base_adapter
 
     # Additional vars as defined by VSCode:
@@ -1366,6 +1390,9 @@ class DebugSession( object ):
 
     self._logger.debug( "LAUNCH!" )
     self._launch_config = {}
+    # TODO: Should we use core_utils.override for this? That would strictly be a
+    # change in behaviour as dicts in the specific configuration would merge
+    # with dicts in the adapter, where before they would overlay
     self._launch_config.update( self._adapter.get( 'configuration', {} ) )
     self._launch_config.update( self._configuration[ 'configuration' ] )
 
