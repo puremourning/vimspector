@@ -1,0 +1,41 @@
+{
+  "configurations": {
+    "Node": {
+      "adapter": "vscode-node",
+      "filetypes": [ "javascript" ],
+      "default": true,
+      "configuration": {
+        "request": "launch",
+        "protocol": "auto",
+        "stopOnEntry": true,
+        "console": "integratedTerminal",
+        "program": "${workspaceRoot}/test.js",
+        "cwd": "${workspaceRoot}"
+      },
+      "breakpoints": {
+        "exception": {
+          "all": "",
+          "uncaught": ""
+        }
+      }
+    },
+    "Python": {
+      "adapter": "debugpy",
+      "filetypes": [ "python" ],
+      "default": true,
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/test.py",
+        "stopOnEntry": true,
+        "cwd": "${workspaceRoot}"
+      },
+      "breakpoints": {
+        "exception": {
+          "all": "",
+          "raised": "",
+          "uncaught": ""
+        }
+      }
+    }
+  }
+}

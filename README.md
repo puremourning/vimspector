@@ -842,7 +842,8 @@ See [the reference guide][vimspector-ref-config-selection] for details.
 
 ### Get configurations
 
-* Use `vimspector#GetConfigurations()` to get a list of configurations
+* Use `vimspector#GetConfigurations()` to get a list of configurations for
+  filetype of the current buffer
 
 For example, to get an array of configurations and fuzzy matching on the result
 ```viml
@@ -1208,6 +1209,7 @@ For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
   "configurations": {
     "Launch": {
       "adapter": "vscode-cpptools",
+      "filetypes": [ "cpp", "c", "objc", "rust" ], // optional
       "configuration": {
         "request": "launch",
         "program": "<path to binary>",
@@ -1220,6 +1222,7 @@ For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
     },
     "Attach": {
       "adapter": "vscode-cpptools",
+      "filetypes": [ "cpp", "c", "objc", "rust" ], // optional
       "configuration": {
         "request": "attach",
         "program": "<path to binary>",
@@ -1242,6 +1245,7 @@ licensing.
   "configurations": {
     "Launch": {
       "adapter": "vscode-cpptools",
+      "filetypes": [ "cpp", "c", "objc", "rust" ], // optional
       "configuration": {
         "request": "launch",
         "program": "<path to binary>",
@@ -1254,7 +1258,8 @@ licensing.
 
 ### Data visualization / pretty printing
 
-Depending on the backend you need to enable pretty printing of complex types manually.
+Depending on the backend you need to enable pretty printing of complex types
+manually.
 
 * LLDB: Pretty printing is enabled by default
 
@@ -1266,6 +1271,7 @@ Depending on the backend you need to enable pretty printing of complex types man
   "configurations": {
     "Launch": {
       "adapter": "vscode-cpptools",
+      "filetypes": [ "cpp", "c", "objc", "rust" ], // optional
       "configuration": {
         "request": "launch",
         "program": "<path to binary>",
@@ -1348,6 +1354,7 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
   "configurations": {
     "launch": {
       "adapter": "CodeLLDB",
+      "filetypes": [ "rust" ],
       "configuration": {
         "request": "launch",
         "program": "${workspaceRoot}/target/debug/vimspector_test"
@@ -1374,6 +1381,7 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
   "configurations": {
     "<name>: Launch": {
       "adapter": "debugpy",
+      "filetypes": [ "pythyon" ],
       "configuration": {
         "name": "<name>: Launch",
         "type": "python",
@@ -1411,6 +1419,7 @@ to:
   "configurations": {
     "Python Attach": {
       "adapter": "multi-session",
+      "filetypes": [ "python" ], // optional
       "configuration": {
         "request": "attach",
         "pathMappings": [
@@ -1453,6 +1462,7 @@ netcoredbg`
   "configurations": {
     "launch - netcoredbg": {
       "adapter": "netcoredbg",
+      "filetypes": [ "csharp", "fsharp", "vbnet" ], // optional
       "configuration": {
         "request": "launch",
         "program": "${workspaceRoot}/bin/Debug/netcoreapp2.2/csharp.dll",
@@ -1483,6 +1493,7 @@ NOTE: Vimspector uses the ["legacy" vscode-go debug adapter](https://github.com/
   "configurations": {
     "run": {
       "adapter": "vscode-go",
+      "filetypes": [ "go" ], // optional
       "configuration": {
         "request": "launch",
         "program": "${fileDirname}",
@@ -1532,6 +1543,7 @@ xdebug.remote_port=9000
   "configurations": {
     "Listen for XDebug": {
       "adapter": "vscode-php-debug",
+      "filetypes": [ "php" ], // optional
       "configuration": {
         "name": "Listen for XDebug",
         "type": "php",
@@ -1545,6 +1557,7 @@ xdebug.remote_port=9000
     },
     "Launch currently open script": {
       "adapter": "vscode-php-debug",
+      "filetypes": [ "php" ], // optional
       "configuration": {
         "name": "Launch currently open script",
         "type": "php",
@@ -1590,6 +1603,7 @@ Requires:
   "configurations": {
     "run": {
       "adapter": "vscode-node",
+      "filetypes": [ "javascript", "typescript" ], // optional
       "configuration": {
         "request": "launch",
         "protocol": "auto",
@@ -1680,6 +1694,7 @@ This behaviour can be customised:
   "configurations": {
     "Java Attach": {
       "adapter": "vscode-java",
+      "filetypes": [ "java" ],
       "configuration": {
         "request": "attach",
         "hostName": "${host}",
@@ -1769,6 +1784,7 @@ This debugger uses stdio to communicate with the running process, so calls to
   "configurations": {
     "lua": {
       "adapter": "lua-local",
+      "filetypes": [ "lua" ],
       "configuration": {
         "request": "launch",
         "type": "lua-local",
@@ -1781,6 +1797,7 @@ This debugger uses stdio to communicate with the running process, so calls to
     },
     "luajit": {
       "adapter": "lua-local",
+      "filetypes": [ "lua" ],
       "configuration": {
         "request": "launch",
         "type": "lua-local",
@@ -1793,6 +1810,7 @@ This debugger uses stdio to communicate with the running process, so calls to
     },
     "love": {
       "adapter": "lua-local",
+      "filetypes": [ "love" ],
       "configuration": {
         "request": "launch",
         "type": "lua-local",
@@ -1813,6 +1831,8 @@ This debugger uses stdio to communicate with the running process, so calls to
   Server. Take a look at [this
   comment](https://github.com/puremourning/vimspector/issues/3#issuecomment-576916076)
   for instructions.
+- See also [the wiki](https://github.com/puremourning/vimspector/wiki/languages)
+  which has community-contributed plugin files for some languages.
 
 
 # Customisation

@@ -100,6 +100,15 @@ class DebugSession( object ):
         configurations.update( database.get( 'configurations' ) or {} )
         adapters.update( database.get( 'adapters' ) or {} )
 
+    if filetypes:
+      # filter out any configurations that have a 'filetypes' list set and it
+      # doesn't contain one of the current filetypes
+      configurations = {
+        k: c for k, c in configurations.items() if 'filetypes' not in c or any(
+          ft in c[ 'filetypes' ] for ft in filetypes
+        )
+      }
+
     return launch_config_file, configurations
 
   def Start( self,
