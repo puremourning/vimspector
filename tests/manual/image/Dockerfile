@@ -1,4 +1,6 @@
-FROM puremourning/vimspector:test
+ARG ARCH=x86_64
+
+FROM puremourning/vimspector:test-${ARCH}
 
 RUN apt-get update && \
   apt-get -y dist-upgrade && \

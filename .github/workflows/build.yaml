@@ -14,7 +14,7 @@ defaults:
 jobs:
   PythonLint:
     runs-on: ubuntu-18.04
-    container: 'puremourning/vimspector:test'
+    container: 'puremourning/vimspector:test-x86_64'
     steps:
     - uses: actions/checkout@v2
     - name: 'Insatll requirements'
@@ -23,7 +23,7 @@ jobs:
       run: '$HOME/.local/bin/flake8 python3/ *.py'
   VimscriptLint:
     runs-on: 'ubuntu-18.04'
-    container: 'puremourning/vimspector:test'
+    container: 'puremourning/vimspector:test-x86_64'
     steps:
     - uses: actions/checkout@v2
     - name: 'Install requirements'
@@ -34,7 +34,7 @@ jobs:
   Linux:
     runs-on: 'ubuntu-18.04'
     container:
-      image: 'puremourning/vimspector:test'
+      image: 'puremourning/vimspector:test-x86_64'
       options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined
     steps:
     - uses: actions/checkout@v2

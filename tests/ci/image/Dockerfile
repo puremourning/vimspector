@@ -2,6 +2,7 @@ FROM ubuntu:18.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LC_ALL C.UTF-8
+ARG GOARCH=amd64
 
 RUN apt-get update && \
   apt-get install -y curl \
@@ -38,8 +39,8 @@ RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 1 \
                         --slave   /usr/bin/g++ g++ /usr/bin/g++-8
 
-RUN curl -LO https://golang.org/dl/go1.17.3.linux-arm64.tar.gz && \
-    tar -C /usr/local -xzvf go1.17.3.linux-arm64.tar.gz
+RUN curl -LO https://golang.org/dl/go1.17.3.linux-${GOARCH}.tar.gz && \
+    tar -C /usr/local -xzvf go1.17.3.linux-${GOARCH}.tar.gz
 
 RUN update-alternatives --install /usr/local/bin/go go /usr/local/go/bin/go 1
 
