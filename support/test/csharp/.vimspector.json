@@ -27,7 +27,8 @@
       "adapter": "netcoredbg",
       "configuration": {
         "request": "launch",
-        "program": "${workspaceRoot}/bin/Debug/netcoreapp3.1/csharp.dll",
+        // If this changes, update language_csharp.test.vim
+        "program": "${workspaceRoot}/bin/Debug/netcoreapp5.0/csharp.dll",
         "args": [],
         "stopAtEntry": false
       }
@@ -36,7 +37,8 @@
       "adapter": "netcoredbg-debuglog",
       "configuration": {
         "request": "launch",
-        "program": "${workspaceRoot}/bin/Debug/netcoreapp3.1/csharp.dll",
+        // If this changes, update language_csharp.test.vim
+        "program": "${workspaceRoot}/bin/Debug/netcoreapp5.0/csharp.dll",
         "args": [],
         "stopAtEntry": false
       }

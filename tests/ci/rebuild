@@ -2,10 +2,18 @@
 
 set -e
 
-if [ "$1" = "--continue" ]; then
-  OPTS=""
-else
+if [ "$1" = "--clean" ]; then
   OPTS="--no-cache"
+else
+  OPTS=""
 fi
 
-docker build ${OPTS} -t puremourning/vimspector:test image/
+ARCH=$(uname -m)
+
+GOARCH=${ARCH}
+if [ "${ARCH}" = "x86_64" ]; then
+  GOARCH=amd64
+fi
+
+docker build ${OPTS} --build-arg GOARCH=${GOARCH} \
+                     -t puremourning/vimspector:test-${ARCH} image/

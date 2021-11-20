@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CONTAINER=puremourning/vimspector:manual
+CONTAINER=puremourning/vimspector:manual-$(uname -m )
 
 docker run --cap-add=SYS_PTRACE \
            --security-opt seccomp=unconfined \

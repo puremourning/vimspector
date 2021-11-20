@@ -21,7 +21,7 @@ function! Test_CSharp_Simple_Adhoc_Config()
     \   'adapter': 'netcoredbg',
     \   'configuration': {
     \     'request': 'launch',
-    \     'program': '${workspaceRoot}/bin/Debug/netcoreapp3.1/csharp.dll',
+    \     'program': '${workspaceRoot}/bin/Debug/netcoreapp5.0/csharp.dll',
     \     'args': [],
     \     'stopAtEntry': v:false
     \   }

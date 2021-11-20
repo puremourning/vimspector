@@ -1,4 +1,6 @@
-FROM puremourning/vimspector:test
+ARG ARCH=x86_64
+
+FROM puremourning/vimspector:test-${ARCH}
 
 RUN apt-get update && \
   apt-get -y dist-upgrade && \
@@ -19,7 +21,6 @@ ENV PYTHON_CONFIGURE_OPTS --enable-shared
 ENV VIMSPECTOR_MIMODE gdb
 ENV GOPATH /home/dev/go
 
-RUN eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv) && \
-    go get -u github.com/go-delve/delve/cmd/dlv
+RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
 ADD --chown=dev:dev .vim/ /home/dev/.vim/
