@@ -11,7 +11,6 @@ RUN apt-get update && \
                      ca-certificates \
                      software-properties-common && \
   curl -sL https://deb.nodesource.com/setup_12.x | bash - && \
-  add-apt-repository ppa:bartbes/love-stable -y && \
   apt-get update && \
   apt-get -y dist-upgrade && \
   apt-get -y install gcc-8 \
@@ -29,16 +28,43 @@ RUN apt-get update && \
                      gdb \
                      lldb \
                      nodejs \
+                     pkg-config \
                      lua5.1 \
-                     luajit \
-                     love && \
-  apt-get -y autoremove
+                     luajit
 
 RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
   dpkg-reconfigure --frontend noninteractive tzdata
 
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 1 \
                         --slave   /usr/bin/g++ g++ /usr/bin/g++-8
+
+RUN curl -LO https://golang.org/dl/go1.17.3.linux-arm64.tar.gz && \
+    tar -C /usr/local -xzvf go1.17.3.linux-arm64.tar.gz
+
+RUN update-alternatives --install /usr/local/bin/go go /usr/local/go/bin/go 1
+
+# In order for love to work on arm64, we have to build it ourselves
+RUN apt-get -y install lua5.1-dev \
+                       luajit-5.1-dev \
+                       libsdl2-dev \
+                       libopenal-dev \
+                       libfreetype6-dev \
+                       libmodplug-dev \
+                       libvorbis-dev \
+                       libtheora-dev \
+                       libmpg123-dev
+
+RUN curl -LO https://github.com/love2d/love/releases/download/11.3/love-11.3-linux-src.tar.gz && \
+    tar zxvf love-11.3-linux-src.tar.gz && \
+    cd love-11.3 && \
+    ./configure && \
+    make -j $(nproc) && \
+    make install && \
+    cd .. && \
+    rm -rf love-11.3 && \
+    rm -f love-11.3-linux-src.tar.gz
+
+RUN apt-get -y autoremove
 
 ## cleanup of files from setup
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -59,17 +85,6 @@ RUN mkdir -p $HOME/vim && \
     make -j 4 && \
     make install
 
-# linuxbrew (homebrew)
-RUN mkdir -p /home/linuxbrew/.linuxbrew &&\
-    chmod -R go+rwx /home/linuxbrew && \
-    mkdir -p /home/linuxbrew/.linuxbrew/bin && \
-    git clone  https://github.com/Homebrew/brew /home/linuxbrew/.linuxbrew/Homebrew && \
-    ln -s /home/linuxbrew/.linuxbrew/Homebrew/bin/brew /home/linuxbrew/.linuxbrew/bin && \
-    echo "eval \$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" \
-        > /etc/bash.bashrc
-
-RUN /home/linuxbrew/.linuxbrew/bin/brew install golang
-
 # dotnet
 RUN curl -sSL https://dot.net/v1/dotnet-install.sh \
         | bash /dev/stdin --channel LTS --install-dir /usr/share/dotnet && \
@@ -77,6 +92,5 @@ RUN curl -sSL https://dot.net/v1/dotnet-install.sh \
                                                       /usr/share/dotnet/dotnet 1
 
 # clean up
-RUN /home/linuxbrew/.linuxbrew/bin/brew cleanup && \
-    rm -rf ~/.cache && \
+RUN rm -rf ~/.cache && \
     rm -rf $HOME/vim
