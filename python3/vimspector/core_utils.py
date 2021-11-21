@@ -39,9 +39,16 @@ def memoize( func ):
 
 def override( target_dict: typing.MutableMapping,
               override_dict: typing.Mapping ):
-  """Apply the updates in |override| to the dict |target|. This is like
+  """Apply the updates in override_dict to the dict target_dict. This is like
   dict.update, but recursive. i.e. if the existing element is a dict, then
   override elements of the sub-dict rather than wholesale replacing.
+
+  One special case is added. If a key within override dict starts with '!' then
+  it is interpretted as follows:
+     - if the associated value is "REMOVE", the key is removed from the parent
+       dict
+     - use !! for keys that actually start with ! and shouldn't be removed.
+
   e.g.
   override(
     {
@@ -65,6 +72,16 @@ def override( target_dict: typing.MutableMapping,
   """
 
   for key, value in override_dict.items():
+    #
+    # Handle special ! syntax:
+    #   "!keyname" : "REMOVE",   --> remove the key 'keyname' from target_dict
+    #
+    if key[ 0 : 1 ] == "!" and key[ 1 : 2 ] != "!":
+      key = key [ 1: ]
+      if value == "REMOVE":
+        target_dict.pop( key, None )
+        continue
+
     current_value = target_dict.get( key )
     if not isinstance( current_value, Mapping ):
       # Thing or Mapping overrides Thing or None

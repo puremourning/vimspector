@@ -26,3 +26,7 @@ endfunction
 function! Test_ExpandReferencesInDict()
   call s:RunPyFile( 'Test_ExpandReferencesInDict.py' )
 endfunction
+
+function! Test_CoreUtils()
+  call s:RunPyFile( 'Test_CoreUtils.py' )
+endfunction
