@@ -19,6 +19,7 @@ support/test/csharp/*.exe*
 .neomake.log
 configurations/
 venv/
-test-base/
+test-base*/
 tags
 Session.vim
+.vimspector.session
