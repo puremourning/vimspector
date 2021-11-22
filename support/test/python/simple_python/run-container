@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [ "$1" = "--continue" ]; then
+  OPTS=""
+else
+  OPTS="--no-cache"
+fi
+
+docker run -p 8765:8765 --rm -it puremourning/vimspector:simple_python
