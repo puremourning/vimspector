@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+generate-schema-doc docs/schema docs/schema-doc

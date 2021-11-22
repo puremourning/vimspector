@@ -1,4 +1,10 @@
 {
+  "adapters": {
+    "CodeLLDB - StopOnEntry": {
+      "extends": "CodeLLDB",
+      "name": "CoHostingLLDB"
+    }
+  },
   "configurations": {
     "CodeLLDB": {
       "adapter": "CodeLLDB",
@@ -9,8 +15,20 @@
       },
       "configuration": {
         "request": "launch",
-        "program": "${workspaceRoot}/test",
-        "stopAtEntry": true
+        "program": "${workspaceRoot}/test"
+      }
+    },
+    "CodeLLDB-StopOnEntryFalse": {
+      "extends": "CodeLLDB",
+      "adapter": "CodeLLDB - StopOnEntry",
+      "configuration": {
+        "stopOnEntry": false
+      }
+    },
+    "CodeLLDB-StopOnEntryTrue": {
+      "extends": "CodeLLDB-StopOnEntryFalse",
+      "configuration": {
+        "stopOnEntry": true
       }
     },
     "lldb-vscode": {

@@ -26,20 +26,17 @@
       }
     },
     "python-remote-ssh": {
-      "variables": {
-        "port": "8765"
-      },
-      "port": "${port}",
+      "extends": "python-remote-docker",
       "host": "${host}",
       "launch": {
         "remote": {
+          "!container": "REMOVE",
+          "!delay": "REMOVE",
+
+          "!!test": "This is a !test",
+
           "host": "${host}",
-          "account": "${account}",
-          "runCommand": [
-            "python3", "-m", "debugpy", "--listen", "0.0.0.0:${port}",
-                                        "--wait-for-client",
-                                        "%CMD%"
-          ]
+          "account": "${account}"
         }
       }
     }

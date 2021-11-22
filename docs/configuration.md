@@ -7,30 +7,37 @@ This document defines the supported format for project and adapter configuration
 for Vimspector.
 
 <!--ts-->
-  * [Concepts](#concepts)
-     * [Debug adapter configuration](#debug-adapter-configuration)
-     * [Debug profile configuration](#debug-profile-configuration)
-     * [Replacements and variables](#replacements-and-variables)
-     * [The splat operator](#the-splat-operator)
-      * [Default values](#default-values)
-      * [Coercing Types](#coercing-types)
-  * [Configuration Format](#configuration-format)
-  * [Files and locations](#files-and-locations)
-  * [Adapter configurations](#adapter-configurations)
-  * [Debug configurations](#debug-configurations)
-     * [Configuration selection](#configuration-selection)
-        * [Specifying a default configuration](#specifying-a-default-configuration)
-        * [Preventing automatic selection](#preventing-automatic-selection)
-     * [Exception Breakpoints](#exception-breakpoints)
-  * [Predefined Variables](#predefined-variables)
-  * [Remote Debugging Support](#remote-debugging-support)
-     * [Python (debugpy) Example](#python-debugpy-example)
-     * [C-family (gdbserver) Example](#c-family-gdbserver-example)
-     * [Docker Example](#docker-example)
-  * [Appendix: Configuration file format](#appendix-configuration-file-format)
-  * [Appendix: Editor configuration](#appendix-editor-configuration)
+      * [title: Configuration](#title-configuration)
+      * [Concepts](#concepts)
+         * [Debug adapter configuration](#debug-adapter-configuration)
+         * [Debug profile configuration](#debug-profile-configuration)
+         * [Replacements and variables](#replacements-and-variables)
+            * [The splat operator](#the-splat-operator)
+            * [Default values](#default-values)
+            * [Coercing Types](#coercing-types)
+      * [Configuration Format](#configuration-format)
+      * [Files and locations](#files-and-locations)
+      * [Adapter configurations](#adapter-configurations)
+         * [Extending adapters](#extending-adapters)
+      * [Debug configurations](#debug-configurations)
+         * [Project and global configurations](#project-and-global-configurations)
+         * [Ad-hoc configurations](#ad-hoc-configurations)
+         * [Configuration selection](#configuration-selection)
+            * [Specifying a default configuration](#specifying-a-default-configuration)
+            * [Preventing automatic selection](#preventing-automatic-selection)
+            * [Default per filetype](#default-per-filetype)
+         * [Exception Breakpoints](#exception-breakpoints)
+         * [Extending configurations](#extending-configurations)
+            * [Override syntax](#override-syntax)
+      * [Predefined Variables](#predefined-variables)
+      * [Remote Debugging Support](#remote-debugging-support)
+         * [Python (debugpy) Example](#python-debugpy-example)
+         * [C-family (gdbserver) Example](#c-family-gdbserver-example)
+         * [Docker Example](#docker-example)
+      * [Appendix: Configuration file format](#appendix-configuration-file-format)
+      * [Appendix: Editor configuration](#appendix-editor-configuration)
 
-<!-- Added by: ben, at: Thu 13 Aug 2020 17:42:11 BST -->
+<!-- Added by: ben, at: Mon 22 Nov 2021 20:18:32 GMT -->
 
 <!--te-->
 
@@ -379,7 +386,31 @@ Adapter configurations are re-read at the start of each debug session.
 
 The specification for the gadget object is defined in the [gadget schema][].
 
+### Extending adapters
+
+You can specify a key `extends` in the adapter configuration to inherit from an
+existing adapter. This is useful for defining adapters for remote debugging or
+where there are common options, varables etc. For example:
+
+```json
+{
+  "adapters": {
+    "my-custom-debugpy": {
+      "extends": "debugpy",
+      "command": [ "python3", "-m", "debugpy" ]
+    }
+  }
+}
+```
+
+Details of the "override" behaviour are specified [below](#override-syntax).
+
 ## Debug configurations
+
+You can define per-project or global per-filetype configurations. You can
+further restrict project configurations by filetype.
+
+### Project and global configurations
 
 There are two locations for debug configurations for a project:
 
@@ -428,7 +459,7 @@ typical example looks like this:
 }
 ```
 
-#### Ad-hoc configurations
+### Ad-hoc configurations
 
 You can tell vimspector to ignore any configuration files on disk, and just use
 a set of supplied 'ad-hoc' configurations. You do with as follows:
@@ -457,7 +488,6 @@ For example:
 This would launch the debugger and attach to the specified process without the
 need to have a local .vimspector file on disk.  The `${workspaceRoot}` variable
 will point to the parent folder of the file that is currently open in vim.
-
 
 ### Configuration selection
 
@@ -477,36 +507,6 @@ will use that configuration, unless it contains a key `"autoselect": false`.
 If any single configuration is found with `"default": true`, that one is used.
 
 Otherwise, the user is propmted to select a configuration to use.
-
-#### Ad-hoc configurations
-
-You can tell vimspector to ignore any configuration files on disk, and just use
-a set of supplied 'ad-hoc' configurations. You do with as follows:
-
-```viml
-call vimspector#LaunchWithConfigurations( dict )
-```
-
-`dict` is the contents of the `configurations` block as a vim dictionary.
-
-For example:
-
-```viml
-   let pid = <some_exression>
-   call vimspector#LaunchWithConfigurations( {
-               \  "attach": {
-               \    "adapter": "netcoredbg",
-               \    "configuration": {
-               \      "request": "attach",
-               \      "processId": pid
-               \    }
-               \  }
-               \ } )
-```
-
-This would launch the debugger and attach to the specified process without the
-need to have a local .vimspector file on disk.  The `${workspaceRoot}` variable
-will point to the parent folder of the file that is currently open in vim.
 
 #### Specifying a default configuration
 
@@ -670,6 +670,101 @@ a value, as in :
           "cpp_catch": ""
         }
       },
+```
+
+### Extending configurations
+
+Like adapters, you can include a `extends` key in the configuration
+specification, which makes it "inherit" from the specified configuraiton. In
+practice that means any keys specified in this configuraiton override the
+corresponding keys in the "base" configuration. 
+
+This is useful in particular where there data that need to be the same across a
+number of debug configurations, such as environment variables, paths, variables,
+etc. For example:
+
+```json
+{
+  "configurations":  {
+    "run - simple": {
+      "adapter": "CodeLLDB",
+      "configuration": {
+        "program": "${workspaceRoot}/myapp",
+        "env": {
+          "BASEPATH": "${workspaceRoot}"
+        },
+        "args": []
+      }
+    },
+    // run with some fixed options
+    "run - test mode": {
+      "extends": "run - simple",
+      "configuation": {
+        "args": [ "-mode", "test" ] 
+      }
+    },
+    // run with some different environment vars
+    "run - verbose mode": {
+      "extends": "run - test mode",
+      "configuation": {
+        "env": {
+          "LOGLEVEL": "verbose"
+        }
+      }
+    }
+  }
+}
+
+```
+
+These are just examples, hopefully you get the idea.
+
+#### Override syntax
+
+As exemplified above, the override is recursive, in the sense that a key like
+`{ "top": { "middle": { "bottom": "value" } } }` only sets the "bottom" value
+and leaves all other "top" and "middle" keys untouched.
+
+Keys can be removed from base configurations by naming the key
+`"!<key name to delete>"` and setting the value to "REMOVE".
+
+For example:
+
+```json
+{
+  "configurations": {
+    "base" : {
+      "key1": "This key is unchanged",
+      "key2": {
+        "key2.1": "This key is overridden",
+        "key2.2": "This key is unchanged"
+      },
+      "key3": "This key is removed"
+    },
+
+    "derived": {
+      "extends": "base",
+      "key2": {
+        // override key2.key2.1 in the base config
+        "key2.1": "This is the override value"
+      },
+      // remove "key3" from the resulting config
+      "!key3": "REMOVE" 
+    }
+  }
+}
+```
+
+The resulting "derived" configuraition ends up like this:
+
+```json
+{
+  "key1": "This key is unchanged",
+  "key2": {
+    "key2.1": "This is the override valu",
+    "key2.2": "This key is unchanged"
+  }
+}
 ```
 
 ## Predefined Variables

@@ -17,6 +17,8 @@ It complements the following:
 
 * [Configuring Vimspector for your projects](configuration.html)
 * [Full JSON Schema reference](schema/)
+  * [Online configuration schema view](schema-doc/vimspector.schema.html)
+  * [Online gadgets schema view](schema-doc/gadgets.schema.html)
 
 [vimspector]: https://github.com/puremourning/vimspector
 [readme]: https://github.com/puremourning/vimspector/blob/master/README.md
