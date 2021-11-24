@@ -2166,6 +2166,7 @@ hi link jsonComment Comment
     The vimsepctor author uses this [a lot](https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf)
 11. I'm confused about remote debugging configuration, can you explain it?
     eh... kind of. Reference: https://puremourning.github.io/vimspector/configuration.html#remote-debugging-support. Some explanations here too: https://github.com/puremourning/vimspector/issues/478#issuecomment-943515093
+12. I'm trying to debug a Django (django?) project and it's not working. Can you help? sure, check [this link which has a working example](https://www.reddit.com/r/neovim/comments/mz4ari/how_to_set_up_vimspector_for_django_debugging/). Or google it.
 
 
 [ycmd]: https://github.com/Valloric/ycmd
