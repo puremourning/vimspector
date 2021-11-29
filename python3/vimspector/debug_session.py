@@ -1433,6 +1433,7 @@ class DebugSession( object ):
         '',
         'Use :VimspectorReset to close'
       ]
+      self._logger.info( "Launch failed: %s", '\n'.join( text ) )
       self._splash_screen = utils.DisplaySplash( self._api_prefix,
                                                  self._splash_screen,
                                                  text )
@@ -1472,10 +1473,10 @@ class DebugSession( object ):
     # leader rather than the process. The workaround is to manually SIGTRAP the
     # PID.
     #
-    self._splash_screen = utils.HideSplash( self._api_prefix,
-                                            self._splash_screen )
-
     if self._launch_complete and self._init_complete:
+      self._splash_screen = utils.HideSplash( self._api_prefix,
+                                              self._splash_screen )
+
       for h in self._on_init_complete_handlers:
         h()
       self._on_init_complete_handlers = []

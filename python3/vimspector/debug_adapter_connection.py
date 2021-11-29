@@ -264,18 +264,18 @@ class DebugAdapterConnection( object ):
           request.handler( message )
       else:
         reason = message.get( 'message' )
-        if not message:
-          fmt = message.get( 'body', {} ).get( 'error', {} ).get( 'format' )
-          if fmt:
-            # TODO: Actually make this work
-            reason = fmt
-          else:
-            reason = 'No reason'
+        error = message.get( 'body', {} ).get( 'error' )
+        if error:
+          fmt = error[ 'format' ]
+          variables = error.get( 'variables', {} )
+          reason = fmt.format( **variables )
 
-        self._logger.error( 'Request failed: {0}'.format( reason ) )
         if request.failure_handler:
+          self._logger.info( 'Request failed (handled): %s', reason )
           request.failure_handler( reason, message )
         else:
+          self._logger.error( 'Request failed (unhandled): %s', reason )
+          request.failure_handler( reason, message )
           for h in self._handlers:
             if 'OnFailure' in dir( h ):
               h.OnFailure( reason, request.msg, message )
