@@ -264,18 +264,21 @@ class DebugAdapterConnection( object ):
           request.handler( message )
       else:
         reason = message.get( 'message' )
-        error = message.get( 'body', {} ).get( 'error' )
+        error = message.get( 'body', {} ).get( 'error', {} )
         if error:
-          fmt = error[ 'format' ]
-          variables = error.get( 'variables', {} )
-          reason = fmt.format( **variables )
+          try:
+            fmt = error[ 'format' ]
+            variables = error.get( 'variables', {} )
+            reason = fmt.format( **variables )
+          except Exception:
+            self._logger.exception( "Failed to parse error, using default: %s",
+                                    error )
 
         if request.failure_handler:
           self._logger.info( 'Request failed (handled): %s', reason )
           request.failure_handler( reason, message )
         else:
           self._logger.error( 'Request failed (unhandled): %s', reason )
-          request.failure_handler( reason, message )
           for h in self._handlers:
             if 'OnFailure' in dir( h ):
               h.OnFailure( reason, request.msg, message )
