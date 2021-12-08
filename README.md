@@ -1381,7 +1381,7 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
   "configurations": {
     "<name>: Launch": {
       "adapter": "debugpy",
-      "filetypes": [ "pythyon" ],
+      "filetypes": [ "python" ],
       "configuration": {
         "name": "<name>: Launch",
         "type": "python",
