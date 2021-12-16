@@ -316,7 +316,7 @@ class CodeView( object ):
       ] )
       utils.AppendToBuffer( buf, utils.Base64ToHexDump( data ) )
 
-    utils.SetSyntax( '', 'xxd', buf )
+    utils.SetSyntax( '', 'vimspector-memory', buf )
     utils.JumpToWindow( self._window )
     utils.OpenFileInCurrentWindow( buf_name )
 
