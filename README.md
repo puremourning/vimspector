@@ -1001,6 +1001,7 @@ autocmd SessionLoadPost * silent! VimspectorLoadSession
 * Use `<CR>`, or double-click with left mouse to expand/collapse (+, -).
 * Set the value of the variable with `<C-CR>` (control + `<CR>`) or
   `<leader><CR>` (if `modifyOtherKeys` doesn't work for you)
+* View the type of the variable via mouse hover.
 * When changing the stack frame the locals window updates.
 * While paused, hover to see values
 
@@ -1008,11 +1009,19 @@ autocmd SessionLoadPost * silent! VimspectorLoadSession
 
 Scopes and variables are represented by the buffer `vimspector.Variables`.
 
+If you prefer a more verbose display for variables and watches, then you can
+`let g:vimspector_variables_display_mode = 'full'`. By default only the name and
+value are displayed, with other data available from hovering the mouse or
+triggering `<Plug>VimspectorBalloonEval` on the line contianing the value in the
+variables (or watches) window.
+
 ## Variable or selection hover evaluation
 
 All rules for `Variables and scopes` apply plus the following:
 
 * With mouse enabled, hover over a variable and get the value it evaluates to.
+  This applies to the variables and watches windows too, and allows you to view
+  the type of the value.
 * Use your mouse to perform a visual selection of an expression (e.g. `a + b`)
   and get its result.
 * Make a normal mode (`nmap`) and visual mode (`xmap`) mapping to
@@ -1036,6 +1045,7 @@ to add a new watch expression.
   typing the expression. Commit with `<CR>`.
 * Alternatively, use `:VimspectorWatch <expression>`. Tab-completion for
   expression is available in some debug adapters.
+* View the type of the variable via mouse hover.
 * Expand result with `<CR>`, or double-click with left mouse.
 * Set the value of the variable with `<C-CR>` (control + `<CR>`) or
   `<leader><CR>` (if `modifyOtherKeys` doesn't work for you)
@@ -1044,6 +1054,12 @@ to add a new watch expression.
 ![watch window](https://puremourning.github.io/vimspector-web/img/vimspector-watch-window.png)
 
 The watches are represented by the buffer `vimspector.StackTrace`.
+
+If you prefer a more verbose display for variables and watches, then you can
+`let g:vimspector_variables_display_mode = 'full'`. By default only the name and
+value are displayed, with other data available from hovering the mouse or
+triggering `<Plug>VimspectorBalloonEval` on the line contianing the value in the
+variables (or watches) window.
 
 ### Watch autocompletion
 

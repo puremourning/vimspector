@@ -2,7 +2,7 @@ let s:fn='../support/test/python/simple_python/main.py'
 
 function! SetUp()
   call vimspector#test#setup#SetUpWithMappings( 'HUMAN' )
-  let g:vimspector_variables_display_mode = 'full'
+  let g:vimspector_variables_display_mode = 'compact'
 endfunction
 
 function! ClearDown()
@@ -194,7 +194,7 @@ function! Test_ExpandVariables()
         \   assert_equal(
         \     [
         \       '- Scope: Locals',
-        \       ' *+ t (Test): {...}',
+        \       ' *+ t: {...}',
         \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
@@ -216,11 +216,11 @@ function! Test_ExpandVariables()
         \   AssertMatchList(
         \     [
         \       '- Scope: Locals',
-        \       ' \*- t (Test): {...}',
-        \       '   \*- i (int): 0',
-        \       '   \*- c (char): 0 ''\\0\{1,3}''',
-        \       '   \*- fffff (float): 0',
-        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       ' \*- t: {...}',
+        \       '   \*- i: 0',
+        \       '   \*- c: 0 ''\\0\{1,3}''',
+        \       '   \*- fffff: 0',
+        \       '   \*+ another_test:\( {...}\)\?',
         \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
@@ -235,11 +235,11 @@ function! Test_ExpandVariables()
         \   AssertMatchList(
         \     [
         \       '- Scope: Locals',
-        \       '  - t (Test): {...}',
-        \       '   \*- i (int): 1',
-        \       '    - c (char): 0 ''\\0\{1,3}''',
-        \       '    - fffff (float): 0',
-        \       '    + another_test (AnotherTest):\( {...}\)\?',
+        \       '  - t: {...}',
+        \       '   \*- i: 1',
+        \       '    - c: 0 ''\\0\{1,3}''',
+        \       '    - fffff: 0',
+        \       '    + another_test:\( {...}\)\?',
         \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
@@ -256,7 +256,7 @@ function! Test_ExpandVariables()
         \   assert_equal(
         \     [
         \       '- Scope: Locals',
-        \       '  + t (Test): {...}',
+        \       '  + t: {...}',
         \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
@@ -271,7 +271,7 @@ function! Test_ExpandVariables()
         \   assert_equal(
         \     [
         \       '- Scope: Locals',
-        \       '  + t (Test): {...}',
+        \       '  + t: {...}',
         \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
@@ -287,11 +287,11 @@ function! Test_ExpandVariables()
         \   AssertMatchList(
         \     [
         \       '- Scope: Locals',
-        \       '  - t (Test): {...}',
-        \       '   \*- i (int): 1',
-        \       '   \*- c (char): 99 ''c''',
-        \       '   \*- fffff (float): 0',
-        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       '  - t: {...}',
+        \       '   \*- i: 1',
+        \       '   \*- c: 99 ''c''',
+        \       '   \*- fffff: 0',
+        \       '   \*+ another_test:\( {...}\)\?',
         \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
@@ -393,10 +393,10 @@ function! Test_ExpandWatch()
         \       'Watches: ----',
         \       'Expression: t',
         \       ' \*- Result: {...}',
-        \       '   \*- i (int): 0',
-        \       '   \*- c (char): 0 ''\\0\{1,3}''',
-        \       '   \*- fffff (float): 0',
-        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       '   \*- i: 0',
+        \       '   \*- c: 0 ''\\0\{1,3}''',
+        \       '   \*- fffff: 0',
+        \       '   \*+ another_test:\( {...}\)\?',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.watches ),
         \                 1,
@@ -412,10 +412,10 @@ function! Test_ExpandWatch()
         \       'Watches: ----',
         \       'Expression: t',
         \       '  - Result: {...}',
-        \       '   \*- i (int): 1',
-        \       '    - c (char): 0 ''\\0\{1,3}''',
-        \       '    - fffff (float): 0',
-        \       '    + another_test (AnotherTest):\( {...}\)\?',
+        \       '   \*- i: 1',
+        \       '    - c: 0 ''\\0\{1,3}''',
+        \       '    - fffff: 0',
+        \       '    + another_test:\( {...}\)\?',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.watches ),
         \                 1,
@@ -464,10 +464,10 @@ function! Test_ExpandWatch()
         \       'Watches: ----',
         \       'Expression: t',
         \       '  - Result: {...}',
-        \       '    - i (int): 1',
-        \       '    - c (char): 99 ''c''',
-        \       '    - fffff (float): 0',
-        \       '    + another_test (AnotherTest):\( {...}\)\?',
+        \       '    - i: 1',
+        \       '    - c: 99 ''c''',
+        \       '    - fffff: 0',
+        \       '    + another_test:\( {...}\)\?',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.watches ),
         \                 1,
@@ -855,7 +855,7 @@ function! Test_SetVariableValue_Local()
         \   assert_equal(
         \     [
         \       '- Scope: Locals',
-        \       ' *+ t (Test): {...}',
+        \       ' *+ t: {...}',
         \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
@@ -877,11 +877,11 @@ function! Test_SetVariableValue_Local()
         \   AssertMatchList(
         \     [
         \       '- Scope: Locals',
-        \       ' \*- t (Test): {...}',
-        \       '   \*- i (int): 0',
-        \       '   \*- c (char): 0 ''\\0\{1,3}''',
-        \       '   \*- fffff (float): 0',
-        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       ' \*- t: {...}',
+        \       '   \*- i: 0',
+        \       '   \*- c: 0 ''\\0\{1,3}''',
+        \       '   \*- fffff: 0',
+        \       '   \*+ another_test:\( {...}\)\?',
         \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
@@ -904,11 +904,11 @@ EOF
         \   AssertMatchList(
         \     [
         \       '- Scope: Locals',
-        \       ' \*- t (Test): {...}',
-        \       '   \*- i (int): 100',
-        \       '   \*- c (char): 0 ''\\0\{1,3}''',
-        \       '   \*- fffff (float): 0',
-        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       ' \*- t: {...}',
+        \       '   \*- i: 100',
+        \       '   \*- c: 0 ''\\0\{1,3}''',
+        \       '   \*- fffff: 0',
+        \       '   \*+ another_test:\( {...}\)\?',
         \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
@@ -924,11 +924,11 @@ EOF
         \   AssertMatchList(
         \     [
         \       '- Scope: Locals',
-        \       ' \*- t (Test): {...}',
-        \       '   \*- i (int): 1234',
-        \       '   \*- c (char): 0 ''\\0\{1,3}''',
-        \       '   \*- fffff (float): 0',
-        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       ' \*- t: {...}',
+        \       '   \*- i: 1234',
+        \       '   \*- c: 0 ''\\0\{1,3}''',
+        \       '   \*- fffff: 0',
+        \       '   \*+ another_test:\( {...}\)\?',
         \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
@@ -944,11 +944,11 @@ EOF
         \   AssertMatchList(
         \     [
         \       '- Scope: Locals',
-        \       ' \*- t (Test): {...}',
-        \       '   \*- i (int): 1234',
-        \       '   \*- c (char): 0 ''\\0\{1,3}''',
-        \       '   \*- fffff (float): 0',
-        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       ' \*- t: {...}',
+        \       '   \*- i: 1234',
+        \       '   \*- c: 0 ''\\0\{1,3}''',
+        \       '   \*- fffff: 0',
+        \       '   \*+ another_test:\( {...}\)\?',
         \       '+ Scope: Registers',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
@@ -1003,10 +1003,10 @@ function! Test_SetVariableValue_Watch()
         \       'Watches: ----',
         \       'Expression: t',
         \       ' \*- Result: {...}',
-        \       '   \*- i (int): 0',
-        \       '   \*- c (char): 0 ''\\0\{1,3}''',
-        \       '   \*- fffff (float): 0',
-        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       '   \*- i: 0',
+        \       '   \*- c: 0 ''\\0\{1,3}''',
+        \       '   \*- fffff: 0',
+        \       '   \*+ another_test:\( {...}\)\?',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.watches ),
         \                 1,
@@ -1032,10 +1032,10 @@ EOF
         \       'Watches: ----',
         \       'Expression: t',
         \       ' \*- Result: {...}',
-        \       '   \*- i (int): 100',
-        \       '   \*- c (char): 0 ''\\0\{1,3}''',
-        \       '   \*- fffff (float): 0',
-        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       '   \*- i: 100',
+        \       '   \*- c: 0 ''\\0\{1,3}''',
+        \       '   \*- fffff: 0',
+        \       '   \*+ another_test:\( {...}\)\?',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.watches ),
         \                 1,
@@ -1052,10 +1052,10 @@ EOF
         \       'Watches: ----',
         \       'Expression: t',
         \       ' \*- Result: {...}',
-        \       '   \*- i (int): 1234',
-        \       '   \*- c (char): 0 ''\\0\{1,3}''',
-        \       '   \*- fffff (float): 0',
-        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       '   \*- i: 1234',
+        \       '   \*- c: 0 ''\\0\{1,3}''',
+        \       '   \*- fffff: 0',
+        \       '   \*+ another_test:\( {...}\)\?',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.watches ),
         \                 1,
@@ -1134,3 +1134,4 @@ EOF
   call vimspector#test#setup#Reset()
   %bwipe!
 endfunction
+

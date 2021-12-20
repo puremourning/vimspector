@@ -22,6 +22,7 @@ DEFAULTS = {
   # UI
   'ui_mode':            'auto',
   'bottombar_height':   10,
+  'variables_display_mode': 'compact', # compact/full
 
   # For ui_mode = 'horizontal':
   'sidebar_width':      50,
@@ -71,7 +72,7 @@ DEFAULTS = {
 }
 
 
-def Get( option: str, default=None, cls=str ):
+def Get( option: str, cls=str ):
   return cls( utils.GetVimValue( vim.vars,
                                  f'vimspector_{ option }',
                                  DEFAULTS.get( option, cls() ) ) )

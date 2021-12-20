@@ -35,9 +35,11 @@ let s:is_neovim = has( 'nvim' )
 
 " This is used as the balloonexpr in vim to show the Tooltip at the hover
 " position
-function! vimspector#internal#balloon#HoverTooltip() abort
-  return py3eval( '_vimspector_session.ShowEvalBalloon('
+function! vimspector#internal#balloon#HoverEvalTooltip() abort
+  return py3eval( '_vimspector_session.HoverEvalTooltip('
                 \ . ' int( vim.eval( "v:beval_winnr" ) ) + 1,'
+                \ . ' int( vim.eval( "v:beval_bufnr" ) ),'
+                \ . ' int( vim.eval( "v:beval_lnum" ) ),'
                 \ . ' vim.eval( "v:beval_text"),'
                 \ . ' 1 )' )
 endfunction

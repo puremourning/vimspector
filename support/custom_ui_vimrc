@@ -35,6 +35,13 @@ function! s:CustomiseUI()
   call win_gotoid( wins.output )
   10wincmd _
   wincmd K
+
+  " Enable keyboard-hover for vars and watches
+  call win_gotoid( g:vimspector_session_windows.variables )
+  nmap <silent> <buffer> <LocalLeader>di <Plug>VimspectorBalloonEval
+
+  call win_gotoid( g:vimspector_session_windows.watches )
+  nmap <silent> <buffer> <LocalLeader>di <Plug>VimspectorBalloonEval
 endfunction
 
 function s:SetUpTerminal()
