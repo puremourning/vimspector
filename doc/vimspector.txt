@@ -257,39 +257,41 @@ runtime dependencies). They are categorised by their level of support:
 - 'Legacy': No longer supported, please migrate your config
 - 'Retired': No longer included or supported.
 
-=====================================================================================================================================================
-|     _Language_     |  _Status_ | _Switch (for 'install_gadget.py')_ | _Adapter (for ':VimspectorInstall')_ |            _Dependencies_            |
-=====================================================================================================================================================
-| C, C++, Rust etc.  | Tested    | '--all' or '--enable-c' (or cpp)   | vscode-cpptools                      | mono-core                            |
------------------------------------------------------------------------------------------------------------------------------------------------------
-| Rust, C, C++, etc. | Supported | '--enable-rust'                    | CodeLLDB                             | Python 3                             |
------------------------------------------------------------------------------------------------------------------------------------------------------
-| Python             | Tested    | '--all' or '--enable-python'       | debugpy                              | Python 2.7 or Python 3               |
------------------------------------------------------------------------------------------------------------------------------------------------------
-| Go                 | Tested    | '--enable-go'                      | vscode-go                            | Node, Go, Delve [11]                 |
------------------------------------------------------------------------------------------------------------------------------------------------------
-| TCL                | Supported | '--all' or '--enable-tcl'          | tclpro                               | TCL 8.5                              |
------------------------------------------------------------------------------------------------------------------------------------------------------
-| Bourne Shell       | Supported | '--all' or '--enable-bash'         | vscode-bash-debug                    | Bash v??                             |
------------------------------------------------------------------------------------------------------------------------------------------------------
-| Lua                | Supported | '--all' or '--enable-lua'          | local-lua-debugger-vscode            | Node >=12.13.0, Npm, Lua interpreter |
------------------------------------------------------------------------------------------------------------------------------------------------------
-| Node.js            | Supported | '--force-enable-node'              | vscode-node-debug2                   | 6 < Node < 12, Npm                   |
------------------------------------------------------------------------------------------------------------------------------------------------------
-| Javascript         | Supported | '--force-enable-chrome'            | debugger-for-chrome                  | Chrome                               |
------------------------------------------------------------------------------------------------------------------------------------------------------
-| Javascript         | Supported | '--force-enable-firefox'           | vscode-firefox-debug                 | Firefox                              |
------------------------------------------------------------------------------------------------------------------------------------------------------
-| Java               | Supported | '--force-enable-java'              | vscode-java-debug                    | Compatible LSP plugin (see later)    |
------------------------------------------------------------------------------------------------------------------------------------------------------
-| C# (dotnet core)   | Tested    | '--force-enable-csharp'            | netcoredbg                           | DotNet core                          |
------------------------------------------------------------------------------------------------------------------------------------------------------
-| F#, VB, etc.       | Supported | '--force-enable-[fsharp,vbnet]'    | ','--force-enable-vbnet`             | netcoredbg                           |
------------------------------------------------------------------------------------------------------------------------------------------------------
-| C# (mono)          | _Retired_ | N/A                                | N/A                                  | N/A                                  |
------------------------------------------------------------------------------------------------------------------------------------------------------
-| Python.legacy      | _Retired_ | N/A                                | N/A                                  | N/A                                  |
------------------------------------------------------------------------------------------------------------------------------------------------------
+========================================================================================================================================================
+|     _Language_     |   _Status_   | _Switch (for 'install_gadget.py')_ | _Adapter (for ':VimspectorInstall')_ |            _Dependencies_            |
+========================================================================================================================================================
+| C, C++, Rust etc.  | Tested       | '--all' or '--enable-c' (or cpp)   | vscode-cpptools                      | mono-core                            |
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+| Rust, C, C++, etc. | Supported    | '--enable-rust'                    | CodeLLDB                             | Python 3                             |
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+| Python             | Tested       | '--all' or '--enable-python'       | debugpy                              | Python 2.7 or Python 3               |
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+| Go                 | Experimental | '--enable-go'                      | delve                                | Go 1.16+                             |
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+| Go (legacy)        | Tested       | '--enable-go'                      | vscode-go                            | Node, Go, Delve [11]                 |
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+| TCL                | Supported    | '--all' or '--enable-tcl'          | tclpro                               | TCL 8.5                              |
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+| Bourne Shell       | Supported    | '--all' or '--enable-bash'         | vscode-bash-debug                    | Bash v??                             |
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+| Lua                | Supported    | '--all' or '--enable-lua'          | local-lua-debugger-vscode            | Node >=12.13.0, Npm, Lua interpreter |
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+| Node.js            | Supported    | '--force-enable-node'              | vscode-node-debug2                   | 6 < Node < 12, Npm                   |
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+| Javascript         | Supported    | '--force-enable-chrome'            | debugger-for-chrome                  | Chrome                               |
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+| Javascript         | Supported    | '--force-enable-firefox'           | vscode-firefox-debug                 | Firefox                              |
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+| Java               | Supported    | '--force-enable-java'              | vscode-java-debug                    | Compatible LSP plugin (see later)    |
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+| C# (dotnet core)   | Tested       | '--force-enable-csharp'            | netcoredbg                           | DotNet core                          |
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+| F#, VB, etc.       | Supported    | '--force-enable-[fsharp,vbnet]'    | ','--force-enable-vbnet`             | netcoredbg                           |
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+| C# (mono)          | _Retired_    | N/A                                | N/A                                  | N/A                                  |
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+| Python.legacy      | _Retired_    | N/A                                | N/A                                  | N/A                                  |
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 -------------------------------------------------------------------------------
@@ -1651,7 +1653,7 @@ Python ~
     "configurations": {
       "<name>: Launch": {
         "adapter": "debugpy",
-        "filetypes": [ "pythyon" ],
+        "filetypes": [ "python" ],
         "configuration": {
           "name": "<name>: Launch",
           "type": "python",
@@ -1749,15 +1751,52 @@ netcoredbg'
                                                                 *vimspector-go*
 Go ~
 
-- Go
+- Go (delve dap)
+
+Requires:
+
+- 'install_gadget.py --enable-go' or ':VimspectorInstall delve'
+- 'go 1.16' or later (YMMV on earlier versions)
+
+This uses the DAP support built in to the delve debugger
+>
+  {
+    "configurations": {
+      "run": {
+        "adapter": "delve",
+        "filetypes": [ "go" ], // optional
+        "variables": {
+          // example, to disable delve's go version check
+          // "dlvFlags": "--check-go-version=false"
+        },
+        "configuration": {
+          "request": "launch",
+          "program": "${fileDirname}",
+          "mode": "debug"
+        }
+      }
+    }
+  }
+<
+Use Variables to configure the following:
+
+- 'dlvFlags': (string) additional command line arguments to pass to delve
+
+See vscode-go docs [38] for full launch options. Yes, it seems that's the only
+place they are documented (apparently, they are not documented by delve
+itself).
+
+The vscode-go docs also have useful troubleshooting information [39]
+
+- Go (legacy vscode-go)
 
 Requires:
 
 - 'install_gadget.py --enable-go' or ':VimspectorInstall vscode-go'
-- Delve [38] installed, e.g. 'go get -u github.com/go-delve/delve/cmd/dlv'
+- Delve [40] installed, e.g. 'go get -u github.com/go-delve/delve/cmd/dlv'
 - Delve to be in your PATH, or specify the 'dlvToolPath' launch option
 
-NOTE: Vimspector uses the "legacy" vscode-go debug adapter [39] rather than the
+NOTE: Vimspector uses the "legacy" vscode-go debug adapter [41] rather than the
 "built-in" DAP support in Delve. You can track
 https://github.com/puremourning/vimspector/issues/186 for that.
 >
@@ -1771,12 +1810,14 @@ https://github.com/puremourning/vimspector/issues/186 for that.
           "program": "${fileDirname}",
           "mode": "debug",
           "dlvToolPath": "$HOME/go/bin/dlv"
+          // example, to disable delve's go version check
+          // "dlvFlags": [ "--check-go-version=false" ]
         }
       }
     }
   }
 <
-See the vscode-go docs for troubleshooting information [40]
+See the vscode-go docs for troubleshooting information [42]
 
 -------------------------------------------------------------------------------
                                                                *vimspector-php*
@@ -1941,12 +1982,12 @@ It allows you to debug scripts running inside chrome from within Vim.
                                                               *vimspector-java*
 Java ~
 
-Vimspector works well with the java debug server [41], which runs as a jdt.ls
+Vimspector works well with the java debug server [43], which runs as a jdt.ls
 (Java Language Server) plugin, rather than a standalone debug adapter.
 
 Vimspector is not in the business of running language servers, only debug
 adapters, so this means that you need a compatible Language Server Protocol
-editor plugin to use Java. I recommend YouCompleteMe [42], which has full
+editor plugin to use Java. I recommend YouCompleteMe [44], which has full
 support for jdt.ls, and most importantly a trivial way to load the debug
 adapter and to use it with Vimspector.
 
@@ -1954,7 +1995,7 @@ adapter and to use it with Vimspector.
                                                   *vimspector-hot-code-replace*
 Hot code replace ~
 
-When using the java debug server [41], Vimspector supports the hot code replace
+When using the java debug server [43], Vimspector supports the hot code replace
 custom feature. By default, when the underlying class files change, vimspector
 asks the user if they wish to reload these classes at runtime.
 
@@ -1969,7 +2010,7 @@ This behaviour can be customised:
                                           *vimspector-usage-with-youcompleteme*
 Usage with YouCompleteMe ~
 
-- Set up YCM for java [42].
+- Set up YCM for java [44].
 
 - Get Vimspector to download the java debug plugin: 'install_gadget.py
   --force-enable-java <other options...>' or ':VimspectorInstall
@@ -2034,24 +2075,24 @@ If you see "Unable to get DAP port - is JDT.LS initialized?", try running
 ':YcmCompleter ExecuteCommand vscode.java.startDebugSession' and note the
 output. If you see an error like 'ResponseFailedException: Request failed:
 -32601: No delegateCommandHandler for vscode.java.startDebugSession', make sure
-that: _Your YCM jdt.ls is actually working, see the YCM docs [43] for
+that: _Your YCM jdt.ls is actually working, see the YCM docs [45] for
 troubleshooting_ The YCM jdt.ls has had time to initialize before you start the
 debugger * That 'g:ycm_java_jdtls_extension_path' is set in '.vimrc' or prior
 to YCM starting
 
-For the launch arguments, see the vscode document [44].
+For the launch arguments, see the vscode document [46].
 
 -------------------------------------------------------------------------------
                                                  *vimspector-other-lsp-clients*
 Other LSP clients ~
 
-See this issue [45] for more background.
+See this issue [47] for more background.
 
 -------------------------------------------------------------------------------
                                                                *vimspector-lua*
 Lua ~
 
-Lua is supported through local-lua-debugger-vscode [46]. This debugger uses
+Lua is supported through local-lua-debugger-vscode [48]. This debugger uses
 stdio to communicate with the running process, so calls to 'io.read' will cause
 problems.
 
@@ -2109,7 +2150,7 @@ problems.
 Other servers ~
 
 - Java - vscode-javac. This works, but is not as functional as Java Debug
-  Server. Take a look at this comment [47] for instructions.
+  Server. Take a look at this comment [49] for instructions.
 
 - See also the wiki [12] which has community-contributed plugin files for
   some languages.
@@ -2428,7 +2469,7 @@ FAQ ~
    require very-specific unique handling.
 
 3. How do I stop it starting a new Terminal.app on macOS? See this comment
-   [48]
+   [50]
 
 4. Can I specify answers to the annoying questions about exception
    breakpoints in my '.vimspector.json' ? Yes, see here [23].
@@ -2465,14 +2506,18 @@ FAQ ~
 
 4. Do I _have_ to put a '.vimspector.json' in the root of every project? No,
    you can put all of your adapter and debug configs in a single directory
-   [49] if you want to, but note the caveat that '${workspaceRoot}' won't be
+   [51] if you want to, but note the caveat that '${workspaceRoot}' won't be
    calculated correctly in that case. The vimsepctor author uses this a lot
-   [50]
+   [52]
 
 5. I'm confused about remote debugging configuration, can you explain it?
    eh... kind of. Reference: https://puremourning.github.io/vimspector/confi
    guration.html#remote-debugging-support. Some explanations here too: https
    ://github.com/puremourning/vimspector/issues/478#issuecomment-943515093
+
+6. I'm trying to debug a Django (django?) project and it's not working. Can
+   you help? sure, check this link which has a working example [53]. Or
+   google it.
 
 ===============================================================================
                                                         *vimspector-references*
@@ -2515,18 +2560,21 @@ References ~
 [35] https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
 [36] https://github.com/microsoft/debugpy/wiki/Debugging-over-SSH
 [37] https://github.com/puremourning/TclProDebug
-[38] https://github.com/go-delve/delve/tree/master/Documentation/installation
-[39] https://github.com/golang/vscode-go/blob/master/docs/debugging-legacy.md
-[40] https://github.com/golang/vscode-go/blob/master/docs/debugging-legacy.md#troubleshooting
-[41] https://github.com/Microsoft/java-debug
-[42] https://github.com/ycm-core/YouCompleteMe#java-semantic-completion
-[43] https://github.com/ycm-core/YouCompleteMe#troubleshooting
-[44] https://code.visualstudio.com/docs/java/java-debugging
-[45] https://github.com/puremourning/vimspector/issues/3
-[46] https://github.com/tomblind/local-lua-debugger-vscode
-[47] https://github.com/puremourning/vimspector/issues/3#issuecomment-576916076
-[48] https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322
-[49] https://puremourning.github.io/vimspector/configuration.html#debug-configurations
-[50] https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf
+[38] https://github.com/golang/vscode-go/blob/master/docs/debugging.md#launchjson-attributes
+[39] https://github.com/golang/vscode-go/blob/master/docs/debugging.md#troubleshooting
+[40] https://github.com/go-delve/delve/tree/master/Documentation/installation
+[41] https://github.com/golang/vscode-go/blob/master/docs/debugging-legacy.md
+[42] https://github.com/golang/vscode-go/blob/master/docs/debugging-legacy.md#troubleshooting
+[43] https://github.com/Microsoft/java-debug
+[44] https://github.com/ycm-core/YouCompleteMe#java-semantic-completion
+[45] https://github.com/ycm-core/YouCompleteMe#troubleshooting
+[46] https://code.visualstudio.com/docs/java/java-debugging
+[47] https://github.com/puremourning/vimspector/issues/3
+[48] https://github.com/tomblind/local-lua-debugger-vscode
+[49] https://github.com/puremourning/vimspector/issues/3#issuecomment-576916076
+[50] https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322
+[51] https://puremourning.github.io/vimspector/configuration.html#debug-configurations
+[52] https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf
+[53] https://www.reddit.com/r/neovim/comments/mz4ari/how_to_set_up_vimspector_for_django_debugging/
 
 vim: ft=help

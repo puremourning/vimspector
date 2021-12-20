@@ -45,37 +45,48 @@ title: Configuration ~
 
 This document defines the supported format for project and adapter
 configuration for Vimspector.
->
-  * [title: Configuration](#title-configuration)
-  * [Concepts](#concepts)
-     * [Debug adapter configuration](#debug-adapter-configuration)
-     * [Debug profile configuration](#debug-profile-configuration)
-     * [Replacements and variables](#replacements-and-variables)
-        * [The splat operator](#the-splat-operator)
-        * [Default values](#default-values)
-        * [Coercing Types](#coercing-types)
-  * [Configuration Format](#configuration-format)
-  * [Files and locations](#files-and-locations)
-  * [Adapter configurations](#adapter-configurations)
-     * [Extending adapters](#extending-adapters)
-  * [Debug configurations](#debug-configurations)
-     * [Project and global configurations](#project-and-global-configurations)
-     * [Ad-hoc configurations](#ad-hoc-configurations)
-     * [Configuration selection](#configuration-selection)
-        * [Specifying a default configuration](#specifying-a-default-configuration)
-        * [Preventing automatic selection](#preventing-automatic-selection)
-        * [Default per filetype](#default-per-filetype)
-     * [Exception Breakpoints](#exception-breakpoints)
-     * [Extending configurations](#extending-configurations)
-        * [Override syntax](#override-syntax)
-  * [Predefined Variables](#predefined-variables)
-  * [Remote Debugging Support](#remote-debugging-support)
-     * [Python (debugpy) Example](#python-debugpy-example)
-     * [C-family (gdbserver) Example](#c-family-gdbserver-example)
-     * [Docker Example](#docker-example)
-  * [Appendix: Configuration file format](#appendix-configuration-file-format)
-  * [Appendix: Editor configuration](#appendix-editor-configuration)
-<
+
+- Concepts
+
+  - Debug adapter configuration
+  - Debug profile configuration
+  - Replacements and variables
+
+    - The splat operator
+    - Default values
+    - Coercing Types
+
+- Configuration Format
+- Files and locations
+- Adapter configurations
+
+  - Extending adapters
+
+- Debug configurations
+
+  - Project and global configurations
+  - Ad-hoc configurations
+  - Configuration selection
+
+    - Specifying a default configuration
+    - Preventing automatic selection
+    - Default per filetype
+
+  - Exception Breakpoints
+  - Extending configurations
+
+    - Override syntax
+
+- Predefined Variables
+- Remote Debugging Support
+
+  - Python (debugpy) Example
+  - C-family (gdbserver) Example
+  - Docker Example
+
+- Appendix: Configuration file format
+- Appendix: Editor configuration
+
 ===============================================================================
                                                       *vimspector-ref-concepts*
 Concepts ~
