@@ -304,6 +304,33 @@ GADGETS = {
       }
     }
   },
+  'delve': {
+    'language': 'go',
+    'do': lambda name, root, gadget: installer.InstallDelve( name,
+                                                             root,
+                                                             gadget ),
+    'all': {
+      'path': 'github.com/go-delve/delve/cmd/dlv',
+      'version': '1.7.3',
+    },
+    'adapters': {
+      "delve": {
+        "variables": {
+          "port": "${unusedLocalPort}",
+          "dlvFlags": "",
+          "listenOn": "127.0.0.1",
+        },
+        "command": [
+          "${gadgetDir}/delve/bin/dlv",
+          "dap",
+          "--listen",
+          "${listenOn}:${port}",
+          "*${dlvFlags}",
+        ],
+        "port": "${port}"
+      }
+    }
+  },
   'vscode-go': {
     'language': 'go',
     'download': {

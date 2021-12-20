@@ -302,6 +302,8 @@ class StackTraceView( object ):
             f'({thread.State()})' )
 
           if self._current_thread == thread.id:
+            # TODO - Scroll the window such that this line is visible (e.g. at
+            # the top)
             signs.PlaceSign( self._current_thread_sign_id,
                              'VimspectorStackTrace',
                              'vimspectorCurrentThread',
