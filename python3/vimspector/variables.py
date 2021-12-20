@@ -618,6 +618,12 @@ class VariablesView( object ):
     assert indent > 0
     for variable in variables:
       text = ''
+      # TODO: If 'value' is multi-line, somehow turn it into an expandable item
+      # where the expansion is done "internally", resolving to the multi-line
+      # value
+      #
+      # TODO: switch to short mode if... something, like maybe the type is long
+      # or the value is long? But then how to get the type? Popup?
       if is_short:
         text = '{indent}{icon} {name}: {value}'.format(
           # We borrow 1 space of indent to draw the change marker
