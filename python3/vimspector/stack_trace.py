@@ -89,6 +89,7 @@ class StackTraceView( object ):
     self._logger = logging.getLogger( __name__ )
     utils.SetUpLogging( self._logger )
 
+    self._win = win
     self._buf = win.buffer
     self._session = session
     self._connection = None
@@ -290,6 +291,7 @@ class StackTraceView( object ):
     else:
       self._current_thread_sign_id = 1
 
+    topline = 0
     with utils.ModifiableScratchBuffer( self._buf ):
       with utils.RestoreCursorPosition():
         utils.ClearBuffer( self._buf )
@@ -302,8 +304,7 @@ class StackTraceView( object ):
             f'({thread.State()})' )
 
           if self._current_thread == thread.id:
-            # TODO - Scroll the window such that this line is visible (e.g. at
-            # the top)
+            topline = line
             signs.PlaceSign( self._current_thread_sign_id,
                              'VimspectorStackTrace',
                              'vimspectorCurrentThread',
@@ -312,6 +313,12 @@ class StackTraceView( object ):
 
           self._line_to_thread[ line ] = thread
           self._DrawStackTrace( thread )
+
+    if self._win.valid and vim.current.window != self._win and topline:
+      with utils.LetCurrentWindow( self._win ):
+        vim.command( f'execute "normal {topline}z\\<CR>"' )
+
+
 
   def _LoadStackTrace( self,
                        thread: Thread,
