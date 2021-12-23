@@ -327,6 +327,7 @@ GADGETS = {
           "${listenOn}:${port}",
           "*${dlvFlags}",
         ],
+        "tty": True,
         "port": "${port}"
       }
     }
