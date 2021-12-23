@@ -65,6 +65,7 @@ GADGETS = {
       'checksum':
         'bab71db23b9221c6d5d40c7bb2243570ebe49a3bb7b9893033440681d27aa440',
     },
+    # doesn't work: https://github.com/microsoft/vscode-cpptools/issues/7035
     'macos_arm64': {
       'file_name': 'cpptools-osx-arm64.vsix',
       'checksum':
@@ -353,6 +354,8 @@ GADGETS = {
         ],
         "configuration": {
           "cwd": "${workspaceRoot}",
+          # If the delva adapter is also installed, use that by default.
+          "dlvToolPath": "${gadgetDir}/delve/bin/dlv"
         }
       },
     },

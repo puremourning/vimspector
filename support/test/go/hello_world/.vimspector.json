@@ -6,7 +6,6 @@
         "request": "launch",
         "program": "${workspaceRoot}/hello-world.go",
         "mode": "debug",
-        "dlvToolPath": "$HOME/go/bin/dlv",
         "trace": true,
         "env": { "GO111MODULE": "off" }
       }

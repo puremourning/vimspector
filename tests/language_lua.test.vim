@@ -7,8 +7,13 @@ function! ClearDown()
   call vimspector#test#setup#ClearDown()
 endfunction
 
+function! SkipUnsupported() abort
+  call SkipOn( 'arm64', 'Darwin' )
+endfunction
+
 
 function! BaseTest( configuration )
+  call SkipUnsupported()
   let fn='simple.lua'
   lcd ../support/test/lua/simple
   exe 'edit ' . fn
@@ -47,6 +52,7 @@ endfunction
 
 
 function! Test_Lua_Love()
+  call SkipUnsupported()
   let fn='main.lua'
   lcd ../support/test/lua/love-headless
   exe 'edit ' . fn
