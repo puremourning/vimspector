@@ -1512,6 +1512,9 @@ Use Variables to configure the following:
 
 * `dlvFlags`: (string) additional command line arguments to pass to delve
 
+The debugger (delve) is launched in a terminal window so that you can see its
+output and pass input to the debuggee.
+
 See [vscode-go docs](https://github.com/golang/vscode-go/blob/master/docs/debugging.md#launchjson-attributes) for full launch options.
 Yes, it seems that's the only place they are documented (apparently, they are
 not documented by delve itself).

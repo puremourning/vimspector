@@ -107,7 +107,7 @@ function! vimspector#internal#neopopup#Confirm( confirm_id,
   " in popup.vim), i.e.:
   "  - 1-based index of selected item, or
   "  - -1 or 0 for cancellation
-  if result == ''
+  if result ==# ''
     " User pressed ESC/ctrl-c
     let result = -1
   else

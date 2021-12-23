@@ -328,7 +328,8 @@ GADGETS = {
           "${listenOn}:${port}",
           "*${dlvFlags}",
         ],
-        "tty": True,
+        "tty": True, # because delve is a special snowflake and uses its own
+                     # controlling tty for the debugee
         "port": "${port}"
       }
     }
