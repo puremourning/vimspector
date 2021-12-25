@@ -1,3 +1,4 @@
+scriptencoding utf-8
 let s:fn='../support/test/python/simple_python/main.py'
 
 function! SetUp()

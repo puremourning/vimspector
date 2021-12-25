@@ -131,6 +131,6 @@ endfunction
 function! SkipOn( arch, system ) abort
   if trim( system( 'uname -m' ) ) == a:arch &&
         \ trim( system( 'uname -s' ) ) == a:system
-    throw "skipped: Not on this architecture"
+    throw 'skipped: Not on this architecture'
   endif
 endfunction
