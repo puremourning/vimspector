@@ -173,54 +173,56 @@
       }
     },
     "adapter": {
-      "oneOf": [
+      "allOf": [
+        { "type": "object" },
+        { "$ref": "#/definitions/variables" },
         {
-          "allOf": [
-            { "type": "object" },
-            { "$ref": "#/definitions/variables" },
-            {
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "description": "Passed to the adapter in the initialization request. Some adapters are particularly picky about what value goes here. Usually it can be omitted and Vimspector will send a generic value"
-                },
-                "configuration": {
-                  "type": "object",
-                  "description": "Base debug configuration. Can be used to set default values for all debug configurations. When reading individual debug configurations from 'configurations', those configurations are merged with this object. Definitions in the debug configuration override anything in this object. Typical usage for this is to set the 'type' parameter, which some debug adapters are very picky about, or to set e.g. the path to an underlying debugger."
-                }
-              }
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Passed to the adapter in the initialization request. Some adapters are particularly picky about what value goes here. Usually it can be omitted and Vimspector will send a generic value"
             },
-            { "$ref": "#/definitions/adapter-launchattach" },
-            {
-              "anyOf": [
-                { "required": [ "command" ] },
-                { "required": [ "port" ] },
-                { "required": [ "command", "port" ] }
-              ]
-            },
-            {
-              "properties": {
-                "host": {
-                  "type": "string",
-                  "default": "127.0.0.1",
-                  "description": "Connect to this host in multi-session mode"
-                },
-                "port": {
-                  "oneOf": [
-                    { "type": "string" },
-                    { "type": "integer" }
-                  ],
-                  "description": "If supplied, indicates that a socket connection should be made to this port on 'host'. If the value is 'ask', then the user is asked to enter the port number to connect to."
-                }
-              }
+            "configuration": {
+              "type": "object",
+              "description": "Base debug configuration. Can be used to set default values for all debug configurations. When reading individual debug configurations from 'configurations', those configurations are merged with this object. Definitions in the debug configuration override anything in this object. Typical usage for this is to set the 'type' parameter, which some debug adapters are very picky about, or to set e.g. the path to an underlying debugger."
             }
+          }
+        },
+        { "$ref": "#/definitions/adapter-launchattach" },
+        {
+          "anyOf": [
+            { "required": [ "command" ] },
+            { "required": [ "port" ] },
+            {
+              "required": [ "command", "port" ],
+              "properties": {
+                "tty": {
+                  "type": "boolean",
+                  "description": "Set to True to launch 'command' in a terminal. Only valid when both 'command' and 'port' are supplied."
+                }
+              }
+            },
+            { "required": [ "extends" ] }
           ]
         },
         {
-          "type": "object",
-          "required": [ "extends" ],
           "properties": {
-            "extends": { "type": "string" }
+            "host": {
+              "type": "string",
+              "default": "127.0.0.1",
+              "description": "Connect to this host in multi-session mode"
+            },
+            "port": {
+              "oneOf": [
+                { "type": "string" },
+                { "type": "integer" }
+              ],
+              "description": "If supplied, indicates that a socket connection should be made to this port on 'host'. If the value is 'ask', then the user is asked to enter the port number to connect to."
+            },
+            "extends": {
+              "type": "string",
+              "description": "Name of another adapter from which to inherit all properties"
+            }
           }
         }
       ]
@@ -236,88 +238,85 @@
     "configurations": {
       "type": "object",
       "additionalProperties": {
-        "oneOf": [
+        "allOf": [
+          { "$ref": "#/definitions/variables" },
           {
-            "allOf": [
-              { "$ref": "#/definitions/variables" },
-              {
-                "type": "object",
-                "properties": {
-                  "adapter": {
-                    "description": "Adapter configuration to use for this debug session",
-                    "oneOf": [
-                      { "$ref": "#/definitions/adapter" },
-                      {
-                        "type": "string",
-                        "description": "Name of an adapter in the 'adapters' mapping"
-                      }
-                    ]
-                  },
-                  "remote-request": {
-                    "enum": [ "launch", "attach" ],
-                    "description": "When the 'remote' block is defined in the adapter configuration, this can be used to override the actual action taken (remotely). Usually the actual 'configuration' will contain 'request' of 'attach', but in order to remotely 'launch' the process (e.g. under gdbserver or equivalent), use remote-attach set to 'launch'"
-                  },
-                  "remote-cmdLine": {
-                    "type": [ "string", "array" ],
-                    "description": "Defines the value of the special token %CMD% in remote-launch 'runCommand(s)'. The value is inserted into the command line where an entry matching '%CMD%' is found in 'runCommand(s)' command array."
-                  },
-                  "default": {
-                    "type": "boolean",
-                    "description": "When true, this configuration is picked by default"
-                  },
-                  "autoselect": {
-                    "type": "boolean",
-                    "description": "When false, this configuration is _never_ picked by default"
-                  },
-                  "filetypes": {
-                    "type": "array",
-                    "description": "List of Vim filetypes that this configuration applies to. The configuraiton is only used if one of the current filetypes appears in this list, or if this list is not supplied,"
-                  },
-                  "configuration": {
-                    "type": "object",
-                    "required": [ "request" ],
-                    "properties": {
-                      "request": {
-                        "enum": [ "launch", "attach" ],
-                        "description": "Type of session - launch process or attach to process"
-                      }
-                    },
-                    "additionalProperties": {
-                      "description": "Additional properties are passed to the debug adapter in the 'launch' or 'attach' request and are specific to the debug adapter."
-                    }
-                  },
-                  "breakpoints": {
-                    "type": "object",
-                    "properties": {
-                      "exception": {
-                        "type": "object",
-                        "description": "Exception breakpoints configuration, mapping the server's exception filter to enabled/disable/default flag",
-                        "additionalProperties": {
-                          "oneOf": [
-                            {
-                              "type": "boolean",
-                              "description": "true = enable, false = disable"
-                            },
-                            {
-                              "type": "string",
-                              "enum": [ "Y", "N", "" ],
-                              "description": "Y = enable, N = disable, '' = default"
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              }
+            "oneOf": [
+              { "required": [ "adapter", "configuration" ] },
+              { "required": [ "extends" ] }
             ]
           },
           {
             "type": "object",
-            "required": [ "extends" ],
             "properties": {
+              "adapter": {
+                "description": "Adapter configuration to use for this debug session",
+                "oneOf": [
+                  { "$ref": "#/definitions/adapter" },
+                  {
+                    "type": "string",
+                    "description": "Name of an adapter in the 'adapters' mapping"
+                  }
+                ]
+              },
               "extends": {
-                "type": "string"
+                "type": "string",
+                "description": "Name of another configuration to inherit properties from."
+              },
+              "remote-request": {
+                "enum": [ "launch", "attach" ],
+                "description": "When the 'remote' block is defined in the adapter configuration, this can be used to override the actual action taken (remotely). Usually the actual 'configuration' will contain 'request' of 'attach', but in order to remotely 'launch' the process (e.g. under gdbserver or equivalent), use remote-attach set to 'launch'"
+              },
+              "remote-cmdLine": {
+                "type": [ "string", "array" ],
+                "description": "Defines the value of the special token %CMD% in remote-launch 'runCommand(s)'. The value is inserted into the command line where an entry matching '%CMD%' is found in 'runCommand(s)' command array."
+              },
+              "default": {
+                "type": "boolean",
+                "description": "When true, this configuration is picked by default"
+              },
+              "autoselect": {
+                "type": "boolean",
+                "description": "When false, this configuration is _never_ picked by default"
+              },
+              "filetypes": {
+                "type": "array",
+                "description": "List of Vim filetypes that this configuration applies to. The configuraiton is only used if one of the current filetypes appears in this list, or if this list is not supplied,"
+              },
+              "configuration": {
+                "type": "object",
+                "required": [ "request" ],
+                "properties": {
+                  "request": {
+                    "enum": [ "launch", "attach" ],
+                    "description": "Type of session - launch process or attach to process"
+                  }
+                },
+                "additionalProperties": {
+                  "description": "Additional properties are passed to the debug adapter in the 'launch' or 'attach' request and are specific to the debug adapter."
+                }
+              },
+              "breakpoints": {
+                "type": "object",
+                "properties": {
+                  "exception": {
+                    "type": "object",
+                    "description": "Exception breakpoints configuration, mapping the server's exception filter to enabled/disable/default flag",
+                    "additionalProperties": {
+                      "oneOf": [
+                        {
+                          "type": "boolean",
+                          "description": "true = enable, false = disable"
+                        },
+                        {
+                          "type": "string",
+                          "enum": [ "Y", "N", "" ],
+                          "description": "Y = enable, N = disable, '' = default"
+                        }
+                      ]
+                    }
+                  }
+                }
               }
             }
           }
