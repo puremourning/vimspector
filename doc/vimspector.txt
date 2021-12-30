@@ -1745,7 +1745,7 @@ netcoredbg'
     "configurations": {
       "launch - netcoredbg": {
         "adapter": "netcoredbg",
-        "filetypes": [ "csharp", "fsharp", "vbnet" ], // optional
+        "filetypes": [ "cs", "fsharp", "vbnet" ], // optional
         "configuration": {
           "request": "launch",
           "program": "${workspaceRoot}/bin/Debug/netcoreapp2.2/csharp.dll",
