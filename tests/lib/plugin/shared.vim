@@ -126,3 +126,11 @@ function! GetBufLine( buf, start, end  = '$' )
 
   return getbufline( a:buf, start, end )
 endfunction
+
+
+function! SkipOn( arch, system ) abort
+  if trim( system( 'uname -m' ) ) == a:arch &&
+        \ trim( system( 'uname -s' ) ) == a:system
+    throw 'skipped: Not on this architecture'
+  endif
+endfunction

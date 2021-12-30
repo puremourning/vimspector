@@ -10,7 +10,12 @@ function! SetUp_Test_Go_Simple()
   let g:vimspector_enable_mappings = 'HUMAN'
 endfunction
 
+function! SkipUnsupported() abort
+  call SkipOn( 'arm64', 'Darwin' )
+endfunction
+
 function! Test_CSharp_Simple_Adhoc_Config()
+  call SkipUnsupported()
   let fn='Program.cs'
   lcd ../support/test/csharp
   exe 'edit ' . fn
@@ -45,6 +50,8 @@ function! Test_CSharp_Simple_Adhoc_Config()
 endfunction
 
 function! Test_CSharp_Simple()
+  call SkipUnsupported()
+
   let fn='Program.cs'
   lcd ../support/test/csharp
   exe 'edit ' . fn
@@ -72,6 +79,7 @@ endfunction
 
 
 function! Test_Run_To_Cursor()
+  call SkipUnsupported()
   let fn='Program.cs'
   lcd ../support/test/csharp
   exe 'edit ' . fn

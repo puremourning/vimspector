@@ -1,12 +1,15 @@
 {
   "$schema": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json",
   "configurations": {
-    "run-to-entry": {
+    "base": {
       "adapter": "vscode-cpptools",
-      // This makes this configuration the default. Only one default can be set
-      // (having two is the same as having none)
-      "default": true,
+      // The following would be useful if cpptools supported arm64
+      // https://github.com/microsoft/vscode-cpptools/issues/7035
+      // "variables": {
+      //   "arch": { "shell": "uname -m" }
+      // },
       "configuration": {
+        // "targetArchitecture": "${arch}",
         "request": "launch",
         "program": "${workspaceRoot}/${fileBasenameNoExtension}",
         "externalConsole": false,
@@ -25,51 +28,31 @@
         }
       }
     },
+    "run-to-entry": {
+      "extends": "base",
+      // This makes this configuration the default. Only one default can be set
+      // (having two is the same as having none)
+      "default": true
+    },
     "run-to-breakpoint": {
-      "adapter": "vscode-cpptools",
+      "extends": "base",
       "configuration": {
-        "request": "launch",
-        "program": "${workspaceRoot}/${fileBasenameNoExtension}",
         "externalConsole": false,
         "stopAtEntry": false,
-        "stopOnEntry": false,
-        "MIMode": "${VIMSPECTOR_MIMODE}"
-      },
-      "breakpoints": {
-        "exception": {
-          "cpp_catch": "",
-          "cpp_throw": "",
-          "objc_catch": "",
-          "objc_throw": "",
-          "swift_catch": "",
-          "swift_throw": ""
-        }
+        "stopOnEntry": false
       }
     },
     "run-to-breakpoint-specify-file": {
-      "adapter": "vscode-cpptools",
+      "extends": "base",
       "configuration": {
-        "request": "launch",
         "program": "${workspaceRoot}/${prog}",
         "cwd": "${workspaceRoot}",
-        "externalConsole": false,
         "stopAtEntry": false,
-        "stopOnEntry": false,
-        "MIMode": "${VIMSPECTOR_MIMODE}"
-      },
-      "breakpoints": {
-        "exception": {
-          "cpp_catch": "",
-          "cpp_throw": "",
-          "objc_catch": "",
-          "objc_throw": "",
-          "swift_catch": "",
-          "swift_throw": ""
-        }
+        "stopOnEntry": false
       }
     },
     "calculate-some-variable": {
-      "adapter": "vscode-cpptools",
+      "extends": "base",
       "variables": {
         "SIMPLE": "This is some text containing: $HOME",
         "CALCULATED_LIST": {
@@ -80,10 +63,6 @@
         }
       },
       "configuration": {
-        "request": "launch",
-        "program": "${workspaceRoot}/${fileBasenameNoExtension}",
-        "MIMode": "${VIMSPECTOR_MIMODE}",
-        "externalConsole": false,
         "args": [
           "CALCULATED_LIST", "${CALCULATED_LIST}",
           "SIMPLE", "${SIMPLE}",

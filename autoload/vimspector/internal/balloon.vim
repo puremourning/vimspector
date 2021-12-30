@@ -137,7 +137,7 @@ function! s:MatchKey( key, candidates ) abort
     " is a single key (anyway), and so we assume any string starting with < is a
     " special key (which will be the common case) and try and map it. If it
     " fails... it fails.
-    if candidate[ 0 ] == '<'
+    if candidate[ 0 ] ==# '<'
       try
         execute 'let candidate = "\' . candidate . '"'
       endtry

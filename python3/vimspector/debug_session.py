@@ -67,6 +67,7 @@ class DebugSession( object ):
     self._breakpoints = breakpoints.ProjectBreakpoints()
     self._splash_screen = None
     self._remote_term = None
+    self._adapter_term = None
 
     self._run_on_server_exit = None
 
@@ -1081,6 +1082,36 @@ class DebugSession( object ):
       self._adapter[ 'cwd' ] = os.getcwd()
 
     vim.vars[ '_vimspector_adapter_spec' ] = self._adapter
+
+    # if the debug adapter is lame and requires a terminal or has any
+    # input/output on stdio, then launch it that way
+    if self._adapter.get( 'tty', False ):
+      if 'port' not in self._adapter:
+        utils.UserMessage( "Invalid adapter configuration. When using a tty, "
+                           "communication must use socket. Add the 'port' to "
+                           "the adapter config." )
+        return False
+
+      if 'command' not in self._adapter:
+        utils.UserMessage( "Invalid adapter configuration. When using a tty, "
+                           "a command must be supplied. Add the 'commmand' to "
+                           "the adapter config." )
+        return False
+
+      command = self._adapter[ 'command' ]
+      if isinstance( command, str ):
+        command = shlex.split( command )
+
+      self._adapter_term = terminal.LaunchTerminal(
+          self._api_prefix,
+          {
+            'args': command,
+            'cwd': self._adapter[ 'cwd' ],
+            'env': self._adapter[ 'env' ],
+          },
+          self._codeView._window,
+          self._adapter_term )
+
     if not vim.eval( "vimspector#internal#{}#StartDebugSession( "
                      "  g:_vimspector_adapter_spec "
                      ")".format( self._connection_type ) ):

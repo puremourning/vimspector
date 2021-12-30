@@ -11,7 +11,7 @@ function! s:StartDebugging()
       \ 'vscode.java.startDebugSession' )
 
     if s:jdt_ls_debugger_port == ''
-       echom "Unable to get DAP port - is YCM initialized?"
+       echom 'Unable to get DAP port - is YCM initialized?'
        let s:jdt_ls_debugger_port = 0
        return
      endif
