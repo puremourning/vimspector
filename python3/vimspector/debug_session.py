@@ -742,7 +742,7 @@ class DebugSession( object ):
 
 
   @IfConnected()
-  def ShowEvalBalloon( self, winnr, expression, is_hover ):
+  def HoverEvalTooltip( self, winnr, bufnr, lnum, expression, is_hover ):
     frame = self._stackTraceView.GetCurrentFrame()
     # Check if RIP is in a frame
     if frame is None:
@@ -750,14 +750,13 @@ class DebugSession( object ):
       return ''
 
     # Check if cursor in code window
-    if winnr != int( self._codeView._window.number ):
-      self._logger.debug( 'Winnr %s is not the code window %s',
-                          winnr,
-                          self._codeView._window.number )
-      return ''
+    if winnr == int( self._codeView._window.number ):
+      return self._variablesView.HoverEvalTooltip( frame, expression, is_hover )
 
+    return self._variablesView.HoverVarWinTooltip( bufnr,
+                                                   lnum,
+                                                   is_hover )
     # Return variable aware function
-    return self._variablesView.VariableEval( frame, expression, is_hover )
 
 
   def CleanUpTooltip( self ):
@@ -925,8 +924,7 @@ class DebugSession( object ):
     with utils.LetCurrentWindow( stack_trace_window ):
       vim.command( f'{ one_third }wincmd _' )
 
-    self._variablesView = variables.VariablesView( vars_window,
-                                                   watch_window )
+    self._variablesView = variables.VariablesView( vars_window, watch_window )
 
     # Output/logging
     vim.current.window = code_window
@@ -983,8 +981,7 @@ class DebugSession( object ):
     with utils.LetCurrentWindow( stack_trace_window ):
       vim.command( f'{ one_third }wincmd |' )
 
-    self._variablesView = variables.VariablesView( vars_window,
-                                                   watch_window )
+    self._variablesView = variables.VariablesView( vars_window, watch_window )
 
 
     # Output/logging
