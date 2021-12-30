@@ -461,7 +461,7 @@ GADGETS = {
     },
   },
   'CodeLLDB': {
-    'language': 'rust',
+    'language': [ 'c', 'cpp', 'rust' ],
     'enabled': True,
     'download': {
       'url': 'https://github.com/vadimcn/vscode-lldb/releases/download/'
