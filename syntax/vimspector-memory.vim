@@ -1,7 +1,7 @@
 " Based on xxd syntax file by Charles E. Campbell
 
 " quit when a syntax file was already loaded
-if exists("b:current_syntax")
+if exists('b:current_syntax')
   finish
 endif
 
@@ -19,6 +19,6 @@ hi def link vimspectormemSep     Identifier
 hi def link vimspectormemAscii   Statement
 hi def link vimspectormemHeader  Title
 
-let b:current_syntax = "vimspector-memory"
+let b:current_syntax = 'vimspector-memory'
 
 " vim: ts=4
