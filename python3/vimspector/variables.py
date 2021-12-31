@@ -250,7 +250,7 @@ class VariablesView( object ):
       if utils.UseWinBar():
         vim.command( 'nnoremenu <silent> 1.1 WinBar.Set '
                      ':call vimspector#SetVariableValue()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.2 WinBar.Memory '
+        vim.command( 'nnoremenu <silent> 1.2 WinBar.Dump '
                      ':call vimspector#ReadMemory()<CR>' )
       AddExpandMappings( mappings )
 
@@ -270,15 +270,15 @@ class VariablesView( object ):
           f'nnoremap <buffer> { mapping } :call vimspector#DeleteWatch()<CR>' )
 
       if utils.UseWinBar():
-        vim.command( 'nnoremenu <silent> 1.1 WinBar.New '
+        vim.command( 'nnoremenu <silent> 1.1 WinBar.Add '
                      ':call vimspector#AddWatch()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.2 WinBar.Expand/Collapse '
-                     ':call vimspector#ExpandVariable()<CR>' )
         vim.command( 'nnoremenu <silent> 1.3 WinBar.Delete '
                      ':call vimspector#DeleteWatch()<CR>' )
+        vim.command( 'nnoremenu <silent> 1.2 WinBar.+/- '
+                     ':call vimspector#ExpandVariable()<CR>' )
         vim.command( 'nnoremenu <silent> 1.4 WinBar.Set '
                      ':call vimspector#SetVariableValue()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.5 WinBar.Memory '
+        vim.command( 'nnoremenu <silent> 1.5 WinBar.Dump '
                      ':call vimspector#ReadMemory()<CR>' )
 
     # Set the (global!) balloon expr if supported

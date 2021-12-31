@@ -122,7 +122,7 @@ class StackTraceView( object ):
       if utils.UseWinBar():
         vim.command( 'nnoremenu <silent> 1.1 WinBar.Pause/Continue '
                      ':call vimspector#PauseContinueThread()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.2 WinBar.Expand/Collapse '
+        vim.command( 'nnoremenu <silent> 1.2 WinBar.+/- '
                      ':call vimspector#GoToFrame()<CR>' )
         vim.command( 'nnoremenu <silent> 1.3 WinBar.Focus '
                      ':call vimspector#SetCurrentThread()<CR>' )
