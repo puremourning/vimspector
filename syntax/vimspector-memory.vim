@@ -1,5 +1,19 @@
-" Based on xxd syntax file by Charles E. Campbell
+" Language:		vimspector memory dump
+" Maintainer:	Ben Jackson (@puremourning)
+" Last Change:	December 2021
+" Version:		1
+" Notes:		Based on xxd syntax file by Charles E. Campbell
 
+" Original header:
+"
+" Vim syntax file
+" Language:		bin using xxd
+" Maintainer:	Charles E. Campbell <NcampObell@SdrPchip.AorgM-NOSPAM>
+" Last Change:	Aug 31, 2016
+" Version:		11
+" Notes:		use :help xxd   to see how to invoke it
+" URL:	http://www.drchip.org/astronaut/vim/index.html#SYNTAX_XXD
+"
 " The license for this file is the Vim license (:help license).
 "
 " === begin of license ===
