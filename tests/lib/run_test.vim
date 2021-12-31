@@ -111,7 +111,7 @@ func RunTheTest(test)
 
   " The test may change the current directory. Save and restore the
   " directory after executing the test.
-  let save_cwd = getcwd()
+  let s:save_cwd = getcwd()
 
   if exists('*SetUp_' . a:test)
     try
@@ -143,6 +143,11 @@ func RunTheTest(test)
             \ . ':'
             \ . v:throwpoint)
     endtry
+  endif
+
+  if exists( '*Breakpoint' )
+    " We're running under the vimscript debugger, start debugpy too
+    call s:Debugpy()
   endif
 
   call add(s:messages, 'Executing ' . a:test)
@@ -260,7 +265,7 @@ func RunTheTest(test)
     endif
   endwhile
 
-  exe 'cd ' . save_cwd
+  exe 'cd ' . s:save_cwd
 endfunc
 
 func AfterTheTest()
@@ -281,6 +286,7 @@ endfunc
 
 " This function can be called by a test if it wants to abort testing.
 func FinishTesting()
+  exe 'cd ' . s:save_cwd
   call AfterTheTest()
 
   " Don't write viminfo on exit.

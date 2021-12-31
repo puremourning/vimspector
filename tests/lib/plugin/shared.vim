@@ -53,6 +53,14 @@ func s:WaitForCommon(expr, assert, timeout)
 
   let iters = 0
 
+  let failed_before = len( v:errors ) > 0
+
+  if failed_before
+    let timeout = 250
+  else
+    let timeout = a:timeout
+  endif
+
   while 1
     let iters += 1
     let errors_before = len( v:errors )
@@ -72,7 +80,7 @@ func s:WaitForCommon(expr, assert, timeout)
       redraw!
     endif
 
-    if slept >= a:timeout
+    if slept >= timeout
       break
     endif
 
