@@ -145,11 +145,6 @@ func RunTheTest(test)
     endtry
   endif
 
-  if exists( '*Breakpoint' )
-    " We're running under the vimscript debugger, start debugpy too
-    call s:Debugpy()
-  endif
-
   call add(s:messages, 'Executing ' . a:test)
   let s:done += 1
   let timer = timer_start( s:single_test_timeout, funcref( 'Abort' ) )
