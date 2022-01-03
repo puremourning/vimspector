@@ -1,16 +1,15 @@
 function! vimspector#test#signs#AssertCursorIsAtLineInBuffer( buffer,
                                                             \ line,
                                                             \ column ) abort
-  " If the test already failed, don't bpther waiting forever
   call WaitFor( {-> bufexists( a:buffer ) } )
   call WaitForAssert( {->
         \ assert_equal( fnamemodify( a:buffer, ':p' ),
         \               fnamemodify( bufname( '%' ), ':p' ),
         \               'Current buffer' )
-        \ }, 500 )
+        \ }, 10000 )
   call WaitForAssert( {->
         \ assert_equal( a:line, line( '.' ), 'Current line' )
-        \ }, 500 )
+        \ }, 10000 )
   if a:column isnot v:null
     call assert_equal( a:column, col( '.' ), 'Current column' )
   endif
