@@ -853,7 +853,7 @@ For example, to get an array of configurations and fuzzy matching on the result
 
 ## Breakpoints
 
-See the [mappings](€mappings) section for the default mappings for working with
+See the [mappings](#mappings) section for the default mappings for working with
 breakpoints. This section describes the full API in vimscript functions.
 
 ### Summary
