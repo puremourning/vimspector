@@ -1,5 +1,17 @@
+# https://blog.mergify.com/strict-mode-deprecation/
+queue_rules:
+  - name: default
+    # These define the conditions to get out of the merge queue
+    conditions:
+      # CI https://doc.mergify.io/conditions.html#github-actions
+      - status-success=PythonLint
+      - status-success=VimscriptLint
+      - status-success=Linux
+      - status-success=MacOS
+
 pull_request_rules:
   - name: Merge owner PR when all checks passed
+    # These define the conditions to get into the merge queue
     conditions:
       - author=puremourning
       - base=master
@@ -12,12 +24,13 @@ pull_request_rules:
       - status-success=Linux
       - status-success=MacOS
     actions: &merge-actions
-      merge:
+      queue:
         method: merge
-        strict: smart
+        name: default
       delete_head_branch: {}
 
   - name: Merge PR when all checks passed
+    # These define the conditions to get into the merge queue
     conditions:
       - author!=puremourning
       - base=master
