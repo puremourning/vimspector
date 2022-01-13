@@ -313,6 +313,10 @@ def PathToConfigFile( file_name, from_directory = None ):
     if os.path.exists( candidate ):
       return candidate
 
+    candidate = os.path.join( p, ".vim", file_name )
+    if os.path.exists( candidate ):
+      return candidate
+
     parent = os.path.dirname( p )
     if parent == p:
       return None
