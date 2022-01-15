@@ -1582,6 +1582,7 @@ Requires:
 * `install_gadget.py --force-enable-php` or `:VimspectorInstall
   vscode-php-debug`
 * configured php xdebug extension
+* nodejs for vscode-php-debug
 ```ini
 zend_extension=xdebug.so
 xdebug.remote_enable=on
