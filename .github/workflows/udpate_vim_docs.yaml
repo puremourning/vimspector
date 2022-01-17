@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: "Install dependencies"
+        run: "apt-get update && apt-get install -y python3-venv"
       - name: 'Update local repo'
         run: './update-vim-docs'
       - name: 'Create pull request'

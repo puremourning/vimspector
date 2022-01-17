@@ -6,7 +6,7 @@ For a tutorial and usage overview, take a look at the
 For detailed explanation of the `.vimspector.json` format, see the
 [reference guide][vimspector-ref].
 
-![Build](https://github.com/puremourning/vimspector/workflows/Build/badge.svg?branch=master) [![Gitter](https://badges.gitter.im/vimspector/Lobby.svg)](https://gitter.im/vimspector/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Build](https://github.com/puremourning/vimspector/actions/workflows/build.yaml/badge.svg?branch=master)](https://github.com/puremourning/vimspector/actions/workflows/build.yaml) [![Matrix](https://img.shields.io/matrix/vimspector:matrix.org?label=matrix)](https://matrix.to/#/#vimspector_Lobby:gitter.im) [![Gitter](https://badges.gitter.im/vimspector/Lobby.svg)]
 
 <!--ts-->
  * [Features and Usage](#features-and-usage)
