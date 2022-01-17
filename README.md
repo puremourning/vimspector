@@ -161,6 +161,7 @@ runtime dependencies). They are categorised by their level of support:
 | Javascript           | Supported   | `--force-enable-chrome`            | debugger-for-chrome                  | Chrome                                       |
 | Javascript           | Supported   | `--force-enable-firefox`           | vscode-firefox-debug                 | Firefox                                      |
 | Java                 | Supported   | `--force-enable-java  `            | vscode-java-debug                    | Compatible LSP plugin (see [later](#java))   |
+| PHP                  | Experimental| `--force-enable-php`               | vscode-php-debug                     | Node, PHP, XDEBUG                            |
 | C# (dotnet core)     | Tested      | `--force-enable-csharp`            | netcoredbg                           | DotNet core                                  |
 | F#, VB, etc.         | Supported   | `--force-enable-[fsharp,vbnet]`    | netcoredbg                           | DotNet core                                  |
 | Go (legacy)          | Legacy      | `--enable-go`                      | vscode-go                            | Node, Go, [Delve][]                          |
@@ -1582,6 +1583,7 @@ Requires:
 * `install_gadget.py --force-enable-php` or `:VimspectorInstall
   vscode-php-debug`
 * configured php xdebug extension
+* nodejs for vscode-php-debug
 ```ini
 zend_extension=xdebug.so
 xdebug.remote_enable=on
