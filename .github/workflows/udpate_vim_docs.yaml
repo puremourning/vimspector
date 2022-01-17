@@ -25,6 +25,7 @@ jobs:
           delete-branch: true
           title: "[Auto] Update vim docs"
           body: "Update the vim docs after recent changes"
+          labels: "auto"
       - name: Check outputs
         run: |
           echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
