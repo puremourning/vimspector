@@ -2191,11 +2191,10 @@ augroup END
 
 # FAQ
 
-1. Q: Does it work? A: Yeah. It's a bit unpolished.
-2. Q: Does it work with _this_ language? A: Probably, but it won't
+1. Q: Does it work with _this_ language? A: Probably, but it won't
    necessarily be easy to work out what to put in the `.vimspector.json`. As you
    can see above, some of the servers aren't really editor agnostic, and require
-   very-specific unique handling.
+   very-specific unique handling. See [the wiki](https://github.com/puremourning/vimspector/wiki/Additional-Language-Support) for details on additonal language support
 3. How do I stop it starting a new Terminal.app on macOS? See [this
    comment](https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322)
 4. Can I specify answers to the annoying questions about exception breakpoints
