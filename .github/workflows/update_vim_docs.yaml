@@ -20,6 +20,8 @@ jobs:
         uses: peter-evans/create-pull-request@v3
         id: cpr
         with:
+          token: ${{ secrets.VIMSPECTOR_UPDATE_BOT_PAT }}
+          push-to-fork: VimspectorUpdateBot/vimspector
           commit-message: "Update vim docs"
           branch: 'auto/update-vim-docs'
           delete-branch: true

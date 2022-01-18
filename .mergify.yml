@@ -31,7 +31,7 @@ pull_request_rules:
 
   - name: Merge auto pr when approved
     conditions:
-      - author=github-actions[bot]
+      - author=VimspectorUpdateBot
       - label=auto
       - base=master
       # Review
