@@ -379,8 +379,8 @@ class ProjectBreakpoints( object ):
           'arguments': {
             'source': source,
             'breakpoints': breakpoints,
+            'sourceModified': False, # TODO: We can actually check this
           },
-          'sourceModified': False, # TODO: We can actually check this
         },
         failure_handler = response_received
       )
