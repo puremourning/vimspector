@@ -726,28 +726,34 @@ class DebugSession( object ):
     self._variablesView.SetVariableValue( new_value, buf, line_num )
 
   @IfConnected()
-  def ReadMemory( self, offset = None, buf = None, line_num = None ):
+  def ReadMemory( self, length = None, offset = None ):
     if not self._server_capabilities.get( 'supportsReadMemoryRequest' ):
       utils.UserMessage( "Server does not support memory request",
                          error = True )
       return
 
-    memoryReference = self._variablesView.GetMemoryReference( buf, line_num )
+    memoryReference = self._variablesView.GetMemoryReference()
     if memoryReference is None:
       utils.UserMessage( "Cannot find memory reference for that",
                          error = True )
       return
 
-    length = utils.AskForInput( 'How much data to display? ',
-                                default_value = '1024' )
+    if length is None:
+      length = utils.AskForInput( 'How much data to display? ',
+                                  default_value = '1024' )
 
-    if not length:
+    try:
+      length = int( length )
+    except ValueError:
       return
 
-    offset = utils.AskForInput( 'Location offset? ',
-                                default_value = '0' )
+    if offset is None:
+      offset = utils.AskForInput( 'Location offset? ',
+                                  default_value = '0' )
 
-    if offset is None or offset == '':
+    try:
+      offset = int( offset )
+    except ValueError:
       return
 
 

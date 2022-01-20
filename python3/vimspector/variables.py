@@ -563,7 +563,7 @@ class VariablesView( object ):
     watch.result = WatchFailure( reason )
     self._DrawWatches()
 
-  def _GetVariable( self, buf = None, line_num = None ):
+  def _GetVariable( self, buf: vim.Buffer = None, line_num = None ):
     none = ( None, None )
 
     if buf is None:
@@ -587,7 +587,7 @@ class VariablesView( object ):
 
     return view.lines[ line_num ], view
 
-  def ExpandVariable( self, buf = None, line_num = None ):
+  def ExpandVariable( self, buf: vim.Buffer = None, line_num = None ):
     variable, view = self._GetVariable( buf, line_num )
     if variable is None:
       return
@@ -671,9 +671,9 @@ class VariablesView( object ):
     }, failure_handler = failure_handler )
 
 
-  def GetMemoryReference( self, buf = None, line_num = None ):
+  def GetMemoryReference( self ):
     # Get a memoryReference for use in a ReadMemory request
-    variable, _ = self._GetVariable( buf, line_num )
+    variable, _ = self._GetVariable( None, None )
     if variable is None:
       return None
 
