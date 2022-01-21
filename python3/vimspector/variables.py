@@ -56,6 +56,9 @@ class Expandable:
   def VariablesReference( self ):
     assert False
 
+  def MemoryReference( self ):
+    assert None
+
   @abc.abstractmethod
   def HoverText( self ):
     return ""
@@ -69,6 +72,9 @@ class Scope( Expandable ):
 
   def VariablesReference( self ):
     return self.scope.get( 'variablesReference', 0 )
+
+  def MemoryReference( self ):
+    return None
 
   def Update( self, scope ):
     self.scope = scope
@@ -87,6 +93,9 @@ class WatchResult( Expandable ):
 
   def VariablesReference( self ):
     return self.result.get( 'variablesReference', 0 )
+
+  def MemoryReference( self ):
+    return self.result.get( 'memoryReference' )
 
   def Update( self, result ):
     self.changed = False
@@ -120,6 +129,9 @@ class Variable( Expandable ):
 
   def VariablesReference( self ):
     return self.variable.get( 'variablesReference', 0 )
+
+  def MemoryReference( self ):
+    return self.variable.get( 'memoryReference' )
 
   def Update( self, variable ):
     self.changed = False
@@ -210,6 +222,10 @@ def AddExpandMappings( mappings = None ):
   for mapping in utils.GetVimList( mappings, 'set_value' ):
     vim.command( f'nnoremap <silent> <buffer> { mapping } '
                  ':<C-u>call vimspector#SetVariableValue()<CR>' )
+  for mapping in utils.GetVimList( mappings, 'read_memory' ):
+    vim.command( f'nnoremap <silent> <buffer> { mapping } '
+                 ':<C-u>call vimspector#ReadMemory()<CR>' )
+
 
 
 class VariablesView( object ):
@@ -234,6 +250,8 @@ class VariablesView( object ):
       if utils.UseWinBar():
         vim.command( 'nnoremenu <silent> 1.1 WinBar.Set '
                      ':call vimspector#SetVariableValue()<CR>' )
+        vim.command( 'nnoremenu <silent> 1.2 WinBar.Dump '
+                     ':call vimspector#ReadMemory()<CR>' )
       AddExpandMappings( mappings )
 
     # Set up the "Watches" buffer in the watches_win (and create a WinBar in
@@ -252,14 +270,16 @@ class VariablesView( object ):
           f'nnoremap <buffer> { mapping } :call vimspector#DeleteWatch()<CR>' )
 
       if utils.UseWinBar():
-        vim.command( 'nnoremenu <silent> 1.1 WinBar.New '
+        vim.command( 'nnoremenu <silent> 1.1 WinBar.Add '
                      ':call vimspector#AddWatch()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.2 WinBar.Expand/Collapse '
-                     ':call vimspector#ExpandVariable()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.3 WinBar.Delete '
+        vim.command( 'nnoremenu <silent> 1.2 WinBar.Delete '
                      ':call vimspector#DeleteWatch()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.1 WinBar.Set '
+        vim.command( 'nnoremenu <silent> 1.3 WinBar.+/- '
+                     ':call vimspector#ExpandVariable()<CR>' )
+        vim.command( 'nnoremenu <silent> 1.4 WinBar.Set '
                      ':call vimspector#SetVariableValue()<CR>' )
+        vim.command( 'nnoremenu <silent> 1.5 WinBar.Dump '
+                     ':call vimspector#ReadMemory()<CR>' )
 
     # Set the (global!) balloon expr if supported
     has_balloon      = int( vim.eval( "has( 'balloon_eval' )" ) )
@@ -543,7 +563,7 @@ class VariablesView( object ):
     watch.result = WatchFailure( reason )
     self._DrawWatches()
 
-  def _GetVariable( self, buf = None, line_num = None ):
+  def _GetVariable( self, buf: vim.Buffer = None, line_num = None ):
     none = ( None, None )
 
     if buf is None:
@@ -567,7 +587,7 @@ class VariablesView( object ):
 
     return view.lines[ line_num ], view
 
-  def ExpandVariable( self, buf = None, line_num = None ):
+  def ExpandVariable( self, buf: vim.Buffer = None, line_num = None ):
     variable, view = self._GetVariable( buf, line_num )
     if variable is None:
       return
@@ -650,6 +670,14 @@ class VariablesView( object ):
       },
     }, failure_handler = failure_handler )
 
+
+  def GetMemoryReference( self ):
+    # Get a memoryReference for use in a ReadMemory request
+    variable, _ = self._GetVariable( None, None )
+    if variable is None:
+      return None
+
+    return variable.MemoryReference()
 
 
   def _DrawVariables( self, view, variables, indent_len, is_short = False ):

@@ -726,6 +726,51 @@ class DebugSession( object ):
     self._variablesView.SetVariableValue( new_value, buf, line_num )
 
   @IfConnected()
+  def ReadMemory( self, length = None, offset = None ):
+    if not self._server_capabilities.get( 'supportsReadMemoryRequest' ):
+      utils.UserMessage( "Server does not support memory request",
+                         error = True )
+      return
+
+    memoryReference = self._variablesView.GetMemoryReference()
+    if memoryReference is None:
+      utils.UserMessage( "Cannot find memory reference for that",
+                         error = True )
+      return
+
+    if length is None:
+      length = utils.AskForInput( 'How much data to display? ',
+                                  default_value = '1024' )
+
+    try:
+      length = int( length )
+    except ValueError:
+      return
+
+    if offset is None:
+      offset = utils.AskForInput( 'Location offset? ',
+                                  default_value = '0' )
+
+    try:
+      offset = int( offset )
+    except ValueError:
+      return
+
+
+    def handler( msg ):
+      self._codeView.ShowMemory( memoryReference, length, offset, msg )
+
+    self._connection.DoRequest( handler, {
+      'command': 'readMemory',
+      'arguments': {
+        'memoryReference': memoryReference,
+        'count': int( length ),
+        'offset': int( offset )
+      }
+    } )
+
+
+  @IfConnected()
   def AddWatch( self, expression ):
     self._variablesView.AddWatch( self._stackTraceView.GetCurrentFrame(),
                                   expression )
@@ -1398,7 +1443,8 @@ class DebugSession( object ):
         'pathFormat': 'path',
         'supportsVariableType': True,
         'supportsVariablePaging': False,
-        'supportsRunInTerminalRequest': True
+        'supportsRunInTerminalRequest': True,
+        'supportsMemoryReferences': True
       },
     } )
 
