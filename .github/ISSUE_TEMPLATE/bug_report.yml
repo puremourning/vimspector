@@ -1,5 +1,5 @@
-name: Guided Bug Report
-description: File a bug report v2
+name: Bug Report
+description: Report a bug
 body:
   - type: markdown
     attributes:
@@ -50,13 +50,6 @@ body:
       label: Minimal Reproduction
       description: |
         Provide a clear set of steps to reproduce the issue using the minimal vimrc, i.e. "What you did"
-      placeholder: |
-        1. Create a file test.go with the following contents:
-           ```
-           ...
-           ```
-        2. Move to line 120
-        3. Try to add a breakpoint by hitting <F9>
       value: |
         List of steps to reproduce:
 
@@ -117,6 +110,7 @@ body:
         - Plugin Manager (git clone)
         - Vim packages (git clone)
         - Release tarball
+        - Other (specify in notes)
     validations:
       required: true
 
@@ -134,8 +128,13 @@ body:
     attributes:
       label: Debug Info
       description: Provide the output of `:VimspectorDebugInfo`
-    validations:
-      required: true
+
+  - type: textarea
+    id: issue-logfile
+    attributes:
+      label: Log file
+      description: |
+        Provide the contents of `~/.vimspector.log` (`:VimspectorToggleLog`)
 
   - type: textarea
     id: issue-vim-version
@@ -157,7 +156,7 @@ body:
            * `:py3 import vim`
            * `:py3 import vimspector`
 
-  - type: input
+  - type: textarea
     id: issue-neovim-checkhealth
     attributes:
       label: Neovim diagnostics
