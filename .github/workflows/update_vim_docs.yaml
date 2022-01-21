@@ -16,6 +16,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: 'Update local repo'
         run: './update-vim-docs'
+      - name: 'Check diffs'
+        run: 'git diff'
       - name: 'Create pull request'
         uses: peter-evans/create-pull-request@v3
         id: cpr
