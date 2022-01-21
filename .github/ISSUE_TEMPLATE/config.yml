@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: Questions and support
-    url: http://gitter.im/vimspector/Lobby
+    url: 'https://matrix.to/#/#vimspector_Lobby:gitter.im'
     about: Please ask and answer questions here.
   - name: Discussions
     url: https://github.com/puremourning/vimspector/discussions
