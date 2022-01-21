@@ -128,6 +128,7 @@ body:
     attributes:
       label: Debug Info
       description: Provide the output of `:VimspectorDebugInfo`
+      render: Text
 
   - type: textarea
     id: issue-logfile
@@ -135,12 +136,14 @@ body:
       label: Log file
       description: |
         Provide the contents of `~/.vimspector.log` (`:VimspectorToggleLog`)
+      render: Text
 
   - type: textarea
     id: issue-vim-version
     attributes:
       label: Vim version
       description: Provide the output of `vim --version` and/or `nvim --version`
+      render: Text
     validations:
       required: true
 
@@ -161,6 +164,7 @@ body:
     attributes:
       label: Neovim diagnostics
       description: If using Neovim, provide the output of `:checkhealth`
+      render: Text
       placeholder: |
         Output of `:checkhealth`
 
