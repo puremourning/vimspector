@@ -21,6 +21,20 @@ function Test_Get_Configurations()
   %bwipe!
 endfunction
 
+function Test_Get_Nested_Configurations()
+  lcd ../support/test/go/hello_world/
+
+  let configs = vimspector#GetConfigurations()
+  call assert_equal( [
+                   \   'run-legacy',
+                   \   'run-delve',
+                   \ ],
+                   \ configs )
+
+  lcd -
+  %bwipe!
+endfunction
+
 function! Test_Get_Configurations_FilteredFiletypes()
   edit ../support/test/multiple_filetypes/test.js
   call assert_equal( [ 'Node' ], vimspector#GetConfigurations() )
