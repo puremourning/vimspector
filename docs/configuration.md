@@ -360,8 +360,8 @@ definition.
   `install_gadget.py` and not usually edited by users.
 * `<vimspector home>/gadgets/<OS>/.gadgets.d/*.json` (sorted alphabetically).
   These files are user-supplied and override the above.
-* The first such `.gadgets.json` file found in all parent directories of the
-  file open in Vim.
+* The first such `.gadgets.json` or `.vim/.gadgets.json` file found in all
+  parent directories of the file open in Vim.
 * The `.vimspector.json` and any filetype-specific configurations (see below)
 
 In all cases, the required format is:
@@ -415,14 +415,13 @@ further restrict project configurations by filetype.
 There are two locations for debug configurations for a project:
 
 * `<vimspector home>/configurations/<OS>/<filetype>/*.json`
-* `.vimspector.json` in the project source
-* `.vim/.vimspector.json` in the project source
+* `.vimspector.json` or `.vim/.vimspector.json` in the project source
 
 Typically, the debug configurations are read from `.vimspector.json`. The file
 is found (like `.gadgets.json` above) by recursively searching up the directory
 hierarchy from the directory of the file open in Vim. For each recursion, the
-subdirectory `.vim` is also checked. The first file found is read and no further
-searching is done.
+subdirectory `.vim` is also checked. The first file found is read and no
+further searching is done.
 
 Only a single `.vimspector.json` is read. If one is found, the location of this
 file is used for `${workspaceRoot}` and other workspace-relative paths.
