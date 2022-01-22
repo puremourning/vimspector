@@ -1111,7 +1111,7 @@ Examples:
 
 - 'VimspectorMkSession' - create '.vimspector.session'
 
-- 'VimspectorLoadSession' - read '.vimspector.session'
+- 'VimspectorLoadSession' - read '[.vim/].vimspector.session'
 
 - 'VimspectorMkSession my_session_file' - create 'my_session_file'
 
@@ -1210,7 +1210,10 @@ file. The following commands exist for htat:
 In both cases, the file name argument is optional. By default, the file is
 named '.vimspector.session', but this can be changed globally by setting
 'g:vimspector_session_file_name' to something else, or by manually specifying a
-path when calling the command.
+path when calling the command. When loading a session, the 'file name' is found
+by recursively searching up the directory hierarchy from the directory of the
+file open in Vim. For each recursion, the path is also checked relative to the
+'.vim' subdirectory.
 
 Advanced users may wish to automate the process of loading and saving, for
 example by adding 'VimEnter' and 'VimLeave' autocommands. It's recommented in
