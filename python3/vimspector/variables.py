@@ -563,7 +563,7 @@ class VariablesView( object ):
     watch.result = WatchFailure( reason )
     self._DrawWatches()
 
-  def _GetVariable( self, buf: vim.Buffer = None, line_num = None ):
+  def _GetVariable( self, buf = None, line_num = None ):
     none = ( None, None )
 
     if buf is None:
@@ -587,7 +587,7 @@ class VariablesView( object ):
 
     return view.lines[ line_num ], view
 
-  def ExpandVariable( self, buf: vim.Buffer = None, line_num = None ):
+  def ExpandVariable( self, buf = None, line_num = None ):
     variable, view = self._GetVariable( buf, line_num )
     if variable is None:
       return
