@@ -311,15 +311,15 @@ def PathToConfigFile( file_name, from_directory = None ):
   while True:
     candidate = os.path.join( p, file_name )
     if os.path.exists( candidate ):
-      return candidate
+      return candidate, p
 
     candidate = os.path.join( p, ".vim", file_name )
     if os.path.exists( candidate ):
-      return candidate
+      return candidate, p
 
     parent = os.path.dirname( p )
     if parent == p:
-      return None
+      return None, None
     p = parent
 
 

@@ -90,9 +90,9 @@ class DebugSession( object ):
     filetypes = utils.GetBufferFiletypes( vim.current.buffer )
     configurations = {}
 
-    for launch_config_file in PathsToAllConfigFiles( VIMSPECTOR_HOME,
-                                                     current_file,
-                                                     filetypes ):
+    for launch_config_file, workspace_root in PathsToAllConfigFiles( VIMSPECTOR_HOME,
+                                                                     current_file,
+                                                                     filetypes ):
       self._logger.debug( f'Reading configurations from: {launch_config_file}' )
       if not launch_config_file or not os.path.exists( launch_config_file ):
         continue
@@ -112,7 +112,7 @@ class DebugSession( object ):
         )
       }
 
-    return launch_config_file, filetype_configurations, configurations
+    return launch_config_file, workspace_root, filetype_configurations, configurations
 
   def Start( self,
              force_choose=False,
@@ -130,11 +130,13 @@ class DebugSession( object ):
     adapters = {}
 
     launch_config_file = None
+    workspace_root = None
     configurations = None
     if adhoc_configurations:
       configurations = adhoc_configurations
     else:
       ( launch_config_file,
+        workspace_root,
         configurations,
         all_configurations ) = self.GetConfigurations( adapters )
 
@@ -181,10 +183,10 @@ class DebugSession( object ):
     if not configuration_name or configuration_name not in configurations:
       return
 
-    if launch_config_file:
+    if workspace_root:
+      self._workspace_root = workspace_root
+    elif launch_config_file:
       self._workspace_root = os.path.dirname( launch_config_file )
-      if os.path.basename( self._workspace_root ) == '.vim':
-        self._workspace_root = os.path.dirname( self._workspace_root )
     else:
       self._workspace_root = os.path.dirname( current_file )
 
@@ -1788,8 +1790,9 @@ def PathsToAllGadgetConfigs( vimspector_base, current_file ):
                   '*.json' ) ) ):
     yield p
 
-  yield utils.PathToConfigFile( '.gadgets.json',
+  f, _ = utils.PathToConfigFile( '.gadgets.json',
                                 os.path.dirname( current_file ) )
+  yield f
 
 
 def PathsToAllConfigFiles( vimspector_base, current_file, filetypes ):
@@ -1797,7 +1800,7 @@ def PathsToAllConfigFiles( vimspector_base, current_file, filetypes ):
     for p in sorted( glob.glob(
       os.path.join( install.GetConfigDirForFiletype( vimspector_base, ft ),
                     '*.json' ) ) ):
-      yield p
+      yield p, None
 
   for ft in filetypes:
     yield utils.PathToConfigFile( f'.vimspector.{ft}.json',
