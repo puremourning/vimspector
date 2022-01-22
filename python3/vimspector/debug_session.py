@@ -183,6 +183,8 @@ class DebugSession( object ):
 
     if launch_config_file:
       self._workspace_root = os.path.dirname( launch_config_file )
+      if os.path.basename( self._workspace_root ) == '.vim':
+        self._workspace_root = os.path.dirname( self._workspace_root )
     else:
       self._workspace_root = os.path.dirname( current_file )
 
