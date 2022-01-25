@@ -67,18 +67,7 @@ class CodeView( object ):
         vim.command( 'nnoremenu WinBar.✕ '
                      ':call vimspector#Reset()<CR>' )
 
-      if not signs.SignDefined( 'vimspectorPC' ):
-        signs.DefineSign( 'vimspectorPC',
-                          text = '▶',
-                          double_text = '▶',
-                          texthl = 'MatchParen',
-                          linehl = 'CursorLine' )
-      if not signs.SignDefined( 'vimspectorPCBP' ):
-        signs.DefineSign( 'vimspectorPCBP',
-                          text = '●▶',
-                          double_text  = '▷',
-                          texthl = 'MatchParen',
-                          linehl = 'CursorLine' )
+    signs.DefineProgramCounterSigns()
 
 
   def _UndisplayPC( self, clear_pc = True ):
@@ -211,8 +200,6 @@ class CodeView( object ):
     self._scratch_buffers.append( buf )
     utils.SetUpHiddenBuffer( buf, buf_name )
     with utils.ModifiableScratchBuffer( buf ):
-      # TODO: The data is encoded in base64, so we need to convert that to the
-      # equivalent output of say xxd
       data = msg.get( 'body', {} ).get( 'data', '' )
       utils.SetBufferContents( buf, [
         f'Memory Dump for Reference {memoryReference} Length: {length} bytes'
@@ -226,6 +213,3 @@ class CodeView( object ):
     utils.SetSyntax( '', 'vimspector-memory', buf )
     utils.JumpToWindow( self._window )
     utils.OpenFileInCurrentWindow( buf_name )
-
-    # TODO: Need to set up some mappings here that allow the user to browse
-    # around by setting the offset

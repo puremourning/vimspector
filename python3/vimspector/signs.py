@@ -59,3 +59,18 @@ def PlaceSign( sign_id, group, name, file_name, line ):
 
 def UnplaceSign( sign_id, group ):
   vim.command( f'sign unplace { sign_id } group={ group }' )
+
+
+def DefineProgramCounterSigns():
+  if not SignDefined( 'vimspectorPC' ):
+    DefineSign( 'vimspectorPC',
+                text = '▶',
+                double_text = '▶',
+                texthl = 'MatchParen',
+                linehl = 'CursorLine' )
+  if not SignDefined( 'vimspectorPCBP' ):
+    DefineSign( 'vimspectorPCBP',
+                text = '●▶',
+                double_text  = '▷',
+                texthl = 'MatchParen',
+                linehl = 'CursorLine' )
