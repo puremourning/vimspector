@@ -19,6 +19,9 @@ import vim
 
 from vimspector import utils
 
+DEFAULT_SYNC_TIMEOUT = 5000
+DEFAULT_ASYNC_TIMEOUT = 15000
+
 
 class PendingRequest( object ):
   def __init__( self, msg, handler, failure_handler, expiry_id ):
@@ -29,9 +32,18 @@ class PendingRequest( object ):
 
 
 class DebugAdapterConnection( object ):
-  def __init__( self, handlers, send_func ):
+  def __init__( self,
+                handlers,
+                send_func,
+                sync_timeout = None,
+                async_timeout = None ):
     self._logger = logging.getLogger( __name__ )
     utils.SetUpLogging( self._logger )
+
+    if not sync_timeout:
+      sync_timeout = DEFAULT_SYNC_TIMEOUT
+    if not async_timeout:
+      async_timeout = DEFAULT_ASYNC_TIMEOUT
 
     self._Write = send_func
     self._SetState( 'READ_HEADER' )
@@ -39,12 +51,18 @@ class DebugAdapterConnection( object ):
     self._handlers = handlers
     self._next_message_id = 0
     self._outstanding_requests = {}
+    self.async_timeout = async_timeout
+    self.sync_timeout = sync_timeout
 
   def DoRequest( self,
                  handler,
                  msg,
                  failure_handler=None,
-                 timeout = 15000 ):
+                 timeout = None ):
+
+    if timeout is None:
+      timeout = self.async_timeout
+
     this_id = self._next_message_id
     self._next_message_id += 1
 
@@ -66,8 +84,11 @@ class DebugAdapterConnection( object ):
       self._AbortRequest( request, 'Unable to send message' )
 
 
-  def DoRequestSync( self, msg, timeout = 5000 ):
+  def DoRequestSync( self, msg, timeout = None ):
     result = {}
+
+    if timeout is None:
+      timeout = self.sync_timeout
 
     def handler( msg ):
       result[ 'response' ] = msg
@@ -78,10 +99,10 @@ class DebugAdapterConnection( object ):
 
     self.DoRequest( handler, msg, failure_handler, timeout )
 
-    bug_catcher = 1000
-    while not result and bug_catcher >= 0:
+    to_wait = timeout + 1000
+    while not result and to_wait >= 0:
       vim.command( 'sleep 10m' )
-      bug_catcher -= 10
+      to_wait -= 10
 
     if result.get( 'exception' ) is not None:
       raise result[ 'exception' ]
