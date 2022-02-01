@@ -81,7 +81,15 @@
       }
     },
     "CodeLLDB": {
-      "adapter": "CodeLLDB",
+       "adapter": "CodeLLDB",
+      // "adapter": {
+      //   "extends": "CodeLLDB",
+      //   "command": [
+      //     "$HOME/Development/vimspector/vscode-lldb/build/adapter/codelldb",
+      //     "--port",
+      //     "${unusedLocalPort}"
+      //   ]
+      // },
       "configuration": {
         "request": "launch",
         "program": "${workspaceRoot}/${fileBasenameNoExtension}",
