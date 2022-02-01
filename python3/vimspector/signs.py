@@ -74,3 +74,5 @@ def DefineProgramCounterSigns():
                 double_text  = '▷',
                 texthl = 'MatchParen',
                 linehl = 'CursorLine' )
+
+

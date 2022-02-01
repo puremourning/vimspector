@@ -411,6 +411,9 @@ class DebugSession( object ):
       self._outputView.ConnectionUp( self._connection )
       self._breakpoints.ConnectionUp( self._connection )
 
+      if self._disassemblyView:
+        self._disassemblyView.ConnectionUp( self._connection )
+
     if self._connection:
       self._logger.debug( "_StopDebugAdapter with callback: start" )
       self._StopDebugAdapter( interactive = False, callback = start )
@@ -1116,6 +1119,8 @@ class DebugSession( object ):
       self._variablesView.Clear()
 
     if not self._codeView.SetCurrentFrame( frame ):
+      if self._disassemblyView:
+        self._disassemblyView.Clear()
       return False
 
     if self._disassemblyView:
