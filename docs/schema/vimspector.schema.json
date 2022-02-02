@@ -222,6 +222,14 @@
             "extends": {
               "type": "string",
               "description": "Name of another adapter from which to inherit all properties"
+            },
+            "sync_timeout": {
+              "type": "number",
+              "description": "Timeout for synchronous requests to the adapter (in ms). Default is 5000"
+            },
+            "async_timeout": {
+              "type": "number",
+              "description": "Timeout for asynchronous requests to the adapter (in ms). Default is 15000"
             }
           }
         }
