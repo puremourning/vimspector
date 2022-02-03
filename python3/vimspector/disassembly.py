@@ -112,10 +112,10 @@ class DisassemblyView( object ):
     with utils.LetCurrentWindow( self._window ):
       utils.OpenFileInCurrentWindow( buf_name )
 
-    self._DisplayPC()
+    self._DisplayPC( buf_name )
 
 
-  def _DisplayPC( self ):
+  def _DisplayPC( self, buf_name ):
     self._UndisplayPC()
 
     if 'line' not in self.current_frame or self.current_frame[ 'line' ] < 1:
@@ -154,12 +154,11 @@ class DisassemblyView( object ):
 
       # Found it
       self._signs[ 'vimspectorPC' ] = SIGN_ID
-      if utils.BufferExists( self.current_frame[ 'source' ][ 'path' ] ):
-        signs.PlaceSign( self._signs[ 'vimspectorPC' ],
-                         'VimspectorDisassembly',
-                         'vimspectorPC',
-                         current_path,
-                         instr_index + 1 )
+      signs.PlaceSign( self._signs[ 'vimspectorPC' ],
+                       'VimspectorDisassembly',
+                       'vimspectorPC',
+                       buf_name,
+                       instr_index + 1 )
 
       break
 
