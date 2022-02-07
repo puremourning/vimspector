@@ -20,12 +20,23 @@ import os
 from vimspector import utils, terminal, signs
 
 
+class SteppingDirection(object):
+  FORWARDS = 0
+  BACKWARDS = 1
+
+  @staticmethod
+  def Toggle( current ):
+    return ( current + 1 ) % 2
+
+
+
 class CodeView( object ):
   def __init__( self,
-    window,
-    api_prefix,
-    render_event_emitter,
-    IsBreakpointPresentAt ):
+                window,
+                api_prefix,
+                stepping_direction,
+                render_event_emitter,
+                IsBreakpointPresentAt ):
 
     self._window = window
     self._api_prefix = api_prefix
@@ -34,6 +45,7 @@ class CodeView( object ):
 
     self._terminal = None
     self.current_syntax = None
+    self._server_capabilities = None
 
     self._logger = logging.getLogger( __name__ )
     utils.SetUpLogging( self._logger )
@@ -50,24 +62,26 @@ class CodeView( object ):
       if utils.UseWinBar():
         # Buggy neovim doesn't render correctly when the WinBar is defined:
         # https://github.com/neovim/neovim/issues/12689
-        vim.command( 'nnoremenu WinBar.■\\ Stop '
+        vim.command( 'nnoremenu <silent> 1.10 WinBar.■\\ Stop '
                      ':call vimspector#Stop()<CR>' )
-        vim.command( 'nnoremenu WinBar.▶\\ Cont '
+        vim.command( 'nnoremenu <silent> 1.20 WinBar.▶\\ Cont '
                      ':call vimspector#Continue()<CR>' )
-        vim.command( 'nnoremenu WinBar.▷\\ Pause '
+        vim.command( 'nnoremenu <silent> 1.30 WinBar.▷\\ Pause '
                      ':call vimspector#Pause()<CR>' )
-        vim.command( 'nnoremenu WinBar.↷\\ Next '
+        vim.command( 'nnoremenu <slient> 1.40 WinBar.↷\\ Next '
                      ':call vimspector#StepSOver()<CR>' )
-        vim.command( 'nnoremenu WinBar.→\\ Step '
+        vim.command( 'nnoremenu <slient> 1.50 WinBar.→\\ Step '
                      ':call vimspector#StepSInto()<CR>' )
-        vim.command( 'nnoremenu WinBar.←\\ Out '
+        vim.command( 'nnoremenu <slient> 1.60 WinBar.←\\ Out '
                      ':call vimspector#StepSOut()<CR>' )
-        vim.command( 'nnoremenu WinBar.↺ '
+        vim.command( 'nnoremenu <slient> 1.70 WinBar.↺ '
                      ':call vimspector#Restart()<CR>' )
-        vim.command( 'nnoremenu WinBar.✕ '
+        vim.command( 'nnoremenu <silent> 1.80 WinBar.✕ '
                      ':call vimspector#Reset()<CR>' )
 
     signs.DefineProgramCounterSigns()
+
+    self.SetSteppingDirection( stepping_direction )
 
 
   def _UndisplayPC( self, clear_pc = True ):
@@ -194,6 +208,35 @@ class CodeView( object ):
     # FIXME: Change this tor return the PID rather than having debug_session
     # work that out
     return self._terminal.buffer_number
+
+
+  def SetServerCapabilities( self, capabilities ):
+    self._server_capabilities = capabilities
+
+
+  def SetSteppingDirection( self, stepping_direction ):
+    if not utils.UseWinBar():
+      return
+
+    if not self._window.valid:
+      return
+
+    if not self._server_capabilities:
+      return
+
+    vim.command( 'silent! nunmenu WinBar.RVS' )
+    vim.command( 'silent! nunmenu WinBar.FWD' )
+
+    if not self._server_capabilities.get( 'supportsStepBack', False ):
+      return
+
+    with utils.LetCurrentWindow( self._window ):
+      if stepping_direction == SteppingDirection.FORWARDS:
+        vim.command( 'nnoremenu <silent> 1.90 WinBar.FWD '
+                     ':call vimspector#ToggleSteppingDirection()<CR>' )
+      else:
+        vim.command( 'nnoremenu <silent> 1.90 WinBar.RVS '
+                     ':call vimspector#ToggleSteppingDirection()<CR>' )
 
 
   def ShowMemory( self, memoryReference, length, offset, msg ):

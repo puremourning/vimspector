@@ -104,6 +104,38 @@
           "cpp_catch": ""
         }
       }
+    },
+    "CodeLLDB-reverse": {
+      "adapter": "CodeLLDB",
+      "variables": {
+        "Port": "4567"
+      },
+      "configuration": {
+        "request": "launch",
+        "custom": true,
+        "program": "${workspaceRoot}/${fileBasenameNoExtension}",
+        "cwd": "${workspaceRoot}",
+        "expressions": "native",
+        "reverseDebugging": true,
+        "args": [
+          "A", "eh",
+          "B", "bee",
+          "C", "Sea",
+          "D", "Ceedy"
+        ],
+        "targetCreateCommands": [
+          "target create ${workspaceRoot}/${fileBasenameNoExtension}"
+        ],
+        "processCreateCommands": [
+          "gdb-remote localhost:4567"
+        ]
+      },
+      "breakpoints": {
+        "exception": {
+          "cpp_throw": "",
+          "cpp_catch": ""
+        }
+      }
     }
   },
   "adapters": {

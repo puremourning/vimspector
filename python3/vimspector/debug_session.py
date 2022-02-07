@@ -79,6 +79,7 @@ class DebugSession( object ):
     self._remote_term = None
     self._adapter_term = None
 
+
     self._run_on_server_exit = None
 
     self._configuration = None
@@ -91,6 +92,7 @@ class DebugSession( object ):
     self._connection = None
     self._init_complete = False
     self._launch_complete = False
+    self._stepping_direction = code.SteppingDirection.FORWARDS
     self._on_init_complete_handlers = []
     self._server_capabilities = {}
     utils.SetSessionWindows( {} )
@@ -637,8 +639,16 @@ class DebugSession( object ):
 
   @IfConnected()
   def StepOver( self, **kwargs ):
+    if self._stepping_direction != code.SteppingDirection.FORWARDS:
+      utils.UserMessage( "Sorry, server can't do that backwards" )
+      return
+
     if self._stackTraceView.GetCurrentThreadId() is None:
       return
+
+    def handler( *_ ):
+      self._stackTraceView.OnContinued()
+      self._codeView.SetCurrentFrame( None )
 
     arguments = {
       'threadId': self._stackTraceView.GetCurrentThreadId(),
@@ -649,14 +659,11 @@ class DebugSession( object ):
     if not self._server_capabilities.get( 'supportsSteppingGranularity' ):
       arguments.pop( 'granularity' )
 
-    self._connection.DoRequest( None, {
+    self._connection.DoRequest( handler, {
       'command': 'next',
       'arguments': arguments,
     } )
 
-    # TODO: WHy is this different from StepInto and StepOut
-    self._stackTraceView.OnContinued()
-    self.ClearCurrentPC()
 
   @IfConnected()
   def StepInto( self, **kwargs ):
@@ -673,13 +680,27 @@ class DebugSession( object ):
       'granularity': self._CurrentSteppingGranularity(),
     }
     arguments.update( kwargs )
-    self._connection.DoRequest( handler, {
-      'command': 'stepIn',
-      'arguments': arguments,
-    } )
+
+    if self._stepping_direction == code.SteppingDirection.FORWARDS:
+      self._connection.DoRequest( handler, {
+        'command': 'stepIn',
+        'arguments': arguments,
+      } )
+    elif self._server_capabilities.get( 'supportsStepBack', False ):
+      self._connection.DoRequest( handler, {
+        'command': 'stepBack',
+        'arguments': arguments,
+      } )
+    else:
+      utils.UserMessage( "Sorry, server can't do that backwards" )
+
 
   @IfConnected()
-  def StepOut( self, **kwargs ):
+  def StepOut( self ):
+    if self._stepping_direction != code.SteppingDirection.FORWARDS:
+      utils.UserMessage( "Sorry, server can't do that backwards" )
+      return
+
     threadId = self._stackTraceView.GetCurrentThreadId()
     if threadId is None:
       return
@@ -704,6 +725,18 @@ class DebugSession( object ):
 
     return 'statement'
 
+  @IfConnected()
+  def ToggleSteppingDirection( self ):
+    self._stepping_direction = code.SteppingDirection.Toggle(
+      self._stepping_direction )
+
+    if not self._codeView:
+      return
+
+    self._codeView.SetSteppingDirection( self._stepping_direction )
+    return self._stepping_direction
+
+
   def Continue( self ):
     if not self._connection:
       self.Start()
@@ -723,12 +756,23 @@ class DebugSession( object ):
         } )
       self.ClearCurrentPC()
 
-    self._connection.DoRequest( handler, {
-      'command': 'continue',
-      'arguments': {
-        'threadId': threadId,
-      },
-    } )
+    if self._stepping_direction == code.SteppingDirection.FORWARDS:
+      self._connection.DoRequest( handler, {
+        'command': 'continue',
+        'arguments': {
+          'threadId': threadId,
+        },
+      } )
+    elif self._server_capabilities.get( 'supportsStepBack', False ):
+      self._connection.DoRequest( handler, {
+        'command': 'reverseContinue',
+        'arguments': {
+          'threadId': threadId,
+        },
+      } )
+    else:
+      utils.UserMessage( "Sorry, server can't do that backwards" )
+
 
   @IfConnected()
   def Pause( self ):
@@ -1018,9 +1062,10 @@ class DebugSession( object ):
     # Code window
     code_window = vim.current.window
     self._codeView = code.CodeView( code_window,
-      self._api_prefix,
-      self._render_emitter,
-      self._breakpoints.IsBreakpointPresentAt )
+                                    self._api_prefix,
+                                    self._stepping_direction,
+                                    self._render_emitter,
+                                    self._breakpoints.IsBreakpointPresentAt )
 
     # Call stack
     vim.command(
@@ -1537,8 +1582,11 @@ class DebugSession( object ):
     #
     def handle_initialize_response( msg ):
       self._server_capabilities = msg.get( 'body' ) or {}
+      self._codeView.SetServerCapabilities( self._server_capabilities )
       self._breakpoints.SetServerCapabilities( self._server_capabilities )
       self._variablesView.SetServerCapabilities( self._server_capabilities )
+
+      self._codeView.SetSteppingDirection( self._stepping_direction )
       self._Launch()
 
     self._connection.DoRequest( handle_initialize_response, {
@@ -1702,6 +1750,7 @@ class DebugSession( object ):
   def OnEvent_capabilities( self, msg ):
     self._server_capabilities.update(
       ( msg.get( 'body' ) or {} ).get( 'capabilities' ) or {} )
+    self._codeView.SetSteppingDirection( self._stepping_direction )
 
 
   def OnEvent_initialized( self, message ):

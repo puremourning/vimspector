@@ -85,6 +85,10 @@ nnoremap <silent> <Plug>VimspectorStepOut
       \ :<c-u>call <SID>SetRepeat( "\<Plug>VimspectorStepOut" )<CR>
       \:<c-u>call vimspector#StepOut()<CR>
 
+nnoremap <silent> <Plug>VimspectorToggleSteppingDirection
+      \ :<c-u>call vimspector#ToggleSteppingDirection()<CR>
+
+
 nnoremap <silent> <Plug>VimspectorRunToCursor
       \ :<c-u>call <SID>SetRepeat( "\<Plug>VimspectorRunToCursor" )<CR>
       \:<c-u>call vimspector#RunToCursor()<CR>
