@@ -1194,7 +1194,9 @@ class DebugSession( object ):
         handlers,
         lambda msg: utils.Call(
           "vimspector#internal#{}#Send".format( self._connection_type ),
-          msg ) )
+          msg ),
+        self._adapter.get( 'sync_timeout' ),
+        self._adapter.get( 'async_timeout' ) )
 
     self._logger.info( 'Debug Adapter Started' )
     return True
@@ -1220,10 +1222,14 @@ class DebugSession( object ):
         vim.eval( 'vimspector#internal#{}#StopDebugSession()'.format(
           self._connection_type ) )
 
-      self._connection.DoRequest( handler, {
-        'command': 'disconnect',
-        'arguments': arguments,
-      }, failure_handler = handler, timeout = 5000 )
+      self._connection.DoRequest(
+        handler,
+        {
+          'command': 'disconnect',
+          'arguments': arguments,
+        },
+        failure_handler = handler,
+        timeout = self._connection.sync_timeout )
 
     if not interactive:
       disconnect()
