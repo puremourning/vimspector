@@ -90,9 +90,10 @@ class DebugSession( object ):
     filetypes = utils.GetBufferFiletypes( vim.current.buffer )
     configurations = {}
 
-    for launch_config_file, workspace_root in PathsToAllConfigFiles( VIMSPECTOR_HOME,
-                                                                     current_file,
-                                                                     filetypes ):
+    for ( launch_config_file,
+          workspace_root ) in PathsToAllConfigFiles( VIMSPECTOR_HOME,
+                                                     current_file,
+                                                     filetypes ):
       self._logger.debug( f'Reading configurations from: {launch_config_file}' )
       if not launch_config_file or not os.path.exists( launch_config_file ):
         continue
@@ -112,7 +113,10 @@ class DebugSession( object ):
         )
       }
 
-    return launch_config_file, workspace_root, filetype_configurations, configurations
+    return ( launch_config_file,
+             workspace_root,
+             filetype_configurations,
+             configurations )
 
   def Start( self,
              force_choose=False,
