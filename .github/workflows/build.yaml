@@ -13,7 +13,7 @@ defaults:
 
 jobs:
   PythonLint:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     container: 'puremourning/vimspector:test-x86_64'
     steps:
     - uses: actions/checkout@v2
@@ -22,7 +22,7 @@ jobs:
     - name: 'Run flake8'
       run: '$HOME/.local/bin/flake8 python3/ *.py'
   VimscriptLint:
-    runs-on: 'ubuntu-18.04'
+    runs-on: 'ubuntu-20.04'
     container: 'puremourning/vimspector:test-x86_64'
     steps:
     - uses: actions/checkout@v2
@@ -32,7 +32,7 @@ jobs:
       run: $HOME/.local/bin/vint autoload/ compiler/ plugin/ tests/ syntax/
 
   Linux:
-    runs-on: 'ubuntu-18.04'
+    runs-on: 'ubuntu-20.04'
     container:
       image: 'puremourning/vimspector:test-x86_64'
       options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined
@@ -155,7 +155,7 @@ jobs:
     #     SSH_PASS: ${{ secrets.SSH_PASS }} # [V]imspector
 
   PublishRelease:
-    runs-on: 'ubuntu-18.04'
+    runs-on: 'ubuntu-20.04'
     needs:
       - Linux
       - MacOS
