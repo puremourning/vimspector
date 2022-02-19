@@ -193,7 +193,16 @@
           "anyOf": [
             { "required": [ "command" ] },
             { "required": [ "port" ] },
-            { "required": [ "command", "port" ] }
+            {
+              "required": [ "command", "port" ],
+              "properties": {
+                "tty": {
+                  "type": "boolean",
+                  "description": "Set to True to launch 'command' in a terminal. Only valid when both 'command' and 'port' are supplied."
+                }
+              }
+            },
+            { "required": [ "extends" ] }
           ]
         },
         {
@@ -209,6 +218,18 @@
                 { "type": "integer" }
               ],
               "description": "If supplied, indicates that a socket connection should be made to this port on 'host'. If the value is 'ask', then the user is asked to enter the port number to connect to."
+            },
+            "extends": {
+              "type": "string",
+              "description": "Name of another adapter from which to inherit all properties"
+            },
+            "sync_timeout": {
+              "type": "number",
+              "description": "Timeout for synchronous requests to the adapter (in ms). Default is 5000"
+            },
+            "async_timeout": {
+              "type": "number",
+              "description": "Timeout for asynchronous requests to the adapter (in ms). Default is 15000"
             }
           }
         }
@@ -228,6 +249,12 @@
         "allOf": [
           { "$ref": "#/definitions/variables" },
           {
+            "oneOf": [
+              { "required": [ "adapter", "configuration" ] },
+              { "required": [ "extends" ] }
+            ]
+          },
+          {
             "type": "object",
             "properties": {
               "adapter": {
@@ -240,6 +267,10 @@
                   }
                 ]
               },
+              "extends": {
+                "type": "string",
+                "description": "Name of another configuration to inherit properties from."
+              },
               "remote-request": {
                 "enum": [ "launch", "attach" ],
                 "description": "When the 'remote' block is defined in the adapter configuration, this can be used to override the actual action taken (remotely). Usually the actual 'configuration' will contain 'request' of 'attach', but in order to remotely 'launch' the process (e.g. under gdbserver or equivalent), use remote-attach set to 'launch'"
@@ -247,6 +278,18 @@
               "remote-cmdLine": {
                 "type": [ "string", "array" ],
                 "description": "Defines the value of the special token %CMD% in remote-launch 'runCommand(s)'. The value is inserted into the command line where an entry matching '%CMD%' is found in 'runCommand(s)' command array."
+              },
+              "default": {
+                "type": "boolean",
+                "description": "When true, this configuration is picked by default"
+              },
+              "autoselect": {
+                "type": "boolean",
+                "description": "When false, this configuration is _never_ picked by default"
+              },
+              "filetypes": {
+                "type": "array",
+                "description": "List of Vim filetypes that this configuration applies to. The configuraiton is only used if one of the current filetypes appears in this list, or if this list is not supplied,"
               },
               "configuration": {
                 "type": "object",
@@ -264,12 +307,6 @@
               "breakpoints": {
                 "type": "object",
                 "properties": {
-                  "line": {
-                    "$comment": "TBA: Not supported yet"
-                  },
-                  "function": {
-                    "$comment": "TBA: Not supported yet"
-                  },
                   "exception": {
                     "type": "object",
                     "description": "Exception breakpoints configuration, mapping the server's exception filter to enabled/disable/default flag",

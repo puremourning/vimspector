@@ -10,7 +10,48 @@ function! SetUp_Test_Go_Simple()
   let g:vimspector_enable_mappings = 'HUMAN'
 endfunction
 
+function! SkipUnsupported() abort
+  call SkipOn( 'arm64', 'Darwin' )
+endfunction
+
+function! Test_CSharp_Simple_Adhoc_Config()
+  call SkipUnsupported()
+  let fn='Program.cs'
+  lcd ../support/test/csharp
+  exe 'edit ' . fn
+
+  call vimspector#SetLineBreakpoint( fn, 31 )
+  call vimspector#LaunchWithConfigurations( {
+    \ 'launch - netcoredbg': {
+    \   'adapter': 'netcoredbg',
+    \   'configuration': {
+    \     'request': 'launch',
+    \     'program': '${workspaceRoot}/bin/Debug/netcoreapp5.0/csharp.dll',
+    \     'args': [],
+    \     'stopAtEntry': v:false
+    \   }
+    \ }
+  \ } )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 31, 7 )
+  call WaitForAssert( {->
+        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( fn, 31 )
+        \ } )
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 32, 12 )
+  call WaitForAssert( {->
+        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( fn, 32 )
+        \ } )
+
+  call vimspector#test#setup#Reset()
+
+  lcd -
+  %bwipeout!
+endfunction
+
 function! Test_CSharp_Simple()
+  call SkipUnsupported()
+
   let fn='Program.cs'
   lcd ../support/test/csharp
   exe 'edit ' . fn
@@ -38,6 +79,7 @@ endfunction
 
 
 function! Test_Run_To_Cursor()
+  call SkipUnsupported()
   let fn='Program.cs'
   lcd ../support/test/csharp
   exe 'edit ' . fn

@@ -92,7 +92,8 @@ if [ "$INSTALL" = "1" ] || [ "$INSTALL" = "script" ]; then
                --basedir ${BASEDIR} \
                ${INSTALLER_ARGS} \
                --all \
-               --force-enable-csharp; then
+               --force-enable-csharp \
+               --force-enable-node; then
     echo "Script installation reported errors" >&2
     exit 1
   fi
@@ -103,7 +104,7 @@ if [ "$INSTALL" = "1" ] || [ "$INSTALL" = "vim" ]; then
                --cmd "${BASEDIR_CMD}" \
                -c 'autocmd User VimspectorInstallSuccess qa!' \
                -c 'autocmd User VimspectorInstallFailed cquit!' \
-               -c "VimspectorInstall --all netcoredbg"; then
+               -c "VimspectorInstall --all netcoredbg vscode-node-debug2"; then
     echo "Vim installation reported errors" >&2
     exit 1
   fi

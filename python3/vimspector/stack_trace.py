@@ -122,7 +122,7 @@ class StackTraceView( object ):
       if utils.UseWinBar():
         vim.command( 'nnoremenu <silent> 1.1 WinBar.Pause/Continue '
                      ':call vimspector#PauseContinueThread()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.2 WinBar.Expand/Collapse '
+        vim.command( 'nnoremenu <silent> 1.2 WinBar.+/- '
                      ':call vimspector#GoToFrame()<CR>' )
         vim.command( 'nnoremenu <silent> 1.3 WinBar.Focus '
                      ':call vimspector#SetCurrentThread()<CR>' )
@@ -302,6 +302,8 @@ class StackTraceView( object ):
             f'({thread.State()})' )
 
           if self._current_thread == thread.id:
+            # TODO - Scroll the window such that this line is visible (e.g. at
+            # the top)
             signs.PlaceSign( self._current_thread_sign_id,
                              'VimspectorStackTrace',
                              'vimspectorCurrentThread',

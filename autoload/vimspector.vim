@@ -51,6 +51,14 @@ function! vimspector#Launch( ... ) abort
   py3 _vimspector_session.Start( *vim.eval( 'a:000' ) )
 endfunction
 
+function! vimspector#LaunchWithConfigurations( configurations ) abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.Start(
+        \ adhoc_configurations = vim.eval( 'a:configurations' ) )
+endfunction
+
 function! vimspector#LaunchWithSettings( settings ) abort
   if !s:Enabled()
     return
@@ -240,6 +248,17 @@ function! vimspector#SetVariableValue( ... ) abort
   else
     py3 _vimspector_session.SetVariableValue( new_value = vim.eval( 'a:1' ) )
   endif
+endfunction
+
+function! vimspector#ReadMemory( ... ) abort
+  if !s:Enabled()
+    return
+  endif
+  let opts = {}
+  if a:0 > 0
+    let opts = a:1
+  endif
+  py3 _vimspector_session.ReadMemory( **vim.eval( 'opts' ) )
 endfunction
 
 function! vimspector#DeleteWatch() abort
@@ -591,10 +610,14 @@ function! vimspector#ShowEvalBalloon( is_visual ) abort
     let expr = expand( '<cexpr>' )
   endif
 
-  return py3eval( '_vimspector_session.ShowEvalBalloon('
-                \ . ' int( vim.eval( "winnr()" ) ), "'
-                \ . expr
-                \ . '", 0 )' )
+  let line = line( '.' )
+
+  return py3eval( '_vimspector_session.HoverEvalTooltip('
+                \ . ' int( vim.eval( "winnr()" ) ), '
+                \ . ' int( vim.eval( "bufnr()" ) ), '
+                \ . ' int( vim.eval( "line" ) ), '
+                \ . '"' . expr . '", '
+                \ . '0 )' )
 endfunction
 
 function! vimspector#PrintDebugInfo() abort

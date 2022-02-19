@@ -4,6 +4,10 @@ set noequalalways
 let mapleader = ','
 let maplocalleader = "\<Space>"
 
+if exists( '$VIMSPECTOR_TEST_BASE' )
+  let g:vimspector_base_dir = g:vimspector_test_plugin_path .. '/' .. $VIMSPECTOR_TEST_BASE
+endif
+
 let &runtimepath = &runtimepath . ',' . g:vimspector_test_plugin_path
 
 filetype plugin indent on

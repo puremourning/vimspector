@@ -83,6 +83,43 @@ class TestExpandReferencesInDict( unittest.TestCase ):
 
     self.assertDictEqual( d, e )
 
+  def test_ParseVariables( self ):
+    tests = [
+      {
+        'AskForInput': RuntimeError,
+        'in': ( [ { 'a': 'A' }, { 'b': '${a}' } ], {}, {}, {} ),
+        'out': { 'a': 'A', 'b': 'A' }
+      },
+      # List of vars, interdependent
+      {
+        'AskForInput': [ 'first', 'third' ],
+        'in': ( [
+          {
+            'first': '${first:first}',
+          },
+          {
+            'second': 'second, ${first}',
+            'third': '${first:last} and ${third:third}',
+          },
+          {
+            'fourth': '${first}, ${second} and ${third}'
+          }
+        ], {}, {}, {} ),
+        'out': {
+          'first': 'first',
+          'second': 'second, first',
+          'third': 'first and third',
+          'fourth': 'first, second, first and first and third'
+        }
+      },
+    ]
+
+    for test in tests:
+      with patch( 'vimspector.utils.AskForInput',
+                  side_effect = test[ 'AskForInput' ] ):
+        self.assertDictEqual( utils.ParseVariables( *test[ 'in' ] ),
+                              test[ 'out' ] )
+
 
 assert unittest.main( module=__name__,
                       testRunner=unittest.TextTestRunner( sys.stdout ),

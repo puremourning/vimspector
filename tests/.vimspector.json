@@ -2,6 +2,18 @@
   "configurations": {
     "Run test": {
       "adapter": "vim-debug-adapter",
+      "variables": [
+        {
+          "basedir": "${basedir:${workspaceRoot\\}/../test-base}"
+        },
+        {
+          "setupargs": "--clean --not-a-term -S lib/run_test.vim --cmd 'let g:vimspector_base_dir=\"${basedir}\"'",
+          "tidy_messages": { "shell": "rm -f ${workspaceRoot}/messages" },
+          "tidy_log":      { "shell": "rm -f ${workspaceRoot}/test.log" },
+          "tidy_testlog":  { "shell": "rm -f ${workspaceRoot}/*.testlog" },
+          "tidy_debuglog": { "shell": "rm -f ${workspaceRoot}/debuglog" }
+        }
+      ],
       "configuration": {
         "request": "launch",
         "cwd": "${workspaceRoot}",
@@ -9,11 +21,18 @@
           "VIMSPECTOR_MIMODE": "lldb"
         },
         "args": [
-          "--clean",
-          "--not-a-term",
-          "-S", "lib/run_test.vim",
+          "*${setupargs}",
           "${file}",
           "${TestFunction}"
+        ]
+      }
+    },
+    "Run script": {
+      "extends": "Run test",
+      "configuration": {
+        "args": [
+          "*${setupargs}",
+          "${file}"
         ]
       }
     }

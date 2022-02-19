@@ -1,33 +1,17 @@
 {
-  "adapters": {
-    "dlv-dap": {
-      "variables": {
-        "port": "${unusedLocalPort}"
-      },
-      "command": [
-        "$HOME/go/bin/dlv",
-        "dap",
-        "--listen",
-        "127.0.0.1:${port}"
-      ],
-      "port": "${port}"
-    }
-  },
   "configurations": {
-    "run": {
+    "run-legacy": {
       "adapter": "vscode-go",
-      "default": true,
       "configuration": {
         "request": "launch",
         "program": "${workspaceRoot}/hello-world.go",
         "mode": "debug",
-        "dlvToolPath": "$HOME/go/bin/dlv",
         "trace": true,
         "env": { "GO111MODULE": "off" }
       }
     },
-    "run-dap": {
-      "adapter": "dlv-dap",
+    "run-delve": {
+      "adapter": "delve",
       "configuration": {
         "request": "launch",
         "env": { "GO111MODULE": "off" },
@@ -39,20 +23,6 @@
         // "buildFlags": ...
         // "stackTraceDepth": ...,
         // "showGlobalVariables": true,
-      }
-    },
-    "run-exec": {
-      // NOTE: To use this you _must_ disable optimistaion:
-      // go build -o hello_world -gcflags="all=-N -l"
-      // https://github.com/golang/vscode-go/blob/master/docs/debugging.md#troubleshooting
-      "adapter": "vscode-go",
-      "configuration": {
-        "request": "launch",
-        "program": "${workspaceRoot}/hello-world",
-        "mode": "exec",
-        "dlvToolPath": "$HOME/go/bin/dlv",
-        "trace": true,
-        "env": { "GO111MODULE": "off" }
       }
     }
   }

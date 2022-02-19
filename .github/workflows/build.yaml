@@ -13,8 +13,8 @@ defaults:
 
 jobs:
   PythonLint:
-    runs-on: ubuntu-18.04
-    container: 'puremourning/vimspector:test'
+    runs-on: ubuntu-20.04
+    container: 'puremourning/vimspector:test-x86_64'
     steps:
     - uses: actions/checkout@v2
     - name: 'Insatll requirements'
@@ -22,8 +22,8 @@ jobs:
     - name: 'Run flake8'
       run: '$HOME/.local/bin/flake8 python3/ *.py'
   VimscriptLint:
-    runs-on: 'ubuntu-18.04'
-    container: 'puremourning/vimspector:test'
+    runs-on: 'ubuntu-20.04'
+    container: 'puremourning/vimspector:test-x86_64'
     steps:
     - uses: actions/checkout@v2
     - name: 'Install requirements'
@@ -32,15 +32,14 @@ jobs:
       run: $HOME/.local/bin/vint autoload/ compiler/ plugin/ tests/ syntax/
 
   Linux:
-    runs-on: 'ubuntu-18.04'
+    runs-on: 'ubuntu-20.04'
     container:
-      image: 'puremourning/vimspector:test'
+      image: 'puremourning/vimspector:test-x86_64'
       options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined
     steps:
     - uses: actions/checkout@v2
 
     - run: |
-        eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
         go install github.com/go-delve/delve/cmd/dlv@latest
       name: 'Install Delve for Go'
 
@@ -54,7 +53,6 @@ jobs:
       name: 'Print vim version information'
 
     - run: |
-        eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
         export GOPATH=$HOME/go
         ./run_tests --install --update --report messages --quiet
       name: 'Run the tests'
@@ -157,7 +155,7 @@ jobs:
     #     SSH_PASS: ${{ secrets.SSH_PASS }} # [V]imspector
 
   PublishRelease:
-    runs-on: 'ubuntu-18.04'
+    runs-on: 'ubuntu-20.04'
     needs:
       - Linux
       - MacOS

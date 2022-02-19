@@ -30,7 +30,7 @@ GADGETS = {
                                                                 root,
                                                                 gadget ),
     'all': {
-      'version': '1.6.0',
+      'version': '1.7.1',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",
@@ -53,17 +53,28 @@ GADGETS = {
     'linux': {
       'file_name': 'cpptools-linux.vsix',
       'checksum':
-        'c25299bcfb46b22d41aa3f125df7184e6282a35ff9fb69c47def744cb4778f55',
+        '2ea9dd1bfbeff0b8153c45fa74692290307a33a2129dea36509efc8b35d515b9',
+    },
+    'linux_arm64': {
+      'file_name': 'cpptools-linux-aarch64.vsix',
+      'checksum':
+        '0136033788c805f09b56175926403a26a79857197ea4d6addd699e1a99ce9401',
     },
     'macos': {
       'file_name': 'cpptools-osx.vsix',
       'checksum':
-        'ae21cde361335b350402904991cf9f746fec685449ca9bd5d50227c3dec3719b',
+        'bab71db23b9221c6d5d40c7bb2243570ebe49a3bb7b9893033440681d27aa440',
+    },
+    # doesn't work: https://github.com/microsoft/vscode-cpptools/issues/7035
+    'macos_arm64': {
+      'file_name': 'cpptools-osx-arm64.vsix',
+      'checksum':
+        '9dc7630463a9dce048bf96f30028f30a41889fea7be89c6d20cb93d156a9f3d6',
     },
     'windows': {
       'file_name': 'cpptools-win32.vsix',
       'checksum':
-        'ef7ac5831874a3c7dbf0feb826bfda2be579aff9b6d990622fff1d0d4ede00d1',
+        '469dcd619576cca700e917fef5e3f12ddce9d760d77e768042bd9566fadd71cb',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",
@@ -84,6 +95,11 @@ GADGETS = {
           }
         },
       },
+    },
+    'windows_arm64': {
+      'file_name': 'cpptools-win-arm64.vsix',
+      'checksum':
+        '0427118d853d9262af824b28d102bbb6c11dc2eb66ff7f694336fd731ac404f7',
     },
   },
   'debugpy': {
@@ -211,15 +227,19 @@ GADGETS = {
       'format': 'tar',
     },
     'all': {
-      'version': '1.2.0-782'
+      'version': '2.0.0-895'
     },
     'macos': {
-      'file_name': 'netcoredbg-osx.tar.gz',
+      'file_name': 'netcoredbg-osx-amd64.tar.gz',
       'checksum':
         '',
     },
     'linux': {
-      'file_name': 'netcoredbg-linux-bionic-amd64.tar.gz',
+      'file_name': 'netcoredbg-linux-amd64.tar.gz',
+      'checksum': '',
+    },
+    'linux_arm64': {
+      'file_name': 'netcoredbg-linux-arm64.tar.gz',
       'checksum': '',
     },
     'windows': {
@@ -289,6 +309,35 @@ GADGETS = {
       }
     }
   },
+  'delve': {
+    'language': 'go',
+    'do': lambda name, root, gadget: installer.InstallDelve( name,
+                                                             root,
+                                                             gadget ),
+    'all': {
+      'path': 'github.com/go-delve/delve/cmd/dlv',
+      'version': '1.7.3',
+    },
+    'adapters': {
+      "delve": {
+        "variables": {
+          "port": "${unusedLocalPort}",
+          "dlvFlags": "",
+          "listenOn": "127.0.0.1",
+        },
+        "command": [
+          "${gadgetDir}/delve/bin/dlv",
+          "dap",
+          "--listen",
+          "${listenOn}:${port}",
+          "*${dlvFlags}",
+        ],
+        "tty": True, # because delve is a special snowflake and uses its own
+                     # controlling tty for the debugee
+        "port": "${port}"
+      }
+    }
+  },
   'vscode-go': {
     'language': 'go',
     'download': {
@@ -296,10 +345,10 @@ GADGETS = {
              'v${version}/${file_name}'
     },
     'all': {
-      'version': '0.19.1',
-      'file_name': 'go-0.19.1.vsix',
+      'version': '0.30.0',
+      'file_name': 'go-0.30.0.vsix',
       'checksum':
-        '7f9dc014245b030d9f562b28f3ea9b1fd6e2708fac996c53ff6a707f8204ec64',
+        '',
     },
     'adapters': {
       'vscode-go': {
@@ -310,6 +359,8 @@ GADGETS = {
         ],
         "configuration": {
           "cwd": "${workspaceRoot}",
+          # If the delva adapter is also installed, use that by default.
+          "dlvToolPath": "${gadgetDir}/delve/bin/dlv"
         }
       },
     },
@@ -323,10 +374,10 @@ GADGETS = {
         '${version}/${file_name}',
     },
     'all': {
-            'version': 'v1.19.0',
-            'file_name': 'php-debug-1.19.0.vsix',
+            'version': 'v1.23.0',
+            'file_name': 'php-debug-1.23.0.vsix',
       'checksum':
-        '41ab43c48cbdca8bc2389c8004110ce3a2b36ed9bf823385bb6338579adbe466',
+        'ae4a8d7cc1ccc49ba1fd353c53f17a404733cccdb06ea600e22bc63d3d4a5603',
     },
     'adapters': {
       'vscode-php-debug': {
@@ -414,19 +465,19 @@ GADGETS = {
     },
   },
   'CodeLLDB': {
-    'language': 'rust',
+    'language': [ 'c', 'cpp', 'rust' ],
     'enabled': True,
     'download': {
       'url': 'https://github.com/vadimcn/vscode-lldb/releases/download/'
              '${version}/${file_name}',
     },
     'all': {
-      'version': 'v1.6.7',
+      'version': 'v1.6.10',
     },
     'macos': {
       'file_name': 'codelldb-x86_64-darwin.vsix',
       'checksum':
-        'b652fc18f100f93ed1732a131f3dc519cbaf5ae688e9a91decf795203206497d',
+        'af17b80ccbf5fe57db3029302aabcd0ae04ed27d30b439dd34fb251b5f017a42',
       'make_executable': [
         'adapter/codelldb',
         'lldb/bin/debugserver',
@@ -434,10 +485,15 @@ GADGETS = {
         'lldb/bin/lldb-argdumper',
       ],
     },
+    'macos_arm64': {
+      'file_name': 'codelldb-aarch64-darwin.vsix',
+      'checksum':
+        'dda12566d5f39566aca81fd9b544faf89d3941d45e7cfdd97bb6492f883e2f96',
+    },
     'linux': {
       'file_name': 'codelldb-x86_64-linux.vsix',
       'checksum':
-        'ca95479f9f6c9563aefb043e3bbacd7cc641b5915412df480ef9438b224d71ff',
+        '4166e97baa1f69c8eb4c2c9648a963c070d659e1c698a36a8bb729c3c432e53c',
       'make_executable': [
         'adapter/codelldb',
         'lldb/bin/lldb',
@@ -445,10 +501,15 @@ GADGETS = {
         'lldb/bin/lldb-argdumper',
       ],
     },
+    'linux_arm64': {
+      'file_name': 'codelldb-aarch64-linux.vsix',
+      'checksum':
+        'e8874a261dde885bae811cbbd739aca976ea1b5b89bd5ab6cc433ca56df51fbe',
+    },
     'windows': {
       'file_name': 'codelldb-x86_64-windows.vsix',
       'checksum':
-        '0ae2559b4de4db592fb0eb44a2300e080cf802d3ea9970fe30835d4a63b5adc9',
+        'd2590b8634e8b388a49de7a3b171c20b20072ff3464418e608e91192f7ea24f8',
       'make_executable': []
     },
     'adapters': {

@@ -53,6 +53,14 @@ func s:WaitForCommon(expr, assert, timeout)
 
   let iters = 0
 
+  let failed_before = len( v:errors ) > 0
+
+  if failed_before
+    let timeout = 250
+  else
+    let timeout = a:timeout
+  endif
+
   while 1
     let iters += 1
     let errors_before = len( v:errors )
@@ -72,7 +80,7 @@ func s:WaitForCommon(expr, assert, timeout)
       redraw!
     endif
 
-    if slept >= a:timeout
+    if slept >= timeout
       break
     endif
 
@@ -111,6 +119,8 @@ function! AssertMatchList( expected, actual ) abort
 endfunction
 
 
+" Like getbufline() but support negative numbers for "start" and "end"
+" A negative numbers means that many lines before '$'
 function! GetBufLine( buf, start, end  = '$' )
   if type( a:start ) != v:t_string && a:start < 0
     let start = getbufinfo( a:buf )[ 0 ].linecount + a:start
@@ -126,3 +136,19 @@ function! GetBufLine( buf, start, end  = '$' )
 
   return getbufline( a:buf, start, end )
 endfunction
+
+
+function! SkipOn( arch, system ) abort
+  if trim( system( 'uname -m' ) ) == a:arch &&
+        \ trim( system( 'uname -s' ) ) == a:system
+    throw 'skipped: Not on this architecture'
+  endif
+endfunction
+
+function! FunctionBreakOnBrace() abort
+  " Annoyingly, the behaviour of gcc 8 differs from clang _and_ it differs
+  " between x86 and arm
+  return trim( system( 'uname -m' ) ) ==# 'x86_64'
+        \ && trim( system( 'uname -s' ) ) ==# 'Linux'
+endfunction
+

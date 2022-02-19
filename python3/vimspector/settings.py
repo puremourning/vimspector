@@ -22,6 +22,7 @@ DEFAULTS = {
   # UI
   'ui_mode':            'auto',
   'bottombar_height':   10,
+  'variables_display_mode': 'compact', # compact/full
 
   # For ui_mode = 'horizontal':
   'sidebar_width':      50,
@@ -58,7 +59,8 @@ DEFAULTS = {
     'variables': {
       'expand_collapse': [ '<CR>', '<2-LeftMouse>' ],
       'delete': [ '<Del>' ],
-      'set_value': [ '<C-CR>', '<leader><CR>' ]
+      'set_value': [ '<C-CR>', '<leader><CR>' ],
+      'read_memory': [ '<leader>m' ],
     },
     'stack_trace': {
       'expand_or_jump': [ '<CR>', '<2-LeftMouse>' ],
@@ -76,7 +78,7 @@ DEFAULTS = {
 }
 
 
-def Get( option: str, default=None, cls=str ):
+def Get( option: str, cls=str ):
   return cls( utils.GetVimValue( vim.vars,
                                  f'vimspector_{ option }',
                                  DEFAULTS.get( option, cls() ) ) )

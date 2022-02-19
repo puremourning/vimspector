@@ -35,6 +35,13 @@ function! s:CustomiseUI()
   call win_gotoid( wins.output )
   10wincmd _
   wincmd K
+
+  " Enable keyboard-hover for vars and watches
+  call win_gotoid( g:vimspector_session_windows.variables )
+  nmap <silent> <buffer> <LocalLeader>di <Plug>VimspectorBalloonEval
+
+  call win_gotoid( g:vimspector_session_windows.watches )
+  nmap <silent> <buffer> <LocalLeader>di <Plug>VimspectorBalloonEval
 endfunction
 
 function s:SetUpTerminal()
@@ -115,12 +122,16 @@ function! s:OnDebugEnd() abort
 
   let original_buf = bufnr()
   let hidden = &hidden
+  augroup VimspectorSwapExists
+    au!
+    autocmd SwapExists * let v:swapchoice='o'
+  augroup END
 
   try
     set hidden
     for bufnr in keys( s:mapped )
       try
-        execute 'noautocmd buffer' bufnr
+        execute 'buffer' bufnr
         silent! nunmap <buffer> <LocalLeader>dn
         silent! nunmap <buffer> <LocalLeader>ds
         silent! nunmap <buffer> <LocalLeader>df
@@ -136,13 +147,15 @@ function! s:OnDebugEnd() abort
     let &hidden = hidden
   endtry
 
+  au! VimspectorSwapExists
+
   let s:mapped = {}
 endfunction
 
 augroup TestCustomMappings
   au!
   autocmd User VimspectorJumpedToFrame call s:OnJumpToFrame()
-  autocmd User VimspectorDebugEnded call s:OnDebugEnd()
+  autocmd User VimspectorDebugEnded ++nested call s:OnDebugEnd()
 augroup END
 
 " }}}

@@ -164,7 +164,7 @@ There are 2 ways:
    used to run the tests interractively. To do this install and start docker,
    then run `./tests/manual/run`.  This will drop you into a bash shell inside
    the linux container with your local vimspector code mounted. You can then
-   follow the instructions for running tets directly.
+   run the tests with `./run_tests --install --basedir test-base-docker`.
 1. Directly: Run `./install_gadget.py --all` and then `./run_tests`. Note that
    this depends on your runtime environment and might not match CI. I recommend
    running the tests in the docker container. If you have your own custom
@@ -181,6 +181,19 @@ failed.
 For more infomration on the test framework, see
 [this article](https://vimways.org/2019/a-test-to-attest-to/), authored by the
 Vimspector creator.
+
+### Manual testing within the container
+
+To manually test with Vim withing the container, affter runnning the tests with
+`--base-dir test-base-docker`, you can use this:
+
+```
+vim --cmd "let g:vimspector_base_dir='$(pwd)/test-base-docker/'" -Nu support/minimal_vimrc
+```
+
+This will start with the minimal configuration and use the gadgets installed in
+`test-base-docker`. This is especially important if your host system is not
+linux.
 
 ### Code Style
 

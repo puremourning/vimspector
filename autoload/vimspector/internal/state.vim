@@ -20,7 +20,9 @@ set cpoptions&vim
 " }}}
 
 let s:prefix = ''
+let s:is_neovim = 0
 if has( 'nvim' )
+  let s:is_neovim = 1
   let s:prefix='neo'
 endif
 
@@ -45,6 +47,29 @@ endfunction
 
 function! vimspector#internal#state#GetAPIPrefix() abort
   return s:prefix
+endfunction
+
+function! vimspector#internal#state#TabClosed( afile ) abort
+  py3 << EOF
+
+# reset if:
+# - a tab closed
+# - the vimspector session exists
+# - the vimspector session does _not_ have a UI (which suggests that it was
+#   probably the vimspector UI tab that was closed)
+#
+# noevim helpfully provides the tab number that was closed in <afile>, so we
+# use that there (it also doens't correctly invalidate tab objects:
+# https://github.com/neovim/neovim/issues/16327)
+
+if '_vimspector_session' in globals() and _vimspector_session:
+  if int( vim.eval( 's:is_neovim' ) ) and _vimspector_session.IsUITab(
+    int( vim.eval( 'a:afile' ) ) ):
+    _vimspector_session.Reset( interactive = False )
+  elif not _vimspector_session.HasUI():
+    _vimspector_session.Reset( interactive = False )
+
+EOF
 endfunction
 
 " Boilerplate {{{

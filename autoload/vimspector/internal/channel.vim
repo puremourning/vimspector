@@ -49,7 +49,7 @@ function! vimspector#internal#channel#StartDebugSession( config ) abort
 
   " If we _also_ have a command line, then start the actual job. This allows for
   " servers which start up and listen on some port
-  if has_key( a:config, 'command' )
+  if has_key( a:config, 'command' ) && !get( a:config, 'tty', 0 )
     let s:job = job_start( a:config[ 'command' ],
           \                {
           \                    'in_mode': 'raw',
@@ -75,6 +75,7 @@ function! vimspector#internal#channel#StartDebugSession( config ) abort
         \           )
 
   if ch_status( s:ch ) !=# 'open'
+    unlet! s:ch
     echom 'Unable to connect to' l:addr
     redraw
     return v:false

@@ -49,7 +49,7 @@ function! vimspector#internal#neochannel#StartDebugSession( config ) abort
 
   " If we _also_ have a command line, then start the actual job. This allows for
   " servers which start up and listen on some port
-  if has_key( a:config, 'command' )
+  if has_key( a:config, 'command' ) && !get( a:config, 'tty', 0 )
     let old_env={}
     try
       let old_env = vimspector#internal#neoterm#PrepareEnvironment(

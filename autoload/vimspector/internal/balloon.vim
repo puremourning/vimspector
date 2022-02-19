@@ -35,9 +35,11 @@ let s:is_neovim = has( 'nvim' )
 
 " This is used as the balloonexpr in vim to show the Tooltip at the hover
 " position
-function! vimspector#internal#balloon#HoverTooltip() abort
-  return py3eval( '_vimspector_session.ShowEvalBalloon('
+function! vimspector#internal#balloon#HoverEvalTooltip() abort
+  return py3eval( '_vimspector_session.HoverEvalTooltip('
                 \ . ' int( vim.eval( "v:beval_winnr" ) ) + 1,'
+                \ . ' int( vim.eval( "v:beval_bufnr" ) ),'
+                \ . ' int( vim.eval( "v:beval_lnum" ) ),'
                 \ . ' vim.eval( "v:beval_text"),'
                 \ . ' 1 )' )
 endfunction
@@ -137,7 +139,7 @@ function! s:MatchKey( key, candidates ) abort
     " is a single key (anyway), and so we assume any string starting with < is a
     " special key (which will be the common case) and try and map it. If it
     " fails... it fails.
-    if candidate[ 0 ] == '<'
+    if candidate[ 0 ] ==# '<'
       try
         execute 'let candidate = "\' . candidate . '"'
       endtry
@@ -198,7 +200,7 @@ function! vimspector#internal#balloon#Close() abort
     call nvim_win_close( s:nvim_border_win_id, v:true )
 
     call vimspector#internal#balloon#CloseCallback()
-  else
+  elseif !empty( popup_getoptions( s:popup_win_id ) )
     call popup_close(s:popup_win_id)
   endif
 endfunction

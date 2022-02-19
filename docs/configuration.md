@@ -11,17 +11,23 @@ for Vimspector.
      * [Debug adapter configuration](#debug-adapter-configuration)
      * [Debug profile configuration](#debug-profile-configuration)
      * [Replacements and variables](#replacements-and-variables)
-     * [The splat operator](#the-splat-operator)
-      * [Default values](#default-values)
-      * [Coercing Types](#coercing-types)
+        * [The splat operator](#the-splat-operator)
+        * [Default values](#default-values)
+        * [Coercing Types](#coercing-types)
   * [Configuration Format](#configuration-format)
   * [Files and locations](#files-and-locations)
   * [Adapter configurations](#adapter-configurations)
+     * [Extending adapters](#extending-adapters)
   * [Debug configurations](#debug-configurations)
+     * [Project and global configurations](#project-and-global-configurations)
+     * [Ad-hoc configurations](#ad-hoc-configurations)
      * [Configuration selection](#configuration-selection)
         * [Specifying a default configuration](#specifying-a-default-configuration)
         * [Preventing automatic selection](#preventing-automatic-selection)
+        * [Default per filetype](#default-per-filetype)
      * [Exception Breakpoints](#exception-breakpoints)
+     * [Extending configurations](#extending-configurations)
+        * [Override syntax](#override-syntax)
   * [Predefined Variables](#predefined-variables)
   * [Remote Debugging Support](#remote-debugging-support)
      * [Python (debugpy) Example](#python-debugpy-example)
@@ -30,7 +36,7 @@ for Vimspector.
   * [Appendix: Configuration file format](#appendix-configuration-file-format)
   * [Appendix: Editor configuration](#appendix-editor-configuration)
 
-<!-- Added by: ben, at: Thu 13 Aug 2020 17:42:11 BST -->
+<!-- Added by: ben, at: Mon 22 Nov 2021 20:18:32 GMT -->
 
 <!--te-->
 
@@ -337,7 +343,8 @@ The following sections describe the files that are read and use the following
 abbreviations:
 
 * `<vimspector home>` means the path to the Vimspector installation (such as
-  `$HOME/.vim/pack/vimspector/start/vimspector`)
+  `$HOME/.vim/pack/vimspector/start/vimspector`), or the value of
+  `g:vimspector_base_dir` if that's set.
 * `<OS>` is either `macos` or `linux` depending on the host operating system.
 * `<filetype>` is the Vim filetype. Where multiple filetypes are in effect,
   typically all filetypes are checked.
@@ -379,7 +386,31 @@ Adapter configurations are re-read at the start of each debug session.
 
 The specification for the gadget object is defined in the [gadget schema][].
 
+### Extending adapters
+
+You can specify a key `extends` in the adapter configuration to inherit from an
+existing adapter. This is useful for defining adapters for remote debugging or
+where there are common options, varables etc. For example:
+
+```json
+{
+  "adapters": {
+    "my-custom-debugpy": {
+      "extends": "debugpy",
+      "command": [ "python3", "-m", "debugpy" ]
+    }
+  }
+}
+```
+
+Details of the "override" behaviour are specified [below](#override-syntax).
+
 ## Debug configurations
+
+You can define per-project or global per-filetype configurations. You can
+further restrict project configurations by filetype.
+
+### Project and global configurations
 
 There are two locations for debug configurations for a project:
 
@@ -418,6 +449,7 @@ typical example looks like this:
   "configurations": {
     "<configuation name>": {
       "adapter": "<adapter name>",
+      "filetypes": [ /* list of filetypes this applies to */ ],
       "configuration": {
         "request": "<launch or attach>",
         <debug configutation>
@@ -427,17 +459,54 @@ typical example looks like this:
 }
 ```
 
+### Ad-hoc configurations
+
+You can tell vimspector to ignore any configuration files on disk, and just use
+a set of supplied 'ad-hoc' configurations. You do with as follows:
+
+```viml
+call vimspector#LaunchWithConfigurations( dict )
+```
+
+`dict` is the contents of the `configurations` block as a vim dictionary.
+
+For example:
+
+```viml
+   let pid = <some_exression>
+   call vimspector#LaunchWithConfigurations( {
+               \  "attach": {
+               \    "adapter": "netcoredbg",
+               \    "configuration": {
+               \      "request": "attach",
+               \      "processId": pid
+               \    }
+               \  }
+               \ } )
+```
+
+This would launch the debugger and attach to the specified process without the
+need to have a local .vimspector file on disk.  The `${workspaceRoot}` variable
+will point to the parent folder of the file that is currently open in vim.
+
 ### Configuration selection
 
 When starting debugging, you can specify which debug configuration to launch
 with `call vimspector#LaunchWithSettings( #{ configuration: 'name here' } )`.
 
-Otherwise, if there's only one configuration found, Vimspector will use that
-configuration, unless it contains a key `"autoselect": false`.
+Otherwise, vimspector tries to work out which one to laucnh.
 
-If multiple debug configurations are found, and no explicit configuration was
-selected on Launch, the user is prompted to select a configuration, unless a
-single debug configuration is found with a key `"default": true`.
+First it finds the configurations for the current filetype from the files, or
+ad-hoc dictionary, mentioned above.  Configurations are ignored if they specify
+a list of `filetypes` and the list doesn't contain the one of the current
+buffer's filetypes. (NOTE: the filetypes are Vim filetypes)
+
+If there's only one configuration found for the current filetypes, Vimspector
+will use that configuration, unless it contains a key `"autoselect": false`.
+
+If any single configuration is found with `"default": true`, that one is used.
+
+Otherwise, the user is propmted to select a configuration to use.
 
 #### Specifying a default configuration
 
@@ -460,8 +529,8 @@ As noted, you can specify a default configuration with `"default": true`:
 }
 ```
 
-If multiple configurations are found with `default` set to `true`, then the
-user is prompted anyway.
+If multiple configurations are found for the current filetype with `default` set
+to `true`, then the user is prompted anyway.
 
 #### Preventing automatic selection
 
@@ -482,6 +551,51 @@ central (as opposed to project-local) directory. For example:
 ```
 
 Setting `autoselect` to `false` overrides setting `default` to `true`.
+
+#### Default per filetype
+
+If you have a number of different types of files, say some Python and some
+javascript/node, you can specify the `filetypes` list in the `configuration`
+section.  As noted above, vimsepector will filter the list of configurations
+based on the filetypes of the current buffer. If the `filetypes` entry is not
+provided, it's assume to apply to all buffer filetypes.
+
+Example:
+
+```json
+{
+  "configurations": {
+    "Node": {
+      "adapter": "vscode-node",
+      "filetypes": [ "javascript" ],
+      "default": true,
+      "configuration": {
+        "request": "launch",
+        "protocol": "auto",
+        "stopOnEntry": true,
+        "console": "integratedTerminal",
+        "program": "${workspaceRoot}/test.js",
+        "cwd": "${workspaceRoot}"
+      }
+    },
+    "Python": {
+      "adapter": "debugpy",
+      "filetypes": [ "python" ],
+      "default": true,
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/test.py",
+        "stopOnEntry": true,
+        "cwd": "${workspaceRoot}"
+      }
+    }
+  }
+}
+
+```
+
+Note the filetypes in the list are Vim filetypes (see :help filetype). To check
+the filetypes for the current buffer, look at `:set filetype?`.
 
 ### Exception Breakpoints
 
@@ -556,6 +670,101 @@ a value, as in :
           "cpp_catch": ""
         }
       },
+```
+
+### Extending configurations
+
+Like adapters, you can include a `extends` key in the configuration
+specification, which makes it "inherit" from the specified configuraiton. In
+practice that means any keys specified in this configuraiton override the
+corresponding keys in the "base" configuration. 
+
+This is useful in particular where there data that need to be the same across a
+number of debug configurations, such as environment variables, paths, variables,
+etc. For example:
+
+```json
+{
+  "configurations":  {
+    "run - simple": {
+      "adapter": "CodeLLDB",
+      "configuration": {
+        "program": "${workspaceRoot}/myapp",
+        "env": {
+          "BASEPATH": "${workspaceRoot}"
+        },
+        "args": []
+      }
+    },
+    // run with some fixed options
+    "run - test mode": {
+      "extends": "run - simple",
+      "configuation": {
+        "args": [ "-mode", "test" ] 
+      }
+    },
+    // run with some different environment vars
+    "run - verbose mode": {
+      "extends": "run - test mode",
+      "configuation": {
+        "env": {
+          "LOGLEVEL": "verbose"
+        }
+      }
+    }
+  }
+}
+
+```
+
+These are just examples, hopefully you get the idea.
+
+#### Override syntax
+
+As exemplified above, the override is recursive, in the sense that a key like
+`{ "top": { "middle": { "bottom": "value" } } }` only sets the "bottom" value
+and leaves all other "top" and "middle" keys untouched.
+
+Keys can be removed from base configurations by naming the key
+`"!<key name to delete>"` and setting the value to "REMOVE".
+
+For example:
+
+```json
+{
+  "configurations": {
+    "base" : {
+      "key1": "This key is unchanged",
+      "key2": {
+        "key2.1": "This key is overridden",
+        "key2.2": "This key is unchanged"
+      },
+      "key3": "This key is removed"
+    },
+
+    "derived": {
+      "extends": "base",
+      "key2": {
+        // override key2.key2.1 in the base config
+        "key2.1": "This is the override value"
+      },
+      // remove "key3" from the resulting config
+      "!key3": "REMOVE" 
+    }
+  }
+}
+```
+
+The resulting "derived" configuraition ends up like this:
+
+```json
+{
+  "key1": "This key is unchanged",
+  "key2": {
+    "key2.1": "This is the override valu",
+    "key2.2": "This key is unchanged"
+  }
+}
 ```
 
 ## Predefined Variables
@@ -765,6 +974,8 @@ and have to tell cpptools a few more options.
         "remote": {
           "host": "${host}",
           "account": "${account}",
+          // or, alternatively "container": "${ContainerID}"
+
           "runCommand": [ 
             "gdbserver",
             "--once",
@@ -772,14 +983,19 @@ and have to tell cpptools a few more options.
             "--disable-randomisation",
             "0.0.0.0:${port}",
             "%CMD%"
-        }
+        },
+        "delay": "1000m" // optional
       },
       "attach": {
         "remote": {
           "host": "${host}",
           "account": "${account}",
+          // or, alternatively "container": "${ContainerID}"
+
           "pidCommand": [
-            "/path/to/secret/script/GetPIDForService", "${ServiceName}"
+             // e.g. "/path/to/secret/script/GetPIDForService", "${ServiceName}"
+             // or...
+             "pgrep", "executable"
           ],
           "attachCommand": [ 
             "gdbserver",
@@ -796,12 +1012,13 @@ and have to tell cpptools a few more options.
           // application never attaches, try using the following to manually
           // force the trap signal.
           //
-          "initCompleteCommand": [
-            "kill",
-            "-TRAP",
-            "%PID%"
-          ]
-        }
+          // "initCompleteCommand": [
+          //   "kill",
+          //   "-TRAP",
+          //   "%PID%"
+          // ]
+        },
+        "delay": "1000m" // optional
       }
     }
   },
@@ -811,22 +1028,27 @@ and have to tell cpptools a few more options.
       "remote-cmdLine": [ "/path/to/the/remote/executable", "args..." ],
       "remote-request": "launch",
       "configuration": {
-        "request": "attach", // yes, attach!
+        "request": "launch",
         
         "program": "/path/to/the/local/executable",
+        "cwd": "${workspaceRoot},
         "MIMode": "gdb",
-        "miDebuggerAddress": "${host}:${port}"
+        "miDebuggerServerAddress": "${host}:${port}",
+        "sourceFileMap#json": "{\"${RemoteRoot}\": \"${workspaceRoot}\"}"
       }
     },
     "remote attach": {
       "adapter": "cpptools-remote",
       "remote-request": "attach",
       "configuration": {
-        "request": "attach",
+        "request": "launch",
         
         "program": "/path/to/the/local/executable",
+        "cwd": "${workspaceRoot},
         "MIMode": "gdb",
-        "miDebuggerAddress": "${host}:${port}"
+        "miDebuggerServerAddress": "${host}:${port}",
+        "sourceFileMap#json": "{\"${RemoteRoot}\": \"${workspaceRoot}\"}"
+      }
     }
   }
 }

@@ -56,6 +56,13 @@ class Expandable:
   def VariablesReference( self ):
     assert False
 
+  def MemoryReference( self ):
+    assert None
+
+  @abc.abstractmethod
+  def HoverText( self ):
+    return ""
+
 
 class Scope( Expandable ):
   """Holds an expandable scope (a DAP scope dict), with expand/collapse state"""
@@ -66,8 +73,14 @@ class Scope( Expandable ):
   def VariablesReference( self ):
     return self.scope.get( 'variablesReference', 0 )
 
+  def MemoryReference( self ):
+    return None
+
   def Update( self, scope ):
     self.scope = scope
+
+  def HoverText( self ):
+    return ""
 
 
 class WatchResult( Expandable ):
@@ -81,11 +94,23 @@ class WatchResult( Expandable ):
   def VariablesReference( self ):
     return self.result.get( 'variablesReference', 0 )
 
+  def MemoryReference( self ):
+    return self.result.get( 'memoryReference' )
+
   def Update( self, result ):
     self.changed = False
     if self.result[ 'result' ] != result[ 'result' ]:
       self.changed = True
     self.result = result
+
+  def HoverText( self ):
+    if not self.result:
+      return None
+
+    return (
+      f"Type:  { self.result.get( 'type', '<unknown>' ) }\n"
+      f"Value: { self.result.get( 'result', '<unknown>' ) }"
+    )
 
 
 class WatchFailure( WatchResult ):
@@ -105,11 +130,24 @@ class Variable( Expandable ):
   def VariablesReference( self ):
     return self.variable.get( 'variablesReference', 0 )
 
+  def MemoryReference( self ):
+    return self.variable.get( 'memoryReference' )
+
   def Update( self, variable ):
     self.changed = False
     if self.variable[ 'value' ] != variable[ 'value' ]:
       self.changed = True
     self.variable = variable
+
+  def HoverText( self ):
+    if not self.variable:
+      return None
+
+    return (
+      f"Name:  { self.variable.get( 'name', '<unknown>' ) }\n"
+      f"Type:  { self.variable.get( 'type', '<unknown>' ) }\n"
+      f"Value: { self.variable.get( 'value', '<unknown>' ) }"
+    )
 
 
 class Watch:
@@ -184,6 +222,10 @@ def AddExpandMappings( mappings = None ):
   for mapping in utils.GetVimList( mappings, 'set_value' ):
     vim.command( f'nnoremap <silent> <buffer> { mapping } '
                  ':<C-u>call vimspector#SetVariableValue()<CR>' )
+  for mapping in utils.GetVimList( mappings, 'read_memory' ):
+    vim.command( f'nnoremap <silent> <buffer> { mapping } '
+                 ':<C-u>call vimspector#ReadMemory()<CR>' )
+
 
 
 class VariablesView( object ):
@@ -208,6 +250,8 @@ class VariablesView( object ):
       if utils.UseWinBar():
         vim.command( 'nnoremenu <silent> 1.1 WinBar.Set '
                      ':call vimspector#SetVariableValue()<CR>' )
+        vim.command( 'nnoremenu <silent> 1.2 WinBar.Dump '
+                     ':call vimspector#ReadMemory()<CR>' )
       AddExpandMappings( mappings )
 
     # Set up the "Watches" buffer in the watches_win (and create a WinBar in
@@ -226,14 +270,16 @@ class VariablesView( object ):
           f'nnoremap <buffer> { mapping } :call vimspector#DeleteWatch()<CR>' )
 
       if utils.UseWinBar():
-        vim.command( 'nnoremenu <silent> 1.1 WinBar.New '
+        vim.command( 'nnoremenu <silent> 1.1 WinBar.Add '
                      ':call vimspector#AddWatch()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.2 WinBar.Expand/Collapse '
-                     ':call vimspector#ExpandVariable()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.3 WinBar.Delete '
+        vim.command( 'nnoremenu <silent> 1.2 WinBar.Delete '
                      ':call vimspector#DeleteWatch()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.1 WinBar.Set '
+        vim.command( 'nnoremenu <silent> 1.3 WinBar.+/- '
+                     ':call vimspector#ExpandVariable()<CR>' )
+        vim.command( 'nnoremenu <silent> 1.4 WinBar.Set '
                      ':call vimspector#SetVariableValue()<CR>' )
+        vim.command( 'nnoremenu <silent> 1.5 WinBar.Dump '
+                     ':call vimspector#ReadMemory()<CR>' )
 
     # Set the (global!) balloon expr if supported
     has_balloon      = int( vim.eval( "has( 'balloon_eval' )" ) )
@@ -245,8 +291,9 @@ class VariablesView( object ):
         'balloonexpr': vim.options[ 'balloonexpr' ],
         'balloondelay': vim.options[ 'balloondelay' ],
       }
-      vim.options[ 'balloonexpr' ] = ( "vimspector#internal#"
-                                       "balloon#HoverTooltip()" )
+      vim.options[ 'balloonexpr' ] = (
+        "vimspector#internal#balloon#HoverEvalTooltip()"
+      )
 
       vim.options[ 'balloondelay' ] = 250
 
@@ -379,7 +426,7 @@ class VariablesView( object ):
     self._variable_eval_view = None
     vim.vars[ 'vimspector_session_windows' ][ 'eval' ] = None
 
-  def VariableEval( self, frame, expression, is_hover ):
+  def HoverEvalTooltip( self, frame, expression, is_hover ):
     """Callback to display variable under cursor `:h ballonexpr`"""
     if not self._connection:
       return ''
@@ -392,7 +439,7 @@ class VariablesView( object ):
       else:
         watch.result.Update( message[ 'body' ] )
 
-      popup_win_id = utils.DisplayBalloon( self._is_term, [], is_hover )
+      popup_win_id = utils.CreateTooltip( self._is_term, [], is_hover )
       # record the global eval window id
       vim.vars[ 'vimspector_session_windows' ][ 'eval' ] = int( popup_win_id )
       popup_bufnr = int( vim.eval( "winbufnr({})".format( popup_win_id ) ) )
@@ -423,7 +470,7 @@ class VariablesView( object ):
 
     def failure_handler( reason, message ):
       display = [ reason ]
-      float_win_id = utils.DisplayBalloon( self._is_term, display, is_hover )
+      float_win_id = utils.CreateTooltip( self._is_term, display, is_hover )
       # record the global eval window id
       vim.vars[ 'vimspector_session_windows' ][ 'eval' ] = int( float_win_id )
 
@@ -438,6 +485,17 @@ class VariablesView( object ):
     }, failure_handler )
 
     # Return working (meanwhile)
+    return ''
+
+  def HoverVarWinTooltip( self, bufnr, lnum, is_hover ):
+    variable, view = self._GetVariable( vim.buffers[ bufnr ], lnum )
+    if variable is None:
+      return ''
+
+    hover = variable.HoverText()
+    if hover:
+      utils.CreateTooltip( self._is_term, hover.split( '\n' ), is_hover )
+
     return ''
 
   def AddWatch( self, frame, expression ):
@@ -613,31 +671,44 @@ class VariablesView( object ):
     }, failure_handler = failure_handler )
 
 
+  def GetMemoryReference( self ):
+    # Get a memoryReference for use in a ReadMemory request
+    variable, _ = self._GetVariable( None, None )
+    if variable is None:
+      return None
 
-  def _DrawVariables( self, view, variables, indent, is_short = False ):
-    assert indent > 0
+    return variable.MemoryReference()
+
+
+  def _DrawVariables( self, view, variables, indent_len, is_short = False ):
+    assert indent_len > 0
     for variable in variables:
       text = ''
+      # We borrow 1 space of indent to draw the change marker
+      indent = ' ' * ( indent_len - 1 )
+      marker = '*' if variable.changed else ' '
+      icon = '+' if ( variable.IsExpandable()
+                      and not variable.IsExpanded() ) else '-'
+      name = variable.variable.get( 'name', '' )
+      kind = variable.variable.get( 'type', '' )
+      value = variable.variable.get( 'value', '<unknown>' )
+
+      # FIXME: If 'value' is multi-line, somehow turn it into an expandable item
+      # where the expansion is done "internally", resolving to the multi-line
+      # value
       if is_short:
-        text = '{indent}{icon} {name}: {value}'.format(
-          # We borrow 1 space of indent to draw the change marker
-          indent = ' ' * ( indent - 1 ),
-          icon = '+' if ( variable.IsExpandable()
-                          and not variable.IsExpanded() ) else '-',
-          name = variable.variable.get( 'name', '' ),
-          value = variable.variable.get( 'value', '<unknown>' )
-        )
+        value = variable.variable.get( 'value', '<unknown>' )
+        text = f'{indent}{icon} {name}: {value}'
+      elif settings.Get( 'variables_display_mode' ) == 'compact':
+        value = variable.variable.get( 'value', '<unknown>' ).splitlines()
+        if len( value ) > 0:
+          value = value[ 0 ]
+        else:
+          value = ''
+
+        text = f'{indent}{marker}{icon} {name}: {value}'
       else:
-        text = '{indent}{marker}{icon} {name} ({type_}): {value}'.format(
-          # We borrow 1 space of indent to draw the change marker
-          indent = ' ' * ( indent - 1 ),
-          marker = '*' if variable.changed else ' ',
-          icon = '+' if ( variable.IsExpandable()
-                          and not variable.IsExpanded() ) else '-',
-          name = variable.variable.get( 'name', '' ),
-          type_ = variable.variable.get( 'type', '' ),
-          value = variable.variable.get( 'value', '<unknown>' )
-        )
+        text = f'{indent}{marker}{icon} {name} ({kind}): {value}'
 
       line = utils.AppendToBuffer(
         view.buf,
@@ -647,7 +718,10 @@ class VariablesView( object ):
       view.lines[ line ] = variable
 
       if variable.ShouldDrawDrillDown():
-        self._DrawVariables( view, variable.variables, indent + 2, is_short )
+        self._DrawVariables( view,
+                             variable.variables,
+                             indent_len + 2,
+                             is_short )
 
   def _DrawScopes( self ):
     # FIXME: The drawing is dumb and draws from scratch every time. This is
@@ -690,11 +764,11 @@ class VariablesView( object ):
       indent += 2
       self._DrawVariables( self._vars, scope.variables, indent )
 
-  def _DrawWatchResult( self, view, indent, watch, is_short = False ):
+  def _DrawWatchResult( self, view, indent_len, watch, is_short = False ):
     if not watch.result:
       return
 
-    assert is_short or indent > 0
+    assert is_short or indent_len > 0
 
     if is_short:
       # The first result is always expanded in a hover (short format)
@@ -707,19 +781,27 @@ class VariablesView( object ):
       marker = '*' if watch.result.changed else ' '
       leader = ' Result: '
 
-    line =  '{indent}{marker}{icon}{leader}{result}'.format(
-      # We borrow 1 space of indent to draw the change marker
-      indent = ' ' * ( indent - 1 ),
-      marker = marker,
-      icon = icon,
-      leader = leader,
-      result = watch.result.result.get( 'result', '<unknown>' ) )
+    value = watch.result.result.get( 'result', '<unknown>' )
+    # We borrow 1 space of indent to draw the change marker
+    indent = ' ' * ( indent_len - 1 )
+
+    if settings.Get( 'variables_display_mode' ) == 'compact':
+      value = value.splitlines()
+      if len( value ) > 0:
+        value = value[ 0 ]
+      else:
+        value = ''
+
+    line = f'{indent}{marker}{icon}{leader}{value}'
 
     line = utils.AppendToBuffer( view.buf, line.split( '\n' ) )
     view.lines[ line ] = watch.result
 
     if watch.result.ShouldDrawDrillDown():
-      self._DrawVariables( view, watch.result.variables, indent + 2, is_short )
+      self._DrawVariables( view,
+                           watch.result.variables,
+                           indent_len + 2,
+                           is_short )
 
   def _ConsumeVariables( self, draw, parent, message ):
     new_variables = []

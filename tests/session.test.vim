@@ -252,3 +252,77 @@ endfunction
 function! Test_Save_User_Choices()
   " TODO
 endfunction
+
+function! Test_Load_Session_Add_Breakpoint_In_New_File()
+  lcd ../support/test/python/multiple_files
+  let moo = getcwd() . '/moo.py'
+  let cow = getcwd() . '/cow.py'
+
+  execute 'edit' moo
+  call vimspector#SetLineBreakpoint( moo, 6 )
+  call vimspector#SetLineBreakpoint( moo, 9, { 'logMessage': 'test' } )
+
+  call WaitForAssert( {->
+        \vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorBP',
+          \ 6,
+          \ 'vimspectorBP',
+          \ 9 ) } )
+
+  call append( 4, [ '  # test' ] )
+
+  call WaitForAssert( {->
+        \vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorBP',
+          \ 7,
+          \ 'vimspectorBP',
+          \ 9 ) } )
+
+  let save_file = tempname()
+  execute 'VimspectorMkSession' save_file
+  call assert_true( filereadable( save_file ) )
+  " check it looks valid ?
+  let data = json_decode( join( readfile( save_file ), '\n' ) )
+  call assert_equal( 7, data.breakpoints.line[ moo ][ 0 ].line )
+  call vimspector#ClearBreakpoints()
+
+  call WaitForAssert( {->
+        \vimspector#test#signs#AssertSignGroupEmptyAtLine(
+          \ 'VimspectorBP',
+          \ 7 ) } )
+
+  execute 'VimspectorLoadSession' save_file
+
+  call WaitForAssert( {->
+        \vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorBP',
+          \ 7,
+          \ 'vimspectorBP',
+          \ 9 ) } )
+
+  execute 'spl' cow
+  call cursor( [ 2, 1 ] )
+  call vimspector#ToggleBreakpoint()
+
+  call WaitForAssert( {->
+        \vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorBP',
+          \ 2,
+          \ 'vimspectorBP',
+          \ 9 ) } )
+
+  call append( 0, [ '', '' ] )
+
+  VimspectorMkSession
+  VimspectorLoadSession
+
+  call WaitForAssert( {->
+        \vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorBP',
+          \ 4,
+          \ 'vimspectorBP',
+          \ 9 ) } )
+
+
+  %bwipeout!
+endfunction

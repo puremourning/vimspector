@@ -247,6 +247,7 @@ def FindGadgetForAdapter( adapter_name ):
     v = {}
     v.update( gadget.get( 'all', {} ) )
     v.update( gadget.get( install.GetOS(), {} ) )
+    v.update( gadget.get( install.GetOSPlatform(), {} ) )
 
     adapters = {}
     adapters.update( v.get( 'adapters', {} ) )
@@ -414,7 +415,7 @@ def InstallTclProDebug( name, root, gadget ):
     #    '/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System'
     #    '/Library/Frameworks/Tcl.framework/Versions'
     #    '/Current',
-    for p in [ '/usr/local/opt/tcl-tk/lib' ]:
+    for p in [ '/usr/local/opt/tcl-tk/lib', '/opt/homebrew/opt/tcl-tk/lib' ]:
       if os.path.exists( os.path.join( p, 'tclConfig.sh' ) ):
         configure.append( '--with-tcl=' + p )
         break
@@ -441,7 +442,37 @@ def InstallLuaLocal( name, root, gadget ):
   MakeSymlink( name, root )
 
 
-def InstallGagdet( name: str,
+def InstallDelve( name, root, spec ):
+  if not os.path.isdir( root ):
+    os.makedirs( root )
+
+  with CurrentWorkingDir( root ):
+    env = os.environ.copy()
+
+    env[ 'GO111MODULE' ] = 'on'
+    env.pop( 'GOROOT', None )
+    env[ 'GOPATH' ] = root
+    env[ 'GOBIN' ] = os.path.join( env[ 'GOPATH' ], 'bin' )
+
+    # This requires go 1.14
+    # env[ 'GOFLAGS' ] = env.get( 'GOFLAGS', '' ) + ' -modcacherw'
+
+    try:
+      CheckCall( [ 'go',
+                   'install',
+                   spec[ 'path' ] + '@v' + spec[ 'version' ] ],
+                 env=env )
+    except subprocess.CalledProcessError:
+      # try again with go get for go < 1.16
+      CheckCall( [ 'go',
+                   'get',
+                   spec[ 'path' ] + '@v' + spec[ 'version' ] ],
+                 env=env )
+
+  MakeSymlink( name, root )
+
+
+def InstallGadget( name: str,
                    gadget: dict,
                    manifest: Manifest,
                    succeeded: list,
@@ -453,6 +484,7 @@ def InstallGagdet( name: str,
     spec = {}
     spec.update( gadget.get( 'all', {} ) )
     spec.update( gadget.get( install.GetOS(), {} ) )
+    spec.update( gadget.get( install.GetOSPlatform(), {} ) )
 
     def save_adapters():
       # allow per-os adapter overrides. v already did that for us...
@@ -462,8 +494,8 @@ def InstallGagdet( name: str,
 
     if 'download' in gadget:
       if 'file_name' not in spec:
-        raise RuntimeError( "Unsupported OS {} for gadget {}".format(
-          install.GetOS(),
+        raise RuntimeError( "Unsupported OS/platform {} for gadget {}".format(
+          install.GetOSPlatform(),
           name ) )
 
       print( f"Installing {name}@{spec[ 'version' ]}..." )
@@ -510,6 +542,11 @@ def InstallGagdet( name: str,
         name )
       CloneRepoTo( url, ref, destination )
       root = destination
+    else:
+      root = os.path.join(
+        install.GetGadgetDir( options.vimspector_base ),
+        'download',
+        name )
 
     if 'do' in gadget:
       gadget[ 'do' ]( name, root, spec )

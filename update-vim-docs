@@ -1,14 +1,30 @@
 #!/usr/bin/env bash
 
 set -e
+set -x
 
-if [ -z "$1" ] || [ ! -d "$1" ]; then
-  echo "Usage: $(basename $0) <path to vim-tools>"
-  exit 1
+tmpdir=$(mktemp -d)
+python3 -m venv ${tmpdir}/env
+source ${tmpdir}/env/bin/activate
+
+if [ -z "$1" ]; then
+  git clone https://github.com/ycm-core/vim-tools ${tmpdir}/vim-tools
+  TOOLS=${tmpdir}/vim-tools
+else
+  TOOLS="$1"
 fi
 
+pip install -r ${TOOLS}/requirements.txt
+
 pushd $(dirname $0)
-  python3 $1/html2vimdoc.py -f vimspector README.md > doc/vimspector.txt
-  python3 $1/html2vimdoc.py -f vimspector-ref \
-                               docs/configuration.md > doc/vimspector-ref.txt
+  python3 ${TOOLS}/html2vimdoc.py -f vimspector \
+                                   README.md \
+                                   > doc/vimspector.txt
+  python3 ${TOOLS}/html2vimdoc.py -f vimspector-ref \
+                                  docs/configuration.md \
+                                  > doc/vimspector-ref.txt
 popd
+
+deactivate
+
+rm -rf ${tmpdir}

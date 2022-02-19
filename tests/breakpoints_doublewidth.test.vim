@@ -1,7 +1,15 @@
+let s:init = 0
+
 function! SetUp()
   set ambiwidth=double
   call vimspector#test#setup#SetUpWithMappings( v:none )
   call ThisTestIsFlaky()
+
+  if ! s:init
+    let s:break_main_line = FunctionBreakOnBrace() ? 14 : 15
+    let s:break_foo_line = FunctionBreakOnBrace() ? 6 : 9
+    let s:init = 1
+  endif
 endfunction
 
 function! ClearDown()
@@ -55,15 +63,15 @@ endfunction
 function! Test_Use_Mappings_HUMAN()
   lcd testdata/cpp/simple
   edit simple.cpp
-  call setpos( '.', [ 0, 15, 1 ] )
+  call setpos( '.', [ 0, 16, 1 ] )
 
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
-  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 15 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 16, 1 )
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 16 )
 
   " Add the breakpoint
   call feedkeys( "\<F9>", 'xt' )
   call vimspector#test#signs#AssertSignGroupSingletonAtLine( 'VimspectorBP',
-                                                           \ 15,
+                                                           \ 16,
                                                            \ 'vimspectorBP',
                                                            \ 9 )
 
@@ -71,19 +79,19 @@ function! Test_Use_Mappings_HUMAN()
   call feedkeys( "\<F9>", 'xt' )
   call vimspector#test#signs#AssertSignGroupSingletonAtLine(
         \ 'VimspectorBP',
-        \ 15,
+        \ 16,
         \ 'vimspectorBPDisabled',
         \ 9 )
 
   " Delete the breakpoint
   call feedkeys( "\<F9>", 'xt' )
-  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 15 )
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 16 )
 
   " Add it again
   call feedkeys( "\<F9>", 'xt' )
   call vimspector#test#signs#AssertSignGroupSingletonAtLine(
         \ 'VimspectorBP',
-        \ 15,
+        \ 16,
         \ 'vimspectorBP',
         \ 9 )
 
@@ -94,14 +102,22 @@ function! Test_Use_Mappings_HUMAN()
   let cur_tabnr = tabpagenr()
   call assert_equal( 5, len( gettabinfo( cur_tabnr )[ 0 ].windows ) )
 
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
+  " break on main
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', s:break_main_line, 1 )
+
+  " Cont
+  " Here we go. Start Debugging
+  call feedkeys( "\<F5>", 'xt' )
+
+  " breakpoint
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 16, 1 )
 
   " Step
   call feedkeys( "\<F10>", 'xt' )
 
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 16, 1 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 17, 1 )
   call WaitForAssert( {->
-        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( 'simple.cpp', 16 )
+        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( 'simple.cpp', 17 )
         \ } )
 
   call vimspector#test#setup#Reset()
@@ -122,9 +138,9 @@ function Test_StopAtEntry()
   " Test stopAtEntry behaviour
   call feedkeys( "\<F5>", 'xt' )
 
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', s:break_main_line, 1 )
   call WaitForAssert( {->
-        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( 'simple.cpp', 15 )
+        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( 'simple.cpp', s:break_main_line )
         \ } )
 
   call vimspector#test#setup#Reset()
@@ -145,9 +161,9 @@ function Test_DisableBreakpointWhileDebugging()
   " Test stopAtEntry behaviour
   call feedkeys( "\<F5>", 'xt' )
 
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', s:break_main_line, 1 )
   call WaitForAssert( {->
-        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( 'simple.cpp', 15 )
+        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( 'simple.cpp', s:break_main_line )
         \ } )
   call vimspector#test#signs#AssertSignGroupEmpty( 'VimspectorBP' )
 
@@ -343,7 +359,7 @@ function! Test_Conditional_Line_Breakpoint()
   " Start debugging
   call vimspector#Continue()
   " break on main
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', s:break_main_line, 1 )
 
   " Ignore non-matching on line 16, break on line 9
   call vimspector#Continue()
@@ -400,11 +416,12 @@ function! Test_Function_Breakpoint()
   call vimspector#AddFunctionBreakpoint( 'foo' )
   call vimspector#Launch()
   " break on main
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', s:break_main_line, 1 )
   call vimspector#Continue()
   " break on func
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 9, 1 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', s:break_foo_line, 1 )
   call vimspector#test#setup#Reset()
+  lcd -
   %bwipeout!
 endfunction
 
@@ -414,11 +431,12 @@ function! Test_Function_Breakpoint_Condition()
   call vimspector#AddFunctionBreakpoint( 'foo', { 'condition': '1' } )
   call vimspector#Launch()
   " break on main
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', s:break_main_line, 1 )
   call vimspector#Continue()
   " break on func
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 9, 1 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', s:break_foo_line, 1 )
   call vimspector#test#setup#Reset()
+  lcd -
   %bwipeout!
 endfunction
 
@@ -531,7 +549,7 @@ endfunction
 "   call vimspector#ToggleBreakpoint()
 "   call vimspector#Launch()
 "   " break on main
-"   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
+"   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', "   s:break_main_line, 1 )
 "   call vimspector#Continue()
 "
 "   " doesn't break in func, break on line 17
@@ -574,7 +592,7 @@ function! Test_ListBreakpoints()
 
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
 
-  call vimspector#Launch()
+  call vimspector#LaunchWithSettings( { 'configuration': 'run-to-breakpoint' } )
   " break on main
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
 
@@ -587,7 +605,7 @@ function! Test_ListBreakpoints()
   call win_gotoid( main_win_id )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
 
-  " Add a breakpoint that moves (from line 5 to line 9)
+  " Add a breakpoint that moves (from line 5 to line 6 or 9)
   call cursor( [ 5, 1 ] )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 5, 1 )
   call vimspector#ToggleBreakpoint()
@@ -595,7 +613,7 @@ function! Test_ListBreakpoints()
   call vimspector#ListBreakpoints()
   call s:CheckBreakpointView( [
     \ 'simple.cpp:15 Line breakpoint - ENABLED: {}',
-    \ 'simple.cpp:9 Line breakpoint - ENABLED: {}'
+    \ 'simple.cpp:' . s:break_foo_line . ' Line breakpoint - ENABLED: {}'
     \ ] )
 
   call vimspector#ListBreakpoints()
@@ -644,7 +662,7 @@ function! Test_Custom_Breakpoint_Priority()
         \ 3 )
 
   " While debugging
-  call vimspector#Launch()
+  call vimspector#LaunchWithSettings( { 'configuration': 'run-to-breakpoint' } )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
   call vimspector#test#signs#AssertPCIsAtLineInBuffer( 'simple.cpp', 15 )
   call vimspector#test#signs#AssertSignAtLine(
@@ -731,7 +749,7 @@ function! Test_Custom_Breakpoint_Priority_Partial()
         \ 3 )
 
   " While debugging
-  call vimspector#Launch()
+  call vimspector#LaunchWithSettings( { 'configuration': 'run-to-breakpoint' } )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
   call vimspector#test#signs#AssertPCIsAtLineInBuffer( 'simple.cpp', 15 )
   call vimspector#test#signs#AssertSignAtLine(

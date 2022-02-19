@@ -19,13 +19,15 @@ import os
 import contextlib
 import vim
 import json
-import functools
 import subprocess
 import shlex
 import collections
 import re
 import typing
+import base64
 
+from vimspector.core_utils import memoize
+from vimspector.vendor.hexdump import hexdump
 
 LOG_FILE = os.path.expanduser( os.path.join( '~', '.vimspector.log' ) )
 
@@ -117,6 +119,9 @@ def CleanUpCommand( name, api_prefix ):
 
 
 def CleanUpHiddenBuffer( buf ):
+  if not buf.valid:
+    return
+
   try:
     vim.command( 'bdelete! {}'.format( buf.number ) )
   except vim.error as e:
@@ -676,7 +681,7 @@ def ParseVariables( variables_list,
             "Unsupported variable defn {}: Missing 'shell'".format( n ) )
       else:
         new_variables[ n ] = ExpandReferencesInObject( v,
-                                                       mapping,
+                                                       new_mapping,
                                                        calculus,
                                                        user_choices )
 
@@ -685,7 +690,7 @@ def ParseVariables( variables_list,
   return new_variables
 
 
-def DisplayBalloon( is_term, display, is_hover = False ):
+def CreateTooltip( is_term, display: list, is_hover = False ):
   if not is_term:
     # To enable the Windows GUI to display the balloon correctly
     # Refer https://github.com/vim/vim/issues/1512#issuecomment-492070685
@@ -726,26 +731,6 @@ def Call( vimscript_function, *args ):
 
   call += ')'
   return vim.eval( call )
-
-
-MEMO = {}
-
-
-def memoize( func ):
-  global MEMO
-
-  @functools.wraps( func )
-  def wrapper( *args, **kwargs ):
-    dct = MEMO.setdefault( func, {} )
-    key = ( args, frozenset( kwargs.items() ) )
-    try:
-      return dct[ key ]
-    except KeyError:
-      result = func( *args, **kwargs )
-      dct[ key ] = result
-      return result
-
-  return wrapper
 
 
 @memoize
@@ -796,7 +781,7 @@ def GetVisualSelection( bufnr ):
   return lines
 
 
-def DisplaySplash( api_prefix, splash, text ):
+def DisplaySplash( api_prefix: str, splash, text: typing.Union[ str, list ] ):
   if splash:
     return Call( f'vimspector#internal#{api_prefix}popup#UpdateSplash',
                  splash,
@@ -926,3 +911,8 @@ class EventEmitter( object ):
 
   def unsubscribe_all( self ):
     self.__callbacks = {}
+
+
+def Base64ToHexDump( data ):
+  data = base64.b64decode( data )
+  return list( hexdump( data, 'generator' ) )

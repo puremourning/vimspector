@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -e
+set -x
+
+tmpdir=$(mktemp -d)
+python3 -m venv ${tmpdir}
+source ${tmpdir}/bin/activate
+pip install json-schema-for-humans
+
+pushd $(dirname $0)
+  generate-schema-doc docs/schema docs/schema-doc
+popd
+
+deactivate
+
+rm -rf ${tmpdir}

@@ -21,6 +21,11 @@ pushd ${PACK}
         cp -r ${ROOT}/$d .
       fi
     done
+    # test vimrc is required for the minimal vimrc
+    mkdir -p tests
+    pushd tests
+      cp ${ROOT}/tests/vimrc .
+    popd
     mkdir -p gadgets
     cp -r ${ROOT}/gadgets/${OS} gadgets/
     for f in install_gadget.py \
