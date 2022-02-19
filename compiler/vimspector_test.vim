@@ -95,6 +95,13 @@ function! s:RunTestUnderCursorInVimspector()
         \ } )
 endfunction
 
+function! s:RunAllTestsInVimspector()
+  update
+  call vimspector#LaunchWithSettings( {
+        \ 'configuration': 'Run script',
+        \ } )
+endfunction
+
 
 function! s:RunTestUnderCursor()
   update
@@ -147,7 +154,8 @@ endfunction
 if ! has( 'gui_running' )
   " ® is right-option+r
   nnoremap <buffer> ® :call <SID>RunTest()<CR>
-  " ® is right-option+r
+  nnoremap <buffer> <leader>® :call <SID>RunAllTestsInVimspector()<CR>
+  " £ is right-option+r
   nnoremap <buffer> Â :call <SID>RunAllTests()<CR>
   " † is right-option+t
   nnoremap <buffer> † :call <SID>RunTestUnderCursor()<CR>

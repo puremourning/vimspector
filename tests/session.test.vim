@@ -324,5 +324,8 @@ function! Test_Load_Session_Add_Breakpoint_In_New_File()
           \ 9 ) } )
 
 
+  call vimspector#test#setup#Reset()
+  silent! call delete( save_file )
+  lcd -
   %bwipeout!
 endfunction

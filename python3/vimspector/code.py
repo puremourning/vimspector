@@ -16,7 +16,6 @@
 import vim
 import logging
 import os
-from collections import defaultdict
 
 from vimspector import utils, terminal, signs
 
