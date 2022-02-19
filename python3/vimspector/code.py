@@ -153,8 +153,9 @@ class CodeView( object ):
     # Note: max() with 0 because some debug adapters (go) return 0 for the
     # column.
     try:
-      utils.SetCursorPosInWindow( self._window, frame[ 'line' ],
-        frame[ 'column' ] - 1 )
+      utils.SetCursorPosInWindow( self._window,
+                                  frame[ 'line' ],
+                                  frame[ 'column' ] )
     except vim.error:
       self._logger.exception( "Unable to jump to %s:%s in %s, maybe the file "
                               "doesn't exist",

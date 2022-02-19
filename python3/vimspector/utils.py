@@ -855,6 +855,7 @@ def UseWinBar():
   return not int( Call( 'has', 'nvim' ) )
 
 
+# Jump to a specific 1-based line/column
 def SetCursorPosInWindow( window, line, column = 1 ):
   # simplify the interface and make column 1 based, same as line
   column = max( 1, column )
