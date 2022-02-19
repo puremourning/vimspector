@@ -3,6 +3,7 @@ let s:fn='../support/test/python/simple_python/main.py'
 function! SetUp()
   call vimspector#test#setup#SetUpWithMappings( 'HUMAN' )
   let g:vimspector_variables_display_mode = 'compact'
+  let s:setup_func_line = FunctionBreakOnBrace() ? 17 : 18
 endfunction
 
 function! ClearDown()
@@ -335,7 +336,7 @@ function! Test_ExpandVariables()
   " Cpptools keeps the same "Locals" scope, so it stays collapsed even throught
   " step-in
   call vimspector#StepInto()
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 18, 1 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, s:setup_func_line, 1 )
   call WaitForAssert( {->
         \   assert_equal(
         \     [

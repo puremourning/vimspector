@@ -27,7 +27,7 @@ function! Test_Step_With_Different_Tabpage()
   call feedkeys( "\<F9>", 'xt' )
 
   " Here we go. Start Debugging
-  call feedkeys( "\<F5>", 'xt' )
+  call vimspector#LaunchWithSettings( { 'configuration': 'run-to-breakpoint' } )
 
   call assert_equal( 2, len( gettabinfo() ) )
   let vimspector_tabnr = tabpagenr()
@@ -72,7 +72,7 @@ function! Test_All_Buffers_Deleted_NoHidden()
 
   call setpos( '.', [ 0, 15, 1 ] )
   call vimspector#ToggleBreakpoint()
-  call vimspector#Launch()
+  call vimspector#LaunchWithSettings( { 'configuration': 'run-to-breakpoint' } )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
   call vimspector#test#signs#AssertPCIsAtLineInBuffer(
         \ 'simple.cpp',
@@ -103,7 +103,7 @@ function! Test_All_Buffers_Deleted_Hidden()
 
   call setpos( '.', [ 0, 15, 1 ] )
   call vimspector#ToggleBreakpoint()
-  call vimspector#Launch()
+  call vimspector#LaunchWithSettings( { 'configuration': 'run-to-breakpoint' } )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
   call vimspector#test#signs#AssertPCIsAtLineInBuffer(
         \ 'simple.cpp',
