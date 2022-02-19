@@ -227,15 +227,19 @@ GADGETS = {
       'format': 'tar',
     },
     'all': {
-      'version': '1.2.0-782'
+      'version': '2.0.0-895'
     },
     'macos': {
-      'file_name': 'netcoredbg-osx.tar.gz',
+      'file_name': 'netcoredbg-osx-amd64.tar.gz',
       'checksum':
         '',
     },
     'linux': {
-      'file_name': 'netcoredbg-linux-bionic-amd64.tar.gz',
+      'file_name': 'netcoredbg-linux-amd64.tar.gz',
+      'checksum': '',
+    },
+    'linux_arm64': {
+      'file_name': 'netcoredbg-linux-arm64.tar.gz',
       'checksum': '',
     },
     'windows': {

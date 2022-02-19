@@ -144,3 +144,11 @@ function! SkipOn( arch, system ) abort
     throw 'skipped: Not on this architecture'
   endif
 endfunction
+
+function! FunctionBreakOnBrace() abort
+  " Annoyingly, the behaviour of gcc 8 differs from clang _and_ it differs
+  " between x86 and arm
+  return trim( system( 'uname -m' ) ) ==# 'x86_64'
+        \ && trim( system( 'uname -s' ) ) ==# 'Linux'
+endfunction
+
