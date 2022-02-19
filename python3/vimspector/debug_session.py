@@ -511,10 +511,6 @@ class DebugSession( object ):
 
     if self.HasUI():
       self._logger.debug( "Clearing down UI" )
-      vim.vars[ 'vimspector_session_windows' ] = {
-        'breakpoints': vim.vars[ 'vimspector_session_windows' ].get(
-                        'breakpoints' )
-      }
       vim.current.tabpage = self._uiTab
       self._splash_screen = utils.HideSplash( self._api_prefix,
                                               self._splash_screen )
@@ -523,10 +519,10 @@ class DebugSession( object ):
     else:
       ResetUI()
 
-    try:
-      del vim.vars[ 'vimspector_session_windows' ]
-    except KeyError:
-      pass
+    vim.vars[ 'vimspector_session_windows' ] = {
+      'breakpoints': vim.vars[ 'vimspector_session_windows' ].get(
+                      'breakpoints' )
+    }
 
     vim.command( 'doautocmd <nomodeline> User VimspectorDebugEnded' )
     vim.vars[ 'vimspector_resetting' ] = 0
