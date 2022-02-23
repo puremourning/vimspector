@@ -1619,7 +1619,7 @@ class DebugSession( object ):
 
     self._breakpoints.SetConfiguredBreakpoints(
       self._configuration.get( 'breakpoints', {} ) )
-    self._breakpoints.SendBreakpoints( onBreakpointsDone )
+    self._breakpoints.UpdateUI( onBreakpointsDone )
 
   def OnEvent_thread( self, message ):
     self._stackTraceView.OnThreadEvent( message[ 'body' ] )
@@ -1631,7 +1631,7 @@ class DebugSession( object ):
     if reason == 'changed':
       self._breakpoints.UpdatePostedBreakpoint( bp )
     elif reason == 'new':
-      self._breakpoints.AddPostedBreakpoints( [ bp ] )
+      self._breakpoints.AddPostedBreakpoint( bp )
     elif reason == 'removed':
       self._breakpoints.DeletePostedBreakpoint( bp )
     else:

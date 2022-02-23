@@ -458,6 +458,8 @@ def ClearBuffer( buf, modified = False ):
 
 def SetBufferContents( buf, lines, modified=False ):
   try:
+    # FIXME: Really any iteratble list-like type would work here (iterable isn't
+    # enough because strings are iterable)
     if not isinstance( lines, list ):
       lines = lines.splitlines()
 

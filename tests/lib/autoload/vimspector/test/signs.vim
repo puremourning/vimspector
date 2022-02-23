@@ -120,7 +120,8 @@ function! vimspector#test#signs#AssertSignGroupEmptyAtLine( group, line ) abort
                      \ 'Num buffers named %' ) ||
        \ assert_equal( 0,
                      \ len( signs[ 0 ].signs ),
-                     \ 'Num signs in ' . a:group . ' at ' . a:line )
+                     \ 'Num signs in ' . a:group . ' at ' . a:line . ': '
+                     \ . string( signs ) )
 endfunction
 
 

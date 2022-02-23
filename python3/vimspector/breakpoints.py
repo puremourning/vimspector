@@ -28,17 +28,12 @@ class BreakpointsView( object ):
     self._breakpoint_win = None
     self._breakpoint_list = []
 
+  def _Valid( self ):
+    return self._breakpoint_win is not None and self._breakpoint_win.valid
+
+
   def _UpdateView( self, breakpoint_list ):
-    def _formatEntry( el ):
-      prefix = ''
-      if el.get( 'type' ) == 'L':
-        prefix = '{}:{} '.format( os.path.basename( el.get( 'filename' ) ),
-          el.get( 'lnum' ) )
-
-      return '{}{}'.format( prefix, el.get( 'text' ) )
-
-    if self._breakpoint_win is None or not self._breakpoint_win.valid:
-
+    if not self._Valid():
       vim.command( f'botright { settings.Int( "bottombar_height" ) }new' )
       self._breakpoint_win = vim.current.window
 
@@ -68,7 +63,9 @@ class BreakpointsView( object ):
                      'vimspector#JumpToBreakpointViewBreakpoint()<CR>' )
       # set highlighting
       vim.eval( "matchadd( 'WarningMsg', 'ENABLED', 100 )" )
+      vim.eval( "matchadd( 'WarningMsg', 'VERIFIED', 100 )" )
       vim.eval( "matchadd( 'LineNr', 'DISABLED', 100 )" )
+      vim.eval( "matchadd( 'LineNr', 'PENDING', 100 )" )
       vim.eval( "matchadd( 'Title', '\\v^\\S+:{0,}', 100 )" )
 
       # we want to maintain the height of the window
@@ -76,33 +73,39 @@ class BreakpointsView( object ):
 
     self._breakpoint_list = breakpoint_list
 
-    breakpoint_list = list( map( _formatEntry, breakpoint_list ) )
+    def FormatEntry( el ):
+      prefix = ''
+      if el.get( 'type' ) == 'L':
+        prefix = '{}:{} '.format( os.path.basename( el.get( 'filename' ) ),
+                                  el.get( 'lnum' ) )
+
+      return '{}{}'.format( prefix, el.get( 'text' ) )
 
     with utils.ModifiableScratchBuffer( self._breakpoint_win.buffer ):
       with utils.RestoreCursorPosition():
-        utils.SetBufferContents( self._breakpoint_win.buffer, breakpoint_list )
+        utils.SetBufferContents( self._breakpoint_win.buffer,
+                                 list( map( FormatEntry, breakpoint_list ) ) )
 
   def CloseBreakpoints( self ):
-    if self._breakpoint_win and self._breakpoint_win.valid:
-      with utils.LetCurrentTabpage( self._breakpoint_win.tabpage ):
-        vim.command( "{}close".format( self._breakpoint_win.number ) )
+    if not self._Valid():
+      return
+
+    with utils.LetCurrentTabpage( self._breakpoint_win.tabpage ):
+      vim.command( "{}close".format( self._breakpoint_win.number ) )
+      self._breakpoint_win = None
 
   def GetBreakpointForLine( self ):
-    if (
-      self._breakpoint_win is None
-      or not self._breakpoint_win.valid
-      or vim.current.window.number != self._breakpoint_win.number
-      or not self._breakpoint_list
-    ):
+    if ( not self._Valid()
+         or vim.current.window.number != self._breakpoint_win.number
+         or not self._breakpoint_list ):
       return None
 
-    line_num = int( vim.eval( 'getpos( \'.\' )' )[ 1 ] )
-
+    line_num = vim.current.window.cursor[ 0 ]
     index = max( 0, min( len( self._breakpoint_list ) - 1, line_num - 1 ) )
     return self._breakpoint_list[ index ]
 
   def ToggleBreakpointView( self, breakpoint_list ):
-    if self._breakpoint_win and self._breakpoint_win.valid:
+    if self._Valid():
       old_tabpage_number = self._breakpoint_win.tabpage.number
       # we want to grab current tabpage number now
       # because closing breakpoint view might
@@ -117,7 +120,7 @@ class BreakpointsView( object ):
       self._UpdateView( breakpoint_list )
 
   def RefreshBreakpoints( self, breakpoint_list ):
-    if self._breakpoint_win and self._breakpoint_win.valid:
+    if self._Valid():
       self._UpdateView( breakpoint_list )
 
 
@@ -138,6 +141,7 @@ class ProjectBreakpoints( object ):
     self._server_capabilities = {}
 
     self._next_sign_id = 1
+    self._awaiting_bp_responses = 0
 
     self._breakpoints_view = BreakpointsView()
 
@@ -176,66 +180,93 @@ class ProjectBreakpoints( object ):
   def ConnectionClosed( self ):
     self._server_capabilities = {}
     self._connection = None
+    self._ClearServerBreakpointData()
     self.UpdateUI()
+
 
     # NOTE: we don't reset self._exception_breakpoints because we don't want to
     # re-ask the user every time for the sane info.
 
     # FIXME: If the adapter type changes, we should probably forget this ?
 
+
   def ToggleBreakpointsView( self ):
     self._breakpoints_view.ToggleBreakpointView( self.BreakpointsAsQuickFix() )
 
   def ToggleBreakpointViewBreakpoint( self ):
     bp = self._breakpoints_view.GetBreakpointForLine()
-    if bp:
-      if bp.get( 'type' ) == 'F':
-        self.ClearFunctionBreakpoint( bp.get( 'filename' ) )
-      else:
-        self._ToggleBreakpoint( None, bp.get( 'filename' ), bp.get( 'lnum' ),
-                                False )
+    if not bp:
+      return
+
+    if bp.get( 'type' ) == 'F':
+      self.ClearFunctionBreakpoint( bp.get( 'filename' ) )
+    else:
+      self._ToggleBreakpoint( None,
+                              bp.get( 'filename' ),
+                              bp.get( 'lnum' ),
+                              False )
 
   def JumpToBreakpointViewBreakpoint( self ):
     bp = self._breakpoints_view.GetBreakpointForLine()
-    if bp and bp.get( 'type' ) != 'F':
-      success = int( vim.eval(
-          f'win_gotoid( bufwinid( \'{ bp[ "filename" ] }\' ) )' ) )
+    if not bp:
+      return
 
-      try:
-        if not success:
-          vim.command( "leftabove split {}".format( bp[ 'filename' ] ) )
+    if bp.get( 'type' ) != 'L':
+      return
 
-        utils.SetCursorPosInWindow( vim.current.window, bp[ 'lnum' ], 1 )
-      except vim.error:
-        # 'filename' or 'lnum' might be missing,
-        # so don't trigger an exception here by refering to them
-        utils.UserMessage(
-          "Unable to jump to file",
-          persist = True,
-          error = True )
+    success = int( vim.eval(
+        f'win_gotoid( bufwinid( \'{ bp[ "filename" ] }\' ) )' ) )
+
+    try:
+      if not success:
+        vim.command( "leftabove split {}".format( bp[ 'filename' ] ) )
+
+      utils.SetCursorPosInWindow( vim.current.window, bp[ 'lnum' ], 1 )
+    except vim.error:
+      # 'filename' or 'lnum' might be missing,
+      # so don't trigger an exception here by refering to them
+      utils.UserMessage( "Unable to jump to file",
+                         persist = True,
+                         error = True )
 
 
   def ClearBreakpointViewBreakpoint( self ):
     bp = self._breakpoints_view.GetBreakpointForLine()
-    if bp:
-      if bp.get( 'type' ) == 'F':
-        self.ClearFunctionBreakpoint( bp.get( 'filename' ) )
-      else:
-        self.ClearLineBreakpoint( bp.get( 'filename' ), bp.get( 'lnum' ) )
+    if not bp:
+      return
+
+    if bp.get( 'type' ) == 'F':
+      self.ClearFunctionBreakpoint( bp.get( 'filename' ) )
+    else:
+      self.ClearLineBreakpoint( bp.get( 'filename' ), bp.get( 'lnum' ) )
 
   def BreakpointsAsQuickFix( self ):
     qf = []
     for file_name, breakpoints in self._line_breakpoints.items():
       for bp in breakpoints:
         self._SignToLine( file_name, bp )
+
+        if 'server_bp' in bp:
+          line = bp[ 'server_bp' ][ 'line' ]
+          if bp[ 'server_bp' ][ 'verified' ]:
+            state = 'VERIFIED'
+            valid = 1
+          else:
+            state = 'PENDING'
+            valid = 0
+        else:
+          line = bp[ 'line' ]
+          state = bp[ 'state' ]
+          valid = 1
+
         qf.append( {
           'filename': file_name,
-          'lnum': bp[ 'line' ],
+          'lnum': line,
           'col': 1,
           'type': 'L',
-          'valid': 1 if bp[ 'state' ] == 'ENABLED' else 0,
+          'valid': valid,
           'text': "Line breakpoint - {}: {}".format(
-            bp[ 'state' ],
+            state,
             json.dumps( bp[ 'options' ] ) )
         } )
     for bp in self._func_breakpoints:
@@ -244,9 +275,9 @@ class ProjectBreakpoints( object ):
         'lnum': 1,
         'col': 1,
         'type': 'F',
-        'valid': 1,
+        'valid': 0,
         'text': "{}: Function breakpoint - {}".format( bp[ 'function' ],
-                                                      bp[ 'options' ] ),
+                                                       bp[ 'options' ] ),
       } )
 
     return qf
@@ -278,64 +309,102 @@ class ProjectBreakpoints( object ):
 
   def _FindPostedBreakpoint( self, breakpoint_id ):
     if breakpoint_id is None:
-      return None, None, None
+      return None
 
     for filepath, breakpoint_list in self._line_breakpoints.items():
-      for index, breakpoint in enumerate( breakpoint_list ):
-        if 'id' in breakpoint and breakpoint[ 'id' ] == breakpoint_id:
-          return breakpoint, index, filepath
+      for index, bp in enumerate( breakpoint_list ):
+        server_bp = bp.get( 'server_bp', {} )
+        if 'id' in server_bp and server_bp[ 'id' ] == breakpoint_id:
+          return bp
 
-    return None, None, None
+    return None
 
-  def UpdatePostedBreakpoint( self, breakpoint ):
-    bp, _, _ = self._FindPostedBreakpoint( breakpoint.get( 'id' ) )
+
+  def _ClearServerBreakpointData( self ):
+    for _, breakpoints in self._line_breakpoints.items():
+      for bp in breakpoints:
+        if 'server_bp' in bp:
+          # Unplace the sign. If the sign was moved by the server, then we don't
+          # want a subsequent call to _SignToLine to override the user's
+          # breakpoint location with the server one. This is not what users
+          # typicaly expect, and we may (soon) call something that eagerly calls
+          # _SignToLine, such as _ShowBreakpoints,
+          if 'sign_id' in bp:
+            signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
+            del bp[ 'sign_id' ]
+
+          del bp[ 'server_bp' ]
+
+  def _CopyServerLineBreakpointProperties( self, bp, server_bp ):
+    # we are just updating position of the existing breakpoint
+    bp[ 'server_bp' ] = server_bp
+
+  def UpdatePostedBreakpoint( self, server_bp ):
+    bp = self._FindPostedBreakpoint( server_bp.get( 'id' ) )
+    if bp is None:
+      self._logger.warn( "Unexpected update to breakpoint with id %s:"
+                         "breakpiont not found. %s",
+                         server_bp.get( 'id' ),
+                         server_bp )
+      return
+
+    self._CopyServerLineBreakpointProperties( bp, server_bp )
+    self.UpdateUI()
+
+
+  def AddPostedBreakpoint( self, server_bp ):
+    source = server_bp.get( 'source' )
+    if not source or 'path' not in source:
+      self._logger.warn( 'missing source/path in server breakpoint {0}'.format(
+        json.dumps( server_bp ) ) )
+      return
+
+    existing_bp, _ = self._FindLineBreakpoint( source[ 'path' ],
+                                               server_bp[ 'line' ] )
+
+    if existing_bp is None:
+      self._logger.debug( "Adding new breakpoint from server %s", server_bp )
+      self._PutLineBreakpoint( source[ 'path' ],
+                               server_bp[ 'line' ],
+                               {},
+                               server_bp )
+    else:
+      # This probably should not happen, but update the existing breakpoint that
+      # happens to be on this line
+      self._CopyServerLineBreakpointProperties( existing_bp, server_bp )
+
+
+  def DeletePostedBreakpoint( self, server_bp ):
+    bp = self._FindPostedBreakpoint( server_bp.get( 'id' ) )
+
     if bp is None:
       return
 
-    # we are just updating position of the existing breakpoint
-    bp[ 'line' ]  = breakpoint[ 'line' ]
+    del bp[ 'server_bp' ]
     self.UpdateUI()
 
-  def AddPostedBreakpoints( self, breakpoints ):
-    for breakpoint in breakpoints:
-      source = breakpoint.get( 'source' )
-      if not source or 'path' not in source:
-        self._logger.warn( 'missing source/path in breakpoint {0}'.format(
-          json.dumps( breakpoint ) ) )
-        continue
-
-      self._PutLineBreakpoint( source.get( 'path' ),
-        breakpoint.get( 'line' ), None, breakpoint.get( 'id' ) )
-
-    self._logger.debug( 'Breakpoints at this point: {0}'.format(
-      json.dumps( self._line_breakpoints, indent = 2 ) ) )
-
-
-  def DeletePostedBreakpoint( self, breakpoint ):
-    bp, index, filepath = self._FindPostedBreakpoint( breakpoint.get( 'id' ) )
-
-    if bp is not None:
-      self._DeleteLineBreakpoint( bp, filepath, index )
-
-    self.UpdateUI()
 
   def IsBreakpointPresentAt( self, file_path, line ):
     return self._FindLineBreakpoint( file_path, line )[ 0 ] is not None
 
-  def _PutLineBreakpoint( self, file_name, line, options, id = None ):
+  def _PutLineBreakpoint( self, file_name, line, options, server_bp = None ):
     path = utils.NormalizePath( file_name )
-    self._line_breakpoints[ path ].append( {
+    bp = {
       'state': 'ENABLED',
       'line': line,
       'options': options,
-      'id': id,
       # 'sign_id': <filled in when placed>,
       #
       # Used by other breakpoint types (specified in options):
       # 'condition': ...,
       # 'hitCondition': ...,
       # 'logMessage': ...
-    } )
+    }
+
+    if server_bp is not None:
+      self._CopyServerLineBreakpointProperties( bp, server_bp )
+
+    self._line_breakpoints[ path ].append( bp )
 
 
   def _DeleteLineBreakpoint( self, bp, file_name, index ):
@@ -343,7 +412,7 @@ class ProjectBreakpoints( object ):
       signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
     del self._line_breakpoints[ utils.NormalizePath( file_name ) ][ index ]
 
-  def _ToggleBreakpoint( self, options, file_name, line, shouldDelete = True ):
+  def _ToggleBreakpoint( self, options, file_name, line, should_delete = True ):
     if not file_name:
       return
 
@@ -351,10 +420,10 @@ class ProjectBreakpoints( object ):
     if bp is None:
       # ADD
       self._PutLineBreakpoint( file_name, line, options )
-    elif bp[ 'state' ] == 'ENABLED' and not self._connection:
+    elif bp[ 'state' ] == 'ENABLED':
       # DISABLE
       bp[ 'state' ] = 'DISABLED'
-    elif not shouldDelete and not self._connection:
+    elif not should_delete:
       bp[ 'state' ] = 'ENABLED'
     else:
       # DELETE
@@ -390,6 +459,11 @@ class ProjectBreakpoints( object ):
 
 
   def ClearTemporaryBreakpoint( self, file_name, line_num ):
+    # FIXME: We should use the _FindPostedBreakpoint here instead, as that's way
+    # more accurate at this point. Some servers can now identifyt he breakpoint
+    # ID that actually triggered too. For now, we still have
+    # _UpdateServerBreakpoints change the _user_ breakpiont line and we check
+    # for that _here_, though we could check ['server_bp']['line']
     bp, index = self._FindLineBreakpoint( file_name, line_num )
     if bp is None:
       return
@@ -409,33 +483,37 @@ class ProjectBreakpoints( object ):
       self._DeleteLineBreakpoint( *entry )
 
 
-  def _UpdateTemporaryBreakpoints( self, breakpoints, temp_idxs ):
-    for temp_idx, user_bp in temp_idxs:
-      if temp_idx >= len( breakpoints ):
+  def _UpdateServerBreakpoints( self, breakpoints, bp_idxs ):
+    for bp_idx, user_bp in bp_idxs:
+      if bp_idx >= len( breakpoints ):
         # Just can't trust servers ?
         self._logger.debug( "Server Error - invalid breakpoints list did not "
                             "contain entry for temporary breakpoint at index "
-                            f"{ temp_idx } i.e. { user_bp }" )
+                            f"{ bp_idx } i.e. { user_bp }" )
         continue
 
-      bp = breakpoints[ temp_idx ]
+      server_bp = breakpoints[ bp_idx ]
+      self._CopyServerLineBreakpointProperties( user_bp, server_bp )
+      is_temporary = bool( user_bp[ 'options' ].get( 'temporary' ) )
 
-      if 'line' not in bp or not bp[ 'verified' ]:
-        utils.UserMessage(
-          "Unable to set temporary breakpoint at line "
-          f"{ user_bp[ 'line' ] } execution will continue...",
-          persist = True,
-          error = True )
+      if not is_temporary:
+        # We don't modify the 'user" breakpiont
         continue
+
+      if 'line' not in server_bp or not server_bp[ 'verified' ]:
+          utils.UserMessage(
+            "Unable to set temporary breakpoint at line "
+            f"{ user_bp[ 'line' ] } execution will continue...",
+            persist = True,
+            error = True )
+          continue
 
       self._logger.debug( f"Updating temporary breakpoint { user_bp } line "
-                          f"{ user_bp[ 'line' ] } to { bp[ 'line' ] }" )
+                          f"{ user_bp[ 'line' ] } to { server_bp[ 'line' ] }" )
 
       # if it was moved, update the user-breakpoint so that we unset it
       # again properly
-      user_bp[ 'line' ] = bp[ 'line' ]
-      # some adapters dont return id
-      user_bp[ 'id' ] = bp.get( 'id' )
+      user_bp[ 'line' ] = server_bp[ 'line' ]
 
 
   def AddFunctionBreakpoint( self, function, options ):
@@ -448,8 +526,6 @@ class ProjectBreakpoints( object ):
       # 'hitCondition': ...,
     } )
 
-    # TODO: We don't really have aanything to update here, but if we're going to
-    # have a UI list of them we should update that at this point
     self.UpdateUI()
 
 
@@ -469,11 +545,14 @@ class ProjectBreakpoints( object ):
 
 
   def SendBreakpoints( self, doneHandler = None ):
-    awaiting = 0
+    if self._awaiting_bp_responses > 0:
+      self._logger.warn( "Unexpected SendBreakpoints whlie already waiting" )
+      return
+
+    self._awaiting_bp_responses = 0
 
     def response_received( *failure_args ):
-      nonlocal awaiting
-      awaiting = awaiting - 1
+      self._awaiting_bp_responses -= 1
 
       if failure_args and self._connection:
         reason, msg = failure_args
@@ -481,13 +560,12 @@ class ProjectBreakpoints( object ):
                            persist = True,
                            error = True )
 
-      if awaiting == 0 and doneHandler:
+      if self._awaiting_bp_responses == 0 and doneHandler:
         doneHandler()
 
-    def response_handler( source, msg, temp_idxs = [] ):
-      if msg:
-        breakpoints = ( msg.get( 'body' ) or {} ).get( 'breakpoints' ) or []
-        self._UpdateTemporaryBreakpoints( breakpoints, temp_idxs )
+    def response_handler( msg, bp_idxs = [] ):
+      server_bps = ( msg.get( 'body' ) or {} ).get( 'breakpoints' ) or []
+      self._UpdateServerBreakpoints( server_bps, bp_idxs )
       response_received()
 
 
@@ -500,9 +578,11 @@ class ProjectBreakpoints( object ):
     # TODO: add the _configured_breakpoints to line_breakpoints
 
     for file_name, line_breakpoints in self._line_breakpoints.items():
-      temp_idxs = []
+      bp_idxs = []
       breakpoints = []
       for bp in line_breakpoints:
+        bp.pop( 'server_bp', None )
+
         self._SignToLine( file_name, bp )
         if 'sign_id' in bp:
           signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
@@ -516,7 +596,7 @@ class ProjectBreakpoints( object ):
 
         dap_bp.pop( 'temporary', None )
 
-        temp_idxs.append( [ len( breakpoints ), bp ] )
+        bp_idxs.append( [ len( breakpoints ), bp ] )
 
         breakpoints.append( dap_bp )
 
@@ -526,15 +606,12 @@ class ProjectBreakpoints( object ):
         'path': file_name,
       }
 
-      awaiting = awaiting + 1
+      self._awaiting_bp_responses += 1
       self._connection.DoRequest(
         # The source=source here is critical to ensure that we capture each
         # source in the iteration, rather than ending up passing the same source
         # to each callback.
-        lambda msg, source=source, temp_idxs=temp_idxs: response_handler(
-          source,
-          msg,
-          temp_idxs = temp_idxs ),
+        lambda msg, bp_idxs=bp_idxs: response_handler( msg, bp_idxs ),
         {
           'command': 'setBreakpoints',
           'arguments': {
@@ -549,9 +626,10 @@ class ProjectBreakpoints( object ):
     # TODO: Add the _configured_breakpoints to function breakpoints
 
     if self._server_capabilities.get( 'supportsFunctionBreakpoints' ):
-      awaiting = awaiting + 1
+      self._awaiting_bp_responses += 1
       breakpoints = []
       for bp in self._func_breakpoints:
+        bp.pop( 'server_bp', None )
         if bp[ 'state' ] != 'ENABLED':
           continue
         dap_bp = {}
@@ -559,8 +637,17 @@ class ProjectBreakpoints( object ):
         dap_bp.update( { 'name': bp[ 'function' ] } )
         breakpoints.append( dap_bp )
 
+      # FIXME(Ben): The function breakpoints response actually returns
+      # 'Breakpoint' objects. The point is that there is a server_bp for each
+      # function breakpoint as well as every line breakpoint. We need to
+      # implement that:
+      #  - pass the indices in here
+      #  - make _FindPostedBreakpoint also search function breakpionts
+      #  - make sure that ConnectionClosed also cleares the server_bp data for
+      #    function breakpionts
+      #  - make sure that we have tests for this, because i'm sure we don't!
       self._connection.DoRequest(
-        lambda msg: response_handler( None, msg ),
+        lambda msg: response_handler( msg ),
         {
           'command': 'setFunctionBreakpoints',
           'arguments': {
@@ -571,9 +658,9 @@ class ProjectBreakpoints( object ):
       )
 
     if self._exception_breakpoints:
-      awaiting = awaiting + 1
+      self._awaiting_bp_responses += 1
       self._connection.DoRequest(
-        lambda msg: response_handler( None, None ),
+        lambda msg: response_received(),
         {
           'command': 'setExceptionBreakpoints',
           'arguments': self._exception_breakpoints
@@ -581,7 +668,7 @@ class ProjectBreakpoints( object ):
         failure_handler = response_received
       )
 
-    if awaiting == 0 and doneHandler:
+    if self._awaiting_bp_responses == 0 and doneHandler:
       doneHandler()
 
 
@@ -642,7 +729,7 @@ class ProjectBreakpoints( object ):
 
   def Save( self ):
     # Need to copy line breakpoints, because we have to remove the 'sign_id'
-    # and 'id' properties. Otherwise we might end up loading junk
+    # and 'server_bp' properties. Otherwise we might end up loading junk
     line = {}
     for file_name, breakpoints in self._line_breakpoints.items():
       bps = [ dict( bp ) for bp in breakpoints ]
@@ -651,8 +738,9 @@ class ProjectBreakpoints( object ):
         # inserted more lines. This is more what the user expects, as it's where
         # the sign is on their screen.
         self._SignToLine( file_name, bp )
+        # Don't save dynamic info like sign_id and the server's breakpoint info
         bp.pop( 'sign_id', None )
-        bp.pop( 'id', None )
+        bp.pop( 'server_bp', None )
       line[ file_name ] = bps
 
     return {
@@ -681,7 +769,15 @@ class ProjectBreakpoints( object ):
           bp[ 'sign_id' ] = self._next_sign_id
           self._next_sign_id += 1
 
-        sign = ( 'vimspectorBPDisabled' if bp[ 'state' ] != 'ENABLED'
+        if 'server_bp' in bp:
+          line = bp[ 'server_bp' ][ 'line' ]
+          verified = bp[ 'server_bp' ][ 'verified' ]
+        else:
+          line = bp[ 'line' ]
+          verified = self._connection is None
+
+        sign = ( 'vimspectorBPDisabled'
+                   if bp[ 'state' ] != 'ENABLED' or not verified
                  else 'vimspectorBPLog'
                    if 'logMessage' in bp[ 'options' ]
                  else 'vimspectorBPCond'
@@ -694,9 +790,12 @@ class ProjectBreakpoints( object ):
                            'VimspectorBP',
                            sign,
                            file_name,
-                           bp[ 'line' ] )
+                           line )
 
   def _SignToLine( self, file_name, bp ):
+    if self._connection is not None:
+      return
+
     if 'sign_id' not in bp:
       return bp[ 'line' ]
 
