@@ -1,0 +1,14 @@
+{
+  "configurations": {
+    "Run current scipt": {
+      "adapter": "vscode-php-debug",
+      "configuration": {
+        "request": "launch",
+        "program": "${file}",
+        "args": [],
+        "stopOnEntry": false,
+        "externalConsole": true
+      }
+    }
+  }
+}
