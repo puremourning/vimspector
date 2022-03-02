@@ -515,12 +515,12 @@ class ProjectBreakpoints( object ):
         continue
 
       if 'line' not in server_bp or not server_bp[ 'verified' ]:
-          utils.UserMessage(
-            "Unable to set temporary breakpoint at line "
-            f"{ user_bp[ 'line' ] } execution will continue...",
-            persist = True,
-            error = True )
-          continue
+        utils.UserMessage(
+          "Unable to set temporary breakpoint at line "
+          f"{ user_bp[ 'line' ] } execution will continue...",
+          persist = True,
+          error = True )
+        continue
 
       self._logger.debug( f"Updating temporary breakpoint { user_bp } line "
                           f"{ user_bp[ 'line' ] } to { server_bp[ 'line' ] }" )
