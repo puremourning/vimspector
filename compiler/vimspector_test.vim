@@ -103,6 +103,15 @@ function! s:RunAllTestsInVimspector()
 endfunction
 
 
+function! s:RunTestUnderCursorWithDebugpy()
+  let $TEST_WITH_DEBUGPY = 1
+  try
+    call s:RunTestUnderCursor()
+  finally
+    let $TEST_WITH_DEBUGPY = 0
+  endtry
+endfunction
+
 function! s:RunTestUnderCursor()
   update
   let l:test_func_name = s:GetCurrentFunction()[ 0 ]
@@ -160,6 +169,7 @@ if ! has( 'gui_running' )
   " † is right-option+t
   nnoremap <buffer> † :call <SID>RunTestUnderCursor()<CR>
   nnoremap <buffer> <leader>† :call <SID>RunTestUnderCursorInVimspector()<CR>
+  nnoremap <buffer> <leader><leader>† :call <SID>RunTestUnderCursorWithDebugpy()<CR>
   " å is the right-option+q
   nnoremap <buffer> å :cfirst<CR>
   " å is the right-option+a

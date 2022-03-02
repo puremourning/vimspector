@@ -142,6 +142,8 @@ class ProjectBreakpoints( object ):
 
     self._next_sign_id = 1
     self._awaiting_bp_responses = 0
+    self._pending_send_breakpoints = None
+
 
     self._breakpoints_view = BreakpointsView()
 
@@ -180,6 +182,9 @@ class ProjectBreakpoints( object ):
   def ConnectionClosed( self ):
     self._server_capabilities = {}
     self._connection = None
+    self._awaiting_bp_responses = 0
+    self._pending_send_breakpoints = None
+
     self._ClearServerBreakpointData()
     self.UpdateUI()
 
@@ -334,6 +339,7 @@ class ProjectBreakpoints( object ):
             del bp[ 'sign_id' ]
 
           del bp[ 'server_bp' ]
+
 
   def _CopyServerLineBreakpointProperties( self, bp, server_bp ):
     # we are just updating position of the existing breakpoint
@@ -554,7 +560,7 @@ class ProjectBreakpoints( object ):
 
   def SendBreakpoints( self, doneHandler = None ):
     if self._awaiting_bp_responses > 0:
-      self._logger.warn( "Unexpected SendBreakpoints whlie already waiting" )
+      self._pending_send_breakpoints = ( doneHandler, )
       return
 
     self._awaiting_bp_responses = 0
@@ -568,8 +574,17 @@ class ProjectBreakpoints( object ):
                            persist = True,
                            error = True )
 
-      if self._awaiting_bp_responses == 0 and doneHandler:
+      if self._awaiting_bp_responses > 0:
+        return
+
+      if doneHandler:
         doneHandler()
+
+      if bool( self._pending_send_breakpoints ):
+        args = self._pending_send_breakpoints
+        self._pending_send_breakpoints = None
+        self.SendBreakpoints( *args )
+
 
     def response_handler( msg, bp_idxs = [] ):
       server_bps = ( msg.get( 'body' ) or {} ).get( 'breakpoints' ) or []
