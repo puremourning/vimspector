@@ -349,7 +349,9 @@ class ProjectBreakpoints( object ):
       return
 
     self._CopyServerLineBreakpointProperties( bp, server_bp )
-    self.UpdateUI()
+    # Render the breakpoitns, but don't send any updates, as this leads to a
+    # feedback loop
+    self._render_subject.emit()
 
 
   def AddPostedBreakpoint( self, server_bp ):
@@ -373,6 +375,10 @@ class ProjectBreakpoints( object ):
       # happens to be on this line
       self._CopyServerLineBreakpointProperties( existing_bp, server_bp )
 
+    # Render the breakpoitns, but don't send any updates, as this leads to a
+    # feedback loop
+    self._render_subject.emit()
+
 
   def DeletePostedBreakpoint( self, server_bp ):
     bp = self._FindPostedBreakpoint( server_bp.get( 'id' ) )
@@ -381,7 +387,9 @@ class ProjectBreakpoints( object ):
       return
 
     del bp[ 'server_bp' ]
-    self.UpdateUI()
+    # Render the breakpoitns, but don't send any updates, as this leads to a
+    # feedback loop
+    self._render_subject.emit()
 
 
   def IsBreakpointPresentAt( self, file_path, line ):
