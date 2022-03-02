@@ -204,7 +204,7 @@ class ProjectBreakpoints( object ):
       self._ToggleBreakpoint( None,
                               bp.get( 'filename' ),
                               bp.get( 'lnum' ),
-                              False )
+                              should_delete = False )
 
   def JumpToBreakpointViewBreakpoint( self ):
     bp = self._breakpoints_view.GetBreakpointForLine()

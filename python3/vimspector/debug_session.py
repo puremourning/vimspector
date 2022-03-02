@@ -1743,6 +1743,9 @@ class DebugSession( object ):
 
     self._stackTraceView.OnStopped( event )
 
+  def BreakpointsAsQuickFix( self ):
+    return self._breakpoints.BreakpointsAsQuickFix()
+
   def ListBreakpoints( self ):
     self._breakpoints.ToggleBreakpointsView()
 

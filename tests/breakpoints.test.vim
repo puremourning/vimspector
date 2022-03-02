@@ -116,8 +116,20 @@ function Test_DisableBreakpointWhileDebugging()
           \ 9 )
         \ } )
 
-  " Remove the breakpoint
+  " disable the breakpoint
   call feedkeys( "\<F9>", 'xt' )
+  call WaitForAssert( {->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorBP',
+          \ 16,
+          \ 'vimspectorBPDisabled',
+          \ 9 )
+        \ } )
+
+  " Delete the breakpoint
+  call feedkeys( "\<F9>", 'xt' )
+  call assert_true( empty( vimspector#GetBreakpointsAsQuickFix() ),
+                  \ vimspector#GetBreakpointsAsQuickFix() )
   call WaitForAssert( {->
         \ vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP',
                                                           \ 16 )

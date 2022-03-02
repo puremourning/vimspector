@@ -369,6 +369,13 @@ function! vimspector#ListBreakpoints() abort
   py3 _vimspector_session.ListBreakpoints()
 endfunction
 
+function! vimspector#GetBreakpointsAsQuickFix() abort
+  if !s:Enabled()
+    return
+  endif
+  return py3eval( '_vimspector_session.BreakpointsAsQuickFix()' )
+endfunction
+
 function! vimspector#ToggleBreakpointViewBreakpoint() abort
   if !s:Enabled()
     return
