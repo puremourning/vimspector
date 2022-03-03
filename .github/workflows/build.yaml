@@ -96,6 +96,7 @@ jobs:
         for p in python@3.8 go@1.16 tcl-tk llvm lua luajit love; do
           brew install $p || brew outdated $p || brew upgrade $p
         done
+        brew reinstall icu4c
         brew install --cask macvim
         brew link --overwrite python@3.8
         brew link --overwrite go@1.16
