@@ -432,7 +432,7 @@ GADGETS = {
         'type': 'firefox',
         'command': [
           'node',
-          '${gadgetDir}/debugger-for-firefox/dist/adapter.bundle.js'
+          '${gadgetDir}/vscode-firefox-debug/dist/adapter.bundle.js'
         ],
       },
     },
