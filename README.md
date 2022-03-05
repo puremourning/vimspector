@@ -873,6 +873,8 @@ breakpoints. This section describes the full API in vimscript functions.
 * Use `vimspector#ClearBreakpoints()` to clear all breakpoints
 * Use `:VimspectorMkSession` and `:VimspectorLoadSession` to save and restore
   breakpoints
+* Use `:VimspectorBreakpoints` to open the breakpoints view. From here you can
+  list, jump to delete, add and toggle breakpoitns.
 
 Examples:
 
