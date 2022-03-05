@@ -42,10 +42,11 @@ For detailed explanation of the `.vimspector.json` format, see the
        * [Debug configuration selection](#debug-configuration-selection)
        * [Get configurations](#get-configurations)
     * [Breakpoints](#breakpoints)
-       * [Summary](#summary)
+       * [Breakpoints Window](#breakpoints-window)
        * [Line breakpoints](#line-breakpoints)
        * [Conditional breakpoints and logpoints](#conditional-breakpoints-and-logpoints)
        * [Exception breakpoints](#exception-breakpoints)
+       * [API Summary](#api-summary)
        * [Clear breakpoints](#clear-breakpoints)
        * [Run to Cursor](#run-to-cursor)
        * [Save and restore](#save-and-restore)
@@ -63,10 +64,10 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Closing debugger](#closing-debugger)
     * [Terminate debuggee](#terminate-debuggee)
  * [Debug profile configuration](#debug-profile-configuration)
-    * [C, C++, Rust, etc.](#c-c-rust-etc)
+    * [C, C  , Rust, etc.](#c-c-rust-etc)
        * [Data visualization / pretty printing](#data-visualization--pretty-printing)
-       * [C++ Remote debugging](#c-remote-debugging)
-       * [C++ Remote launch and attach](#c-remote-launch-and-attach)
+       * [C   Remote debugging](#c-remote-debugging)
+       * [C   Remote launch and attach](#c-remote-launch-and-attach)
     * [Rust](#rust)
     * [Python](#python)
        * [Python Remote Debugging](#python-remote-debugging)
@@ -95,7 +96,7 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Example](#example)
  * [FAQ](#faq)
 
-<!-- Added by: ben, at: Fri 31 Dec 2021 21:57:03 GMT -->
+<!-- Added by: ben, at: Sat  5 Mar 2022 18:59:09 GMT -->
 
 <!--te-->
 
