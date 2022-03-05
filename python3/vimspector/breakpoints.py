@@ -86,9 +86,9 @@ class BreakpointsView( object ):
                      ':call vimspector#AddAdvancedFunctionBreakpoint()<CR>' )
         vim.command( 'nnoremenu <silent> 1.4 WinBar.Clear '
                      ':call vimspector#ClearBreakpoints()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.4 WinBar.Save\ Session '
+        vim.command( 'nnoremenu <silent> 1.4 WinBar.Save '
                      ':call vimspector#WriteSessionFile()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.4 WinBar.Load\ Session '
+        vim.command( 'nnoremenu <silent> 1.4 WinBar.Load '
                      ':call vimspector#ReadSessionFile()<CR>' )
 
       # we want to maintain the height of the window
