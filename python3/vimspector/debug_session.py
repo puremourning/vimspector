@@ -521,7 +521,7 @@ class DebugSession( object ):
 
     vim.vars[ 'vimspector_session_windows' ] = {
       'breakpoints': vim.vars[ 'vimspector_session_windows' ].get(
-                      'breakpoints' )
+        'breakpoints' )
     }
 
     vim.command( 'doautocmd <nomodeline> User VimspectorDebugEnded' )
@@ -989,7 +989,7 @@ class DebugSession( object ):
       'output': utils.WindowID( output_window, self._uiTab ),
       'eval': None, # updated every time eval popup is opened
       'breakpoints': vim.vars[ 'vimspector_session_windows' ].get(
-                        'breakpoints' ) # same as above, but for breakpoints
+        'breakpoints' ) # same as above, but for breakpoints
     }
     with utils.RestoreCursorPosition():
       with utils.RestoreCurrentWindow():
@@ -1052,7 +1052,7 @@ class DebugSession( object ):
       'output': utils.WindowID( output_window, self._uiTab ),
       'eval': None, # updated every time eval popup is opened
       'breakpoints': vim.vars[ 'vimspector_session_windows' ].get(
-                        'breakpoints' ) # same as above, but for breakpoints
+        'breakpoints' ) # same as above, but for breakpoints
     }
     with utils.RestoreCursorPosition():
       with utils.RestoreCurrentWindow():
