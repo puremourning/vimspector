@@ -15,17 +15,22 @@
 
 import vim
 import logging
-import json
 import os
-from collections import defaultdict
 
 from vimspector import utils, terminal, signs
 
 
 class CodeView( object ):
-  def __init__( self, window, api_prefix ):
+  def __init__( self,
+    window,
+    api_prefix,
+    render_event_emitter,
+    IsBreakpointPresentAt ):
+
     self._window = window
     self._api_prefix = api_prefix
+    self._render_subject = render_event_emitter.subscribe( self._DisplayPC )
+    self._IsBreakpointPresentAt = IsBreakpointPresentAt
 
     self._terminal = None
     self.current_syntax = None
@@ -35,10 +40,8 @@ class CodeView( object ):
 
     # FIXME: This ID is by group, so should be module scope
     self._next_sign_id = 1
-    self._breakpoints = defaultdict( list )
     self._signs = {
       'vimspectorPC': None,
-      'breakpoints': []
     }
     self._current_frame = None
     self._scratch_buffers = []
@@ -85,6 +88,16 @@ class CodeView( object ):
       signs.UnplaceSign( self._signs[ 'vimspectorPC' ], 'VimspectorCode' )
       self._signs[ 'vimspectorPC' ] = None
 
+  def IsPCPresentAt( self, file_path, line ):
+    frame = self._current_frame
+
+    if not frame:
+      return False
+
+    abs_path = utils.NormalizePath( file_path )
+    return ( frame[ 'source' ][ 'path' ] == abs_path
+      and frame[ 'line' ] == line )
+
 
   def _DisplayPC( self ):
     frame = self._current_frame
@@ -97,15 +110,9 @@ class CodeView( object ):
     self._signs[ 'vimspectorPC' ] = self._next_sign_id
     self._next_sign_id += 1
 
-    sign = 'vimspectorPC'
     # If there's also a breakpoint on this line, use vimspectorPCBP
-    for bp in self._breakpoints.get( frame[ 'source' ][ 'path' ], [] ):
-      if 'line' not in bp:
-        continue
-
-      if bp[ 'line' ] == frame[ 'line' ]:
-        sign = 'vimspectorPCBP'
-        break
+    sign =  'vimspectorPCBP' if self._IsBreakpointPresentAt(
+      frame[ 'source' ][ 'path' ], frame[ 'line' ] ) else 'vimspectorPC'
 
     if utils.BufferExists( frame[ 'source' ][ 'path' ] ):
       signs.PlaceSign( self._signs[ 'vimspectorPC' ],
@@ -146,7 +153,9 @@ class CodeView( object ):
     # Note: max() with 0 because some debug adapters (go) return 0 for the
     # column.
     try:
-      self._window.cursor = ( frame[ 'line' ], max( frame[ 'column' ] - 1, 0 ) )
+      utils.SetCursorPosInWindow( self._window,
+                                  frame[ 'line' ],
+                                  frame[ 'column' ] )
     except vim.error:
       self._logger.exception( "Unable to jump to %s:%s in %s, maybe the file "
                               "doesn't exist",
@@ -158,7 +167,7 @@ class CodeView( object ):
     self.current_syntax = utils.ToUnicode(
       vim.current.buffer.options[ 'syntax' ] )
 
-    self.ShowBreakpoints()
+    self._DisplayPC()
 
     return True
 
@@ -168,121 +177,19 @@ class CodeView( object ):
       self._signs[ 'vimspectorPC' ] = None
 
     self._UndisplayPC()
-    self._UndisplaySigns()
     self.current_syntax = None
 
   def Reset( self ):
-    self.ClearBreakpoints()
     self.Clear()
+    self._render_subject.unsubscribe()
 
     for b in self._scratch_buffers:
       utils.CleanUpHiddenBuffer( b )
     self._scratch_buffers = []
 
-  def AddBreakpoints( self, source, breakpoints ):
-    for breakpoint in breakpoints:
-      source = breakpoint.get( 'source' ) or source
-      if not source or 'path' not in source:
-        self._logger.warn( 'missing source/path in breakpoint {0}'.format(
-          json.dumps( breakpoint ) ) )
-        continue
-
-      breakpoint[ 'source' ] = source
-      self._breakpoints[ source[ 'path' ] ].append( breakpoint )
-
-    self._logger.debug( 'Breakpoints at this point: {0}'.format(
-      json.dumps( self._breakpoints, indent = 2 ) ) )
-
-    self.ShowBreakpoints()
-
-
-  def AddBreakpoint( self, breakpoint ):
-    self.AddBreakpoints( None, [ breakpoint ] )
-
-
-  def UpdateBreakpoint( self, bp ):
-    if 'id' not in bp:
-      self.AddBreakpoint( bp )
-      return
-
-    for _, breakpoint_list in self._breakpoints.items():
-      for index, breakpoint in enumerate( breakpoint_list ):
-        if 'id' in breakpoint and breakpoint[ 'id' ] == bp[ 'id' ]:
-          breakpoint_list[ index ] = bp
-          self.ShowBreakpoints()
-          return
-
-    # Not found. Assume new
-    self.AddBreakpoint( bp )
-
-
-  def RemoveBreakpoint( self, bp ):
-    for _, breakpoint_list in self._breakpoints.items():
-      found_index = None
-      for index, breakpoint in enumerate( breakpoint_list ):
-        if 'id' in breakpoint and breakpoint[ 'id' ] == bp[ 'id' ]:
-          found_index = index
-          break
-
-      if found_index is not None:
-        del breakpoint_list[ found_index ]
-        self.ShowBreakpoints()
-        return
-
-
   def Refresh( self ):
     # TODO: jsut the file ?
-    self.ShowBreakpoints()
-
-
-  def _UndisplaySigns( self ):
-    for sign_id in self._signs[ 'breakpoints' ]:
-      signs.UnplaceSign( sign_id, 'VimspectorCode' )
-
-    self._signs[ 'breakpoints' ] = []
-
-  def ClearBreakpoints( self ):
-    self._UndisplaySigns()
-    self._breakpoints = defaultdict( list )
-
-  def ShowBreakpoints( self ):
-    self._UndisplaySigns()
-
-    for file_name, breakpoints in self._breakpoints.items():
-      for breakpoint in breakpoints:
-        if 'line' not in breakpoint:
-          continue
-
-        sign_id = self._next_sign_id
-        self._next_sign_id += 1
-        self._signs[ 'breakpoints' ].append( sign_id )
-        if utils.BufferExists( file_name ):
-          signs.PlaceSign( sign_id,
-                           'VimspectorCode',
-                           'vimspectorBP' if breakpoint[ 'verified' ]
-                                          else 'vimspectorBPDisabled',
-                           file_name,
-                           breakpoint[ 'line' ] )
-
-    # We need to also check if there's a breakpoint on this PC line and chnge
-    # the PC
     self._DisplayPC()
-
-  def BreakpointsAsQuickFix( self ):
-    qf = []
-    for file_name, breakpoints in self._breakpoints.items():
-      for breakpoint in breakpoints:
-        qf.append( {
-            'filename': file_name,
-            'lnum': breakpoint.get( 'line', 1 ),
-            'col': 1,
-            'type': 'L',
-            'valid': 1 if breakpoint.get( 'verified' ) else 0,
-            'text': "Line breakpoint - {}".format(
-              'VERIFIED' if breakpoint.get( 'verified' ) else 'INVALID' )
-        } )
-    return qf
-
 
   def LaunchTerminal( self, params ):
     self._terminal = terminal.LaunchTerminal( self._api_prefix,

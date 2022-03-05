@@ -32,6 +32,12 @@ endfunction
 
 let s:enabled = v:null
 
+" In vim, py3eval( 'None' ) returns v:none
+" In neovim, py3eval( 'None' ) returns v:null
+"
+" Vim != Neovim. Go figure.
+let s:None = has( 'nvim' ) ? v:null : v:none
+
 function! s:Initialised() abort
   return s:enabled != v:null
 endfunction
@@ -99,15 +105,31 @@ let s:extended_breakpoint_properties = [
       \   'msg': 'Enter log expression (to make log point)' },
     \ ]
 
-function! vimspector#ToggleAdvancedBreakpoint() abort
+function! s:AskForInput( ... ) abort
+  return py3eval( '__import__( "vimspector", fromlist=[ "utils" ] )'
+                \ . '.utils.AskForInput( *vim.eval( "a:000" ) )' )
+endfunction
+
+function! s:GetAdvancedBreakpointOptions() abort
   let options = {}
   for spec in s:extended_breakpoint_properties
-    let response = input( spec.msg . ': ' )
-    if response !=# ''
+    let response = s:AskForInput( spec.msg . ': ' )
+    if response is s:None
+      return s:None
+    elseif response !=# ''
       let options[ spec.prop ] = response
     endif
   endfor
 
+  return options
+endfunction
+
+
+function! vimspector#ToggleAdvancedBreakpoint() abort
+  let options = s:GetAdvancedBreakpointOptions()
+  if options is s:None
+    return
+  endif
   call vimspector#ToggleBreakpoint( options )
 endfunction
 
@@ -121,6 +143,25 @@ function! vimspector#ToggleBreakpoint( ... ) abort
     let options = a:1
   endif
   py3 _vimspector_session.ToggleBreakpoint( vim.eval( 'options' ) )
+endfunction
+
+function! vimspector#SetAdvancedLineBreakpoint() abort
+  if !s:Enabled()
+    return
+  endif
+  let filename = s:AskForInput( 'File: ', expand( '#' ), 'file' )
+  if filename ==# '' || filename is s:None
+    return
+  endif
+  let line = s:AskForInput( 'Line number: ' )
+  if line ==# '' || line is s:None
+    return
+  endif
+  let options = s:GetAdvancedBreakpointOptions()
+  if options is s:None
+    return
+  endif
+  return vimspector#SetLineBreakpoint( filename, line, options )
 endfunction
 
 function! vimspector#SetLineBreakpoint( file_name, line_num, ... ) abort
@@ -169,6 +210,22 @@ function! vimspector#AddFunctionBreakpoint( function, ... ) abort
   endif
   py3 _vimspector_session.AddFunctionBreakpoint( vim.eval( 'a:function' ),
                                                \ vim.eval( 'options' ) )
+endfunction
+
+
+function! vimspector#AddAdvancedFunctionBreakpoint() abort
+  if !s:Enabled()
+    return
+  endif
+  let function = s:AskForInput( 'Function: ', s:None, 'tag' )
+  if function ==# '' || function == s:None
+    return
+  endif
+  let options = s:GetAdvancedBreakpointOptions()
+  if options is s:None
+    return
+  endif
+  return vimspector#AddFunctionBreakpoint( function, options )
 endfunction
 
 function! vimspector#StepOver() abort
@@ -294,9 +351,9 @@ function! vimspector#AddWatch( ... ) abort
     return
   endif
   if a:0 == 0
-    let expr = input( 'Enter watch expression: ',
-                    \ '',
-                    \ 'custom,vimspector#CompleteExpr' )
+    let expr = s:AskForInput( 'Enter watch expression: ',
+                            \ '',
+                            \ 'custom,vimspector#CompleteExpr' )
   else
     let expr = a:1
   endif
@@ -369,6 +426,34 @@ function! vimspector#ListBreakpoints() abort
   py3 _vimspector_session.ListBreakpoints()
 endfunction
 
+function! vimspector#GetBreakpointsAsQuickFix() abort
+  if !s:Enabled()
+    return
+  endif
+  return py3eval( '_vimspector_session.BreakpointsAsQuickFix()' )
+endfunction
+
+function! vimspector#ToggleBreakpointViewBreakpoint() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.ToggleBreakpointViewBreakpoint()
+endfunction
+
+function! vimspector#DeleteBreakpointViewBreakpoint() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.DeleteBreakpointViewBreakpoint()
+endfunction
+
+function! vimspector#JumpToBreakpointViewBreakpoint() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.JumpToBreakpointViewBreakpoint()
+endfunction
+
 function! vimspector#GetConfigurations() abort
   if !s:Enabled()
     return
@@ -409,7 +494,7 @@ function! vimspector#CompleteFuncSync( prompt, find_start, query ) abort
     if a:find_start
       return -3
     endif
-    return v:none
+    return s:None
   endif
 
   if a:find_start

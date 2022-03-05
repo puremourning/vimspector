@@ -65,6 +65,13 @@ DEFAULTS = {
     'stack_trace': {
       'expand_or_jump': [ '<CR>', '<2-LeftMouse>' ],
       'focus_thread': [ '<leader><CR>' ],
+    },
+    'breakpoints': {
+      'toggle': [ 't', '<F9>' ],
+      'delete': [ 'dd', '<Del>' ],
+      'add_line': [ 'i', 'a', 'o', '<Insert>' ],
+      'add_func': [ 'I', 'A', 'O', '<leader><Insert>' ],
+      'jump_to': [ '<2-LeftMouse>', '<Enter>' ]
     }
   },
 

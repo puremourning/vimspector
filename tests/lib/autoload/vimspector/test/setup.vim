@@ -17,6 +17,16 @@ function! vimspector#test#setup#SetUpWithMappings( mappings ) abort
     au SwapExists * let v:swapchoice = 'e'
   augroup END
 
+  " If requested, launch debugpy
+  if exists( '$TEST_WITH_DEBUGPY' ) &&
+        \ $TEST_WITH_DEBUGPY != '0' &&
+        \ !exists( 'g:debugpy_loaded' )
+    let g:debugpy_loaded = 1
+    py3 __import__( 'vimspector',
+                  \ fromlist=[ 'developer' ] ).developer.SetUpDebugpy(
+                  \   wait=True )
+  endif
+
 endfunction
 
 function! vimspector#test#setup#ClearDown() abort
@@ -106,3 +116,4 @@ function! vimspector#test#setup#PopOption( name ) abort
   execute 'set ' . a:name . '=' . old_value
   return old_value
 endfunction
+

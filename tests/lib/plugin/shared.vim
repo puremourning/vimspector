@@ -108,11 +108,11 @@ function! ThisTestIsFlaky()
 endfunction
 
 function! AssertMatchList( expected, actual ) abort
-  let ret = assert_equal( len( a:expected ), len( a:actual ) )
+  let ret = assert_equal( len( a:expected ), len( a:actual ), a:actual )
   let len = min( [ len( a:expected ), len( a:actual ) ] )
   let idx = 0
   while idx < len
-    let ret += assert_match( a:expected[ idx ], a:actual[ idx ] )
+    let ret += assert_match( a:expected[ idx ], a:actual[ idx ], idx )
     let idx += 1
   endwhile
   return ret

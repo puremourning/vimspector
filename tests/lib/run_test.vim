@@ -32,6 +32,10 @@
 "   call ch_log( ",,,message..." )
 " Then view it in 'debuglog'
 
+" This prevents inputsave()/inputrestore() when asking for input, which allows
+" the tests to use feedkeys() to enter the info.
+let g:vimspector_batch_mode = 1
+
 " Let a test take up to 1 minute, unless debugging
 let s:single_test_timeout = 60000
 
@@ -378,9 +382,10 @@ for s:test in sort(s:tests)
 
   " Repeat a flaky test.  Give up when:
   " - $TEST_NO_RETRY is not empty
+  " - $TEST_NO_RETRY is not 0
   " - it fails five times
   if len(v:errors) > 0
-        \ && $TEST_NO_RETRY == ''
+        \ && ( $TEST_NO_RETRY == '' || $TEST_NO_RETRY == '0' )
         \ && g:test_is_flaky
     for retry in range( 10 )
       call add( s:messages, 'Found errors in ' . s:test . '. Retrying.' )
