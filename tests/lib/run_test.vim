@@ -32,6 +32,10 @@
 "   call ch_log( ",,,message..." )
 " Then view it in 'debuglog'
 
+" This prevents inputsave()/inputrestore() when asking for input, which allows
+" the tests to use feedkeys() to enter the info.
+let g:vimspector_batch_mode = 1
+
 " Let a test take up to 1 minute, unless debugging
 let s:single_test_timeout = 60000
 

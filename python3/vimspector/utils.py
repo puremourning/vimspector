@@ -343,6 +343,10 @@ def UserMessage( msg, persist=False, error=False ):
 
 @contextlib.contextmanager
 def InputSave():
+  if vim.vars.get( 'vimspector_batch_mode', False ):
+    yield
+    return
+
   vim.eval( 'inputsave()' )
   try:
     yield

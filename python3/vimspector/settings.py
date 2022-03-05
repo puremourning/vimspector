@@ -68,7 +68,9 @@ DEFAULTS = {
     },
     'breakpoints': {
       'toggle': [ 't', '<F9>' ],
-      'delete': [ 'c', 'd', '<Del>' ],
+      'delete': [ 'dd', '<Del>' ],
+      'add_line': [ 'i', 'a', 'o', '<Insert>' ],
+      'add_func': [ 'I', 'A', 'O', '<leader><Insert>' ],
       'jump_to': [ '<2-LeftMouse>', '<Enter>' ]
     }
   },

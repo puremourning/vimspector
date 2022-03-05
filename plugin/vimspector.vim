@@ -78,6 +78,9 @@ nnoremap <silent> <Plug>VimspectorUpFrame
 nnoremap <silent> <Plug>VimspectorDownFrame
       \ :<c-u>call vimspector#DownFrame()<CR>
 
+nnoremap <silent> <Plug>VimspectorBreakpoints
+      \ :<c-u>call vimspector#ListBreakpoints()<CR>
+
 if s:mappings ==# 'VISUAL_STUDIO'
   nmap <F5>         <Plug>VimspectorContinue
   nmap <S-F5>       <Plug>VimspectorStop
@@ -121,6 +124,9 @@ command! -nargs=1 -complete=custom,vimspector#CompleteExpr
 command! -bar
       \ VimspectorReset
       \ call vimspector#Reset( { 'interactive': v:true } )
+command! -bar
+      \ VimspectorBreakpoints
+      \ call vimspector#ListBreakpoints()
 
 " Installer commands
 command! -bar -bang -nargs=* -complete=custom,vimspector#CompleteInstall
