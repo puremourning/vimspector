@@ -37,13 +37,14 @@ Contents ~
    2. Debug configuration selection  |vimspector-debug-configuration-selection|
    3. Get configurations                        |vimspector-get-configurations|
   2. Breakpoints                                       |vimspector-breakpoints|
-   1. Summary                                              |vimspector-summary|
+   1. Breakpoints Window                        |vimspector-breakpoints-window|
    2. Line breakpoints                            |vimspector-line-breakpoints|
    3. Conditional breakpoints and logpoints |vimspector-conditional-breakpoints-logpoints|
    4. Exception breakpoints                  |vimspector-exception-breakpoints|
-   5. Clear breakpoints                          |vimspector-clear-breakpoints|
-   6. Run to Cursor                                  |vimspector-run-to-cursor|
-   7. Save and restore                                |vimspector-save-restore|
+   5. API Summary                                      |vimspector-api-summary|
+   6. Clear breakpoints                          |vimspector-clear-breakpoints|
+   7. Run to Cursor                                  |vimspector-run-to-cursor|
+   8. Save and restore                                |vimspector-save-restore|
   3. Stepping                                             |vimspector-stepping|
   4. Variables and scopes                         |vimspector-variables-scopes|
   5. Variable or selection hover evaluation |vimspector-variable-or-selection-hover-evaluation|
@@ -144,10 +145,11 @@ Image: Build [3] Image: Matrix [5] Image: Gitter [7]
   - Debug configuration selection
   - Get configurations
   - Breakpoints
-  - Summary
+  - Breakpoints Window
   - Line breakpoints
   - Conditional breakpoints and logpoints
   - Exception breakpoints
+  - API Summary
   - Clear breakpoints
   - Run to Cursor
   - Save and restore
@@ -167,10 +169,10 @@ Image: Build [3] Image: Matrix [5] Image: Gitter [7]
 
 - Debug profile configuration
 
-  - C, C++, Rust, etc.
+  - C, C , Rust, etc.
   - Data visualization / pretty printing
-  - C++ Remote debugging
-  - C++ Remote launch and attach
+  - C Remote debugging
+  - C Remote launch and attach
   - Rust
   - Python
   - Python Remote Debugging
@@ -835,6 +837,8 @@ following '<Plug>' mappings:
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | '<Plug>VimspectorPause'                       | Pause debuggee.                                                     | 'vimspector#Pause()'                                              |
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| '<Plug>VimspectorBreakpoints'                 | Show/hide the breakpoints window                                    | 'vimspector#ListBreakpoints()'                                    |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | '<Plug>VimspectorToggleBreakpoint'            | Toggle line breakpoint on the current line.                         | 'vimspector#ToggleBreakpoint()'                                   |
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | '<Plug>VimspectorToggleConditionalBreakpoint' | Toggle conditional line breakpoint or logpoint on the current line. | 'vimspector#ToggleBreakpoint( { trigger expr, hit count expr } )' |
@@ -1066,56 +1070,27 @@ See the mappings section for the default mappings for working with breakpoints.
 This section describes the full API in vimscript functions.
 
 -------------------------------------------------------------------------------
-                                                           *vimspector-summary*
-Summary ~
+                                                *vimspector-breakpoints-window*
+Breakpoints Window ~
 
-- Use 'vimspector#ToggleBreakpoint( { options dict } )' to set/disable/delete
-  a line breakpoint. The argument is optional (see below).
+Use ':VimspectorBreakpoints' or map something to '<Plug>VimspectorBreakpoints'
+to open the breakpoints view. From here you can list, jump to delete, add and
+toggle breakpoints.
 
-- Use "vimspector#AddFunctionBreakpoint( '<name>', { options dict} )" to add
-  a function breakpoint. The second argument is optional (see below).
+I recommend a mapping like this to toggle the breakpoints window:
+>
+  nmap <Leader>db <Plug>VimspectorBreakpoints
+<
+The following mappings apply by default in the breakpoints window:
 
-- Use 'vimspector#SetLineBreakpoint( file_name, line_num, { options dict } )'
-  to set a breakpoint at a specific file/line. The last argument is optional
-  (see below)
+- 't', '<F9>' - toggle, i.e. enable/dissable breakpoint
+- 'dd', '<Del>' - delete the current breakpiont
+- 'i', 'a', 'o' - add a new line breakpoint
+- 'I', 'A', 'O' - add a new function breakpoint
+- '<Enter>' or double-click - jump to the line breakpoint
 
-- Use 'vimspector#ClearLineBreakpoint( file_name, line_num )' to remove a
-  breakpoint at a specific file/line
-
-- Use 'vimspector#ClearBreakpoints()' to clear all breakpoints
-
-- Use ':VimspectorMkSession' and ':VimspectorLoadSession' to save and restore
-  breakpoints
-
-Examples:
-
-- 'call vimspector#ToggleBreakpoint()' - toggle breakpoint on current line
-
-- "call vimspector#SetLineBreakpoint( 'some_file.py', 10 )" - set a
-  breakpoint on 'some_filepy:10'
-
-- "call vimspector#AddFunctionBreakpoint( 'main' )" - add a function
-  breakpoint on the 'main' function
-
-- "call vimspector#ToggleBreakpoint( { 'condition': 'i > 5' } )" - add a
-  breakpoint on the current line that triggers only when 'i > 5' is 'true'
-
-- "call vimspector#SetLineBreakpoint( 'some_file.py', 10, { 'condition': 'i >
-  5' } )" - add a breakpoint at 'some_file.py:10' that triggers only when 'i
-  > 5' is 'true'
-
-- "call vimspector#ClearLineBreakpoint( 'some_file.py', 10 )" - delete the
-  breakpoint at 'some_file.py:10'
-
-- 'call vimspector#ClearBreakpoints()' - clear all breakpoints
-
-- 'VimspectorMkSession' - create '.vimspector.session'
-
-- 'VimspectorLoadSession' - read '.vimspector.session'
-
-- 'VimspectorMkSession my_session_file' - create 'my_session_file'
-
-- 'VimspectorLoadSession my_session_file' - read 'my_session_file'
+A WinBar is provided (where supported) too. This adds functions like
+saving/restoring sessions and clearing all breakpoints too.
 
 -------------------------------------------------------------------------------
                                                   *vimspector-line-breakpoints*
@@ -1175,6 +1150,63 @@ exception' then answer 'Y' to that (for example).
 
 You can configure your choices in the '.vimspector.json'. See the configuration
 guide [25] for details on that.
+
+-------------------------------------------------------------------------------
+                                                       *vimspector-api-summary*
+API Summary ~
+
+- Use 'vimspector#ToggleBreakpoint( { options dict } )' to set/disable/delete
+  a line breakpoint. The argument is optional (see below).
+
+- Use "vimspector#AddFunctionBreakpoint( '<name>', { options dict} )" to add
+  a function breakpoint. The second argument is optional (see below).
+
+- Use 'vimspector#SetLineBreakpoint( file_name, line_num, { options dict } )'
+  to set a breakpoint at a specific file/line. The last argument is optional
+  (see below)
+
+- Use 'vimspector#ClearLineBreakpoint( file_name, line_num )' to remove a
+  breakpoint at a specific file/line
+
+- Use 'vimspector#ClearBreakpoints()' to clear all breakpoints
+
+- Use ':VimspectorMkSession' and ':VimspectorLoadSession' to save and restore
+  breakpoints
+
+- 'call vimspector#ListBreakpoints()' - toggle breakpoints window
+
+- 'call vimspector#BreakpointsAsQuickFix()' - return the current set of
+  breakpoints in vim quickfix format
+
+Examples:
+
+- 'call vimspector#ToggleBreakpoint()' - toggle breakpoint on current line
+
+- "call vimspector#SetLineBreakpoint( 'some_file.py', 10 )" - set a
+  breakpoint on 'some_filepy:10'
+
+- "call vimspector#AddFunctionBreakpoint( 'main' )" - add a function
+  breakpoint on the 'main' function
+
+- "call vimspector#ToggleBreakpoint( { 'condition': 'i > 5' } )" - add a
+  breakpoint on the current line that triggers only when 'i > 5' is 'true'
+
+- "call vimspector#SetLineBreakpoint( 'some_file.py', 10, { 'condition': 'i >
+  5' } )" - add a breakpoint at 'some_file.py:10' that triggers only when 'i
+  > 5' is 'true'
+
+- "call vimspector#ClearLineBreakpoint( 'some_file.py', 10 )" - delete the
+  breakpoint at 'some_file.py:10'
+
+- 'call vimspector#ClearBreakpoints()' - clear all breakpoints
+
+- 'VimspectorMkSession' - create '.vimspector.session'
+
+- 'VimspectorLoadSession' - read '.vimspector.session'
+
+- 'VimspectorMkSession my_session_file' - create 'my_session_file'
+
+- 'VimspectorLoadSession my_session_file' - read 'my_session_file'
 
 -------------------------------------------------------------------------------
                                                  *vimspector-clear-breakpoints*
