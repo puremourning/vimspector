@@ -535,8 +535,10 @@ class DebugSession( object ):
       session_file = self._DetectSessionFile( invent_one_if_not_found = False )
 
     if session_file is None:
-      utils.UserMessage( "No session file found, specify a file name to load",
-                         persist=True,
+      utils.UserMessage( f"No { settings.Get( 'session_file_name' ) } file "
+                         "found. Specify a file with :VimspectorLoadSession "
+                         "<filename>",
+                         persist = True,
                          error = True )
       return False
 
@@ -556,6 +558,8 @@ class DebugSession( object ):
         self._variablesView.Load( variables_data )
       else:
         self._saved_variables_data = variables_data
+
+      utils.UserMessage( f"Loaded { session_file }" )
       return True
     except OSError:
       self._logger.exception( f"Invalid session file { session_file }" )
@@ -585,6 +589,7 @@ class DebugSession( object ):
           'variables': self._variablesView.Save() if self._variablesView else {}
         } ) )
 
+      utils.UserMessage( f"Wrote { session_file }" )
       return True
     except OSError:
       self._logger.exception( f"Unable to write session file { session_file }" )
