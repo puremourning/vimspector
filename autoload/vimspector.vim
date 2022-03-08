@@ -30,8 +30,6 @@ EOF
 endfunction
 
 
-let s:enabled = v:null
-
 " In vim, py3eval( 'None' ) returns v:none
 " In neovim, py3eval( 'None' ) returns v:null
 "
@@ -39,7 +37,7 @@ let s:enabled = v:null
 let s:None = has( 'nvim' ) ? v:null : v:none
 
 function! s:Initialised() abort
-  return s:enabled != v:null
+  return exists( 's:enabled' )
 endfunction
 
 function! s:Enabled() abort
