@@ -278,7 +278,7 @@ class ProjectBreakpoints( object ):
       for bp in breakpoints:
         self._SignToLine( file_name, bp )
 
-        if 'server_bp' in bp:
+        if 'server_bp' in bp and 'line' in bp[ 'server_bp' ]:
           line = bp[ 'server_bp' ][ 'line' ]
           if bp[ 'server_bp' ][ 'verified' ]:
             state = 'VERIFIED'
@@ -819,7 +819,7 @@ class ProjectBreakpoints( object ):
           bp[ 'sign_id' ] = self._next_sign_id
           self._next_sign_id += 1
 
-        if 'server_bp' in bp:
+        if 'server_bp' in bp and 'line' in bp[ 'server_bp' ]:
           line = bp[ 'server_bp' ][ 'line' ]
           verified = bp[ 'server_bp' ][ 'verified' ]
         else:
