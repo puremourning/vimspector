@@ -278,16 +278,17 @@ class ProjectBreakpoints( object ):
       for bp in breakpoints:
         self._SignToLine( file_name, bp )
 
+        line = bp[ 'line' ]
         if 'server_bp' in bp:
-          line = bp[ 'server_bp' ][ 'line' ]
-          if bp[ 'server_bp' ][ 'verified' ]:
+          server_bp = bp[ 'server_bp' ]
+          line = server_bp.get( 'line', line )
+          if server_bp[ 'verified' ]:
             state = 'VERIFIED'
             valid = 1
           else:
             state = 'PENDING'
             valid = 0
         else:
-          line = bp[ 'line' ]
           state = bp[ 'state' ]
           valid = 1
 
@@ -392,6 +393,10 @@ class ProjectBreakpoints( object ):
     if not source or 'path' not in source:
       self._logger.warn( 'missing source/path in server breakpoint {0}'.format(
         json.dumps( server_bp ) ) )
+      return
+
+    if 'line' not in server_bp:
+      # There's nothing we can really add without a line
       return
 
     existing_bp, _ = self._FindLineBreakpoint( source[ 'path' ],
@@ -819,11 +824,12 @@ class ProjectBreakpoints( object ):
           bp[ 'sign_id' ] = self._next_sign_id
           self._next_sign_id += 1
 
+        line = bp[ 'line' ]
         if 'server_bp' in bp:
-          line = bp[ 'server_bp' ][ 'line' ]
-          verified = bp[ 'server_bp' ][ 'verified' ]
+          server_bp = bp[ 'server_bp' ]
+          line = server_bp.get( 'line', line )
+          verified = server_bp[ 'verified' ]
         else:
-          line = bp[ 'line' ]
           verified = self._connection is None
 
         sign = ( 'vimspectorBPDisabled'
