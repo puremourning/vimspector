@@ -126,6 +126,7 @@ And a couple of brief demos:
 - conditional breakpoints (function, line)
 - step in/out/over/up, stop, restart
 - run to cursor
+- go to line (reset program counter to line)
 - launch and attach
 - remote launch, remote attach
 - locals and globals display
@@ -669,6 +670,7 @@ features to set your own mappings. To that end, Vimspector defines the following
 | `<Plug>VimspectorToggleBreakpoint`            | Toggle line breakpoint on the current line.                         | `vimspector#ToggleBreakpoint()`                                   |
 | `<Plug>VimspectorToggleConditionalBreakpoint` | Toggle conditional line breakpoint or logpoint on the current line. | `vimspector#ToggleBreakpoint( { trigger expr, hit count expr } )` |
 | `<Plug>VimspectorAddFunctionBreakpoint`       | Add a function breakpoint for the expression under cursor           | `vimspector#AddFunctionBreakpoint( '<cexpr>' )`                   |
+| `<Plug>VimspectorGoToCurrentLine`             | Reset the current program counter to the current line               | `vimspector#GoToCurrentLine()`                                        |
 | `<Plug>VimspectorRunToCursor`                 | Run to Cursor                                                       | `vimspector#RunToCursor()`                                        |
 | `<Plug>VimspectorStepOver`                    | Step Over                                                           | `vimspector#StepOver()`                                           |
 | `<Plug>VimspectorStepInto`                    | Step Into                                                           | `vimspector#StepInto()`                                           |
@@ -981,6 +983,18 @@ to clear all breakpoints including the memory of exception breakpoint choices.
 Use `vimspector#RunToCursor` or `<leader><F8>`: this creates a temporary
 breakpoint on the current line, then continues execution, clearing the
 breakpoint when it is hit.
+
+### Go to current line
+
+Use `vimspector#GoToCurrentLine()` or some mapping to
+`<Plug>VimspectorGoToCurrentLine` to jump the curernt execution to the line your
+cursor is curerntly on.
+
+Where supported this can be useful to re-run sections of code or skip over
+them entirely.
+
+If there are multiple possible "targets" on the current line, you're prompted to
+pick one.
 
 ### Save and restore
 

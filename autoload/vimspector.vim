@@ -197,6 +197,16 @@ function! vimspector#RunToCursor() abort
 endfunction
 
 
+function! vimspector#GoToCurrentLine() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.GoTo(
+        \ vim.eval( "expand( '%' )" ),
+        \ int( vim.eval( "line( '.' )" ) ) )
+endfunction
+
+
 function! vimspector#AddFunctionBreakpoint( function, ... ) abort
   if !s:Enabled()
     return

@@ -1774,6 +1774,49 @@ class DebugSession( object ):
                             { 'temporary': True },
                             lambda: self.Continue() )
 
+  @IfConnected()
+  def GoTo( self, file_name, line ):
+    def failure_handler( reason, *args ):
+      utils.UserMessage( f"Can't jump to location: {reason}", error=True )
+
+    def handle_targets( msg ):
+      targets = msg.get( 'body', {} ).get( 'targets', [] )
+      if not targets:
+        failure_handler( "No targets" )
+        return
+
+      if len( targets ) == 1:
+        target_selected = 0
+      else:
+        target_selected = utils.SelectFromList( "Which target?", [
+          t[ 'label' ] for t in targets
+        ], ret = 'index' )
+
+      if target_selected is None:
+        return
+
+      self._connection.DoRequest( None, {
+        'command': 'goto',
+        'arguments': {
+          'threadId': self._stackTraceView.GetCurrentThreadId(),
+          'targetId': targets[ target_selected ][ 'id' ]
+        },
+      } )
+
+    if not self._server_capabilities.get( 'supportsGotoTargetsRequest', False ):
+      failure_handler( "Server doesn't support it" )
+      return
+
+    self._connection.DoRequest( handle_targets, {
+      'command': 'gotoTargets',
+      'arguments': {
+        'source': {
+          'path': utils.NormalizePath( file_name )
+        },
+        'line': line
+      },
+    }, failure_handler )
+
 
   def ClearTemporaryBreakpoints( self ):
     return self._breakpoints.ClearTemporaryBreakpoints()
