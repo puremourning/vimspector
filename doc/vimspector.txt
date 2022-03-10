@@ -44,7 +44,8 @@ Contents ~
    5. API Summary                                      |vimspector-api-summary|
    6. Clear breakpoints                          |vimspector-clear-breakpoints|
    7. Run to Cursor                                  |vimspector-run-to-cursor|
-   8. Save and restore                                |vimspector-save-restore|
+   8. Go to current line                        |vimspector-go-to-current-line|
+   9. Save and restore                                |vimspector-save-restore|
   3. Stepping                                             |vimspector-stepping|
   4. Variables and scopes                         |vimspector-variables-scopes|
   5. Variable or selection hover evaluation |vimspector-variable-or-selection-hover-evaluation|
@@ -234,6 +235,7 @@ Supported debugging features ~
 - conditional breakpoints (function, line)
 - step in/out/over/up, stop, restart
 - run to cursor
+- go to line (reset program counter to line)
 - launch and attach
 - remote launch, remote attach
 - locals and globals display
@@ -845,6 +847,8 @@ following '<Plug>' mappings:
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | '<Plug>VimspectorAddFunctionBreakpoint'       | Add a function breakpoint for the expression under cursor           | "vimspector#AddFunctionBreakpoint( '<cexpr>' )"                   |
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| '<Plug>VimspectorGoToCurrentLine'             | Reset the current program counter to the current line               | 'vimspector#GoToCurrentLine()'                                    |
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | '<Plug>VimspectorRunToCursor'                 | Run to Cursor                                                       | 'vimspector#RunToCursor()'                                        |
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | '<Plug>VimspectorStepOver'                    | Step Over                                                           | 'vimspector#StepOver()'                                           |
@@ -1222,6 +1226,20 @@ Run to Cursor ~
 Use 'vimspector#RunToCursor' or '<leader><F8>': this creates a temporary
 breakpoint on the current line, then continues execution, clearing the
 breakpoint when it is hit.
+
+-------------------------------------------------------------------------------
+                                                *vimspector-go-to-current-line*
+Go to current line ~
+
+Use 'vimspector#GoToCurrentLine()' or some mapping to
+'<Plug>VimspectorGoToCurrentLine' to jump the curernt execution to the line
+your cursor is curerntly on.
+
+Where supported this can be useful to re-run sections of code or skip over them
+entirely.
+
+If there are multiple possible "targets" on the current line, you're prompted
+to pick one.
 
 -------------------------------------------------------------------------------
                                                       *vimspector-save-restore*
