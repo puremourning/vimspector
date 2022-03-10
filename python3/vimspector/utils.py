@@ -354,7 +354,7 @@ def InputSave():
     vim.eval( 'inputrestore()' )
 
 
-def SelectFromList( prompt, options ):
+def SelectFromList( prompt, options, ret='label' ):
   with InputSave():
     display_options = [ prompt ]
     display_options.extend( [ '{0}: {1}'.format( i + 1, v )
@@ -364,7 +364,10 @@ def SelectFromList( prompt, options ):
         'inputlist( ' + json.dumps( display_options ) + ' )' ) ) - 1
       if selection < 0 or selection >= len( options ):
         return None
-      return options[ selection ]
+      if ret == 'index':
+        return selection
+      else:
+        return options[ selection ]
     except ( KeyboardInterrupt, vim.error ):
       return None
 
