@@ -65,7 +65,7 @@ nnoremap <silent> <Plug>VimspectorStepOut
 
 nnoremap <silent> <Plug>VimspectorRunToCursor
       \ :<c-u>call vimspector#RunToCursor()<CR>
-nnoremap <silent> <Plug>VimspectorGoToCurentLine
+nnoremap <silent> <Plug>VimspectorGoToCurrentLine
       \ :<c-u>call vimspector#GoToCurrentLine()<CR>
 
 " Eval for normal mode
