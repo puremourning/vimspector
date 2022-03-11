@@ -1801,7 +1801,7 @@ class DebugSession( object ):
           'threadId': self._stackTraceView.GetCurrentThreadId(),
           'targetId': targets[ target_selected ][ 'id' ]
         },
-      } )
+      }, failure_handler )
 
     if not self._server_capabilities.get( 'supportsGotoTargetsRequest', False ):
       failure_handler( "Server doesn't support it" )
