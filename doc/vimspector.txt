@@ -1232,8 +1232,8 @@ breakpoint when it is hit.
 Go to current line ~
 
 Use 'vimspector#GoToCurrentLine()' or some mapping to
-'<Plug>VimspectorGoToCurrentLine' to jump the curernt execution to the line
-your cursor is curerntly on.
+'<Plug>VimspectorGoToCurrentLine' to jump the current execution to the line
+your cursor is currently on.
 
 Where supported this can be useful to re-run sections of code or skip over them
 entirely.
