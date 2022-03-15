@@ -3,7 +3,7 @@
   "$id": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json",
   "definitions": {
     "variables": {
-      "description": "A mappoing of name/value pairs to set variables to be used elsewhere in the definition, or a list of such mappings.",
+      "description": "A mapping of name/value pairs to set variables to be used elsewhere in the definition, or a list of such mappings.",
       "properties": {
         "variables": {
           "oneOf": [
