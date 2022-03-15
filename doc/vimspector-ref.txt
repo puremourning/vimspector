@@ -500,7 +500,7 @@ typical example looks like this:
   {
     "$schema": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json#",
     "configurations": {
-      "<configuation name>": {
+      "<configuration name>": {
         "adapter": "<adapter name>",
         "filetypes": [ /* list of filetypes this applies to */ ],
         "configuration": {
@@ -571,7 +571,7 @@ As noted, you can specify a default configuration with '"default": true':
       "use this one": {
         "default": true,
         "adapter": " ... ",
-        "configuation": {
+        "configuration": {
           // ...
         }
       },
@@ -596,7 +596,7 @@ central (as opposed to project-local) directory. For example:
     "Don't use this by default!": {
       "autoselect": false,
       "adapter": " ... ",
-      "configuation": {
+      "configuration": {
         // ...
       }
     }
@@ -744,14 +744,14 @@ variables, etc. For example:
       // run with some fixed options
       "run - test mode": {
         "extends": "run - simple",
-        "configuation": {
+        "configuration": {
           "args": [ "-mode", "test" ] 
         }
       },
       // run with some different environment vars
       "run - verbose mode": {
         "extends": "run - test mode",
-        "configuation": {
+        "configuration": {
           "env": {
             "LOGLEVEL": "verbose"
           }
