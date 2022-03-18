@@ -10,6 +10,9 @@ function! SetUp()
     let s:break_foo_line = FunctionBreakOnBrace() ? 6 : 9
     let s:init = 1
   endif
+  
+  " legacy test with disable breakpoint behaviour
+  let g:vimspector_toggle_disables_breakpoint = 1
 endfunction
 
 function! ClearDown()

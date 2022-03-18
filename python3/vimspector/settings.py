@@ -39,6 +39,9 @@ DEFAULTS = {
   # Session files
   'session_file_name': '.vimspector.session',
 
+  # Breakpoints
+  'toggle_disables_breakpoint': False,
+
   # Signs
   'sign_priority': {
     'vimspectorPC':            200,
@@ -88,6 +91,10 @@ def Get( option: str, cls=str ):
 
 def Int( option: str ):
   return Get( option, cls=builtins.int )
+
+
+def Bool( option: str ):
+  return bool( Int( option ) )
 
 
 def List( option: str ):

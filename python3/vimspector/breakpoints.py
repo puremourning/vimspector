@@ -462,11 +462,16 @@ class ProjectBreakpoints( object ):
     if not file_name:
       return
 
+    # We only disable when *toggling* in the breakpoints window
+    # (should_delete=False), or for legacy reasons, when a switch is set
+    can_disble = not should_delete or settings.Bool(
+      'toggle_disables_breakpoint' )
+
     bp, index = self._FindLineBreakpoint( file_name, line )
     if bp is None:
       # ADD
       self._PutLineBreakpoint( file_name, line, options )
-    elif bp[ 'state' ] == 'ENABLED':
+    elif bp[ 'state' ] == 'ENABLED' and can_disble:
       # DISABLE
       bp[ 'state' ] = 'DISABLED'
     elif not should_delete:
