@@ -448,6 +448,13 @@ function! vimspector#ToggleBreakpointViewBreakpoint() abort
   py3 _vimspector_session.ToggleBreakpointViewBreakpoint()
 endfunction
 
+function! vimspector#ToggleAllBreakpointsViewBreakpoint() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.ToggleAllBreakpointsViewBreakpoint()
+endfunction
+
 function! vimspector#DeleteBreakpointViewBreakpoint() abort
   if !s:Enabled()
     return

@@ -878,6 +878,7 @@ nmap <Leader>db <Plug>VimspectorBreakpoints
 The following mappings apply by default in the breakpoints window:
 
 * `t`, `<F9>` - toggle, i.e. enable/dissable breakpoint
+* `T` - toggle, i.e. enable/dissable ALL breakpoints
 * `dd`, `<Del>` - delete the current breakpiont
 * `i`, `a`, `o` - add a new line breakpoint
 * `I`, `A`, `O` - add a new function breakpoint

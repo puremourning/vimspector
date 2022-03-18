@@ -46,6 +46,7 @@ class BreakpointsView( object ):
         mappings = settings.Dict( 'mappings' )[ 'breakpoints' ]
         groups = {
           'toggle': 'ToggleBreakpointViewBreakpoint',
+          'toggle_all': 'ToggleAllBreakpointsViewBreakpoint',
           'delete': 'DeleteBreakpointViewBreakpoint',
           'jump_to': 'JumpToBreakpointViewBreakpoint',
           'add_line': 'SetAdvancedLineBreakpoint',
@@ -77,6 +78,9 @@ class BreakpointsView( object ):
                      ':call vimspector#DeleteBreakpointViewBreakpoint()<CR>' )
         vim.command( 'nnoremenu <silent> 1.2 WinBar.Toggle '
                      ':call vimspector#ToggleBreakpointViewBreakpoint()<CR>' )
+        vim.command( 'nnoremenu <silent> 1.2 WinBar.*Toggle '
+                     ':call'
+                       ' vimspector#ToggleAllBreakpointsViewBreakpoint()<CR>' )
         vim.command( 'nnoremenu <silent> 1.3 WinBar.Jump\\ To '
                      ':call vimspector#JumpToBreakpointViewBreakpoint()<CR>' )
         # TODO: Add tests for this function
@@ -237,6 +241,31 @@ class ProjectBreakpoints( object ):
                               bp.get( 'filename' ),
                               bp.get( 'lnum' ),
                               should_delete = False )
+
+  def ToggleAllBreakpointsViewBreakpoint( self ):
+    # Try and guess the best action - if more breakpoitns are currently enabled
+    # than disabled, then disable all. Otherwise, enable all.
+    enabled = 0
+    disabled = 0
+    for filename, bps in self._line_breakpoints.items():
+      for bp in bps:
+        if bp[ 'state' ] == 'ENABLED':
+          enabled += 1
+        else:
+          disabled += 1
+
+    if enabled > disabled:
+      new_state = 'DISABLED'
+    else:
+      new_state = 'ENABLED'
+
+    for filename, bps in self._line_breakpoints.items():
+      for bp in bps:
+        bp[ 'state' ] = new_state
+
+    # FIXME: We don't really handle 'DISABLED' state for function breakpoints,
+    # so they are not touched
+    self.UpdateUI()
 
   def JumpToBreakpointViewBreakpoint( self ):
     bp = self._breakpoints_view.GetBreakpointForLine()

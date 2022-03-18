@@ -1757,6 +1757,9 @@ class DebugSession( object ):
   def ToggleBreakpointViewBreakpoint( self ):
     self._breakpoints.ToggleBreakpointViewBreakpoint()
 
+  def ToggleAllBreakpointsViewBreakpoint( self ):
+    self._breakpoints.ToggleAllBreakpointsViewBreakpoint()
+
   def DeleteBreakpointViewBreakpoint( self ):
     self._breakpoints.ClearBreakpointViewBreakpoint()
 
