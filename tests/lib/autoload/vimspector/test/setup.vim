@@ -26,10 +26,35 @@ function! vimspector#test#setup#SetUpWithMappings( mappings ) abort
                   \ fromlist=[ 'developer' ] ).developer.SetUpDebugpy(
                   \   wait=True )
   endif
+endfunction
 
+function! vimspector#test#setup#PushSetting( setting, value ) abort
+  if !exists( 's:SETTING' )
+    let s:SETTING = {}
+  endif
+
+  if has_key( g:, a:setting )
+    let s:SETTING[ a:setting ] = g:[ a:setting ]
+  else
+    let s:SETTING[ a:setting ] = v:null
+  endif
+  call TestLog( 'Overriding ' . a:setting . ' to ' . string( a:value ) )
+  let g:[ a:setting ] = a:value
 endfunction
 
 function! vimspector#test#setup#ClearDown() abort
+  if exists( 's:SETTING' )
+    for key in keys( s:SETTING )
+      call TestLog( 'Resetting ' . key . ' to ' . string( s:SETTING[ key ] ) )
+      if s:SETTING[ key ] is v:null
+        call remove( g:, key )
+      else
+        let g:[ key ] = s:SETTING[ key ]
+      endif
+    endfor
+  endif
+
+  unlet! s:SETTING
 endfunction
 
 function! vimspector#test#setup#WaitForReset() abort

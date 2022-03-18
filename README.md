@@ -878,6 +878,7 @@ nmap <Leader>db <Plug>VimspectorBreakpoints
 The following mappings apply by default in the breakpoints window:
 
 * `t`, `<F9>` - toggle, i.e. enable/dissable breakpoint
+* `T` - toggle, i.e. enable/dissable ALL breakpoints
 * `dd`, `<Del>` - delete the current breakpiont
 * `i`, `a`, `o` - add a new line breakpoint
 * `I`, `A`, `O` - add a new function breakpoint
@@ -938,7 +939,13 @@ You can configure your choices in the `.vimspector.json`. See
 
 ### API Summary
 
-* Use `vimspector#ToggleBreakpoint( { options dict } )` to set/disable/delete
+** NOTE: *** Previously, ToggleBreakpoint would cycle between 3 states:
+enabled, disabled, deleted. Many users found the 'disabled' state was rarely
+useful, so the behaviour has been changed. ToggleBreakpoint always creates or
+deletes a breakpoint. If you wish to 'disable' breakpoints, use the 
+[breakpoints window](#breakpoints-window) and 'toggle' (`t`) from there.
+
+* Use `vimspector#ToggleBreakpoint( { options dict } )` to set/delete
   a line breakpoint. The argument is optional (see below).
 * Use `vimspector#AddFunctionBreakpoint( '<name>', { options dict} )`
   to add a function breakpoint. The second argument is optional (see below).
