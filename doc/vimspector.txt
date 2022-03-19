@@ -1018,7 +1018,7 @@ To launch with an ad-hoc config you can use:
 - 'call vimspector#LaunchWithConfigurations( dict )'
 
 The argument is a 'dict' wich is the 'configurations' section of a .vimspector
-file Pass one configuration in and that will be selected as the one to run. For
+file. Pass one configuration in and that will be selected as the one to run. For
 example:
 >
   let pid = <some_exression>
@@ -1027,7 +1027,7 @@ example:
               \    "adapter": "netcoredbg",
               \    "configuration": {
               \      "request": "attach",
-              \      "processId": proc_id
+              \      "processId": pid
               \    }
               \  }
               \})
@@ -1563,7 +1563,7 @@ C, C++, Rust, etc. ~
   console apps in another Terminal window.
 
 Example '.vimspector.json' (works with both 'vscode-cpptools' and
-'lldb-vscode'. For 'lldb-vscode' replace the name of the adapter with
+'lldb-vscode'). For 'lldb-vscode' replace the name of the adapter with
 'lldb-vscode':
 
 - vscode-cpptools Linux/MacOS:
