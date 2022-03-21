@@ -386,7 +386,10 @@ def InstallDebugpy( name, root, gadget ):
   root = os.path.join( root, 'debugpy-{}'.format( gadget[ 'version' ] ) )
   os.chdir( root )
   try:
-    CheckCall( [ sys.executable, 'setup.py', 'build' ] )
+    CheckCall( [ sys.executable,
+                 'setup.py',
+                 'build',
+                 '--build-platlib', os.path.join( 'build', 'lib' ) ] )
   finally:
     os.chdir( wd )
 
