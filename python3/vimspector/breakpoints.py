@@ -40,7 +40,8 @@ class BreakpointsView( object ):
       vim.command( f'botright { settings.Int( "bottombar_height" ) }new' )
       self._win = vim.current.window
       if self._HasBuffer():
-        vim.current.buffer = self._buffer
+        with utils.NoAutocommands():
+          vim.current.buffer = self._buffer
       else:
         self._buffer = vim.current.buffer
         mappings = settings.Dict( 'mappings' )[ 'breakpoints' ]

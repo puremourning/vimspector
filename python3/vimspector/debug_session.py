@@ -382,7 +382,8 @@ class DebugSession( object ):
       if not self._uiTab:
         self._SetUpUI()
       else:
-        vim.current.tabpage = self._uiTab
+        with utils.NoAutocommands():
+          vim.current.tabpage = self._uiTab
 
       self._Prepare()
       if not self._StartDebugAdapter():
@@ -511,7 +512,8 @@ class DebugSession( object ):
 
     if self.HasUI():
       self._logger.debug( "Clearing down UI" )
-      vim.current.tabpage = self._uiTab
+      with utils.NoAutocommands():
+        vim.current.tabpage = self._uiTab
       self._splash_screen = utils.HideSplash( self._api_prefix,
                                               self._splash_screen )
       ResetUI()

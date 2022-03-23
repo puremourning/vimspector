@@ -143,9 +143,10 @@ class OutputView( object ):
     if not self._window.valid:
       return
 
-    utils.JumpToWindow( self._window )
-    vim.current.buffer = self._buffers[ category ].buf
-    vim.command( 'normal G' )
+    with utils.NoAutocommands():
+      utils.JumpToWindow( self._window )
+      vim.current.buffer = self._buffers[ category ].buf
+      vim.command( 'normal! G' )
 
   def ShowOutput( self, category ):
     self._ToggleFlag( category, False )
