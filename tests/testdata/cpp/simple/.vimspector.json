@@ -3,11 +3,8 @@
   "configurations": {
     "base": {
       "adapter": "vscode-cpptools",
-      "variables": {
-         "arch": { "shell": "uname -m" }
-      },
       "configuration": {
-        "targetArchitecture": "${arch}",
+        "targetArchitecture": "${VIMSPECTOR_ARCH}",
         "request": "launch",
         "program": "${workspaceRoot}/${fileBasenameNoExtension}",
         "externalConsole": false,
@@ -17,6 +14,7 @@
       },
       "breakpoints": {
         "exception": {
+          "all": "",
           "cpp_catch": "",
           "cpp_throw": "",
           "objc_catch": "",

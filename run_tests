@@ -96,10 +96,18 @@ if [ -z "$VIMSPECTOR_MIMODE" ]; then
   fi
 fi
 
+if [ -z "$VIMSPECTOR_ARCH" ]; then
+  export VIMSPECTOR_ARCH=$(uname -m)
+  if [ "$VIMSPECTOR_ARCH" = "aarch64" ]; then
+    export VIMSPECTOR_ARCH=arm64
+  fi
+fi
+
 BASEDIR_CMD="let g:vimspector_base_dir='${BASEDIR}'"
 
 echo "Testing with:"
 echo " * VIMSPECTOR_MIMODE=$VIMSPECTOR_MIMODE"
+echo " * VIMSPECTOR_ARCH=$VIMSPECTOR_ARCH"
 echo " * RUN_VIM=$RUN_VIM"
 echo " * RUN_TEST=$RUN_TEST"
 echo " * BASEDIR=$BASEDIR"
