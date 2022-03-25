@@ -364,14 +364,24 @@ def InstallCppTools( name, root, gadget ):
     if os.path.exists( path ):
       MakeExecutable( path )
 
-  with open( os.path.join( extension, 'package.json' ) ) as f:
-    package = json.load( f )
-    runtime_dependencies = package[ 'runtimeDependencies' ]
-    for dependency in runtime_dependencies:
-      for binary in dependency.get( 'binaries' ):
-        file_path = os.path.abspath( os.path.join( extension, binary ) )
-        if os.path.exists( file_path ):
-          MakeExecutable( os.path.join( extension, binary ) )
+  # See makeBinariesExecutable from the cpptools extension code:
+  # https://github.com/microsoft/vscode-cpptools/blob/main/Extension/src/main.ts#L97
+
+  if install.GetOS() == 'macos':
+    MakeExecutable( os.path.join( extension,
+                                  'debugAdapters',
+                                  'lldb-mi',
+                                  'bin',
+                                  'lldb-mi' ) )
+    if install.GetPlatform() == 'x86_64':
+      for binary in [ "debugserver",
+                      "lldb-mi",
+                      "lldb-argdumper",
+                      "lldb-launcher" ]:
+        MakeExecutable( os.path.join( extension,
+                                      'debugAdapters',
+                                      'bin',
+                                      binary ) )
 
   MakeExtensionSymlink( name, root )
 
@@ -579,6 +589,10 @@ def CurrentWorkingDir( d ):
 
 def MakeExecutable( file_path ):
   # TODO: import stat and use them by _just_ adding the X bit.
+  if not os.path.exists( file_path ):
+    Print( f"WARNING: Missing executable: { file_path }" )
+    return
+
   Print( 'Making executable: {}'.format( file_path ) )
   os.chmod( file_path, 0o755 )
 
