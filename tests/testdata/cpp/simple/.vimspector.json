@@ -3,13 +3,11 @@
   "configurations": {
     "base": {
       "adapter": "vscode-cpptools",
-      // The following would be useful if cpptools supported arm64
-      // https://github.com/microsoft/vscode-cpptools/issues/7035
-      // "variables": {
-      //   "arch": { "shell": "uname -m" }
-      // },
+      "variables": {
+         "arch": { "shell": "uname -m" }
+      },
       "configuration": {
-        // "targetArchitecture": "${arch}",
+        "targetArchitecture": "${arch}",
         "request": "launch",
         "program": "${workspaceRoot}/${fileBasenameNoExtension}",
         "externalConsole": false,
