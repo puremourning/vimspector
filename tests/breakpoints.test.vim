@@ -886,8 +886,7 @@ endfunction
 function! s:CheckBreakpointView( expected )
   call WaitForAssert( {->
           \ AssertMatchList( a:expected,
-          \ GetBufLine(
-                      \ winbufnr( g:vimspector_session_windows.breakpoints ),
+          \ GetBufLine( winbufnr( g:vimspector_session_windows.breakpoints ),
                       \ 1,
                       \ '$' ) ) } )
 endfunction
@@ -1218,11 +1217,11 @@ function! Test_LineBreakpoint_Moved_By_Server()
   call vimspector#test#signs#AssertSignGroupEmptyAtLine(
         \ 'VimspectorBP',
         \ s:break_foo_line )
-  call vimspector#test#signs#AssertSignAtLine(
+  call WaitForAssert( { -> vimspector#test#signs#AssertSignAtLine(
         \ 'VimspectorBP',
         \ 5,
         \ 'vimspectorBP',
-        \ 9 )
+        \ 9 ) } )
 
   call vimspector#ListBreakpoints()
   call s:CheckBreakpointView( [
@@ -1239,11 +1238,11 @@ function! Test_LineBreakpoint_Moved_By_Server()
         \ 'simple.cpp',
         \ s:break_main_line )
 
-  call vimspector#test#signs#AssertSignAtLine(
+  call WaitForAssert( { -> vimspector#test#signs#AssertSignAtLine(
         \ 'VimspectorBP',
         \ s:break_foo_line,
         \ 'vimspectorBP',
-        \ 9 )
+        \ 9 ) } )
   call vimspector#test#signs#AssertSignGroupEmptyAtLine(
         \ 'VimspectorBP',
         \ 5 )
@@ -1254,24 +1253,98 @@ function! Test_LineBreakpoint_Moved_By_Server()
         \ ] )
   wincmd p
 
+  " Delete the breakpoint from the line to which it was moved
+  call cursor( [ 9, 1 ] )
+  call vimspector#ToggleBreakpoint()
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine(
+        \ 'VimspectorBP',
+        \ s:break_foo_line )
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine(
+        \ 'VimspectorBP',
+        \ 5 )
+
+  call vimspector#ListBreakpoints()
+  call s:CheckBreakpointView( [] )
+  wincmd p
+
+  " re-add the breakpoint and have it move again
+  call vimspector#SetLineBreakpoint( 'simple.cpp', 5 )
+  call WaitForAssert( { -> vimspector#test#signs#AssertSignAtLine(
+        \ 'VimspectorBP',
+        \ s:break_foo_line,
+        \ 'vimspectorBP',
+        \ 9 ) } )
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine(
+        \ 'VimspectorBP',
+        \ 5 )
+  call vimspector#ListBreakpoints()
+  call s:CheckBreakpointView( [
+        \ 'simple.cpp:' . s:break_foo_line . ' Line breakpoint - VERIFIED: {}'
+        \ ] )
+
+  " Disable from breakpoints window
+  call vimspector#ToggleBreakpointViewBreakpoint()
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine(
+        \ 'VimspectorBP',
+        \ s:break_foo_line,
+        \ 'simple.cpp' )
+  call vimspector#test#signs#AssertSignGroupSingletonAtLine(
+        \ 'VimspectorBP',
+        \ 5,
+        \ 'vimspectorBPDisabled',
+        \ 9,
+        \ 'simple.cpp' )
+  call s:CheckBreakpointView( [
+        \ 'simple.cpp:5 Line breakpoint - DISABLED: {}'
+        \ ] )
+
+  call vimspector#ToggleBreakpointViewBreakpoint()
+  call vimspector#test#signs#AssertSignGroupSingletonAtLine(
+        \ 'VimspectorBP',
+        \ s:break_foo_line,
+        \ 'vimspectorBPDisabled',
+        \ 9,
+        \ 'simple.cpp' )
+  call WaitForAssert( { -> vimspector#test#signs#AssertSignAtLine(
+        \ 'VimspectorBP',
+        \ s:break_foo_line,
+        \ 'vimspectorBP',
+        \ 9,
+        \ 'simple.cpp' ) } )
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine(
+        \ 'VimspectorBP',
+        \ 5,
+        \ 'simple.cpp' )
+  call s:CheckBreakpointView( [
+        \ 'simple.cpp:' . s:break_foo_line . ' Line breakpoint - VERIFIED: {}'
+        \ ] )
+
+  " Delete from breakpoints window
+  call vimspector#DeleteBreakpointViewBreakpoint()
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine(
+        \ 'VimspectorBP',
+        \ s:break_foo_line,
+        \ 'simple.cpp' )
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine(
+        \ 'VimspectorBP',
+        \ 5,
+        \ 'simple.cpp' )
+  call s:CheckBreakpointView( [ '' ] )
+
+
   call vimspector#Reset()
   call vimspector#test#setup#WaitForReset()
   call vimspector#test#signs#AssertSignGroupEmptyAtLine(
         \ 'VimspectorBP',
         \ s:break_foo_line )
-  call vimspector#test#signs#AssertSignAtLine(
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine(
         \ 'VimspectorBP',
-        \ 5,
-        \ 'vimspectorBP',
-        \ 9 )
+        \ 5 )
 
   call vimspector#ListBreakpoints()
-  call s:CheckBreakpointView( [
-        \ 'simple.cpp:5 Line breakpoint - ENABLED: {}'
-        \ ] )
+  call s:CheckBreakpointView( [ '' ] )
   wincmd p
 
   lcd-
-  call vimspector#test#setup#Reset()
   %bwipe!
 endfunction

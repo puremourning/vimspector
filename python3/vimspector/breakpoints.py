@@ -235,12 +235,12 @@ class ProjectBreakpoints( object ):
     if not bp:
       return
 
-    if bp.get( 'type' ) == 'F':
-      self.ClearFunctionBreakpoint( bp.get( 'filename' ) )
+    if bp[ 'type' ] == 'F':
+      self.ClearFunctionBreakpoint( bp[ 'filename' ] )
     else:
       self._ToggleBreakpoint( None,
-                              bp.get( 'filename' ),
-                              bp.get( 'lnum' ),
+                              bp[ 'filename' ],
+                              bp[ 'lnum' ],
                               should_delete = False )
 
   def ToggleAllBreakpointsViewBreakpoint( self ):
@@ -273,7 +273,7 @@ class ProjectBreakpoints( object ):
     if not bp:
       return
 
-    if bp.get( 'type' ) != 'L':
+    if bp[ 'type' ] != 'L':
       return
 
     success = int( vim.eval(
@@ -297,10 +297,10 @@ class ProjectBreakpoints( object ):
     if not bp:
       return
 
-    if bp.get( 'type' ) == 'F':
-      self.ClearFunctionBreakpoint( bp.get( 'filename' ) )
+    if bp[ 'type' ] == 'F':
+      self.ClearFunctionBreakpoint( bp[ 'filename' ] )
     else:
-      self.ClearLineBreakpoint( bp.get( 'filename' ), bp.get( 'lnum' ) )
+      self.ClearLineBreakpoint( bp[ 'filename' ], bp[ 'lnum' ] )
 
   def BreakpointsAsQuickFix( self ):
     qf = []
@@ -365,7 +365,9 @@ class ProjectBreakpoints( object ):
     file_name = utils.NormalizePath( file_name )
     for index, bp in enumerate( self._line_breakpoints[ file_name ] ):
       self._SignToLine( file_name, bp )
-      if bp[ 'line' ] == line:
+      # If we have a server-line, use it, else use the user-line
+      bp_line = bp.get( 'server_bp', {} ).get( 'line', bp[ 'line' ] )
+      if bp_line == line:
         return bp, index
 
     return None, None
@@ -397,6 +399,9 @@ class ProjectBreakpoints( object ):
             del bp[ 'sign_id' ]
 
           del bp[ 'server_bp' ]
+
+    for bp in self._func_breakpoints:
+      bp.pop( 'server_bp', None )
 
 
   def _CopyServerLineBreakpointProperties( self, bp, server_bp ):
@@ -540,11 +545,6 @@ class ProjectBreakpoints( object ):
 
 
   def ClearTemporaryBreakpoint( self, file_name, line_num ):
-    # FIXME: We should use the _FindPostedBreakpoint here instead, as that's way
-    # more accurate at this point. Some servers can now identifyt he breakpoint
-    # ID that actually triggered too. For now, we still have
-    # _UpdateServerBreakpoints change the _user_ breakpiont line and we check
-    # for that _here_, though we could check ['server_bp']['line']
     bp, index = self._FindLineBreakpoint( file_name, line_num )
     if bp is None:
       return
@@ -814,6 +814,7 @@ class ProjectBreakpoints( object ):
 
 
   def Refresh( self ):
+    # aka RenderBreakpoints
     self._breakpoints_view.RefreshBreakpoints( self.BreakpointsAsQuickFix() )
     self._ShowBreakpoints()
 

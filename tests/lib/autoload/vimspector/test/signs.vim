@@ -46,20 +46,22 @@ function! vimspector#test#signs#AssertPCIsAtLineInBuffer( buffer, line ) abort
        \ assert_equal( a:line, signs[ 0 ].signs[ pc_index ].lnum )
 endfunction
 
-function! vimspector#test#signs#AssertSignGroupSingletonAtLine( group,
-                                                              \ line,
-                                                              \ sign_name,
-                                                              \ priority )
-                                                              \ abort
+function! vimspector#test#signs#AssertSignGroupSingletonAtLine(
+      \ group,
+      \ line,
+      \ sign_name,
+      \ priority,
+      \ buffer = '%' )
+      \ abort
 
-  let signs = sign_getplaced( '%', {
+  let signs = sign_getplaced( a:buffer, {
     \ 'group': a:group,
     \ 'lnum': a:line,
     \ } )
 
   return assert_equal( 1,
                      \ len( signs ),
-                     \ 'Num buffers named %' ) ||
+                     \ 'Num buffers named ' . a:buffer ) ||
        \ assert_equal( 1,
                      \ len( signs[ 0 ].signs ),
                      \ 'Num signs in ' . a:group . ' at ' . a:line ) ||
@@ -76,16 +78,21 @@ function! vimspector#test#signs#AssertSignAtLine(
       \ group,
       \ line,
       \ sign_name,
-      \ priority ) abort
+      \ priority,
+      \ buffer = '%' ) abort
 
-  let signs = sign_getplaced( '%', {
+  let signs = sign_getplaced( a:buffer, {
     \ 'group': a:group,
     \ 'lnum': a:line,
     \ } )
 
   let errors_before = v:errors
   let result = 1
-  let errors = [ 'No signs were found' ]
+  let errors = []
+
+  if len( signs[ 0 ].signs ) == 0
+    return assert_report( 'No signs were found' )
+  endif
 
   for sign in signs[ 0 ].signs
     let v:errors = []
@@ -109,15 +116,18 @@ function! vimspector#test#signs#AssertSignAtLine(
   return result
 endfunction
 
-function! vimspector#test#signs#AssertSignGroupEmptyAtLine( group, line ) abort
-  let signs = sign_getplaced( '%', {
+function! vimspector#test#signs#AssertSignGroupEmptyAtLine(
+      \ group,
+      \ line,
+      \ buffer = '%' ) abort
+  let signs = sign_getplaced( a:buffer, {
     \ 'group': a:group,
     \ 'lnum': a:line,
     \ } )
 
   return assert_equal( 1,
                      \ len( signs ),
-                     \ 'Num buffers named %' ) ||
+                     \ 'Num buffers named ' . a:buffer ) ||
        \ assert_equal( 0,
                      \ len( signs[ 0 ].signs ),
                      \ 'Num signs in ' . a:group . ' at ' . a:line . ': '
@@ -125,13 +135,15 @@ function! vimspector#test#signs#AssertSignGroupEmptyAtLine( group, line ) abort
 endfunction
 
 
-function! vimspector#test#signs#AssertSignGroupEmpty( group ) abort
-  let signs = sign_getplaced( '%', {
+function! vimspector#test#signs#AssertSignGroupEmpty(
+      \ group,
+      \ buffer = '%' ) abort
+  let signs = sign_getplaced( a:buffer, {
     \ 'group': a:group,
     \ } )
   return assert_equal( 1,
                      \ len( signs ),
-                     \ 'Num buffers named %' ) ||
+                     \ 'Num buffers named ' . a:buffer ) ||
        \ assert_equal( 0,
                      \ len( signs[ 0 ].signs ),
                      \ 'Num signs in ' . a:group )
