@@ -123,9 +123,9 @@ def LaunchTerminal( api_prefix,
   term.window = terminal_window
   term.buffer_number = buffer_number
 
-  vim.vars[ 'vimspector_session_windows' ][ 'terminal' ] = utils.WindowID(
-    term.window,
-    vim.current.tabpage )
+  utils.UpdateSessionWindows( {
+    'terminal': utils.WindowID( term.window, vim.current.tabpage )
+  } )
   with utils.RestoreCursorPosition():
     with utils.RestoreCurrentWindow():
       with utils.RestoreCurrentBuffer( vim.current.window ):

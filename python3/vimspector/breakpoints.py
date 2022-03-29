@@ -40,7 +40,8 @@ class BreakpointsView( object ):
       vim.command( f'botright { settings.Int( "bottombar_height" ) }new' )
       self._win = vim.current.window
       if self._HasBuffer():
-        vim.current.buffer = self._buffer
+        with utils.NoAutocommands():
+          vim.current.buffer = self._buffer
       else:
         self._buffer = vim.current.buffer
         mappings = settings.Dict( 'mappings' )[ 'breakpoints' ]
@@ -60,11 +61,9 @@ class BreakpointsView( object ):
         utils.SetUpHiddenBuffer( self._buffer,
                                  "vimspector.Breakpoints" )
 
-      # neovim madness need to re-assign the dict to trigger rpc call
-      # see https://github.com/neovim/pynvim/issues/261
-      session_wins = vim.vars[ 'vimspector_session_windows' ]
-      session_wins[ 'breakpoints' ] = utils.WindowID( self._win )
-      vim.vars[ 'vimspector_session_windows' ] = session_wins
+      utils.UpdateSessionWindows( {
+        'breakpoints': utils.WindowID( self._win )
+      } )
 
       # set highlighting
       vim.eval( "matchadd( 'WarningMsg', 'ENABLED', 100 )" )

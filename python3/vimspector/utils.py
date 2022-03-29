@@ -200,6 +200,12 @@ def ModifiableScratchBuffer( buf ):
 
 
 @contextlib.contextmanager
+def NoAutocommands():
+  with TemporaryVimOption( 'eventignore', 'all' ):
+    yield
+
+
+@contextlib.contextmanager
 def RestoreCursorPosition():
   current_pos = vim.current.window.cursor
   try:
@@ -212,15 +218,15 @@ def RestoreCursorPosition():
 
 @contextlib.contextmanager
 def RestoreCurrentWindow():
-  # TODO: Don't trigger autocommands when shifting windows
   old_tabpage = vim.current.tabpage
   old_window = vim.current.window
   try:
     yield
   finally:
     if old_tabpage.valid and old_window.valid:
-      vim.current.tabpage = old_tabpage
-      vim.current.window = old_window
+      with NoAutocommands():
+        vim.current.tabpage = old_tabpage
+        vim.current.window = old_window
 
 
 @contextlib.contextmanager
@@ -231,8 +237,9 @@ def RestoreCurrentBuffer( window ):
   finally:
     if window.valid:
       with RestoreCurrentWindow():
-        vim.current.window = window
-        vim.current.buffer = old_buffer
+        with NoAutocommands():
+          JumpToWindow( window )
+          vim.current.buffer = old_buffer
 
 
 @contextlib.contextmanager
@@ -250,14 +257,16 @@ def AnyWindowForBuffer( buf ):
 @contextlib.contextmanager
 def LetCurrentTabpage( tabpage ):
   with RestoreCurrentWindow():
-    vim.current.tabpage = tabpage
+    with NoAutocommands():
+      vim.current.tabpage = tabpage
     yield
 
 
 @contextlib.contextmanager
 def LetCurrentWindow( window ):
   with RestoreCurrentWindow():
-    JumpToWindow( window )
+    with NoAutocommands():
+      JumpToWindow( window )
     yield
 
 
@@ -265,7 +274,8 @@ def LetCurrentWindow( window ):
 def LetCurrentBuffer( buf ):
   with RestoreCursorPosition():
     with RestoreCurrentBuffer( vim.current.window ):
-      vim.current.buffer = buf
+      with NoAutocommands():
+        vim.current.buffer = buf
       yield
 
 
@@ -858,6 +868,7 @@ def WindowID( window, tab=None ):
   return int( Call( 'win_getid', window.number, tab.number ) )
 
 
+@memoize
 def UseWinBar():
   # Buggy neovim doesn't render correctly when the WinBar is defined:
   # https://github.com/neovim/neovim/issues/12689
@@ -875,6 +886,18 @@ def SetCursorPosInWindow( window, line, column = 1 ):
 def NormalizePath( filepath ):
   absolute_path = os.path.abspath( filepath )
   return absolute_path if os.path.isfile( absolute_path ) else filepath
+
+
+def UpdateSessionWindows( d ):
+  # neovim madness need to re-assign the dict to trigger rpc call
+  # see https://github.com/neovim/pynvim/issues/261
+  session_wins = vim.vars[ 'vimspector_session_windows' ]
+  session_wins.update( d )
+  vim.vars[ 'vimspector_session_windows' ] = session_wins
+
+
+def SetSessionWindows( d ):
+  vim.vars[ 'vimspector_session_windows' ] = d
 
 
 class Subject( object ):
