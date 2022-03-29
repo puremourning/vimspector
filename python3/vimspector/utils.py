@@ -888,6 +888,18 @@ def NormalizePath( filepath ):
   return absolute_path if os.path.isfile( absolute_path ) else filepath
 
 
+def UpdateSessionWindows( d ):
+  # neovim madness need to re-assign the dict to trigger rpc call
+  # see https://github.com/neovim/pynvim/issues/261
+  session_wins = vim.vars[ 'vimspector_session_windows' ]
+  session_wins.update( d )
+  vim.vars[ 'vimspector_session_windows' ] = session_wins
+
+
+def SetSessionWindows( d ):
+  vim.vars[ 'vimspector_session_windows' ] = d
+
+
 class Subject( object ):
   def __init__( self, id, emitter ):
     self.__id = id

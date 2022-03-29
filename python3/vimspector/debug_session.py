@@ -86,7 +86,7 @@ class DebugSession( object ):
     self._launch_complete = False
     self._on_init_complete_handlers = []
     self._server_capabilities = {}
-    vim.vars[ 'vimspector_session_windows' ] = {}
+    utils.SetSessionWindows( {} )
     self.ClearTemporaryBreakpoints()
 
   def GetConfigurations( self, adapters ):
@@ -521,10 +521,10 @@ class DebugSession( object ):
     else:
       ResetUI()
 
-    vim.vars[ 'vimspector_session_windows' ] = {
+    utils.SetSessionWindows( {
       'breakpoints': vim.vars[ 'vimspector_session_windows' ].get(
         'breakpoints' )
-    }
+    } )
 
     vim.command( 'doautocmd <nomodeline> User VimspectorDebugEnded' )
     vim.vars[ 'vimspector_resetting' ] = 0
@@ -849,9 +849,9 @@ class DebugSession( object ):
       with utils.LetCurrentTabpage( self._uiTab ):
         vim.command( f'botright { settings.Int( "bottombar_height" ) }new' )
         self._outputView.UseWindow( vim.current.window )
-        vim.vars[ 'vimspector_session_windows' ][ 'output' ] = utils.WindowID(
-          vim.current.window,
-          self._uiTab )
+        utils.UpdateSessionWindows( {
+          'output': utils.WindowID( vim.current.window, self._uiTab )
+        } )
 
     self._outputView.ShowOutput( category )
 
@@ -981,7 +981,7 @@ class DebugSession( object ):
 
     # TODO: If/when we support multiple sessions, we'll need some way to
     # indicate which tab was created and store all the tabs
-    vim.vars[ 'vimspector_session_windows' ] = {
+    utils.SetSessionWindows( {
       'mode': 'horizontal',
       'tabpage': self._uiTab.number,
       'code': utils.WindowID( code_window, self._uiTab ),
@@ -992,7 +992,7 @@ class DebugSession( object ):
       'eval': None, # updated every time eval popup is opened
       'breakpoints': vim.vars[ 'vimspector_session_windows' ].get(
         'breakpoints' ) # same as above, but for breakpoints
-    }
+    } )
     with utils.RestoreCursorPosition():
       with utils.RestoreCurrentWindow():
         with utils.RestoreCurrentBuffer( vim.current.window ):
@@ -1044,7 +1044,7 @@ class DebugSession( object ):
 
     # TODO: If/when we support multiple sessions, we'll need some way to
     # indicate which tab was created and store all the tabs
-    vim.vars[ 'vimspector_session_windows' ] = {
+    utils.SetSessionWindows( {
       'mode': 'vertical',
       'tabpage': self._uiTab.number,
       'code': utils.WindowID( code_window, self._uiTab ),
@@ -1055,7 +1055,7 @@ class DebugSession( object ):
       'eval': None, # updated every time eval popup is opened
       'breakpoints': vim.vars[ 'vimspector_session_windows' ].get(
         'breakpoints' ) # same as above, but for breakpoints
-    }
+    } )
     with utils.RestoreCursorPosition():
       with utils.RestoreCurrentWindow():
         with utils.RestoreCurrentBuffer( vim.current.window ):
