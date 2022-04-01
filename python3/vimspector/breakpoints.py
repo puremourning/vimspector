@@ -35,10 +35,16 @@ class BreakpointsView( object ):
   def _HasBuffer( self ):
     return self._buffer is not None and self._buffer.valid
 
-  def _UpdateView( self, breakpoint_list, show=True ):
+  def _UpdateView( self, breakpoint_list, show=True, win_to_split_from=None ):
     if show and not self._HasWindow():
-      vim.command( f'botright { settings.Int( "bottombar_height" ) }new' )
+      if win_to_split_from:
+        with utils.NoAutocommands():
+          utils.JumpToWindow( win_to_split_from )
+        vim.command( 'rightbelow vertical new' )
+      else:
+        vim.command( f'botright { settings.Int( "bottombar_height" ) }new' )
       self._win = vim.current.window
+
       if self._HasBuffer():
         with utils.NoAutocommands():
           vim.current.buffer = self._buffer
@@ -135,7 +141,7 @@ class BreakpointsView( object ):
     index = max( 0, min( len( self._breakpoint_list ) - 1, line_num - 1 ) )
     return self._breakpoint_list[ index ]
 
-  def ToggleBreakpointView( self, breakpoint_list ):
+  def ToggleBreakpointView( self, breakpoint_list, win_to_split_from ):
     if self._HasWindow():
       old_tabpage_number = self._win.tabpage.number
       # we want to grab current tabpage number now
@@ -146,9 +152,11 @@ class BreakpointsView( object ):
       # if we just closed breakpoint view in a different tab,
       # we want to re-open it in the current tab
       if old_tabpage_number != current_tabpage_number:
-        self._UpdateView( breakpoint_list )
+        self._UpdateView( breakpoint_list,
+                          win_to_split_from=win_to_split_from )
     else:
-      self._UpdateView( breakpoint_list )
+      self._UpdateView( breakpoint_list,
+                        win_to_split_from=win_to_split_from )
 
   def RefreshBreakpoints( self, breakpoint_list ):
     self._UpdateView( breakpoint_list, show=False )
@@ -225,8 +233,10 @@ class ProjectBreakpoints( object ):
     # FIXME: If the adapter type changes, we should probably forget this ?
 
 
-  def ToggleBreakpointsView( self ):
-    self._breakpoints_view.ToggleBreakpointView( self.BreakpointsAsQuickFix() )
+  def ToggleBreakpointsView( self, win_to_split_from ):
+    self._breakpoints_view.ToggleBreakpointView(
+      self.BreakpointsAsQuickFix(),
+      win_to_split_from )
 
   def ToggleBreakpointViewBreakpoint( self ):
     bp = self._breakpoints_view.GetBreakpointForLine()

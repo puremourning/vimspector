@@ -131,6 +131,9 @@ class OutputView( object ):
   def WindowIsValid( self ):
     return self._window.valid
 
+  def GetWindow( self ):
+    return self._window if self.WindowIsValid() else None
+
   def UseWindow( self, win ):
     assert not self._window.valid
     self._window = win

@@ -1754,7 +1754,18 @@ class DebugSession( object ):
     return self._breakpoints.BreakpointsAsQuickFix()
 
   def ListBreakpoints( self ):
-    self._breakpoints.ToggleBreakpointsView()
+    win = None
+    # In wide mode, try and open the breakpoints window next to the output
+    # window if it's visible.
+    if self.HasUI():
+      if utils.GetVimValue( vim.vars[ 'vimspector_session_windows' ],
+                            'mode' ) == 'horizontal':
+        win = self._outputView.GetWindow()
+    elif self._logView and self._logView.WindowIsValid():
+      # Non-debugging output view (log view) always "wide"
+      win = self._logView.GetWindow()
+
+    self._breakpoints.ToggleBreakpointsView( win )
 
   def ToggleBreakpointViewBreakpoint( self ):
     self._breakpoints.ToggleBreakpointViewBreakpoint()
