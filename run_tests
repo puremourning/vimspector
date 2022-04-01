@@ -8,7 +8,7 @@ AbsDirOf() {
   fi
 }
 
-BASEDIR=$(AbsDirOf "$0")/test-base
+BASEDIR=$(AbsDirOf "$0")/${VIMSPECTOR_TEST_BASE:-test-base}
 INSTALL=0
 UPDATE=0
 INSTALLER_ARGS=''
