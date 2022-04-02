@@ -356,6 +356,7 @@ Vimspector reads a series of files to build the `adapters` object. The
 named `example-adapter` in a later file _completely replaces_ a previous
 definition.
 
+* The contents of `g:vimspector_adapters` vim variable (dict)
 * `<vimspector home>/gadgets/<OS>/.gadgets.json` - the file written by
   `install_gadget.py` and not usually edited by users.
 * `<vimspector home>/gadgets/<OS>/.gadgets.d/*.json` (sorted alphabetically).
@@ -414,6 +415,7 @@ further restrict project configurations by filetype.
 
 There are two locations for debug configurations for a project:
 
+* `g:vimspector_configurations` vim variable (dict)
 * `<vimspector home>/configurations/<OS>/<filetype>/*.json`
 * `.vimspector.json` in the project source
 

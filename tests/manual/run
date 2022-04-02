@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+cd $(dirname $0)
 CONTAINER=puremourning/vimspector:manual-$(uname -m )
 
 docker run --cap-add=SYS_PTRACE \

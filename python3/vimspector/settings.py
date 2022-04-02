@@ -81,6 +81,10 @@ DEFAULTS = {
 
   # Custom
   'java_hotcodereplace_mode': 'ask',
+
+  # Debug configs
+  'adapters': {},
+  'configurations': {},
 }
 
 
@@ -115,10 +119,43 @@ DICT_TYPE = dict
 if hasattr( vim, 'Dictionary' ):
   DICT_TYPE = vim.Dictionary
 
+LIST_TYPE = list
+if hasattr( vim, 'List' ):
+  LIST_TYPE = vim.List
+
 
 def Dict( option ):
-  return _UpdateDict( DICT_TYPE( DEFAULTS.get( option, {} ) ),
-                      vim.vars.get( f'vimspector_{ option }', DICT_TYPE() ) )
+  return _UpdateDict(
+    _UpdateDict( {}, DEFAULTS.get( option, {} ) ),
+    DictNoBytes( vim.vars.get( f'vimspector_{ option }', DICT_TYPE() ) ) )
+
+
+def ObjectNoBytes( o ):
+  if o is None:
+    return None
+
+  if isinstance( o, bytes ):
+    o = o.decode( 'utf-8' )
+  elif isinstance( o, DICT_TYPE ):
+    o = DictNoBytes( o )
+  elif isinstance( o, LIST_TYPE ):
+    new_o = []
+    for i in o:
+      new_o.append( ObjectNoBytes( i ) )
+    o = new_o
+  return o
+
+
+def DictNoBytes( d ):
+  if d is None:
+    return d
+
+  r = {}
+  for k, v in d.items():
+    if isinstance( k, bytes ):
+      k = k.decode( 'utf-8' )
+    r[ k ] = ObjectNoBytes( v )
+  return r
 
 
 def _UpdateDict( target, override ):

@@ -49,6 +49,48 @@ function! Test_CSharp_Simple_Adhoc_Config()
   %bwipeout!
 endfunction
 
+function! Test_CSharp_Simple_VimDict_Config()
+  call vimspector#test#setup#PushSetting( 'vimspector_adapters', {
+  \   'test_adapter': {
+  \     'extends': 'netcoredbg',
+  \   }
+  \ } )
+  call vimspector#test#setup#PushSetting( 'vimspector_configurations', {
+  \   'test_configuration': {
+  \     'adapter': 'test_adapter',
+  \     'configuration': {
+  \       'request': 'launch',
+  \       'program': '${workspaceRoot}/bin/Debug/netcoreapp5.0/csharp.dll',
+  \       'args': [],
+  \       'stopAtEntry': v:false
+  \     }
+  \   }
+  \ } )
+  call SkipUnsupported()
+  let fn='Program.cs'
+  lcd ../support/test/csharp
+  exe 'edit ' . fn
+
+  call vimspector#SetLineBreakpoint( fn, 31 )
+  call vimspector#LaunchWithSettings(
+        \ { 'configuration': 'test_configuration' } )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 31, 7 )
+  call WaitForAssert( {->
+        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( fn, 31 )
+        \ } )
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 32, 12 )
+  call WaitForAssert( {->
+        \ vimspector#test#signs#AssertPCIsAtLineInBuffer( fn, 32 )
+        \ } )
+
+  call vimspector#test#setup#Reset()
+
+  lcd -
+  %bwipeout!
+endfunction
+
 function! Test_CSharp_Simple()
   call SkipUnsupported()
 
