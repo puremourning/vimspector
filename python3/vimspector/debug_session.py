@@ -92,7 +92,7 @@ class DebugSession( object ):
   def GetConfigurations( self, adapters ):
     current_file = utils.GetBufferFilepath( vim.current.buffer )
     filetypes = utils.GetBufferFiletypes( vim.current.buffer )
-    configurations = {}
+    configurations = settings.Dict( 'configurations' )
 
     for launch_config_file in PathsToAllConfigFiles( VIMSPECTOR_HOME,
                                                      current_file,
@@ -119,7 +119,7 @@ class DebugSession( object ):
     return launch_config_file, filetype_configurations, configurations
 
   def Start( self,
-             force_choose=False,
+             force_choose = False,
              launch_variables = None,
              adhoc_configurations = None ):
     # We mutate launch_variables, so don't mutate the default argument.
@@ -131,7 +131,7 @@ class DebugSession( object ):
                        launch_variables )
 
     current_file = utils.GetBufferFilepath( vim.current.buffer )
-    adapters = {}
+    adapters = settings.Dict( 'adapters' )
 
     launch_config_file = None
     configurations = None
