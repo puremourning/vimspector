@@ -340,7 +340,8 @@ pre-packaged. To use a release tarball:
 >
   let g:vimspector_enable_mappings = 'HUMAN'
 <
-1. Configure your project's debug profiles (create '.vimspector.json')
+1. Configure your project's debug profiles (create '.vimspector.json', or
+   set 'g:vimspector_configurations')
 
 Alternatively, you can clone the repo and select which gadgets are installed:
 
@@ -348,7 +349,8 @@ Alternatively, you can clone the repo and select which gadgets are installed:
 2. Install the plugin as a Vim package. See ':help packages'.
 3. Add 'packadd! vimspector' to you '.vimrc'
 4. Install some 'gadgets' (debug adapters) - see ':VimspectorInstall ...'
-5. Configure your project's debug profiles (create '.vimspector.json')
+5. Configure your project's debug profiles (create '.vimspector.json', or
+   set 'g:vimspector_configurations')
 
 If you prefer to use a plugin manager, see the plugin manager's docs. For
 Vundle, use:
@@ -380,7 +382,7 @@ Why such a new vim ? Well 2 reasons:
 Why is neovim experimental? Because the author doesn't use neovim regularly,
 and there are no regression tests for vimspector in neovim, so it may break
 occasionally. Issue reports are handled on best-efforts basis, and PRs are
-welcome to fix bugs. See also the next section describing differences for neovim
+welcome to fix bugs. See also the next section descibing differences for neovim
 vs vim.
 
 Why Windows support experimental? Because it's effort and it's not a priority
@@ -610,7 +612,7 @@ Then add this to your '.vimrc':
 >
   let g:vimspector_base_dir=expand( '$HOME/.vim/vimspector-config' )
 <
-When using ':VimspectorInstall', the 'g:vimspector_base_dir' setting is
+When usnig ':VimspectorInstall', the 'g:vimspector_base_dir' setting is
 respected unless '--basedir' is manually added (not recommended).
 
 See '--help' for more info on the various options.
@@ -624,12 +626,12 @@ probably still make it work, but it's more effort.
 
 You essentially need to get a working installation of the debug adapter, find
 out how to start it, and configure that in an 'adapters' entry in either your
-'.vimspector.json' or in '.gadgets.json'.
+'.vimspector.json' or in '.gadgets.json' or in 'g:vimspector_adapters'.
 
 The simplest way in practice is to install or start Visual Studio Code and use
 its extension manager to install the relevant extension. You can then configure
 the adapter manually in the 'adapters' section of your '.vimspector.json' or in
-a 'gadgets.json'.
+a 'gadgets.json' or in 'g:vimspector_adapters'.
 
 PRs are always welcome to add supported languages (which roughly translates to
 updating 'python/vimspector/gadgets.py' and testing it).
@@ -691,7 +693,7 @@ Example:
 The gadget file is automatically written by 'install_gadget.py' (or
 ':VimspectorInstall').
 
-Vimspector will also load any files matching:
+Vimspector will also load any fies matching:
 '</path/to/vimspector>/gadgets/<os>/.gadgets.d/*.json'. These have the same
 format as '.gadgets.json' but are not overwritten when running
 'install_gadget.py'.
@@ -748,7 +750,7 @@ probably will) change, including things like:
 - breaking changes to the configuration
 - keys, layout, functionality of the UI
 
-However, I commit to only doing this in the most extreme cases and to announce
+However, I commit to only doing this in the most extreme cases and to annouce
 such changes on Gitter well in advance. There's nothing more annoying than
 stuff just breaking on you. I get that.
 
@@ -1018,7 +1020,7 @@ To launch with an ad-hoc config you can use:
 - 'call vimspector#LaunchWithConfigurations( dict )'
 
 The argument is a 'dict' wich is the 'configurations' section of a .vimspector
-file. Pass one configuration in and that will be selected as the one to run. For
+file Pass one configuration in and that will be selected as the one to run. For
 example:
 >
   let pid = <some_exression>
@@ -1027,7 +1029,7 @@ example:
               \    "adapter": "netcoredbg",
               \    "configuration": {
               \      "request": "attach",
-              \      "processId": pid
+              \      "processId": proc_id
               \    }
               \  }
               \})
@@ -1087,9 +1089,9 @@ I recommend a mapping like this to toggle the breakpoints window:
 <
 The following mappings apply by default in the breakpoints window:
 
-- 't', '<F9>' - toggle, i.e. enable/disable breakpoint
-- 'T' - toggle, i.e. enable/disable ALL breakpoints
-- 'dd', '<Del>' - delete the current breakpoint
+- 't', '<F9>' - toggle, i.e. enable/dissable breakpoint
+- 'T' - toggle, i.e. enable/dissable ALL breakpoints
+- 'dd', '<Del>' - delete the current breakpiont
 - 'i', 'a', 'o' - add a new line breakpoint
 - 'I', 'A', 'O' - add a new function breakpoint
 - '<Enter>' or double-click - jump to the line breakpoint
@@ -1253,7 +1255,7 @@ to pick one.
 Save and restore ~
 
 Vimspector can save and restore breakpoints (and some other stuff) to a session
-file. The following commands exist for that:
+file. The following commands exist for htat:
 
 - 'VimspectorMkSession [file name]' - save the current set of line
   breakpoints, logpoints, conditional breakpoints, function breakpoints and
@@ -1270,9 +1272,9 @@ named '.vimspector.session', but this can be changed globally by setting
 path when calling the command.
 
 Advanced users may wish to automate the process of loading and saving, for
-example by adding 'VimEnter' and 'VimLeave' autocommands. It's recommended in
+example by adding 'VimEnter' and 'VimLeave' autocommands. It's recommented in
 that case to use 'silent!' to avoid annoying errors if the file can't be read
-or written.
+or writtten.
 
 The simplest form of automation is to load the vimspector session whenever you
 start vim with a session file. This is as simple as doing this:
@@ -1312,7 +1314,7 @@ Scopes and variables are represented by the buffer 'vimspector.Variables'.
 If you prefer a more verbose display for variables and watches, then you can
 "let g:vimspector_variables_display_mode = 'full'". By default only the name
 and value are displayed, with other data available from hovering the mouse or
-triggering '<Plug>VimspectorBalloonEval' on the line containing the value in
+triggering '<Plug>VimspectorBalloonEval' on the line contianing the value in
 the variables (or watches) window.
 
 -------------------------------------------------------------------------------
@@ -1334,7 +1336,7 @@ All rules for 'Variables and scopes' apply plus the following:
 - Set the value of the variable with '<C-CR>' (control + '<CR>') or
   '<leader><CR>' (if 'modifyOtherKeys' doesn't work for you)
 
-- Use regular navigation keys ('j', 'k') to choose the current selection;
+- Use regular nagivation keys ('j', 'k') to choose the current selection;
   '<Esc>' (or leave the tooltip window) to close the tooltip.
 
   Image: variable eval hover (see reference [28])
@@ -1366,7 +1368,7 @@ The watches are represented by the buffer 'vimspector.StackTrace'.
 If you prefer a more verbose display for variables and watches, then you can
 "let g:vimspector_variables_display_mode = 'full'". By default only the name
 and value are displayed, with other data available from hovering the mouse or
-triggering '<Plug>VimspectorBalloonEval' on the line containing the value in
+triggering '<Plug>VimspectorBalloonEval' on the line contianing the value in
 the variables (or watches) window.
 
 -------------------------------------------------------------------------------
@@ -1383,7 +1385,7 @@ For YouCompleteMe, the following config works well:
 >
   let g:ycm_semantic_triggers =  {
     \   'VimspectorPrompt': [ '.', '->', ':', '<' ]
-    \ }
+  }
 <
 -------------------------------------------------------------------------------
                                                        *vimspector-dump-memory*
@@ -1399,7 +1401,7 @@ variables. This can be done from the Variables and Wathces windows with:
 On doing this, you're asked to enter a number of bytes to read (from the
 location associated with the current cursor line) and an offset from that
 location. A new buffer is displayed in the Code Window containing a memory dump
-in hex and ascii, similar to the output of 'xxd'.
+in hex and ascii, simmilar to the output of 'xxd'.
 
 **_NOTE_**: This feature is experimental and may change in any way based on
 user feedback.
@@ -1435,7 +1437,7 @@ be changed manually to "switch to" that thread.
   focussed thread to the thread of that frame and jump to that frame in the
   code window.
 
-- The current frame when a breakpoint is hit or if manual jumping is also
+- The current frame when a breakpoint is hit or if manuall jumping is also
   highlighted.
 
   Image: stack trace (see reference [30])
@@ -1491,7 +1493,7 @@ For YouCompleteMe, the following config works well:
 >
   let g:ycm_semantic_triggers =  {
     \   'VimspectorPrompt': [ '.', '->', ':', '<' ]
-    \ }
+  }
 <
 -------------------------------------------------------------------------------
                                                           *vimspector-log-view*
@@ -1563,7 +1565,7 @@ C, C++, Rust, etc. ~
   console apps in another Terminal window.
 
 Example '.vimspector.json' (works with both 'vscode-cpptools' and
-'lldb-vscode'). For 'lldb-vscode' replace the name of the adapter with
+'lldb-vscode'. For 'lldb-vscode' replace the name of the adapter with
 'lldb-vscode':
 
 - vscode-cpptools Linux/MacOS:
@@ -1941,7 +1943,7 @@ Requires:
 <
   replace  'localhost'  with the ip of your workstation.
 
-Lazy alternative
+lazy alternative
 >
   zend_extension=xdebug.so
   xdebug.remote_enable=on
@@ -1986,7 +1988,7 @@ Lazy alternative
                                              *vimspector-debug-web-application*
 Debug web application ~
 
-Append 'XDEBUG_SESSION_START=xdebug' to your query string
+append 'XDEBUG_SESSION_START=xdebug' to your query string
 >
   curl "http://localhost?XDEBUG_SESSION_START=xdebug"
 <
@@ -2562,7 +2564,7 @@ FAQ ~
    necessarily be easy to work out what to put in the '.vimspector.json'. As
    you can see above, some of the servers aren't really editor agnostic, and
    require very-specific unique handling. See the wiki [53] for details on
-   additional language support
+   additonal language support
 
 2. How do I stop it starting a new Terminal.app on macOS? See this comment
    [54]
@@ -2601,20 +2603,50 @@ FAQ ~
    otherwise share any data with any third parties.
 
 4. Do I _have_ to put a '.vimspector.json' in the root of every project? No,
-   you can put all of your adapter and debug configs in a single directory
-   [55] if you want to, but note the caveat that '${workspaceRoot}' won't be
+   you can use 'g:vimspector_adapters' and 'g:vimspector_configurations' or
+   put all of your adapter and debug configs in a single directory [55] if
+   you want to, but note the caveat that '${workspaceRoot}' won't be
    calculated correctly in that case. The vimsepctor author uses this a lot
    [56]
 
 5. I'm confused about remote debugging configuration, can you explain it?
-   Eh... kind of. Reference: https://puremourning.github.io/vimspector/confi
+   eh... kind of. Reference: https://puremourning.github.io/vimspector/confi
    guration.html#remote-debugging-support. Some explanations here too: https
    ://github.com/puremourning/vimspector/issues/478#issuecomment-943515093
 
 6. I'm trying to debug a Django (django?) project and it's not working. Can
-   you help? Sure, check this link which has a working example [57]. Or
+   you help? sure, check this link which has a working example [57]. Or
    google it.
 
+Example 'g:vimspector_adapters' and 'g:vimspector_configurations':
+>
+  let g:vimspector_adapters = #{
+        \   test_debugpy: #{ extends: 'debugpy' }
+        \ }
+  
+  let g:vimspector_configurations = {
+        \ "test_debugpy_config": {
+        \   "adapter": "test_debugpy",
+        \   "filetypes": [ "python" ],
+        \   "configuration": {
+        \     "request": "launch",
+        \     "type": "python",
+        \     "cwd": "${fileDirname}",
+        \     "args": [],
+        \     "program": "${file}",
+        \     "stopOnEntry": v:false,
+        \     "console": "integratedTerminal",
+        \     "integer": 123,
+        \   },
+        \   "breakpoints": {
+        \     "exception": {
+        \       "raised": "N",
+        \       "uncaught": "",
+        \       "userUnhandled": ""
+        \     }
+        \   }
+        \ } }
+<
 ===============================================================================
                                                         *vimspector-references*
 References ~
