@@ -827,6 +827,7 @@ The following variables are provided:
   home>/gadgets/<OS>')
 - '${file}' - the current opened file
 - '${relativeFile}' - the current opened file relative to 'workspaceRoot'
+- '${relativeFileDirname}' - path of opened file relative to 'workspaceRoot'
 - '${fileBasename}' - the current opened file's 'basename'
 - '${fileBasenameNoExtension}' - the current opened file's 'basename' with no
   file extension
