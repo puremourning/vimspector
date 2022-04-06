@@ -323,6 +323,8 @@ class DebugSession( object ):
     }
 
     calculus = {
+      'relativeFileDirname': lambda: os.path.dirname( relpath( current_file,
+                                       self._workspace_root ) ),
       'relativeFile': lambda: relpath( current_file,
                                        self._workspace_root ),
       'fileBasename': lambda: os.path.basename( current_file ),
