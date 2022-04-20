@@ -124,9 +124,17 @@ if hasattr( vim, 'List' ):
   LIST_TYPE = vim.List
 
 
+def _IsDict( o ):
+  return isinstance( o, DICT_TYPE ) or isinstance( o, dict )
+
+
+def _IsList( o ):
+  return isinstance( o, LIST_TYPE ) or isinstance( o, list )
+
+
 def Dict( option ):
   return _UpdateDict(
-    _UpdateDict( {}, DEFAULTS.get( option, {} ) ),
+    dict( DEFAULTS.get( option, {} ) ),
     DictNoBytes( vim.vars.get( f'vimspector_{ option }', DICT_TYPE() ) ) )
 
 
@@ -136,9 +144,9 @@ def ObjectNoBytes( o ):
 
   if isinstance( o, bytes ):
     o = o.decode( 'utf-8' )
-  elif isinstance( o, DICT_TYPE ):
+  elif _IsDict( o ):
     o = DictNoBytes( o )
-  elif isinstance( o, LIST_TYPE ):
+  elif _IsList( o ):
     new_o = []
     for i in o:
       new_o.append( ObjectNoBytes( i ) )
@@ -186,9 +194,9 @@ def _UpdateDict( target, override ):
 
   for key, value in override.items():
     current_value = target.get( key )
-    if not isinstance( current_value, DICT_TYPE ):
+    if not _IsDict( current_value ):
       target[ key ] = value
-    elif isinstance( value, DICT_TYPE ):
+    elif _IsDict( value ):
       target[ key ] = _UpdateDict( current_value, value )
     else:
       target[ key ] = value
