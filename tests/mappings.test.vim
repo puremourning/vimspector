@@ -259,3 +259,120 @@ function! Test_Use_Mappings_HUMAN_Disable()
   %bwipeout!
 endfunction
 
+let s:fn='../support/test/python/simple_python/main.py'
+function! s:StartDebugging( ... )
+  if a:0 == 0
+    let config = #{
+          \   fn: s:fn,
+          \   line: 23,
+          \   col: 1,
+          \   launch: #{ configuration: 'run' }
+          \ }
+  else
+    let config = a:1
+  endif
+
+  execute 'edit' config.fn
+  call setpos( '.', [ 0, config.line, config.col ] )
+  call vimspector#ToggleBreakpoint()
+  call vimspector#LaunchWithSettings( config.launch )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer(
+        \ config.fn,
+        \ config.line,
+        \ config.col )
+endfunction
+
+function! SetUp_Test_Partial_Mappings_Dict_Override()
+call vimspector#test#setup#PushSetting( 'vimspector_mappings', #{
+      \    stack_trace: {},
+      \    variables: #{
+        \    set_value: [ '<Tab>', '<C-CR>' ]
+        \  }
+      \ }
+      \ )
+call vimspector#test#setup#PushSetting( 'vimspector_variables_display_mode',
+                                      \ 'full' )
+endfunction
+
+function! Test_Partial_Mappings_Dict_Override()
+  let fn =  'testdata/cpp/simple/struct.cpp'
+  call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
+        \   configuration: 'run-to-breakpoint'
+        \ } } )
+
+  " Make sure the Test t is initialised
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 26, 1 )
+
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       '- Scope: Locals',
+        \       ' *+ t (Test): {...}',
+        \       '+ Scope: Registers',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+  call assert_equal( 'cpp',
+                   \ getbufvar(
+                   \   winbufnr( g:vimspector_session_windows.variables ),
+                   \   '&syntax' ) )
+
+  " Expand, a mapping which is _not_ overridden
+  call win_gotoid( g:vimspector_session_windows.variables )
+  call setpos( '.', [ 0, 2, 1 ] )
+  call feedkeys( "\<CR>", 'xt' )
+
+  call WaitForAssert( {->
+        \   AssertMatchList(
+        \     [
+        \       '- Scope: Locals',
+        \       ' \*- t (Test): {...}',
+        \       '   \*- i (int): 0',
+        \       '   \*- c (char): 0 ''\\0\{1,3}''',
+        \       '   \*- fffff (float): 0',
+        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       '+ Scope: Registers',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  call setpos( '.', [ 0, 3, 1 ] )
+
+  " Check that we can set the variable using the custom mapping
+  "
+  " We can't just fire the keys to the inpit prompt because we use inputsave()
+  " and inputrestore(), so mock that out and fire away.
+  py3 <<EOF
+from unittest import mock
+with mock.patch( 'vimspector.utils.InputSave' ):
+  vim.eval( 'feedkeys( "\<Tab>\<C-u>100\<CR>", "xt" )' )
+EOF
+
+  call WaitForAssert( {->
+        \   AssertMatchList(
+        \     [
+        \       '- Scope: Locals',
+        \       ' \*- t (Test): {...}',
+        \       '   \*- i (int): 100',
+        \       '   \*- c (char): 0 ''\\0\{1,3}''',
+        \       '   \*- fffff (float): 0',
+        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       '+ Scope: Registers',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
