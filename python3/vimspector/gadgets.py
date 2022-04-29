@@ -316,7 +316,7 @@ GADGETS = {
                                                              gadget ),
     'all': {
       'path': 'github.com/go-delve/delve/cmd/dlv',
-      'version': '1.7.3',
+      'version': '1.8.3',
     },
     'adapters': {
       "delve": {
