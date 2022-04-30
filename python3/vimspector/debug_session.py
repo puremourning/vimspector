@@ -1513,12 +1513,13 @@ class DebugSession( object ):
 
   def _Launch( self ):
     def failure_handler( reason, msg ):
-      text = [
-        'Launch Failed',
-        '',
-        reason,
-        '',
-        'Use :VimspectorReset to close'
+      text = [ line for lines in [
+          'Launch Failed',
+          '',
+          reason.splitlines(),
+          '',
+          'Use :VimspectorReset to close'
+        ] for line in ( lines if isinstance( lines, list ) else [ lines ] )
       ]
       self._logger.info( "Launch failed: %s", '\n'.join( text ) )
       self._splash_screen = utils.DisplaySplash( self._api_prefix,
