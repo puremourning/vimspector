@@ -24,13 +24,13 @@ GADGETS = {
     'language': [ 'c', 'cpp', 'rust' ],
     'download': {
       'url': 'https://github.com/Microsoft/vscode-cpptools/releases/download/'
-             '${version}/${file_name}',
+             'v${version}/${file_name}',
     },
     'do': lambda name, root, gadget: installer.InstallCppTools( name,
                                                                 root,
                                                                 gadget ),
     'all': {
-      'version': '1.7.1',
+      'version': '1.9.8',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",
@@ -53,28 +53,27 @@ GADGETS = {
     'linux': {
       'file_name': 'cpptools-linux.vsix',
       'checksum':
-        '2ea9dd1bfbeff0b8153c45fa74692290307a33a2129dea36509efc8b35d515b9',
+        '8d12a871054a095bcdd7a2e6cbc353443ce5ad7eb0b9b33747b3ad4488d8e7e0',
     },
     'linux_arm64': {
       'file_name': 'cpptools-linux-aarch64.vsix',
       'checksum':
-        '0136033788c805f09b56175926403a26a79857197ea4d6addd699e1a99ce9401',
+        '066994c3aab65f97e0839b9db3336205af11b22652389e3149ec6540f53b5304',
     },
     'macos': {
       'file_name': 'cpptools-osx.vsix',
       'checksum':
-        'bab71db23b9221c6d5d40c7bb2243570ebe49a3bb7b9893033440681d27aa440',
+        '5722f331e6cb80e50d9a9f0ab7347ba73030016b92c08a1034bdf7cd82a950f1',
     },
-    # doesn't work: https://github.com/microsoft/vscode-cpptools/issues/7035
     'macos_arm64': {
       'file_name': 'cpptools-osx-arm64.vsix',
       'checksum':
-        '9dc7630463a9dce048bf96f30028f30a41889fea7be89c6d20cb93d156a9f3d6',
+        'c9e29e2bff9dfd3b8afc767b9eafb7a0325babcc1277ef7e699f03c5346c8e8a',
     },
     'windows': {
       'file_name': 'cpptools-win32.vsix',
       'checksum':
-        '469dcd619576cca700e917fef5e3f12ddce9d760d77e768042bd9566fadd71cb',
+        '7274abcac0cf0e69b868efe24d4d7a884c8fbdba19eb494ab3dc187502d546da',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",
@@ -99,7 +98,7 @@ GADGETS = {
     'windows_arm64': {
       'file_name': 'cpptools-win-arm64.vsix',
       'checksum':
-        '0427118d853d9262af824b28d102bbb6c11dc2eb66ff7f694336fd731ac404f7',
+        '8109966ef9a71bf1af7c224ce819d9403cd557022103a59a343d345b094b1df8',
     },
   },
   'debugpy': {
