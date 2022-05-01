@@ -35,6 +35,7 @@ function! Test_PickConfiguration_FilteredFiletypes()
   let fn = '../support/test/multiple_filetypes/test.js'
   exe 'edit ' . fn
   normal! G
+  call vimspector#SetLineBreakpoint( fn, 1 )
   call vimspector#Launch()
   call WaitForAssert( { ->
         \ vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 1, 1  )
@@ -44,6 +45,7 @@ function! Test_PickConfiguration_FilteredFiletypes()
   let fn = '../support/test/multiple_filetypes/test.py'
   exe 'edit ' . fn
   normal! G
+  call vimspector#SetLineBreakpoint( fn, 1 )
   call vimspector#Launch()
   call WaitForAssert( { ->
         \ vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 1, 1  )
