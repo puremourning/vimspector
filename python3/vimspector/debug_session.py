@@ -172,8 +172,8 @@ class DebugSession( object ):
     else:
       # Find a single configuration with 'default' True and autoselect not False
       defaults = { n: c for n, c in configurations.items()
-                   if c.get( 'default', False ) is True
-                   and c.get( 'autoselect', True ) is not False }
+                   if c.get( 'default', False )
+                   and c.get( 'autoselect', True ) }
 
       if len( defaults ) == 1:
         configuration_name = next( iter( defaults.keys() ) )
