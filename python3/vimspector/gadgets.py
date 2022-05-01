@@ -30,7 +30,7 @@ GADGETS = {
                                                                 root,
                                                                 gadget ),
     'all': {
-      'version': '1.9.7',
+      'version': '1.9.8',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",
@@ -53,27 +53,27 @@ GADGETS = {
     'linux': {
       'file_name': 'cpptools-linux.vsix',
       'checksum':
-        '74187bc858ce9e16a6ebd2a5157cd311d145d479aedb4d04ff568ea705d9e5a4',
+        '8d12a871054a095bcdd7a2e6cbc353443ce5ad7eb0b9b33747b3ad4488d8e7e0',
     },
     'linux_arm64': {
       'file_name': 'cpptools-linux-aarch64.vsix',
       'checksum':
-        '4a7c571732f3b449b5ce79f03898c0b614365a8093337fe3808fcb2077897565',
+        '066994c3aab65f97e0839b9db3336205af11b22652389e3149ec6540f53b5304',
     },
     'macos': {
       'file_name': 'cpptools-osx.vsix',
       'checksum':
-        '94175d74a5cc776ea5342e8907304745a6812458fb8f8569fe31d46891627f3b',
+        '5722f331e6cb80e50d9a9f0ab7347ba73030016b92c08a1034bdf7cd82a950f1',
     },
     'macos_arm64': {
       'file_name': 'cpptools-osx-arm64.vsix',
       'checksum':
-        '02d0005e9bc5808435259f1ae81b0614659b978a9b87b983322caab63d66f4f0',
+        'c9e29e2bff9dfd3b8afc767b9eafb7a0325babcc1277ef7e699f03c5346c8e8a',
     },
     'windows': {
       'file_name': 'cpptools-win32.vsix',
       'checksum':
-        '98258c716284e81035b0368c558740dcbc425b6c1a19f9ed842db1da7a0817fa',
+        '7274abcac0cf0e69b868efe24d4d7a884c8fbdba19eb494ab3dc187502d546da',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",
@@ -98,7 +98,7 @@ GADGETS = {
     'windows_arm64': {
       'file_name': 'cpptools-win-arm64.vsix',
       'checksum':
-        '64b9511ad570670219c0f2bd29dde18ea6ce4612f450c569a3745df761e0f38f',
+        '8109966ef9a71bf1af7c224ce819d9403cd557022103a59a343d345b094b1df8',
     },
   },
   'debugpy': {
