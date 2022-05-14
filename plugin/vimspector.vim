@@ -42,6 +42,7 @@ let s:mappings = get( g:, 'vimspector_enable_mappings', '' )
 
 nnoremap <silent> <Plug>VimspectorContinue
       \ :<c-u>call vimspector#Continue()<CR>
+      \:<c-u>silent! call repeat#set("\<Plug>VimspectorContinue")<CR>
 nnoremap <silent> <Plug>VimspectorLaunch
       \ :<c-u>call vimspector#Launch( v:true )<CR>
 nnoremap <silent> <Plug>VimspectorStop
@@ -52,33 +53,45 @@ nnoremap <silent> <Plug>VimspectorPause
       \ :<c-u>call vimspector#Pause()<CR>
 nnoremap <silent> <Plug>VimspectorToggleBreakpoint
       \ :<c-u>call vimspector#ToggleBreakpoint()<CR>
+      \:<c-u>silent! call repeat#set("\<Plug>VimspectorToggleBreakpoint")<CR>
 nnoremap <silent> <Plug>VimspectorToggleConditionalBreakpoint
       \ :<c-u>call vimspector#ToggleAdvancedBreakpoint()<CR>
+      \:<c-u>silent! call repeat#set("\<Plug>VimspectorToggleConditionalBreakpoint")<CR>
 nnoremap <silent> <Plug>VimspectorAddFunctionBreakpoint
       \ :<c-u>call vimspector#AddFunctionBreakpoint( expand( '<cexpr>' ) )<CR>
+      \:<c-u>silent! call repeat#set("\<Plug>VimspectorAddFunctionBreakpoint")<CR>
 nnoremap <silent> <Plug>VimspectorStepOver
       \ :<c-u>call vimspector#StepOver()<CR>
+      \:<c-u>silent! call repeat#set("\<Plug>VimspectorStepOver")<CR>
 nnoremap <silent> <Plug>VimspectorStepInto
       \ :<c-u>call vimspector#StepInto()<CR>
+      \:<c-u>silent! call repeat#set("\<Plug>VimspectorStepInto")<CR>
 nnoremap <silent> <Plug>VimspectorStepOut
       \ :<c-u>call vimspector#StepOut()<CR>
+      \:<c-u>silent! call repeat#set("\<Plug>VimspectorStepOut")<CR>
 
 nnoremap <silent> <Plug>VimspectorRunToCursor
       \ :<c-u>call vimspector#RunToCursor()<CR>
+      \:<c-u>silent! call repeat#set("\<Plug>VimspectorRunToCursor")<CR>
 nnoremap <silent> <Plug>VimspectorGoToCurrentLine
       \ :<c-u>call vimspector#GoToCurrentLine()<CR>
+      \:<c-u>silent! call repeat#set("\<Plug>VimspectorGoToCurrentLine")<CR>
 
 " Eval for normal mode
 nnoremap <silent> <Plug>VimspectorBalloonEval
       \ :<c-u>call vimspector#ShowEvalBalloon( 0 )<CR>
+      \:<c-u>silent! call repeat#set("\<Plug>VimspectorBalloonEval")<CR>
 " And for visual modes
 xnoremap <silent> <Plug>VimspectorBalloonEval
       \ :<c-u>call vimspector#ShowEvalBalloon( 1 )<CR>
+      \:<c-u>silent! call repeat#set("\<Plug>VimspectorBalloonEval")<CR>
 
 nnoremap <silent> <Plug>VimspectorUpFrame
       \ :<c-u>call vimspector#UpFrame()<CR>
+      \:<c-u>silent! call repeat#set("\<Plug>VimspectorUpFrame")<CR>
 nnoremap <silent> <Plug>VimspectorDownFrame
       \ :<c-u>call vimspector#DownFrame()<CR>
+      \:<c-u>silent! call repeat#set("\<Plug>VimspectorDownFrame")<CR>
 
 nnoremap <silent> <Plug>VimspectorBreakpoints
       \ :<c-u>call vimspector#ListBreakpoints()<CR>
