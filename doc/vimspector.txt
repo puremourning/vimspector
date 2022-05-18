@@ -2618,6 +2618,13 @@ FAQ ~
    you help? sure, check this link which has a working example [57]. Or
    google it.
 
+7. Can vimspector build my code before debugging it? Can I deploy it to a
+   remote host before debugging it? No, not really. Vimspector is just a
+   debugger, not a task system or build automation system - there are other
+   tools for that. There is however a hack you can use - you can use a
+   'shell' variable to execute a command and just discard the output. Other
+   options are discussed in this issue [58]
+
 Example 'g:vimspector_adapters' and 'g:vimspector_configurations':
 >
   let g:vimspector_adapters = #{
@@ -2708,5 +2715,6 @@ References ~
 [55] https://puremourning.github.io/vimspector/configuration.html#debug-configurations
 [56] https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf
 [57] https://www.reddit.com/r/neovim/comments/mz4ari/how_to_set_up_vimspector_for_django_debugging/
+[58] https://github.com/puremourning/vimspector/issues/227
 
 vim: ft=help
