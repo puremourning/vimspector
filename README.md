@@ -2307,6 +2307,8 @@ hi link jsonComment Comment
 12. I'm trying to debug a Django (django?) project and it's not working. Can you
     help? sure, check [this link which has a working example](https://www.reddit.com/r/neovim/comments/mz4ari/how_to_set_up_vimspector_for_django_debugging/).
     Or google it.
+13. Can vimspector build my code before debugging it? Can I deploy it to a remote host before debugging it?
+    No, not really. Vimspector is just a debugger, not a task system or build automation system - there are other tools for that. There is however a hack you can use - you can use a 'shell' variable to execute a command and just discard the output. Other options are discussed in [this issue](https://github.com/puremourning/vimspector/issues/227)
 
 
 Example `g:vimspector_adapters` and `g:vimspector_configurations`:
