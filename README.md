@@ -1811,10 +1811,12 @@ runtime.
 
 This behaviour can be customised:
 
-* `let g:ycm_java_hotcodereplace_mode = 'ask'` - the default, ask the user for
-  each reload.
-* `let g:ycm_java_hotcodereplace_mode = 'always'` - don't ask, always reload
-* `let g:ycm_java_hotcodereplace_mode = 'never'` - don't ask, never reload
+* `let g:vimspector_java_hotcodereplace_mode = 'ask'` - the default, ask the
+  user for each reload.
+* `let g:vimspector_java_hotcodereplace_mode = 'always'` - don't ask, always
+  reload
+* `let g:vimspector_java_hotcodereplace_mode = 'never'` - don't ask, never
+  reload
 
 ### Usage with YouCompleteMe
 
