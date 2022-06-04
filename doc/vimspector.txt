@@ -683,7 +683,7 @@ Example:
           "pidSelect": "ask"
         },
         "command": [
-          "${gadgetDir}/vscode-cpptools/debugAdapters/OpenDebugAD7"
+          "${gadgetDir}/vscode-cpptools/debugAdapters/bin/OpenDebugAD7"
         ],
         "name": "cppdbg"
       }
