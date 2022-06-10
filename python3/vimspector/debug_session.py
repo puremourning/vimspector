@@ -92,7 +92,7 @@ class DebugSession( object ):
   def GetConfigurations( self, adapters ):
     current_file = utils.GetBufferFilepath( vim.current.buffer )
     filetypes = utils.GetBufferFiletypes( vim.current.buffer )
-    configurations = {}
+    configurations = settings.Dict( 'configurations' )
 
     for launch_config_file in PathsToAllConfigFiles( VIMSPECTOR_HOME,
                                                      current_file,
@@ -119,7 +119,7 @@ class DebugSession( object ):
     return launch_config_file, filetype_configurations, configurations
 
   def Start( self,
-             force_choose=False,
+             force_choose = False,
              launch_variables = None,
              adhoc_configurations = None ):
     # We mutate launch_variables, so don't mutate the default argument.
@@ -131,7 +131,7 @@ class DebugSession( object ):
                        launch_variables )
 
     current_file = utils.GetBufferFilepath( vim.current.buffer )
-    adapters = {}
+    adapters = settings.Dict( 'adapters' )
 
     launch_config_file = None
     configurations = None
@@ -172,8 +172,8 @@ class DebugSession( object ):
     else:
       # Find a single configuration with 'default' True and autoselect not False
       defaults = { n: c for n, c in configurations.items()
-                   if c.get( 'default', False ) is True
-                   and c.get( 'autoselect', True ) is not False }
+                   if c.get( 'default', False )
+                   and c.get( 'autoselect', True ) }
 
       if len( defaults ) == 1:
         configuration_name = next( iter( defaults.keys() ) )
@@ -323,6 +323,8 @@ class DebugSession( object ):
     }
 
     calculus = {
+      'relativeFileDirname': lambda: os.path.dirname( relpath( current_file,
+                                       self._workspace_root ) ),
       'relativeFile': lambda: relpath( current_file,
                                        self._workspace_root ),
       'fileBasename': lambda: os.path.basename( current_file ),
@@ -1513,11 +1515,8 @@ class DebugSession( object ):
     def failure_handler( reason, msg ):
       text = [
         'Launch Failed',
-        '',
-        reason,
-        '',
-        'Use :VimspectorReset to close'
-      ]
+        '' ] + reason.splitlines() + [
+        '', 'Use :VimspectorReset to close' ]
       self._logger.info( "Launch failed: %s", '\n'.join( text ) )
       self._splash_screen = utils.DisplaySplash( self._api_prefix,
                                                  self._splash_screen,

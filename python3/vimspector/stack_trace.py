@@ -215,9 +215,7 @@ class StackTraceView( object ):
 
       if not ( message.get( 'body' ) or {} ).get( 'threads' ):
         # This is a protocol error. It is required to return at least one!
-        utils.UserMessage( 'Protocol error: Server returned no threads',
-                           persist = False,
-                           error = True )
+        # But about 100% of servers break the protocol.
         return
 
       existing_threads = self._threads[ : ]

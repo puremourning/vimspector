@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
+cd $(dirname $0)
 CONTAINER=puremourning/vimspector:manual-$(uname -m )
 
 docker run --cap-add=SYS_PTRACE \
            --security-opt seccomp=unconfined \
            --mount src="$(pwd)/../..",target=/home/dev/vimspector,type=bind \
+           --rm \
            -it ${CONTAINER} \
            "$@"

@@ -177,7 +177,7 @@ runtime dependencies). They are categorised by their level of support:
 Vimspector should work for any debug adapter that works in Visual Studio Code.
 
 To use Vimspector with a language that's not "built-in", see this
-[wiki page](https://github.com/puremourning/vimspector/wiki/languages).
+[wiki page](https://github.com/puremourning/vimspector/wiki/Additional-Language-Support).
 
 # Installation
 
@@ -207,7 +207,8 @@ $ curl -L <url> | tar -C $HOME/.vim/pack zxvf -
 let g:vimspector_enable_mappings = 'HUMAN'
 ```
 
-5. Configure your project's debug profiles (create `.vimspector.json`)
+5. Configure your project's debug profiles (create `.vimspector.json`, or set
+   `g:vimspector_configurations`)
 
 Alternatively, you can clone the repo and select which gadgets are installed:
 
@@ -215,7 +216,8 @@ Alternatively, you can clone the repo and select which gadgets are installed:
 1. Install the plugin as a Vim package. See `:help packages`.
 2. Add `packadd! vimspector` to you `.vimrc`
 2. Install some 'gadgets' (debug adapters) - see `:VimspectorInstall ...`
-3. Configure your project's debug profiles (create `.vimspector.json`)
+3. Configure your project's debug profiles (create `.vimspector.json`, or set
+   `g:vimspector_configurations`)
 
 If you prefer to use a plugin manager, see the plugin manager's docs. For
 Vundle, use:
@@ -475,12 +477,12 @@ probably still make it work, but it's more effort.
 
 You essentially need to get a working installation of the debug adapter, find
 out how to start it, and configure that in an `adapters` entry in either your
-`.vimspector.json` or in `.gadgets.json`.
+`.vimspector.json` or in `.gadgets.json` or in `g:vimspector_adapters`.
 
 The simplest way in practice is to install or start Visual Studio Code and use
 its extension manager to install the relevant extension. You can then configure
 the adapter manually in the `adapters` section of your `.vimspector.json` or in
-a `gadgets.json`.
+a `gadgets.json` or in `g:vimspector_adapters`.
 
 PRs are always welcome to add supported languages (which roughly translates to
 updating `python/vimspector/gadgets.py` and testing it).
@@ -532,7 +534,7 @@ Example:
         "pidSelect": "ask"
       },
       "command": [
-        "${gadgetDir}/vscode-cpptools/debugAdapters/OpenDebugAD7"
+        "${gadgetDir}/vscode-cpptools/debugAdapters/bin/OpenDebugAD7"
       ],
       "name": "cppdbg"
     }
@@ -2293,13 +2295,52 @@ hi link jsonComment Comment
    displays this information in the output window. It *does not* and *will not ever*
    collect, use, forward or otherwise share any data with any third parties.
 10. Do I _have_ to put a `.vimspector.json` in the root of every project? No, you
-    can put all of your adapter and debug configs in a [single directory](https://puremourning.github.io/vimspector/configuration.html#debug-configurations) if you want to, but note
-    the caveat that `${workspaceRoot}` won't be calculated correctly in that case.
-    The vimsepctor author uses this [a lot](https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf)
+    can use `g:vimspector_adapters` and `g:vimspector_configurations` or put all
+    of your adapter and debug configs in a [single directory](https://puremourning.github.io/vimspector/configuration.html#debug-configurations)
+    if you want to, but note the caveat that `${workspaceRoot}` won't be
+    calculated correctly in that case.  The vimsepctor author uses this [a lot](https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf)
 11. I'm confused about remote debugging configuration, can you explain it?
-    eh... kind of. Reference: https://puremourning.github.io/vimspector/configuration.html#remote-debugging-support. Some explanations here too: https://github.com/puremourning/vimspector/issues/478#issuecomment-943515093
-12. I'm trying to debug a Django (django?) project and it's not working. Can you help? sure, check [this link which has a working example](https://www.reddit.com/r/neovim/comments/mz4ari/how_to_set_up_vimspector_for_django_debugging/). Or google it.
+    eh... kind of. Reference:
+    https://puremourning.github.io/vimspector/configuration.html#remote-debugging-support.
+    Some explanations here too:
+    https://github.com/puremourning/vimspector/issues/478#issuecomment-943515093
+12. I'm trying to debug a Django (django?) project and it's not working. Can you
+    help? sure, check [this link which has a working example](https://www.reddit.com/r/neovim/comments/mz4ari/how_to_set_up_vimspector_for_django_debugging/).
+    Or google it.
+13. Can vimspector build my code before debugging it? Can I deploy it to a remote host before debugging it?
+    No, not really. Vimspector is just a debugger, not a task system or build automation system - there are other tools for that. There is however a hack you can use - you can use a 'shell' variable to execute a command and just discard the output. Other options are discussed in [this issue](https://github.com/puremourning/vimspector/issues/227)
 
+
+Example `g:vimspector_adapters` and `g:vimspector_configurations`:
+
+```viml
+let g:vimspector_adapters = #{
+      \   test_debugpy: #{ extends: 'debugpy' }
+      \ }
+
+let g:vimspector_configurations = {
+      \ "test_debugpy_config": {
+      \   "adapter": "test_debugpy",
+      \   "filetypes": [ "python" ],
+      \   "configuration": {
+      \     "request": "launch",
+      \     "type": "python",
+      \     "cwd": "${fileDirname}",
+      \     "args": [],
+      \     "program": "${file}",
+      \     "stopOnEntry": v:false,
+      \     "console": "integratedTerminal",
+      \     "integer": 123,
+      \   },
+      \   "breakpoints": {
+      \     "exception": {
+      \       "raised": "N",
+      \       "uncaught": "",
+      \       "userUnhandled": ""
+      \     }
+      \   }
+      \ } }
+```
 
 [ycmd]: https://github.com/Valloric/ycmd
 [gitter]: https://gitter.im/vimspector/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link

@@ -35,6 +35,7 @@ function! Test_PickConfiguration_FilteredFiletypes()
   let fn = '../support/test/multiple_filetypes/test.js'
   exe 'edit ' . fn
   normal! G
+  call vimspector#SetLineBreakpoint( fn, 1 )
   call vimspector#Launch()
   call WaitForAssert( { ->
         \ vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 1, 1  )
@@ -44,6 +45,7 @@ function! Test_PickConfiguration_FilteredFiletypes()
   let fn = '../support/test/multiple_filetypes/test.py'
   exe 'edit ' . fn
   normal! G
+  call vimspector#SetLineBreakpoint( fn, 1 )
   call vimspector#Launch()
   call WaitForAssert( { ->
         \ vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 1, 1  )
@@ -52,3 +54,25 @@ function! Test_PickConfiguration_FilteredFiletypes()
   call vimspector#test#setup#Reset()
   %bwipe!
 endfunction
+
+function Test_Get_Configurations_VimDict()
+  call vimspector#test#setup#PushSetting( 'vimspector_configurations', #{
+        \ test_config: #{
+        \    extends: 'launch - netcoredbg'
+        \   }
+        \ } )
+  lcd ../support/test/csharp/
+
+  let configs = vimspector#GetConfigurations()
+  call assert_equal( [
+        \   'test_config',
+        \   'launch - netcoredbg',
+        \   'launch - netcoredbg - with debug log',
+        \   'launch - mono',
+        \ ],
+        \ configs )
+
+  lcd -
+  %bwipe!
+endfunction
+
