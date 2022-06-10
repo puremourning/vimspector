@@ -967,7 +967,7 @@ and have to tell cpptools a few more options.
   "adapters": {
     "cpptools-remote": {
       "command": [
-        "${gadgetDir}/vscode-cpptools/debugAdapters/OpenDebugAD7"
+        "${gadgetDir}/vscode-cpptools/debugAdapters/bin/OpenDebugAD7"
       ],
       "name": "cppdbg",
       "configuration": {
