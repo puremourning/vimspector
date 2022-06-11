@@ -10,6 +10,17 @@
         "program": "${workspaceRoot}/simple.js",
         "cwd": "${workspaceRoot}"
       }
+    },
+    "run - js-debug": {
+      "adapter": "vscode-js-debug",
+      "configuration": {
+        "request": "launch",
+        "console": "externalTerminal",
+        "program": "${workspaceRoot}/simple.js",
+        "cwd": "${workspaceRoot}",
+        "trace": true,
+        "stopOnEntry": true
+      }
     }
   }
 }

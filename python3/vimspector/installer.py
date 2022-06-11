@@ -448,6 +448,13 @@ def InstallNodeDebug( name, root, gadget ):
   MakeSymlink( name, root )
 
 
+def InstallJsDebug( name, root, gadget ):
+  with CurrentWorkingDir( root ):
+    CheckCall( [ 'npm', 'install', '--force' ] )
+    CheckCall( [ 'npm', 'run', 'compile' ] )
+  MakeSymlink( name, root )
+
+
 def InstallLuaLocal( name, root, gadget ):
   with CurrentWorkingDir( root ):
     CheckCall( [ 'npm', 'install' ] )

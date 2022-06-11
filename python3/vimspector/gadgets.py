@@ -390,7 +390,7 @@ GADGETS = {
     }
   },
   'vscode-node-debug2': {
-    'language': 'node',
+    'language': 'node.legacy',
     'enabled': False,
     'repo': {
       'url': 'https://github.com/microsoft/vscode-node-debug2',
@@ -407,6 +407,46 @@ GADGETS = {
           'node',
           '${gadgetDir}/vscode-node-debug2/out/src/nodeDebug.js'
         ]
+      },
+    },
+  },
+  'vscode-js-debug': {
+    'language': 'node',
+    'enabled': False,
+    'repo': {
+      'url': 'https://github.com/microsoft/vscode-js-debug',
+      'ref': 'v1.68.0'
+    },
+    'do': lambda name, root, gadget: installer.InstallJsDebug( name,
+                                                               root,
+                                                               gadget ),
+    'adapters': {
+      'vscode-js-debug': {
+        'name': 'vscode-js-debug',
+        'type': 'pwa-node',
+        'command': [
+          'node',
+          '${gadgetDir}/vscode-js-debug/out/src/debugServerMain.js',
+          '${unusedLocalPort}'
+        ],
+        'port': '${unusedLocalPort}',
+        "configuration": {
+          "type": "pwa-node",
+          "name": "pwa-node",
+          "resolveSourceMapLocations": ['**', '!**/node_modules/**'],
+          "autoAttachChildProcesses": True,
+          "runtimeSourcemapPausePatterns": [],
+          "skipFiles": ['<node_internals>/**'],
+          "runtimeExecutable": "node",
+          "args": [],
+          "console": 'integratedTerminal',
+          "restart": False,
+          "runtimeVersion": '',
+          "runtimeArgs": [],
+          "profileStartup": False,
+          "attachSimplePort": None,
+          "killBehavior": 'forceful'
+        }
       },
     },
   },
