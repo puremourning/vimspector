@@ -385,7 +385,7 @@ can't just override one option, you have to override the whole block.
 
 Adapter configurations are re-read at the start of each debug session.
 
-The specification for the gadget object is defined in the [gadget schema][].
+The specification for the gadget object is defined in the [gadget schema][gadget-schema].
 
 ### Extending adapters
 
