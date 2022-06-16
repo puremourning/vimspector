@@ -436,7 +436,7 @@ you can't just override one option, you have to override the whole block.
 
 Adapter configurations are re-read at the start of each debug session.
 
-The specification for the gadget object is defined in the [gadget schema][].
+The specification for the gadget object is defined in the gadget schema [3].
 
 -------------------------------------------------------------------------------
                                             *vimspector-ref-extending-adapters*
@@ -1241,7 +1241,7 @@ added them because they are useful in the context of configuration files.
 Unforutnately this may mean your editor doesn't like them (they are strictly
 invalid JSON) so it's up to you if you use them.
 
-Technically, Vimspector uses JSON minify [3] to strip comments before parsing
+Technically, Vimspector uses JSON minify [4] to strip comments before parsing
 the JSON.
 
 ===============================================================================
@@ -1250,11 +1250,11 @@ Appendix: Editor configuration ~
 
 If you would like some assistance with writing the JSON files, and your editor
 of choice has a way to use a language server, you can use the VSCode JSON
-language server [4].
+language server [5].
 
 It is recommended to include the '$schema' declaration as in the above
 examples, but if that isn't present, the following JSON language server
-configuration [5] is recommened to load the schema from the Internet:
+configuration [6] is recommened to load the schema from the Internet:
 >
   {
     "json": {
@@ -1271,9 +1271,9 @@ configuration [5] is recommened to load the schema from the Internet:
     }
   }
 <
-If your language server client of choice happens to be YouCompleteMe [6], then
+If your language server client of choice happens to be YouCompleteMe [7], then
 the following '.ycm_extra_conf.py' is good enough to get you going, after
-following the instructions in the lsp-examples [7] repo to get the server set
+following the instructions in the lsp-examples [8] repo to get the server set
 up:
 >
   VIMSPECTOR_HOME = '/path/to/vimspector' # TODO: Change this
@@ -1308,10 +1308,11 @@ References ~
 
 [1] https://microsoft.github.io/debug-adapter-protocol/
 [2] http://puremourning.github.io/vimspector/schema/vimspector.schema.json
-[3] https://github.com/getify/JSON.minify
-[4] https://github.com/vscode-langservers/vscode-json-languageserver
-[5] https://github.com/vscode-langservers/vscode-json-languageserver#settings
-[6] https://github.com/ycm-core/YouCompleteMe
-[7] https://github.com/ycm-core/lsp-examples
+[3] http://puremourning.github.io/vimspector/schema/gadgets.schema.json
+[4] https://github.com/getify/JSON.minify
+[5] https://github.com/vscode-langservers/vscode-json-languageserver
+[6] https://github.com/vscode-langservers/vscode-json-languageserver#settings
+[7] https://github.com/ycm-core/YouCompleteMe
+[8] https://github.com/ycm-core/lsp-examples
 
 vim: ft=help
