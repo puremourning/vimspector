@@ -23,7 +23,7 @@ class TestExpandReferencesInDict( unittest.TestCase ):
       'five': '5ive!'
     }
 
-    def AskForInput( prompt, default_value = None ):
+    def AskForInput( prompt, default_value = None, completion = None ):
       if default_value is not None:
         return default_value
 
