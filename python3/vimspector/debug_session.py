@@ -43,6 +43,7 @@ VIMSPECTOR_HOME = utils.GetVimspectorBase()
 # cache of what the user entered for any option we ask them
 USER_CHOICES = {}
 
+
 class DebugSession( object ):
   def __init__( self, session_id, session_manager, api_prefix ):
     self.session_id = session_id
@@ -1232,8 +1233,8 @@ class DebugSession( object ):
           "vimspector#internal#{}#Send".format( self._connection_type ),
           self.session_id,
           msg ),
-        self._adapter.get( 'sync_timeout' ),
-        self._adapter.get( 'async_timeout' ) )
+        sync_timeout = self._adapter.get( 'sync_timeout' ),
+        async_timeout = self._adapter.get( 'async_timeout' ) )
 
     self._logger.info( 'Debug Adapter Started' )
     return True

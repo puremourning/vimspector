@@ -230,7 +230,8 @@ def AddExpandMappings( mappings = None ):
 
 class VariablesView( object ):
   def __init__( self, session, variables_win, watches_win ):
-    self._logger = logging.getLogger( __name__ + '.' + str( session.session_id ) )
+    self._logger = logging.getLogger(
+      __name__ + '.' + str( session.session_id ) )
     utils.SetUpLogging( self._logger, session.session_id )
 
     self._session = session
