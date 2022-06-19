@@ -432,7 +432,9 @@ GADGETS = {
         "configuration": {
           "type": "pwa-node",
           "name": "pwa-node",
-        }
+          "console": "externalTerminal",
+        },
+        "custom_handler": "vimspector.custom.javascript.VsCodeJsDebug"
       },
     },
   },
