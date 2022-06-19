@@ -64,8 +64,8 @@ class Debugpy( object ):
     if not self.queue:
       return
 
-    launch_argyments = self.queue[ 0 ]
-    pid = launch_argyments[ 'subProcessId' ]
+    launch_arguments = self.queue[ 0 ]
+    pid = launch_arguments[ 'subProcessId' ]
 
     utils.Confirm(
       self.parent._api_prefix,

@@ -44,7 +44,7 @@ class SessionManager:
 
   def SessionForTab( self, tabnr ):
     for _, session in self.sessions.items():
-      if session._HasUI() and session._uiTab.number == int( tabnr ):
+      if session.HasUI() and session._uiTab.number == int( tabnr ):
         return session
 
     return None
