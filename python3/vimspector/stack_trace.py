@@ -86,7 +86,8 @@ class StackTraceView( object ):
   _line_to_thread = typing.Dict[ int, Thread ]
 
   def __init__( self, session, win ):
-    self._logger = logging.getLogger( __name__ + '.' + str( session.session_id ) )
+    self._logger = logging.getLogger(
+      __name__ + '.' + str( session.session_id ) )
     utils.SetUpLogging( self._logger, session.session_id )
 
     self._buf = win.buffer
