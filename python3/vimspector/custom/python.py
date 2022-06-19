@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from vimspector.debug_session import DebugSession
-from vimspector import session_manager, gadgets, utils
+from vimspector import session_manager, utils
 
 from typing import Sequence
 
@@ -74,4 +74,3 @@ class Debugpy( object ):
       default_value = 1,
       options = [ 'Yes', 'No' ],
       keys = [ 'y', 'n' ] )
-
