@@ -426,26 +426,12 @@ GADGETS = {
         'type': 'pwa-node',
         'command': [
           'node',
-          '${gadgetDir}/vscode-js-debug/out/src/debugServerMain.js',
+          '${gadgetDir}/vscode-js-debug/out/src/vsDebugServer.js',
           '${unusedLocalPort}'
         ],
-        'port': '${unusedLocalPort}',
         "configuration": {
           "type": "pwa-node",
           "name": "pwa-node",
-          "resolveSourceMapLocations": ['**', '!**/node_modules/**'],
-          "autoAttachChildProcesses": True,
-          "runtimeSourcemapPausePatterns": [],
-          "skipFiles": ['<node_internals>/**'],
-          "runtimeExecutable": "node",
-          "args": [],
-          "console": 'integratedTerminal',
-          "restart": False,
-          "runtimeVersion": '',
-          "runtimeArgs": [],
-          "profileStartup": False,
-          "attachSimplePort": None,
-          "killBehavior": 'forceful'
         }
       },
     },
