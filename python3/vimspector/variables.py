@@ -305,7 +305,7 @@ class VariablesView( object ):
       self._oldoptions[ 'balloonevalterm' ] = vim.options[ 'balloonevalterm' ]
       vim.options[ 'balloonevalterm' ] = True
 
-    self._is_term = not bool( int( vim.eval( "has( 'gui_running' )" ) ) )
+    self._is_term = not bool( int( vim.eval( "has( 'gui_running' ) && !has('gui_vimr')" ) ) )
 
   def Clear( self ):
     with utils.ModifiableScratchBuffer( self._vars.buf ):
