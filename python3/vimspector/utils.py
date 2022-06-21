@@ -711,7 +711,8 @@ def ParseVariables( variables_list,
 
 
 def CreateTooltip( is_term, display: list, is_hover = False ):
-  if not is_term:
+  is_nvim = bool( int( vim.eval( "has('nvim')" ) ) )
+  if not is_term and not is_nvim:
     # To enable the Windows GUI to display the balloon correctly
     # Refer https://github.com/vim/vim/issues/1512#issuecomment-492070685
     display = '\n'.join( display )
