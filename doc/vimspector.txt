@@ -382,8 +382,8 @@ Why such a new vim ? Well 2 reasons:
 Why is neovim experimental? Because the author doesn't use neovim regularly,
 and there are no regression tests for vimspector in neovim, so it may break
 occasionally. Issue reports are handled on best-efforts basis, and PRs are
-welcome to fix bugs. See also the next section describing differences for neovim
-vs vim.
+welcome to fix bugs. See also the next section describing differences for
+neovim vs vim.
 
 Why Windows support experimental? Because it's effort and it's not a priority
 for the author. PRs are welcome to fix bugs. Windows will not be regularly
