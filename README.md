@@ -814,12 +814,12 @@ To launch with an ad-hoc config you can use:
 
 * `call vimspector#LaunchWithConfigurations( dict )`
 
-The argument is a `dict` wich is the `configurations` section of a .vimspector file
+The argument is a `dict` which is the `configurations` section of a .vimspector file
 Pass one configuration in and that will be selected as the one to run.
 For example:
 
 ```viml
-   let pid = <some_exression>
+   let pid = <some_expression>
    call vimspector#LaunchWithConfigurations({
                \  "attach": {
                \    "adapter": "netcoredbg",
@@ -944,7 +944,7 @@ You can configure your choices in the `.vimspector.json`. See
 ** NOTE: *** Previously, ToggleBreakpoint would cycle between 3 states:
 enabled, disabled, deleted. Many users found the 'disabled' state was rarely
 useful, so the behaviour has been changed. ToggleBreakpoint always creates or
-deletes a breakpoint. If you wish to 'disable' breakpoints, use the 
+deletes a breakpoint. If you wish to 'disable' breakpoints, use the
 [breakpoints window](#breakpoints-window) and 'toggle' (`t`) from there.
 
 * Use `vimspector#ToggleBreakpoint( { options dict } )` to set/delete
@@ -1024,9 +1024,9 @@ In both cases, the file name argument is optional. By default, the file is named
 path when calling the command.
 
 Advanced users may wish to automate the process of loading and saving, for
-example by adding `VimEnter` and `VimLeave` autocommands. It's recommented in
+example by adding `VimEnter` and `VimLeave` autocommands. It's recommended in
 that case to use `silent!` to avoid annoying errors if the file can't be read or
-writtten.
+written.
 
 The simplest form of automation is to load the vimspector session whenever you
 start vim with a session file. This is as simple as doing this:
@@ -1066,7 +1066,7 @@ Scopes and variables are represented by the buffer `vimspector.Variables`.
 If you prefer a more verbose display for variables and watches, then you can
 `let g:vimspector_variables_display_mode = 'full'`. By default only the name and
 value are displayed, with other data available from hovering the mouse or
-triggering `<Plug>VimspectorBalloonEval` on the line contianing the value in the
+triggering `<Plug>VimspectorBalloonEval` on the line containing the value in the
 variables (or watches) window.
 
 ## Variable or selection hover evaluation
@@ -1082,7 +1082,7 @@ All rules for `Variables and scopes` apply plus the following:
   `<Plug>VimspectorBalloonEval` to manually trigger the popup.
   * Set the value of the variable with `<C-CR>` (control + `<CR>`) or
     `<leader><CR>` (if `modifyOtherKeys` doesn't work for you)
-  * Use regular nagivation keys (`j`, `k`) to choose the current selection; `<Esc>`
+  * Use regular navigation keys (`j`, `k`) to choose the current selection; `<Esc>`
     (or leave the tooltip window) to close the tooltip.
 
 ![variable eval hover](https://puremourning.github.io/vimspector-web/img/vimspector-variable-eval-hover.png)
@@ -1112,7 +1112,7 @@ The watches are represented by the buffer `vimspector.StackTrace`.
 If you prefer a more verbose display for variables and watches, then you can
 `let g:vimspector_variables_display_mode = 'full'`. By default only the name and
 value are displayed, with other data available from hovering the mouse or
-triggering `<Plug>VimspectorBalloonEval` on the line contianing the value in the
+triggering `<Plug>VimspectorBalloonEval` on the line containing the value in the
 variables (or watches) window.
 
 ### Watch autocompletion
@@ -1143,7 +1143,7 @@ variables. This can be done from the Variables and Wathces windows with:
 On doing this, you're asked to enter a number of bytes to read (from the
 location associated with the current cursor line) and an offset from that
 location. A new buffer is displayed in the Code Window containing a memory dump
-in hex and ascii, simmilar to the output of `xxd`.
+in hex and ascii, similar to the output of `xxd`.
 
 ***NOTE***: This feature is experimental and may change in any way based on user
 feedback.
@@ -2202,7 +2202,7 @@ func! CustomiseUI()
   call win_gotoid( g:vimspector_session_windows.code )
   " Clear the existing WinBar created by Vimspector
   nunmenu WinBar
-  " Cretae our own WinBar
+  " Create our own WinBar
   nnoremenu WinBar.Kill :call vimspector#Stop( { 'interactive': v:true } )<CR>
   nnoremenu WinBar.Continue :call vimspector#Continue()<CR>
   nnoremenu WinBar.Pause :call vimspector#Pause()<CR>
@@ -2264,7 +2264,7 @@ augroup END
 1. Q: Does it work with _this_ language? A: Probably, but it won't
    necessarily be easy to work out what to put in the `.vimspector.json`. As you
    can see above, some of the servers aren't really editor agnostic, and require
-   very-specific unique handling. See [the wiki](https://github.com/puremourning/vimspector/wiki/Additional-Language-Support) for details on additonal language support
+   very-specific unique handling. See [the wiki](https://github.com/puremourning/vimspector/wiki/Additional-Language-Support) for details on additional language support
 3. How do I stop it starting a new Terminal.app on macOS? See [this
    comment](https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322)
 4. Can I specify answers to the annoying questions about exception breakpoints
