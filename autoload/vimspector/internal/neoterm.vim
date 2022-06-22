@@ -19,7 +19,7 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 " }}}
 
-" Ids are unique throughtout the life of neovim, but obviously buffer numbers
+" Ids are unique throughout the life of neovim, but obviously buffer numbers
 " aren't
 "
 " FIXME: Tidy this map when buffers are closed ?

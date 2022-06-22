@@ -106,7 +106,7 @@ class CodeView( object ):
 
     self._UndisplayPC( clear_pc = False )
 
-    # FIXME: Do we relly need to keep using up IDs ?
+    # FIXME: Do we really need to keep using up IDs ?
     self._signs[ 'vimspectorPC' ] = self._next_sign_id
     self._next_sign_id += 1
 
@@ -188,7 +188,7 @@ class CodeView( object ):
     self._scratch_buffers = []
 
   def Refresh( self ):
-    # TODO: jsut the file ?
+    # TODO: just the file ?
     self._DisplayPC()
 
   def LaunchTerminal( self, params ):

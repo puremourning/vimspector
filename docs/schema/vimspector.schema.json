@@ -289,7 +289,7 @@
               },
               "filetypes": {
                 "type": "array",
-                "description": "List of Vim filetypes that this configuration applies to. The configuraiton is only used if one of the current filetypes appears in this list, or if this list is not supplied,"
+                "description": "List of Vim filetypes that this configuration applies to. The configuration is only used if one of the current filetypes appears in this list, or if this list is not supplied,"
               },
               "configuration": {
                 "type": "object",

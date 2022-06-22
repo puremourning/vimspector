@@ -122,7 +122,7 @@ def normalize_py():
 def chunks(seq, size):
   '''Generator that cuts sequence (bytes, memoryview, etc.)
      into chunks of given size. If `seq` length is not multiply
-     of `size`, the lengh of the last chunk returned will be
+     of `size`, the length of the last chunk returned will be
      less than requested.
 
      >>> list( chunks([1,2,3,4,5,6,7], 3) )

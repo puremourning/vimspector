@@ -94,7 +94,7 @@ function! Test_Save_Session_Specify_Path_Not_Running_LineBreakpoints()
   %bwipeout!
 endfunction
 
-function! Test_Save_Session_Funtion_Breakpoints()
+function! Test_Save_Session_Function_Breakpoints()
   " TODO
 endfunction
 

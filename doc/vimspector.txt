@@ -382,7 +382,7 @@ Why such a new vim ? Well 2 reasons:
 Why is neovim experimental? Because the author doesn't use neovim regularly,
 and there are no regression tests for vimspector in neovim, so it may break
 occasionally. Issue reports are handled on best-efforts basis, and PRs are
-welcome to fix bugs. See also the next section descibing differences for neovim
+welcome to fix bugs. See also the next section describing differences for neovim
 vs vim.
 
 Why Windows support experimental? Because it's effort and it's not a priority
@@ -478,7 +478,7 @@ by cloning this repository into your package path, like this:
   $ git clone https://github.com/puremourning/vimspector ~/.vim/pack/vimspector/opt/vimspector
 <
 1. Configure vimspector in your '.vimrc', for example to enable the standard
-   mapings:
+   mappings:
 >
   let g:vimspector_enable_mappings = 'HUMAN'
 <
@@ -750,7 +750,7 @@ probably will) change, including things like:
 - breaking changes to the configuration
 - keys, layout, functionality of the UI
 
-However, I commit to only doing this in the most extreme cases and to annouce
+However, I commit to only doing this in the most extreme cases and to announce
 such changes on Gitter well in advance. There's nothing more annoying than
 stuff just breaking on you. I get that.
 
@@ -1019,11 +1019,11 @@ To launch with an ad-hoc config you can use:
 
 - 'call vimspector#LaunchWithConfigurations( dict )'
 
-The argument is a 'dict' wich is the 'configurations' section of a .vimspector
+The argument is a 'dict' which is the 'configurations' section of a .vimspector
 file Pass one configuration in and that will be selected as the one to run. For
 example:
 >
-  let pid = <some_exression>
+  let pid = <some_expression>
   call vimspector#LaunchWithConfigurations({
               \  "attach": {
               \    "adapter": "netcoredbg",
@@ -1272,9 +1272,9 @@ named '.vimspector.session', but this can be changed globally by setting
 path when calling the command.
 
 Advanced users may wish to automate the process of loading and saving, for
-example by adding 'VimEnter' and 'VimLeave' autocommands. It's recommented in
+example by adding 'VimEnter' and 'VimLeave' autocommands. It's recommended in
 that case to use 'silent!' to avoid annoying errors if the file can't be read
-or writtten.
+or written.
 
 The simplest form of automation is to load the vimspector session whenever you
 start vim with a session file. This is as simple as doing this:
@@ -1314,7 +1314,7 @@ Scopes and variables are represented by the buffer 'vimspector.Variables'.
 If you prefer a more verbose display for variables and watches, then you can
 "let g:vimspector_variables_display_mode = 'full'". By default only the name
 and value are displayed, with other data available from hovering the mouse or
-triggering '<Plug>VimspectorBalloonEval' on the line contianing the value in
+triggering '<Plug>VimspectorBalloonEval' on the line containing the value in
 the variables (or watches) window.
 
 -------------------------------------------------------------------------------
@@ -1336,7 +1336,7 @@ All rules for 'Variables and scopes' apply plus the following:
 - Set the value of the variable with '<C-CR>' (control + '<CR>') or
   '<leader><CR>' (if 'modifyOtherKeys' doesn't work for you)
 
-- Use regular nagivation keys ('j', 'k') to choose the current selection;
+- Use regular navigation keys ('j', 'k') to choose the current selection;
   '<Esc>' (or leave the tooltip window) to close the tooltip.
 
   Image: variable eval hover (see reference [28])
@@ -1368,7 +1368,7 @@ The watches are represented by the buffer 'vimspector.StackTrace'.
 If you prefer a more verbose display for variables and watches, then you can
 "let g:vimspector_variables_display_mode = 'full'". By default only the name
 and value are displayed, with other data available from hovering the mouse or
-triggering '<Plug>VimspectorBalloonEval' on the line contianing the value in
+triggering '<Plug>VimspectorBalloonEval' on the line containing the value in
 the variables (or watches) window.
 
 -------------------------------------------------------------------------------
@@ -1401,7 +1401,7 @@ variables. This can be done from the Variables and Wathces windows with:
 On doing this, you're asked to enter a number of bytes to read (from the
 location associated with the current cursor line) and an offset from that
 location. A new buffer is displayed in the Code Window containing a memory dump
-in hex and ascii, simmilar to the output of 'xxd'.
+in hex and ascii, similar to the output of 'xxd'.
 
 **_NOTE_**: This feature is experimental and may change in any way based on
 user feedback.
@@ -2500,7 +2500,7 @@ autocommand, for example:
     call win_gotoid( g:vimspector_session_windows.code )
     " Clear the existing WinBar created by Vimspector
     nunmenu WinBar
-    " Cretae our own WinBar
+    " Create our own WinBar
     nnoremenu WinBar.Kill :call vimspector#Stop( { 'interactive': v:true } )<CR>
     nnoremenu WinBar.Continue :call vimspector#Continue()<CR>
     nnoremenu WinBar.Pause :call vimspector#Pause()<CR>
@@ -2564,7 +2564,7 @@ FAQ ~
    necessarily be easy to work out what to put in the '.vimspector.json'. As
    you can see above, some of the servers aren't really editor agnostic, and
    require very-specific unique handling. See the wiki [15] for details on
-   additonal language support
+   additional language support
 
 2. How do I stop it starting a new Terminal.app on macOS? See this comment
    [54]

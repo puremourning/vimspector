@@ -114,7 +114,7 @@ the maintainers have to keep it working forever.
 
 ### Small changes
 
-For bug fixes, documentation changes, gadget versin updates, etc. please just
+For bug fixes, documentation changes, gadget version updates, etc. please just
 send a PR, I'm super happy to merge these!
 
 If you are unsure, or looking for some pointers, feel free to ask in Gitter, or
@@ -122,7 +122,7 @@ mention is in the PR.
 
 ### Larger changes
 
-For larger features that might be in any way controvertial, or increase the
+For larger features that might be in any way controversial, or increase the
 complexity of the overall plugin, please come to Gitter and talk to the
 maintainer(s) first. This saves a lot of potential back-and-forth and makes sure
 that we're "on the same page" about the idea and the ongoing maintenance.
@@ -184,7 +184,7 @@ Vimspector creator.
 
 ### Manual testing within the container
 
-To manually test with Vim withing the container, affter runnning the tests with
+To manually test with Vim within the container, affter running the tests with
 `--base-dir test-base-docker`, you can use this:
 
 ```

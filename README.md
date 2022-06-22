@@ -249,7 +249,7 @@ Why such a new vim ? Well 2 reasons:
 Why is neovim experimental? Because the author doesn't use neovim regularly, and
 there are no regression tests for vimspector in neovim, so it may break
 occasionally. Issue reports are handled on best-efforts basis, and PRs are
-welcome to fix bugs. See also the next section descibing differences for neovim
+welcome to fix bugs. See also the next section describing differences for neovim
 vs vim.
 
 Why Windows support experimental? Because it's effort and it's not a priority
@@ -342,7 +342,7 @@ $ git clone https://github.com/puremourning/vimspector ~/.vim/pack/vimspector/op
 ```
 
 2. Configure vimspector in your `.vimrc`, for example to enable the standard
-   mapings:
+   mappings:
 
 ```viml
 let g:vimspector_enable_mappings = 'HUMAN'
@@ -592,7 +592,7 @@ can (and probably will) change, including things like:
 - breaking changes to the configuration
 - keys, layout, functionality of the UI
 
-However, I commit to only doing this in the most extreme cases and to annouce
+However, I commit to only doing this in the most extreme cases and to announce
 such changes on Gitter well in advance. There's nothing more annoying than stuff
 just breaking on you. I get that.
 

@@ -59,7 +59,7 @@ function! vimspector#internal#state#TabClosed( afile ) abort
 #   probably the vimspector UI tab that was closed)
 #
 # noevim helpfully provides the tab number that was closed in <afile>, so we
-# use that there (it also doens't correctly invalidate tab objects:
+# use that there (it also doesn't correctly invalidate tab objects:
 # https://github.com/neovim/neovim/issues/16327)
 
 if '_vimspector_session' in globals() and _vimspector_session:

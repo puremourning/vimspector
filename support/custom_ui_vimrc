@@ -1,4 +1,4 @@
-" setup boilerplate to make this file usable with vim -Nu <tihs file> {{{
+" setup boilerplate to make this file usable with vim -Nu <this file> {{{
 scriptencoding utf-8
 execute 'source' expand( '<sfile>:p:h' ) . '/minimal_vimrc'
 set noequalalways
