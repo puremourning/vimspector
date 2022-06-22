@@ -388,8 +388,8 @@ class ProjectBreakpoints( object ):
           # Unplace the sign. If the sign was moved by the server, then we don't
           # want a subsequent call to _SignToLine to override the user's
           # breakpoint location with the server one. This is not what users
-          # typically expect, and we may (soon) call something that eagerly calls
-          # _SignToLine, such as _ShowBreakpoints,
+          # typically expect, and we may (soon) call something that eagerly
+          # calls _SignToLine, such as _ShowBreakpoints,
           if 'sign_id' in bp:
             signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
             del bp[ 'sign_id' ]
