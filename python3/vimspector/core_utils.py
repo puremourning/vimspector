@@ -44,7 +44,7 @@ def override( target_dict: typing.MutableMapping,
   override elements of the sub-dict rather than wholesale replacing.
 
   One special case is added. If a key within override dict starts with '!' then
-  it is interpretted as follows:
+  it is interpreted as follows:
      - if the associated value is "REMOVE", the key is removed from the parent
        dict
      - use !! for keys that actually start with ! and shouldn't be removed.

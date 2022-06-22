@@ -82,7 +82,7 @@ class OutputView( object ):
 
   def _Print( self, category, text_lines ):
     if category is None:
-      # This category is supressed
+      # This category is suppressed
       return
 
     if category not in self._buffers:
@@ -185,7 +185,7 @@ class OutputView( object ):
     if file_name is not None:
       assert cmd is None
       if install.GetOS() == "windows":
-        # FIXME: Can't display fiels in windows (yet?)
+        # FIXME: Can't display files in windows (yet?)
         return
 
       cmd = [ 'tail', '-F', '-n', '+1', '--', file_name ]

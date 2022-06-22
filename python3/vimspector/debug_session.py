@@ -437,8 +437,8 @@ class DebugSession( object ):
   def HasUI( self ):
     return self._uiTab and self._uiTab.valid
 
-  def IsUITab( self, tab_nubmer ):
-    return self.HasUI() and self._uiTab.number == tab_nubmer
+  def IsUITab( self, tab_number ):
+    return self.HasUI() and self._uiTab.number == tab_number
 
   def RequiresUI( otherwise=None ):
     """Decorator, call fct if self._connected else echo warning"""
@@ -472,7 +472,7 @@ class DebugSession( object ):
     self._connection.OnRequestTimeout( timer_id )
 
   def OnChannelClosed( self ):
-    # TODO: Not calld
+    # TODO: Not called
     self._connection = None
 
   @IfConnected()
@@ -833,7 +833,7 @@ class DebugSession( object ):
       self._logView.Reset()
 
     # TODO: The UI code is too scattered. Re-organise into a UI class that
-    # just deals with these thigns like window layout and custmisattion.
+    # just deals with these things like window layout and custmisattion.
     vim.command( f'botright { settings.Int( "bottombar_height" ) }new' )
     win = vim.current.window
     self._logView = output.OutputView( win, self._api_prefix )
@@ -844,8 +844,8 @@ class DebugSession( object ):
   def ShowOutput( self, category ):
     if not self._outputView.WindowIsValid():
       # TODO: The UI code is too scattered. Re-organise into a UI class that
-      # just deals with these thigns like window layout and custmisattion.
-      # currently, this class and the CodeView share some responsiblity for this
+      # just deals with these things like window layout and custmisattion.
+      # currently, this class and the CodeView share some responsibility for this
       # and poking into each View class to check its window is valid also feels
       # wrong.
       with utils.LetCurrentTabpage( self._uiTab ):
@@ -1146,7 +1146,7 @@ class DebugSession( object ):
 
       if 'command' not in self._adapter:
         utils.UserMessage( "Invalid adapter configuration. When using a tty, "
-                           "a command must be supplied. Add the 'commmand' to "
+                           "a command must be supplied. Add the 'command' to "
                            "the adapter config." )
         return False
 
@@ -1426,16 +1426,16 @@ class DebugSession( object ):
       self._splash_screen,
       "Initializing debug adapter..." )
 
-    # For a good explaination as to why this sequence is the way it is, see
+    # For a good explanation as to why this sequence is the way it is, see
     # https://github.com/microsoft/vscode/issues/4902#issuecomment-368583522
     #
     # In short, we do what VSCode does:
     # 1. Send the initialize request and wait for the reply
-    # 2a. When we recieve the initialize reply, send the launch/attach request
+    # 2a. When we receive the initialize reply, send the launch/attach request
     # 2b. When we receive the initialized notification, send the breakpoints
     #    - if supportsConfigurationDoneRequest, send it
     #    - else, send the empty exception breakpoints request
-    # 3. When we have recieved both the receive the launch/attach reply *and*
+    # 3. When we have received both the receive the launch/attach reply *and*
     #    the connfiguration done reply (or, if we didn't send one, a response to
     #    the empty exception breakpoints request), we request threads
     # 4. The threads response triggers things like scopes and triggers setting
@@ -1550,7 +1550,7 @@ class DebugSession( object ):
     #
     # Of course, specs are basically guidelines. MS's own cpptools simply
     # doesn't respond top threads request when attaching via gdbserver. At
-    # least it would apear that way.
+    # least it would appear that way.
     #
     # As it turns out this is due to a bug in gdbserver which means that
     # attachment doesn't work due to sending the signal to the process group

@@ -316,7 +316,7 @@ function! s:CreateNeovimTooltip( body ) abort
   call nvim_win_set_option( s:popup_win_id, 'number', v:false )
 
   " Move the cursor into the popup window, as this is the only way we can
-  " interract with the popup in neovim
+  " interact with the popup in neovim
   noautocmd call win_gotoid( s:popup_win_id )
 
   nnoremap <silent> <buffer> <Esc> <cmd>quit<CR>

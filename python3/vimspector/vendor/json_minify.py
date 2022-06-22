@@ -23,7 +23,7 @@
 
 Based on JSON.minify.js: https://github.com/getify/JSON.minify
 
-Contributers:
+Contributors:
   - Gerald Storer
     - Contributed original version
   - Felipe Machado

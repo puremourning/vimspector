@@ -391,7 +391,7 @@ The specification for the gadget object is defined in the [gadget schema][gadget
 
 You can specify a key `extends` in the adapter configuration to inherit from an
 existing adapter. This is useful for defining adapters for remote debugging or
-where there are common options, varables etc. For example:
+where there are common options, variables etc. For example:
 
 ```json
 {
@@ -454,7 +454,7 @@ typical example looks like this:
       "filetypes": [ /* list of filetypes this applies to */ ],
       "configuration": {
         "request": "<launch or attach>",
-        <debug configutation>
+        <debug configuration>
       }
     }
   }
@@ -475,7 +475,7 @@ call vimspector#LaunchWithConfigurations( dict )
 For example:
 
 ```viml
-   let pid = <some_exression>
+   let pid = <some_expression>
    call vimspector#LaunchWithConfigurations( {
                \  "attach": {
                \    "adapter": "netcoredbg",
@@ -508,7 +508,7 @@ will use that configuration, unless it contains a key `"autoselect": false`.
 
 If any single configuration is found with `"default": true`, that one is used.
 
-Otherwise, the user is propmted to select a configuration to use.
+Otherwise, the user is prompted to select a configuration to use.
 
 #### Specifying a default configuration
 
@@ -677,8 +677,8 @@ a value, as in :
 ### Extending configurations
 
 Like adapters, you can include a `extends` key in the configuration
-specification, which makes it "inherit" from the specified configuraiton. In
-practice that means any keys specified in this configuraiton override the
+specification, which makes it "inherit" from the specified configuration. In
+practice that means any keys specified in this configuration override the
 corresponding keys in the "base" configuration. 
 
 This is useful in particular where there data that need to be the same across a
@@ -763,7 +763,7 @@ The resulting "derived" configuraition ends up like this:
 {
   "key1": "This key is unchanged",
   "key2": {
-    "key2.1": "This is the override valu",
+    "key2.1": "This is the override value",
     "key2.2": "This key is unchanged"
   }
 }
@@ -842,7 +842,7 @@ Vimspector then orchestrates the various tools to set you up.
           //   "args": [ "-o", "StrictHostKeyChecking=no" ]
           // },
 
-          // Command to launch the debugee and attach the debugger; 
+          // Command to launch the debuggee and attach the debugger; 
           // %CMD% replaced with the remote-cmdLine configured in the launch
           // configuration. (mandatory)
           "runCommand": [
@@ -873,8 +873,8 @@ Vimspector then orchestrates the various tools to set you up.
           // Command to get the PID of the process to attach  (mandatory)
           "pidCommand": [
             //
-            // Remember taht you can use ${var} to ask for input. I use this to
-            // call a custom command to returm the PID for a named service, so
+            // Remember that you can use ${var} to ask for input. I use this to
+            // call a custom command to return the PID for a named service, so
             // here's an examle:
             //
             "/path/to/secret/script/GetPIDForService", "${ServiceName}"
@@ -1009,7 +1009,7 @@ and have to tell cpptools a few more options.
           ],
           //
           // If your application is started by a wrapper script, then you might
-          // need the followin. GDB can't pause an application because it only
+          // need the following. GDB can't pause an application because it only
           // sends the signal to the process group leader. Or something.
           // Basically, if you find that everything just hangs and the
           // application never attaches, try using the following to manually
@@ -1071,7 +1071,7 @@ port.
         "remote": {
           "container": "${container}", // Docker container id or name to exec into to.
 
-          // Command to launch the debugee and attach the debugger; 
+          // Command to launch the debuggee and attach the debugger; 
           // %CMD% replaced with the remote-cmdLine configured in the launch
           // configuration. (mandatory)
           "runCommand": [
@@ -1101,8 +1101,8 @@ port.
           // This command gets appended to "docker exec ${container}"
           "pidCommand": [
             //
-            // Remember taht you can use ${var} to ask for input. I use this to
-            // call a custom command to returm the PID for a named service, so
+            // Remember that you can use ${var} to ask for input. I use this to
+            // call a custom command to return the PID for a named service, so
             // here's an examle:
             //
             "sh", "-c", "pgrep", "-f", "${filename}"
@@ -1206,7 +1206,7 @@ of choice has a way to use a language server, you can use the
 
 It is recommended to include the `$schema` declaration as in the above examples,
 but if that isn't present, the following [JSON language server
-configuration][json-ls-config] is recommened to load the schema from the
+configuration][json-ls-config] is recommended to load the schema from the
 Internet:
 
 ```json
