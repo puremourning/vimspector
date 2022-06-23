@@ -319,7 +319,7 @@ function! Test_ExpandVariables()
         \   )
         \ } )
 
-  " Stays collpased through step
+  " Stays collapsed through step
   call vimspector#StepOver()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 30, 1 )
   call WaitForAssert( {->

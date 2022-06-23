@@ -71,7 +71,7 @@ def LaunchTerminal( api_prefix,
 
 
   if not window_for_start or not window_for_start.valid:
-    # TOOD: Where? Maybe we should just use botright vertical ...
+    # TODO: Where? Maybe we should just use botright vertical ...
     window_for_start = vim.current.window
 
   if term.window is not None and term.window.valid:

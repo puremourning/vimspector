@@ -124,7 +124,7 @@ function! Test_Python_Remote_Attach()
         \ 'out_cb': funcref( 'ReceiveFromLauncher' ),
         \ } )
 
-  " Wait up to 60s for the debugee to be launched (the script faffs with
+  " Wait up to 60s for the debuggee to be launched (the script faffs with
   " virtualenvs etc.)
   call WaitFor( {-> ready == v:true }, 60000 )
 

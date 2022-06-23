@@ -318,7 +318,7 @@ function! Test_ExpandVariables()
         \   )
         \ } )
 
-  " Stays collpased through step
+  " Stays collapsed through step
   call vimspector#StepOver()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 30, 1 )
   call WaitForAssert( {->
@@ -333,7 +333,7 @@ function! Test_ExpandVariables()
         \   )
         \ } )
 
-  " Cpptools keeps the same "Locals" scope, so it stays collapsed even throught
+  " Cpptools keeps the same "Locals" scope, so it stays collapsed even through
   " step-in
   call vimspector#StepInto()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, s:setup_func_line, 1 )
