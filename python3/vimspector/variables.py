@@ -305,8 +305,6 @@ class VariablesView( object ):
       self._oldoptions[ 'balloonevalterm' ] = vim.options[ 'balloonevalterm' ]
       vim.options[ 'balloonevalterm' ] = True
 
-    self._is_term = not bool( int( vim.eval( "has( 'gui_running' )" ) ) )
-
   def Clear( self ):
     with utils.ModifiableScratchBuffer( self._vars.buf ):
       utils.ClearBuffer( self._vars.buf )
@@ -439,7 +437,7 @@ class VariablesView( object ):
       else:
         watch.result.Update( message[ 'body' ] )
 
-      popup_win_id = utils.CreateTooltip( self._is_term, [], is_hover )
+      popup_win_id = utils.CreateTooltip( [], is_hover )
       # record the global eval window id
       vim.vars[ 'vimspector_session_windows' ][ 'eval' ] = int( popup_win_id )
       popup_bufnr = int( vim.eval( "winbufnr({})".format( popup_win_id ) ) )
@@ -470,7 +468,7 @@ class VariablesView( object ):
 
     def failure_handler( reason, message ):
       display = [ reason ]
-      float_win_id = utils.CreateTooltip( self._is_term, display, is_hover )
+      float_win_id = utils.CreateTooltip( display, is_hover )
       # record the global eval window id
       vim.vars[ 'vimspector_session_windows' ][ 'eval' ] = int( float_win_id )
 
@@ -494,7 +492,7 @@ class VariablesView( object ):
 
     hover = variable.HoverText()
     if hover:
-      utils.CreateTooltip( self._is_term, hover.split( '\n' ), is_hover )
+      utils.CreateTooltip( hover.split( '\n' ), is_hover )
 
     return ''
 

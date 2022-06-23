@@ -710,12 +710,7 @@ def ParseVariables( variables_list,
   return new_variables
 
 
-def CreateTooltip( is_term, display: list, is_hover = False ):
-  if not is_term:
-    # To enable the Windows GUI to display the balloon correctly
-    # Refer https://github.com/vim/vim/issues/1512#issuecomment-492070685
-    display = '\n'.join( display )
-
+def CreateTooltip( display: list, is_hover = False ):
   created_win_id = int( vim.eval(
     "vimspector#internal#balloon#CreateTooltip({}, {})".format(
       int( is_hover ), json.dumps( display )
