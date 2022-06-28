@@ -2251,7 +2251,7 @@ Other servers ~
 - Java - vscode-javac. This works, but is not as functional as Java Debug
   Server. Take a look at this comment [52] for instructions.
 
-- See also the wiki [53] which has community-contributed plugin files for
+- See also the wiki [15] which has community-contributed plugin files for
   some languages.
 
 ===============================================================================
@@ -2567,7 +2567,7 @@ FAQ ~
    additional language support
 
 2. How do I stop it starting a new Terminal.app on macOS? See this comment
-   [54]
+   [53]
 
 3. Can I specify answers to the annoying questions about exception
    breakpoints in my '.vimspector.json' ? Yes, see here [25].
@@ -2604,10 +2604,10 @@ FAQ ~
 
 4. Do I _have_ to put a '.vimspector.json' in the root of every project? No,
    you can use 'g:vimspector_adapters' and 'g:vimspector_configurations' or
-   put all of your adapter and debug configs in a single directory [55] if
+   put all of your adapter and debug configs in a single directory [54] if
    you want to, but note the caveat that '${workspaceRoot}' won't be
    calculated correctly in that case. The vimsepctor author uses this a lot
-   [56]
+   [55]
 
 5. I'm confused about remote debugging configuration, can you explain it?
    eh... kind of. Reference: https://puremourning.github.io/vimspector/confi
@@ -2615,7 +2615,7 @@ FAQ ~
    ://github.com/puremourning/vimspector/issues/478#issuecomment-943515093
 
 6. I'm trying to debug a Django (django?) project and it's not working. Can
-   you help? sure, check this link which has a working example [57]. Or
+   you help? sure, check this link which has a working example [56]. Or
    google it.
 
 7. Can vimspector build my code before debugging it? Can I deploy it to a
@@ -2623,7 +2623,7 @@ FAQ ~
    debugger, not a task system or build automation system - there are other
    tools for that. There is however a hack you can use - you can use a
    'shell' variable to execute a command and just discard the output. Other
-   options are discussed in this issue [58]
+   options are discussed in this issue [57]
 
 Example 'g:vimspector_adapters' and 'g:vimspector_configurations':
 >
@@ -2710,11 +2710,10 @@ References ~
 [50] https://github.com/puremourning/vimspector/issues/3
 [51] https://github.com/tomblind/local-lua-debugger-vscode
 [52] https://github.com/puremourning/vimspector/issues/3#issuecomment-576916076
-[53] https://github.com/puremourning/vimspector/wiki/languages
-[54] https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322
-[55] https://puremourning.github.io/vimspector/configuration.html#debug-configurations
-[56] https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf
-[57] https://www.reddit.com/r/neovim/comments/mz4ari/how_to_set_up_vimspector_for_django_debugging/
-[58] https://github.com/puremourning/vimspector/issues/227
+[53] https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322
+[54] https://puremourning.github.io/vimspector/configuration.html#debug-configurations
+[55] https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf
+[56] https://www.reddit.com/r/neovim/comments/mz4ari/how_to_set_up_vimspector_for_django_debugging/
+[57] https://github.com/puremourning/vimspector/issues/227
 
 vim: ft=help
