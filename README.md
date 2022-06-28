@@ -1966,7 +1966,7 @@ This debugger uses stdio to communicate with the running process, so calls to
   Server. Take a look at [this
   comment](https://github.com/puremourning/vimspector/issues/3#issuecomment-576916076)
   for instructions.
-- See also [the wiki](https://github.com/puremourning/vimspector/wiki/languages)
+- See also [the wiki](https://github.com/puremourning/vimspector/wiki/Additional-Language-Support)
   which has community-contributed plugin files for some languages.
 
 
