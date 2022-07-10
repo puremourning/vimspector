@@ -43,6 +43,17 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: issue-works-in-sample-project
+    attributes:
+      label: Sample project works?
+      description: Try one of the sample projects in `support/test` for your file type. Does that work? If not, use the sample project for crating your reproduction case.
+      options:
+        - Not reproducable with sample project
+        - Reproducable with sample project
+        - No sample project for this filetype
+    validations:
+      required: true
 
   - type: textarea
     id: issue-repro
@@ -50,12 +61,17 @@ body:
       label: Minimal Reproduction
       description: |
         Provide a clear set of steps to reproduce the issue using the minimal vimrc, i.e. "What you did"
+
+        NOTE: If your steps to reproduce are incomplete or invalid, the issue may be closed without response.
+
+        NOTE: If your issue is intermittent, or hard to reproduce with minimal or sample projects, explain _in detail_ the pattern of behaviour and what investigation you have done so far. Note that in this case it is _probably_ better to get in contact on Gitter/Matrix as it's _almost impossible_ to diagnose such issues via GttHub without a lot of back and forth.
       value: |
         List of steps to reproduce:
 
-        1. Run `vim ---clean Nu /path/to/vimspector/support/minimal_vimrc`
+        1. Run `vim ---clean Nu /path/to/vimspector/support/minimal_vimrc ....`
         2. Open _this project_...
         3. Press _this sequence of keys_
+
     validations:
       required: true
 
