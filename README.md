@@ -1008,7 +1008,7 @@ pick one.
 ### Save and restore
 
 Vimspector can save and restore breakpoints (and some other stuff) to a session
-file. The following commands exist for htat:
+file. The following commands exist for that:
 
 * `VimspectorMkSession [file name]` - save the current set of line breakpoints,
   logpoints, conditional breakpoints, function breakpoints and exception
