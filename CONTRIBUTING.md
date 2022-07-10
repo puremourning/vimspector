@@ -172,7 +172,7 @@ There are 2 ways:
    `vimspector/gadget`, then consider using `./run_tests --install --basedir
    /tmp/vimspector_test` (then delete `/tmp/vimspector_test`). This will install
    the gadgets to that dir and use it for the gadget dir/config dir so that your
-   custom configuration won't interfere with the tess.
+   custom configuration won't interfere with the tests.
 
 When tests fail, they dump a load of logs to a directory for each failed tests.
 Usually the most useful output is `messages`, which tells you what actually
