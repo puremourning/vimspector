@@ -748,7 +748,7 @@ variables, etc. For example:
       "run - test mode": {
         "extends": "run - simple",
         "configuration": {
-          "args": [ "-mode", "test" ] 
+          "args": [ "-mode", "test" ]
         }
       },
       // run with some different environment vars
@@ -796,7 +796,7 @@ For example:
           "key2.1": "This is the override value"
         },
         // remove "key3" from the resulting config
-        "!key3": "REMOVE" 
+        "!key3": "REMOVE"
       }
     }
   }
@@ -888,7 +888,7 @@ Vimspector then orchestrates the various tools to set you up.
             //   "args": [ "-o", "StrictHostKeyChecking=no" ]
             // },
   
-            // Command to launch the debuggee and attach the debugger; 
+            // Command to launch the debuggee and attach the debugger;
             // %CMD% replaced with the remote-cmdLine configured in the launch
             // configuration. (mandatory)
             "runCommand": [
@@ -1017,21 +1017,21 @@ gdbserver and have to tell cpptools a few more options.
         ],
         "name": "cppdbg",
         "configuration": {
-          "type": "cppdbg"
-        },
+          "type": "cppdbg" },
         "launch": {
           "remote": {
             "host": "${host}",
             "account": "${account}",
             // or, alternatively "container": "${ContainerID}"
   
-            "runCommand": [ 
+            "runCommand": [
               "gdbserver",
               "--once",
               "--no-startup-with-shell",
               "--disable-randomisation",
               "0.0.0.0:${port}",
               "%CMD%"
+            ]
           },
           "delay": "1000m" // optional
         },
@@ -1046,13 +1046,12 @@ gdbserver and have to tell cpptools a few more options.
                // or...
                "pgrep", "executable"
             ],
-            "attachCommand": [ 
-              "gdbserver",
-              "--once",
+            "attachCommand": [
+              "gdbserver", "--once",
               "--attach",
               "0.0.0.0:${port}",
               "%PID%"
-            ],
+            ]
             //
             // If your application is started by a wrapper script, then you might
             // need the following. GDB can't pause an application because it only
@@ -1080,7 +1079,7 @@ gdbserver and have to tell cpptools a few more options.
           "request": "launch",
   
           "program": "/path/to/the/local/executable",
-          "cwd": "${workspaceRoot},
+          "cwd": "${workspaceRoot}",
           "MIMode": "gdb",
           "miDebuggerServerAddress": "${host}:${port}",
           "sourceFileMap#json": "{\"${RemoteRoot}\": \"${workspaceRoot}\"}"
@@ -1093,7 +1092,7 @@ gdbserver and have to tell cpptools a few more options.
           "request": "launch",
   
           "program": "/path/to/the/local/executable",
-          "cwd": "${workspaceRoot},
+          "cwd": "${workspaceRoot}",
           "MIMode": "gdb",
           "miDebuggerServerAddress": "${host}:${port}",
           "sourceFileMap#json": "{\"${RemoteRoot}\": \"${workspaceRoot}\"}"
@@ -1117,7 +1116,7 @@ port.
           "remote": {
             "container": "${container}", // Docker container id or name to exec into to.
   
-            // Command to launch the debuggee and attach the debugger; 
+            // Command to launch the debuggee and attach the debugger;
             // %CMD% replaced with the remote-cmdLine configured in the launch
             // configuration. (mandatory)
             "runCommand": [
