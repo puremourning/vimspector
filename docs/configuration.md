@@ -123,7 +123,7 @@ is useful: accepting the name of a test to run.
 
 But for now, consider the following example snippet:
 
-```json
+```jsonc
 {
   "configurations": {
     "example-debug-configuration": {
@@ -180,7 +180,7 @@ This is why we have the replacement variables after all.
 Frequently debug adapters request command arguments as a JSON array, for
 example:
 
-```json
+```jsonc
     "args": [ "one", "two three", "four" ],
 ```
 
@@ -192,7 +192,7 @@ word is added as a list item.
 
 For example:
 
-```json
+```jsonc
    "args": [ "*${CommandLineArgs}" ]
 ```
 
@@ -205,7 +205,7 @@ This would:
 
 You can also combine with static values:
 
-```json
+```jsonc
    "args": [ "First", "*${CommandLineArgs}", "Last" ]
 ```
 
@@ -222,7 +222,7 @@ The syntax is `${variableName:default value}`. The default value can contain any
 character, but to include a `}` you must escape it with a backslash. To include
 a backslash in the JSON you must write `\\`, as in:
 
-```json
+```jsonc
   { "key": "${value:default {\\} stuff}" }
 ```
 
@@ -232,7 +232,7 @@ variables](#predefined-variables), or one specified in a `variables` block. In
 order to reference them, you _must_ use `${var}` syntax and you _must_ escape
 the closing `}`. For example, the is a common and useful case:
 
-```json
+```jsonc
   {
     "configuration": {
       "program": "${script:${file\\}}"
@@ -254,13 +254,13 @@ This is easier to explain with an example. Let's say we want to offer the
 ability to break on entry, as an option for the user. The launch configuration
 requires `stopOnEntry` to be a bool. This doesn't work:
 
-```json
+```jsonc
   "stopOnEntry": "${StopOnEntry}"
 ```
 
 The reason is that if the user types `true`, the resulting object is:
 
-```json
+```jsonc
   "stopOnEntry": "true"
 ```
 
@@ -268,7 +268,7 @@ The problem being that is a string, not a boolean. So Vimspector allows you to
 re-interpret the string as a JSON value and use that instead. To do this, add
 `#json` to the key's name. You can even add a default, like this:
 
-```json
+```jsonc
   "stopOnEntry#json": "${stopOnEntry:true}"
 ```
 
@@ -276,7 +276,7 @@ If the user accepts the default, the resulting string `"true"` is coerced to a
 JSON value `true`, and the suffix is stripped fom the key, resulting in the
 following:
 
-```json
+```jsonc
   "stopOnEntry": true
 ```
 
@@ -285,7 +285,7 @@ Which is what we need.
 If you happen to have a key that already ends in `#json` (unlikely!), then you
 can force Vimspector to treat the value as a string by appending `#s`, as in:
 
-```json
+```jsonc
   "unlikelyKeyName#json#s": "this is a string, not JSON data"
 ```
 
@@ -295,7 +295,7 @@ The most common usage for this is for number and bool types, but it works for
 objects too. If you want to be able to specify a whole object (e.g. a whole
 `env` dict), then you can do that too:
 
-```json
+```jsonc
   "env#json": "${Environment:{\\}}"
 ```
 
@@ -303,7 +303,7 @@ The default value here is `{}` (note the `}` must be escaped!). The user can
 then enter something like `{ "MYVAR": "MyValue", "OTHER": "Other" }` and the
 resulting object would be:
 
-```json
+```jsonc
   "env": {
     "MYVAR": "MyValue",
     "OTHER": "Other"
@@ -393,7 +393,7 @@ You can specify a key `extends` in the adapter configuration to inherit from an
 existing adapter. This is useful for defining adapters for remote debugging or
 where there are common options, variables etc. For example:
 
-```json
+```jsonc
 {
   "adapters": {
     "my-custom-debugpy": {
@@ -514,7 +514,7 @@ Otherwise, the user is prompted to select a configuration to use.
 
 As noted, you can specify a default configuration with `"default": true`:
 
-```json
+```jsonc
 {
   "configurations": {
     "use this one": {
@@ -540,7 +540,7 @@ If you don't want a configuration to be selected automatically, then set
 `"autoselect": false`. This particularly useful for configurations in the
 central (as opposed to project-local) directory. For example:
 
-```json
+```jsonc
   "configurations": {
     "Don't use this by default!": {
       "autoselect": false,
@@ -564,7 +564,7 @@ provided, it's assume to apply to all buffer filetypes.
 
 Example:
 
-```json
+```jsonc
 {
   "configurations": {
     "Node": {
@@ -614,7 +614,7 @@ the configured response is empty string, the debug adapter default will be used.
 Referring to the above example, the following tells the debug adapter to use the
 default value for `caught` exceptions and to break on `uncaught` exception:
 
-```json
+```jsonc
 {
   "configurations": {
     "example-debug-configuration": {
@@ -647,7 +647,7 @@ The exception breakpoint "type" is `cpp_catch` and the default is `N`.
 
 Use the following to set the values in configuration and not get asked:
 
-```json
+```jsonc
   "configurations": {
     "example-debug-configuration": {
       "adapter": "example-adapter-name",
@@ -662,7 +662,7 @@ Use the following to set the values in configuration and not get asked:
 To just accept the defaults for these exception breakpoint types, don't specify
 a value, as in :
 
-```json
+```jsonc
   "configurations": {
     "example-debug-configuration": {
       "adapter": "example-adapter-name",
@@ -679,13 +679,13 @@ a value, as in :
 Like adapters, you can include a `extends` key in the configuration
 specification, which makes it "inherit" from the specified configuration. In
 practice that means any keys specified in this configuration override the
-corresponding keys in the "base" configuration. 
+corresponding keys in the "base" configuration.
 
 This is useful in particular where there data that need to be the same across a
 number of debug configurations, such as environment variables, paths, variables,
 etc. For example:
 
-```json
+```jsonc
 {
   "configurations":  {
     "run - simple": {
@@ -702,7 +702,7 @@ etc. For example:
     "run - test mode": {
       "extends": "run - simple",
       "configuration": {
-        "args": [ "-mode", "test" ] 
+        "args": [ "-mode", "test" ]
       }
     },
     // run with some different environment vars
@@ -732,7 +732,7 @@ Keys can be removed from base configurations by naming the key
 
 For example:
 
-```json
+```jsonc
 {
   "configurations": {
     "base" : {
@@ -751,7 +751,7 @@ For example:
         "key2.1": "This is the override value"
       },
       // remove "key3" from the resulting config
-      "!key3": "REMOVE" 
+      "!key3": "REMOVE"
     }
   }
 }
@@ -759,7 +759,7 @@ For example:
 
 The resulting "derived" configuraition ends up like this:
 
-```json
+```jsonc
 {
   "key1": "This key is unchanged",
   "key2": {
@@ -810,7 +810,7 @@ research that.
 
 Vimspector's tools are intended to automate your existing process for setting
 this up rather than to offer batteries-included approach. Ultimately, all
-Vimspector is going to do is run your commands over SSH, or docker, and 
+Vimspector is going to do is run your commands over SSH, or docker, and
 co-ordinate with the adapter.
 
 ### Python (debugpy) Example
@@ -825,7 +825,7 @@ the remote host). Vimspector also supports exec'ing into Docker run containers
 with `container` (the container name or id your app is running in).
 Vimspector then orchestrates the various tools to set you up.
 
-```json
+```jsonc
 
 {
   "adapters": {
@@ -842,7 +842,7 @@ Vimspector then orchestrates the various tools to set you up.
           //   "args": [ "-o", "StrictHostKeyChecking=no" ]
           // },
 
-          // Command to launch the debuggee and attach the debugger; 
+          // Command to launch the debuggee and attach the debugger;
           // %CMD% replaced with the remote-cmdLine configured in the launch
           // configuration. (mandatory)
           "runCommand": [
@@ -851,7 +851,7 @@ Vimspector then orchestrates the various tools to set you up.
             "--wait-for-client",
             "%CMD%"
           ]
-          
+
           // Optional alternative to runCommand (if you need to run multiple
           // commands)
           // "runCommands":  [
@@ -886,7 +886,7 @@ Vimspector then orchestrates the various tools to set you up.
             "python", "-m", "debugpy", "--listen", "0.0.0.0:${port}",
             "--pid", "%PID%"
           ]
-          
+
           // Optional alternative to attachCommand (if you need to run multiple
           // commands)
           // "attachCommands":  [
@@ -962,7 +962,7 @@ This example uses Vimspector to remotely launch or attach to a binary using
 The approach is very similar to the above for python, just that we use gdbserver
 and have to tell cpptools a few more options.
 
-```json
+```jsonc
 {
   "adapters": {
     "cpptools-remote": {
@@ -971,21 +971,21 @@ and have to tell cpptools a few more options.
       ],
       "name": "cppdbg",
       "configuration": {
-        "type": "cppdbg"
-      },
+        "type": "cppdbg" },
       "launch": {
         "remote": {
           "host": "${host}",
           "account": "${account}",
           // or, alternatively "container": "${ContainerID}"
 
-          "runCommand": [ 
+          "runCommand": [
             "gdbserver",
             "--once",
             "--no-startup-with-shell",
             "--disable-randomisation",
             "0.0.0.0:${port}",
             "%CMD%"
+          ]
         },
         "delay": "1000m" // optional
       },
@@ -1000,13 +1000,12 @@ and have to tell cpptools a few more options.
              // or...
              "pgrep", "executable"
           ],
-          "attachCommand": [ 
-            "gdbserver",
-            "--once",
+          "attachCommand": [
+            "gdbserver", "--once",
             "--attach",
             "0.0.0.0:${port}",
             "%PID%"
-          ],
+          ]
           //
           // If your application is started by a wrapper script, then you might
           // need the following. GDB can't pause an application because it only
@@ -1032,9 +1031,9 @@ and have to tell cpptools a few more options.
       "remote-request": "launch",
       "configuration": {
         "request": "launch",
-        
+
         "program": "/path/to/the/local/executable",
-        "cwd": "${workspaceRoot},
+        "cwd": "${workspaceRoot}",
         "MIMode": "gdb",
         "miDebuggerServerAddress": "${host}:${port}",
         "sourceFileMap#json": "{\"${RemoteRoot}\": \"${workspaceRoot}\"}"
@@ -1045,9 +1044,9 @@ and have to tell cpptools a few more options.
       "remote-request": "attach",
       "configuration": {
         "request": "launch",
-        
+
         "program": "/path/to/the/local/executable",
-        "cwd": "${workspaceRoot},
+        "cwd": "${workspaceRoot}",
         "MIMode": "gdb",
         "miDebuggerServerAddress": "${host}:${port}",
         "sourceFileMap#json": "{\"${RemoteRoot}\": \"${workspaceRoot}\"}"
@@ -1062,7 +1061,7 @@ and have to tell cpptools a few more options.
 This example uses Vimspector to remotely launch or attach to a docker container
 port.
 
-``` json
+```jsonc
 {
   "adapters": {
     "python-remote": {
@@ -1071,7 +1070,7 @@ port.
         "remote": {
           "container": "${container}", // Docker container id or name to exec into to.
 
-          // Command to launch the debuggee and attach the debugger; 
+          // Command to launch the debuggee and attach the debugger;
           // %CMD% replaced with the remote-cmdLine configured in the launch
           // configuration. (mandatory)
           "runCommand": [
@@ -1080,7 +1079,7 @@ port.
             "--wait-for-client",
             "%CMD%"
           ]
-          
+
           // Optional alternative to runCommand (if you need to run multiple
           // commands)
           // "runCommands":  [
@@ -1089,7 +1088,7 @@ port.
           // ]
 
         }
-        
+
         // optional delay to wait after running runCommand(s). This is often
         // needed because of the way docker handles TCP
         "delay": "1000m" // format as per :help sleep
@@ -1114,7 +1113,7 @@ port.
             "sh", "-c", "python", "-m", "debugpy", "--listen", "0.0.0.0:${port}",
             "--pid", "%PID%"
           ]
-          
+
           // Optional alternative to attachCommand (if you need to run multiple
           // commands)
           // "attachCommands":  [
@@ -1209,7 +1208,7 @@ but if that isn't present, the following [JSON language server
 configuration][json-ls-config] is recommended to load the schema from the
 Internet:
 
-```json
+```jsonc
 {
   "json": {
     "schemas": [
