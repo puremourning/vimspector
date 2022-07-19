@@ -152,33 +152,15 @@ class Variable( Expandable ):
 
 class Watch:
   """Holds a user watch expression (DAP request) and the result (WatchResult)"""
-  def __init__( self, expression: dict, tied_to_frame: bool ):
+  def __init__( self, expression: dict ):
     self.result: WatchResult
     self.line = None
 
     self.expression = expression
-    self.tied_to_frame = tied_to_frame
     self.result = None
 
   def SetCurrentFrame( self, frame ):
-    # OK this is a bit hacky. In Vimspector we have elected to associatet a
-    # frameId with a watch so that expressions that might match different things
-    # in different (current) stack frames always resolve unambiguously to the
-    # frame the user added the watch in. For exam,ple consider a stack like:
-    #
-    # TOP      int i = 0;
-    # MIDDLE   int i = 100;
-    # BOTTOM   int i = -1;
-    #
-    # When adding a watch for 'i' in MIDDLE, we should see '100', even if the
-    # 'current frame' is BOTTOM.
-    #
-    # However, if we _saved_ the watch to the file, we _don't know_ what the
-    # frameid should be!. Se, we just bung the current frame on it and it
-    # shimmers between frames as we step/move.
-
-    if not self.tied_to_frame:
-      self.expression[ 'frameId' ] = frame[ 'id' ]
+    self.expression[ 'frameId' ] = frame[ 'id' ]
 
   @staticmethod
   def New( frame, expression, context ):
@@ -189,7 +171,7 @@ class Watch:
     if frame:
       watch[ 'frameId' ] = frame[ 'id' ]
 
-    return Watch( watch, bool( frame ) )
+    return Watch( watch )
 
 
 class View:
