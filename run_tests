@@ -59,7 +59,7 @@ while [ -n "$1" ]; do
       ;;
     "--help")
       shift
-      echo "$(basename $0) [--basedir <basedir>] [--report output] [--quiet] [--install] <optional list of tests in form file:func>"
+      echo "$(basename $0) [--basedir <basedir>] [--report output] [--quiet] [--install]|[--install-method script|vim] <optional list of tests in form file:func>"
       echo ""
       echo " --basedir <basedir>     path to runtime directory like the optino to install_gadget.py"
       echo " --install               run install_gadget.py, useful with --basedir"
