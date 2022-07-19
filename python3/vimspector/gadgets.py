@@ -226,7 +226,7 @@ GADGETS = {
       'format': 'tar',
     },
     'all': {
-      'version': '2.0.0-895'
+      'version': '2.0.0-915'
     },
     'macos': {
       'file_name': 'netcoredbg-osx-amd64.tar.gz',
