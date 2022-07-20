@@ -183,10 +183,13 @@ To use Vimspector with a language that's not "built-in", see this
 
 ## Quick Start
 
-There are 2 installation methods:
+There are 3 installation methods:
 
-* Using a release tarball and vim packages
-* Using a clone of the repo (e.g. package manager)
+* Using a release tarball and Vim packages
+* Using a clone of the repo and Vim packages
+* Using a plugin manager
+
+**Way1: Using a release tarball and Vim packages**
 
 Release tarballs come with debug adapters for the default languages
 pre-packaged. To use a release tarball:
@@ -194,7 +197,7 @@ pre-packaged. To use a release tarball:
 1. Check the dependencies
 2. Untar the release tarball for your OS into `$HOME/.vim/pack`:
 
-```
+```bash
 $ mkdir -p $HOME/.vim/pack
 $ curl -L <url> | tar -C $HOME/.vim/pack zxvf -
 ```
@@ -203,28 +206,32 @@ $ curl -L <url> | tar -C $HOME/.vim/pack zxvf -
 
 4. (optionally) Enable the default set of mappings:
 
-```
+```vim
 let g:vimspector_enable_mappings = 'HUMAN'
 ```
 
 5. Configure your project's debug profiles (create `.vimspector.json`, or set
-   `g:vimspector_configurations`)
+   `g:vimspector_configurations`) - see the [reference guide](https://puremourning.github.io/vimspector/configuration.html)
 
-Alternatively, you can clone the repo and select which gadgets are installed:
+**Way2: Using a clone the repo, Vim packages and select gadgets to be installed**
 
 1. Check the dependencies
 1. Install the plugin as a Vim package. See `:help packages`.
 2. Add `packadd! vimspector` to you `.vimrc`
-2. Install some 'gadgets' (debug adapters) - see `:VimspectorInstall ...`
+2. Install some 'gadgets' (debug adapters) - see `:h vimspector-install-gadgets` in Vim or [supported languages](https://github.com/puremourning/vimspector#supported-languages)
 3. Configure your project's debug profiles (create `.vimspector.json`, or set
-   `g:vimspector_configurations`)
+   `g:vimspector_configurations`) - see the [reference guide](https://puremourning.github.io/vimspector/configuration.html)
 
-If you prefer to use a plugin manager, see the plugin manager's docs. For
-Vundle, use:
+**Way3: Using a plugin manager**
 
-```vim
-Plugin 'puremourning/vimspector'
-```
+1. See the plugin manager's docs and install  
+   For Vundle, use:
+   ```vim
+   Plugin 'puremourning/vimspector'
+   ```
+2. Install some 'gadgets' (debug adapters) - see `:h vimspector-install-gadgets` in Vim or [supported languages](https://github.com/puremourning/vimspector#supported-languages)
+3. Configure your project's debug profiles (create `.vimspector.json`, or set
+   `g:vimspector_configurations`) - see the [reference guide](https://puremourning.github.io/vimspector/configuration.html)
 
 The following sections expand on the above brief overview.
 
