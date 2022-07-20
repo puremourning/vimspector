@@ -189,7 +189,7 @@ There are 3 installation methods:
 * Using a clone of the repo and Vim packages
 * Using a plugin manager
 
-**Way1: Using a release tarball and Vim packages**
+### Method 1: Using a release tarball and Vim packages
 
 Release tarballs come with debug adapters for the default languages
 pre-packaged. To use a release tarball:
@@ -213,7 +213,7 @@ pre-packaged. To use a release tarball:
 5. Configure your project's debug profiles (create `.vimspector.json`, or set
    `g:vimspector_configurations`) - see the [reference guide](https://puremourning.github.io/vimspector/configuration.html)
 
-**Way2: Using a clone the repo, Vim packages and select gadgets to be installed**
+### Method 2: Using a clone the repo, Vim packages and select gadgets to be installed
 
 1. [Check the dependencies](#dependencies)
 1. Install the plugin as a Vim package. See `:help packages`.
@@ -222,7 +222,7 @@ pre-packaged. To use a release tarball:
 3. Configure your project's debug profiles (create `.vimspector.json`, or set
    `g:vimspector_configurations`) - see the [reference guide](https://puremourning.github.io/vimspector/configuration.html)
 
-**Way3: Using a plugin manager**
+### Method 3: Using a plugin manager
 
 1. [Check the dependencies](#dependencies)
 1. See the plugin manager's docs and install the plugin  
