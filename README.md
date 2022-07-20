@@ -197,18 +197,18 @@ pre-packaged. To use a release tarball:
 1. Check the dependencies
 2. Untar the release tarball for your OS into `$HOME/.vim/pack`:
 
-```bash
-$ mkdir -p $HOME/.vim/pack
-$ curl -L <url> | tar -C $HOME/.vim/pack zxvf -
-```
+   ```bash
+   $ mkdir -p $HOME/.vim/pack
+   $ curl -L <url> | tar -C $HOME/.vim/pack zxvf -
+   ```
 
 3. Add `packadd! vimspector` to you `.vimrc`
 
 4. (optionally) Enable the default set of mappings:
 
-```vim
-let g:vimspector_enable_mappings = 'HUMAN'
-```
+   ```vim
+   let g:vimspector_enable_mappings = 'HUMAN'
+   ```
 
 5. Configure your project's debug profiles (create `.vimspector.json`, or set
    `g:vimspector_configurations`) - see the [reference guide](https://puremourning.github.io/vimspector/configuration.html)
