@@ -194,7 +194,7 @@ There are 3 installation methods:
 Release tarballs come with debug adapters for the default languages
 pre-packaged. To use a release tarball:
 
-1. Check the dependencies
+1. [Check the dependencies](#dependencies)
 2. Untar the release tarball for your OS into `$HOME/.vim/pack`:
 
    ```bash
@@ -215,7 +215,7 @@ pre-packaged. To use a release tarball:
 
 **Way2: Using a clone the repo, Vim packages and select gadgets to be installed**
 
-1. Check the dependencies
+1. [Check the dependencies](#dependencies)
 1. Install the plugin as a Vim package. See `:help packages`.
 2. Add `packadd! vimspector` to you `.vimrc`
 2. Install some 'gadgets' (debug adapters) - see `:h vimspector-install-gadgets` in Vim or [supported languages](https://github.com/puremourning/vimspector#supported-languages)
@@ -224,7 +224,8 @@ pre-packaged. To use a release tarball:
 
 **Way3: Using a plugin manager**
 
-1. See the plugin manager's docs and install  
+1. [Check the dependencies](#dependencies)
+1. See the plugin manager's docs and install the plugin  
    For Vundle, use:
 
    ```vim
