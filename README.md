@@ -186,7 +186,7 @@ To use Vimspector with a language that's not "built-in", see this
 There are 3 installation methods:
 
 * Using a release tarball and Vim packages
-* Using a clone of the repo and Vim packages
+* Using a repo clone and Vim packages
 * Using a plugin manager
 
 ### Method 1: Using a release tarball and Vim packages
@@ -213,7 +213,7 @@ pre-packaged. To use a release tarball:
 5. Configure your project's debug profiles (create `.vimspector.json`, or set
    `g:vimspector_configurations`) - see the [reference guide] [vimspector-ref]
 
-### Method 2: Using a clone of the repo, Vim packages and select gadgets to be installed
+### Method 2: Using a repo clone, Vim packages and select gadgets to be installed
 
 1. [Check the dependencies](#dependencies)
 1. Install the plugin as a Vim package. See `:help packages`.
