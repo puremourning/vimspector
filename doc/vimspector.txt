@@ -10,6 +10,9 @@ Contents ~
   3. Other languages                               |vimspector-other-languages|
  3. Installation                                      |vimspector-installation|
   1. Quick Start                                       |vimspector-quick-start|
+   1. Method 1: Using a release tarball and Vim packages |vimspector-method-1-using-release-tarball-vim-packages|
+   2. Method 2: Using a repo clone, Vim packages and select gadgets to be installed |vimspector-method-2-using-repo-clone-vim-packages-select-gadgets-to-be-installed|
+   3. Method 3: Using a plugin manager |vimspector-method-3-using-plugin-manager|
   2. Dependencies                                     |vimspector-dependencies|
   3. Neovim differences                         |vimspector-neovim-differences|
   4. Windows differences                       |vimspector-windows-differences|
@@ -320,10 +323,15 @@ Installation ~
                                                        *vimspector-quick-start*
 Quick Start ~
 
-There are 2 installation methods:
+There are 3 installation methods:
 
-- Using a release tarball and vim packages
-- Using a clone of the repo (e.g. package manager)
+- Using a release tarball and Vim packages
+- Using a repo clone and Vim packages
+- Using a plugin manager
+
+-------------------------------------------------------------------------------
+                       *vimspector-method-1-using-release-tarball-vim-packages*
+Method 1: Using a release tarball and Vim packages ~
 
 Release tarballs come with debug adapters for the default languages
 pre-packaged. To use a release tarball:
@@ -334,29 +342,42 @@ pre-packaged. To use a release tarball:
   $ mkdir -p $HOME/.vim/pack
   $ curl -L <url> | tar -C $HOME/.vim/pack zxvf -
 <
-1. Add 'packadd! vimspector' to you '.vimrc'
+1. Add 'packadd! vimspector' to your '.vimrc'
 
 2. (optionally) Enable the default set of mappings:
 >
   let g:vimspector_enable_mappings = 'HUMAN'
 <
 1. Configure your project's debug profiles (create '.vimspector.json', or
-   set 'g:vimspector_configurations')
+   set 'g:vimspector_configurations') - see the reference guide [2]
 
-Alternatively, you can clone the repo and select which gadgets are installed:
+-------------------------------------------------------------------------------
+*vimspector-method-2-using-repo-clone-vim-packages-select-gadgets-to-be-installed*
+Method 2: Using a repo clone, Vim packages and select gadgets to be installed ~
 
 1. Check the dependencies
 2. Install the plugin as a Vim package. See ':help packages'.
-3. Add 'packadd! vimspector' to you '.vimrc'
-4. Install some 'gadgets' (debug adapters) - see ':VimspectorInstall ...'
+3. Add 'packadd! vimspector' to your '.vimrc'
+4. Install some 'gadgets' (debug adapters) - see here for installation
+   commands and select gadgets to install
 5. Configure your project's debug profiles (create '.vimspector.json', or
-   set 'g:vimspector_configurations')
+   set 'g:vimspector_configurations') - see the reference guide [2]
 
-If you prefer to use a plugin manager, see the plugin manager's docs. For
-Vundle, use:
+-------------------------------------------------------------------------------
+                                     *vimspector-method-3-using-plugin-manager*
+Method 3: Using a plugin manager ~
+
+1. Check the dependencies
+2. See the plugin manager's docs and install the plugin For Vundle, use:
 >
   Plugin 'puremourning/vimspector'
 <
+1. Install some 'gadgets' (debug adapters) - see here for installation
+   commands and select gadgets to install
+
+2. Configure your project's debug profiles (create '.vimspector.json', or
+   set 'g:vimspector_configurations') - see the reference guide [2]
+
 The following sections expand on the above brief overview.
 
 -------------------------------------------------------------------------------
