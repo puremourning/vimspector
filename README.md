@@ -202,7 +202,7 @@ pre-packaged. To use a release tarball:
    $ curl -L <url> | tar -C $HOME/.vim/pack zxvf -
    ```
 
-3. Add `packadd! vimspector` to you `.vimrc`
+3. Add `packadd! vimspector` to your `.vimrc`
 
 4. (optionally) Enable the default set of mappings:
 
@@ -213,11 +213,11 @@ pre-packaged. To use a release tarball:
 5. Configure your project's debug profiles (create `.vimspector.json`, or set
    `g:vimspector_configurations`) - see the [reference guide](https://puremourning.github.io/vimspector/configuration.html)
 
-### Method 2: Using a clone the repo, Vim packages and select gadgets to be installed
+### Method 2: Using a clone of the repo, Vim packages and select gadgets to be installed
 
 1. [Check the dependencies](#dependencies)
 1. Install the plugin as a Vim package. See `:help packages`.
-2. Add `packadd! vimspector` to you `.vimrc`
+2. Add `packadd! vimspector` to your `.vimrc`
 2. Install some 'gadgets' (debug adapters) - see `:h vimspector-install-gadgets` in Vim or [supported languages](#supported-languages)
 3. Configure your project's debug profiles (create `.vimspector.json`, or set
    `g:vimspector_configurations`) - see the [reference guide](https://puremourning.github.io/vimspector/configuration.html)
