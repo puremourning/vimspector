@@ -64,7 +64,7 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Closing debugger](#closing-debugger)
     * [Terminate debuggee](#terminate-debuggee)
  * [Debug profile configuration](#debug-profile-configuration)
-    * [C, C  , Rust, etc.](#c-c-rust-etc)
+    * [C, C++, Rust, etc.](#c-c-rust-etc)
        * [Data visualization / pretty printing](#data-visualization--pretty-printing)
        * [C   Remote debugging](#c-remote-debugging)
        * [C   Remote launch and attach](#c-remote-launch-and-attach)
