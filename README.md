@@ -226,9 +226,11 @@ pre-packaged. To use a release tarball:
 
 1. See the plugin manager's docs and install  
    For Vundle, use:
+
    ```vim
    Plugin 'puremourning/vimspector'
    ```
+
 2. Install some 'gadgets' (debug adapters) - see `:h vimspector-install-gadgets` in Vim or [supported languages](https://github.com/puremourning/vimspector#supported-languages)
 3. Configure your project's debug profiles (create `.vimspector.json`, or set
    `g:vimspector_configurations`) - see the [reference guide](https://puremourning.github.io/vimspector/configuration.html)
