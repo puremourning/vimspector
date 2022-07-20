@@ -211,7 +211,7 @@ pre-packaged. To use a release tarball:
    ```
 
 5. Configure your project's debug profiles (create `.vimspector.json`, or set
-   `g:vimspector_configurations`) - see the [reference guide](https://puremourning.github.io/vimspector/configuration.html)
+   `g:vimspector_configurations`) - see the [reference guide] [vimspector-ref]
 
 ### Method 2: Using a clone of the repo, Vim packages and select gadgets to be installed
 
@@ -220,7 +220,7 @@ pre-packaged. To use a release tarball:
 2. Add `packadd! vimspector` to your `.vimrc`
 2. Install some 'gadgets' (debug adapters) - see [here for installation commands](#install-some-gadgets) and [here to select gadgets to install](#supported-languages)
 3. Configure your project's debug profiles (create `.vimspector.json`, or set
-   `g:vimspector_configurations`) - see the [reference guide](https://puremourning.github.io/vimspector/configuration.html)
+   `g:vimspector_configurations`) - see the [reference guide] [vimspector-ref]
 
 ### Method 3: Using a plugin manager
 
@@ -234,7 +234,7 @@ pre-packaged. To use a release tarball:
 
 2. Install some 'gadgets' (debug adapters) - see [here for installation commands](#install-some-gadgets) and [here to select gadgets to install](#supported-languages)
 3. Configure your project's debug profiles (create `.vimspector.json`, or set
-   `g:vimspector_configurations`) - see the [reference guide](https://puremourning.github.io/vimspector/configuration.html)
+   `g:vimspector_configurations`) - see the [reference guide] [vimspector-ref]
 
 The following sections expand on the above brief overview.
 
