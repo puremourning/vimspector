@@ -218,7 +218,7 @@ pre-packaged. To use a release tarball:
 1. [Check the dependencies](#dependencies)
 1. Install the plugin as a Vim package. See `:help packages`.
 2. Add `packadd! vimspector` to your `.vimrc`
-2. Install some 'gadgets' (debug adapters) - see [here for installation commands](#install-some-gadgets) and [here to select gadgets to install](#supported-languages)
+2. Install some 'gadgets' (debug adapters) - see [here for installation commands](#install-some-gadgets) and [select gadgets to install](#supported-languages)
 3. Configure your project's debug profiles (create `.vimspector.json`, or set
    `g:vimspector_configurations`) - see the [reference guide] [vimspector-ref]
 
@@ -232,7 +232,7 @@ pre-packaged. To use a release tarball:
    Plugin 'puremourning/vimspector'
    ```
 
-2. Install some 'gadgets' (debug adapters) - see [here for installation commands](#install-some-gadgets) and [here to select gadgets to install](#supported-languages)
+2. Install some 'gadgets' (debug adapters) - see [here for installation commands](#install-some-gadgets) and [select gadgets to install](#supported-languages)
 3. Configure your project's debug profiles (create `.vimspector.json`, or set
    `g:vimspector_configurations`) - see the [reference guide] [vimspector-ref]
 
