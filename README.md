@@ -1117,7 +1117,7 @@ to add a new watch expression.
 
 ![watch window](https://puremourning.github.io/vimspector-web/img/vimspector-watch-window.png)
 
-The watches are represented by the buffer `vimspector.StackTrace`.
+The watches are represented by the buffer `vimspector.Watches`.
 
 If you prefer a more verbose display for variables and watches, then you can
 `let g:vimspector_variables_display_mode = 'full'`. By default only the name and
@@ -2172,7 +2172,7 @@ The following global variable is set up for you to get access to the UI
 elements: `g:vimspector_session_windows`. This is a `dict` with the following
 keys:
 
-* `g:vimspector_session_windows.tagpage`: The tab page for the session
+* `g:vimspector_session_windows.tabpage`: The tab page for the session
 * `g:vimspector_session_windows.variables`: Window ID of the variables window,
   containing the `vimspector.Variables` buffer.
 * `g:vimspector_session_windows.watches`: Window ID of the watches window,
