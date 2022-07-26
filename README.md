@@ -1117,7 +1117,7 @@ to add a new watch expression.
 
 ![watch window](https://puremourning.github.io/vimspector-web/img/vimspector-watch-window.png)
 
-The watches are represented by the buffer `vimspector.StackTrace`.
+The watches are represented by the buffer `vimspector.Watches`.
 
 If you prefer a more verbose display for variables and watches, then you can
 `let g:vimspector_variables_display_mode = 'full'`. By default only the name and
