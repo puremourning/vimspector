@@ -156,7 +156,8 @@ installer.AbortIfSUperUser( args.sudo )
 
 vimspector_base = os.path.dirname( __file__ )
 if args.basedir:
-  vimspector_base = os.path.abspath( args.basedir )
+  vimspector_base = os.path.expanduser( args.basedir.strip() )
+  vimspector_base = os.path.abspath( vimspector_base )
 
 install.MakeInstallDirs( vimspector_base )
 installer.Configure( vimspector_base = vimspector_base,
