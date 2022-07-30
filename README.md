@@ -288,7 +288,7 @@ Workarounds are in place as follows:
   and [`:VimspectorWatch`](#watches)
 * Balloons - There is the `<Plug>VimspectorBalloonEval` mapping. There is no
 default mapping for this, so I recommend something like this to get variable
-displays in popups:
+display in a popup:
 
 ```viml
 " mnemonic 'di' = 'debug inspect' (pick your own, if you prefer!)
@@ -325,9 +325,9 @@ vim -Nu /path/to/vimspector/tests/vimrc --cmd "let g:vimspector_enable_mappings=
 Then press `<F5>`.
 
 There's also a C++ project in `tests/testdata/cpp/simple/` with a `Makefile`
-which can be used to check if everything is working. This is used by the
-regression tests in CI so it should always work, and is a good way to check if 
-the problem is in your configuration rather than a bug.
+which can be used to check everything is working. This is used by the regression
+tests in CI so should always work, and is a good way to check if the problem is
+your configuration rather than a bug.
 
 ## Cloning the plugin
 
@@ -771,7 +771,7 @@ nmap <Leader>di <Plug>VimspectorBalloonEval
 xmap <Leader>di <Plug>VimspectorBalloonEval
 ```
 
-You may also wish to add mappings for going up/down the stack, for example:
+You may also wish to add mappings for navigating up/down the stack, for example:
 
 ```viml
 nmap <LocalLeader><F11> <Plug>VimspectorUpFrame
