@@ -394,7 +394,7 @@ Vimspector requires:
 - macOS Mojave or later
 - Windows (experimental)
 
-Why such a new vim ? Well 2 reasons:
+Why such a new vim? Well 2 reasons:
 
 1. Because vimspector uses a lot of new Vim features
 2. Because there are Vim bugs that vimspector triggers that will frustrate
@@ -406,9 +406,9 @@ occasionally. Issue reports are handled on best-efforts basis, and PRs are
 welcome to fix bugs. See also the next section describing differences for
 neovim vs vim.
 
-Why Windows support experimental? Because it's effort and it's not a priority
-for the author. PRs are welcome to fix bugs. Windows will not be regularly
-tested.
+Why is Windows support experimental? Because it's effort and it's not a
+priority for the author. PRs are welcome to fix bugs. Windows will not be
+regularly tested.
 
 Which Linux versions? I only test on Ubuntu 18.04 and later and RHEL 7.
 
@@ -508,7 +508,7 @@ by cloning this repository into your package path, like this:
 >
   packadd! vimspector
 <
-See support/doc/example_vimrc.vim for a minimal example.
+See 'support/doc/example_vimrc.vim' for a minimal example.
 
 -------------------------------------------------------------------------------
                                                    *vimspector-install-gadgets*
@@ -633,7 +633,7 @@ Then add this to your '.vimrc':
 >
   let g:vimspector_base_dir=expand( '$HOME/.vim/vimspector-config' )
 <
-When usnig ':VimspectorInstall', the 'g:vimspector_base_dir' setting is
+When using ':VimspectorInstall', the 'g:vimspector_base_dir' setting is
 respected unless '--basedir' is manually added (not recommended).
 
 See '--help' for more info on the various options.
@@ -714,7 +714,7 @@ Example:
 The gadget file is automatically written by 'install_gadget.py' (or
 ':VimspectorInstall').
 
-Vimspector will also load any fies matching:
+Vimspector will also load any files matching:
 '</path/to/vimspector>/gadgets/<os>/.gadgets.d/*.json'. These have the same
 format as '.gadgets.json' but are not overwritten when running
 'install_gadget.py'.
@@ -985,7 +985,8 @@ normal and visual modes, for example:
   " for visual mode, the visually selected text
   xmap <Leader>di <Plug>VimspectorBalloonEval
 <
-You may also wish to add mappings for up/down the stack, for example:
+You may also wish to add mappings for navigating up/down the stack, for
+example:
 >
   nmap <LocalLeader><F11> <Plug>VimspectorUpFrame
   nmap <LocalLeader><F12> <Plug>VimspectorDownFrame
@@ -1041,8 +1042,8 @@ To launch with an ad-hoc config you can use:
 - 'call vimspector#LaunchWithConfigurations( dict )'
 
 The argument is a 'dict' which is the 'configurations' section of a .vimspector
-file Pass one configuration in and that will be selected as the one to run. For
-example:
+file. Pass one configuration in and that will be selected as the one to run.
+For example:
 >
   let pid = <some_expression>
   call vimspector#LaunchWithConfigurations({
@@ -1083,7 +1084,7 @@ See the reference guide [24] for details.
 Get configurations ~
 
 - Use 'vimspector#GetConfigurations()' to get a list of configurations for
-  filetype of the current buffer
+  the filetype of the current buffer
 
 For example, to get an array of configurations and fuzzy matching on the result
 >
@@ -1110,9 +1111,9 @@ I recommend a mapping like this to toggle the breakpoints window:
 <
 The following mappings apply by default in the breakpoints window:
 
-- 't', '<F9>' - toggle, i.e. enable/dissable breakpoint
-- 'T' - toggle, i.e. enable/dissable ALL breakpoints
-- 'dd', '<Del>' - delete the current breakpiont
+- 't', '<F9>' - toggle, i.e. enable/disable breakpoint
+- 'T' - toggle, i.e. enable/disable ALL breakpoints
+- 'dd', '<Del>' - delete the current breakpoint
 - 'i', 'a', 'o' - add a new line breakpoint
 - 'I', 'A', 'O' - add a new function breakpoint
 - '<Enter>' or double-click - jump to the line breakpoint
@@ -1183,7 +1184,7 @@ guide [25] for details on that.
                                                        *vimspector-api-summary*
 API Summary ~
 
-**NOTE:*** Previously, ToggleBreakpoint would cycle between 3 states: enabled,
+**_NOTE:_** Previously, ToggleBreakpoint would cycle between 3 states: enabled,
 disabled, deleted. Many users found the 'disabled' state was rarely useful, so
 the behaviour has been changed. ToggleBreakpoint always creates or deletes a
 breakpoint. If you wish to 'disable' breakpoints, use the breakpoints window
@@ -1326,7 +1327,7 @@ Variables and scopes ~
   '<leader><CR>' (if 'modifyOtherKeys' doesn't work for you)
 - View the type of the variable via mouse hover.
 - When changing the stack frame the locals window updates.
-- While paused, hover to see values
+- While paused, hover to see values.
 
   Image: locals window (see reference [27])
 
@@ -1413,7 +1414,7 @@ For YouCompleteMe, the following config works well:
 Dump memory ~
 
 Some debug adapters provide a way to dump process memory associated with
-variables. This can be done from the Variables and Wathces windows with:
+variables. This can be done from the Variables and Watches windows with:
 
 - The WinBar option "Dump"
 - '<leader>m' mapping (by default, can be customised)
@@ -1440,8 +1441,8 @@ supported by the underlying debugger, threads can be paused and continued
 individually from within the Stack Trace window.
 
 A particular thread, highlighted with the 'CursorLine' highlight group is the
-"focussed" thread. This is the thread that receives commands like "Stop In",
-"Stop Out", "Continue" and "Pause" in the code window. The focussed thread can
+"focussed" thread. This is the thread that receives commands like "Step In",
+"Step Out", "Continue" and "Pause" in the code window. The focussed thread can
 be changed manually to "switch to" that thread.
 
 - Use '<CR>', or double-click with left mouse to expand/collapse a thread
@@ -1458,7 +1459,7 @@ be changed manually to "switch to" that thread.
   focussed thread to the thread of that frame and jump to that frame in the
   code window.
 
-- The current frame when a breakpoint is hit or if manuall jumping is also
+- The current frame when a breakpoint is hit or if manual jumping is also
   highlighted.
 
   Image: stack trace (see reference [30])
@@ -1565,15 +1566,15 @@ Debug profile configuration ~
 For an introduction to the configuration of '.vimspector.json', take a look at
 the Getting Started section of the Vimspector website [1].
 
-For full explanation, including how to use variables, substitutions and how to
-specify exception breakpoints, see the docs [2].
+For a full explanation, including how to use variables, substitutions and how
+to specify exception breakpoints, see the docs [2].
 
 The JSON configuration file allows C-style comments:
 
 - '// comment to end of line ...'
 - '/* inline comment ... */'
 
-Current tested with the following debug adapters.
+Currently tested with the following debug adapters.
 
 -------------------------------------------------------------------------------
                                                      *vimspector-c-c-rust-etc.*
@@ -1685,7 +1686,7 @@ The cpptools documentation describes how to attach cpptools to gdbserver using
                                             *vimspector-c-remote-launch-attach*
 C++ Remote launch and attach ~
 
-If you're feeling fancy, checkout the reference guide [33] for an example of
+If you're feeling fancy, check out the reference guide [33] for an example of
 getting Vimspector to remotely launch and attach.
 
 - CodeLLDB (MacOS)
