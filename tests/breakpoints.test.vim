@@ -947,15 +947,20 @@ function! Test_ListBreakpoints()
 endfunction
 
 function! Test_BreakpointMovements()
+  let g:test_is_flaky = 0
   lcd testdata/cpp/simple
   edit simple.cpp
   let main_win_id = win_getid()
 
-  let breakpoint_lines = [ 7, 9, 16 ]
+  " Define out of order
+  let breakpoint_lines = [ 15, 9, 17 ]
   for line in breakpoint_lines
     call cursor( [ line, 1 ] )
     call vimspector#ToggleBreakpoint()
   endfor
+
+  " Sort breakpoints by line, as movements are in sorted order
+  call sort( breakpoint_lines, 'n' )
 
   call cursor( [ 1, 1 ] )
   for line in breakpoint_lines

@@ -18,6 +18,7 @@ from collections import defaultdict
 import vim
 import os
 import logging
+import operator
 
 import json
 from vimspector import utils, signs, settings
@@ -292,27 +293,24 @@ class ProjectBreakpoints( object ):
 
     self.JumpToBreakpoint( bp )
 
-
-  def JumpToNextBreakpoint( self ):
+  def JumpToNextBreakpoint( self, reverse=False ):
     bps = self._breakpoints_view._breakpoint_list
     if not bps:
       return
 
     line = vim.current.window.cursor[ 0 ]
-    bp = next( ( bp for bp in bps if bp[ 'lnum' ] > line ), None )
+    comparator = operator.lt if reverse else operator.gt
+    bp = next(
+      ( bp
+        for bp in sorted( bps, key=operator.itemgetter( 'lnum' ), reverse=reverse )
+        if comparator( bp[ 'lnum' ], line ) ),
+      None )
+
     if bp:
       self.JumpToBreakpoint( bp )
 
   def JumpToPreviousBreakpoint( self ):
-    bps = self._breakpoints_view._breakpoint_list
-    if not bps:
-      return
-
-    line = vim.current.window.cursor[ 0 ]
-    bp = next( ( bp for bp in reversed(bps) if bp[ 'lnum' ] < line ), None )
-    if bp:
-      self.JumpToBreakpoint( bp )
-
+    self.JumpToNextBreakpoint( reverse=True )
 
   def ClearBreakpointViewBreakpoint( self ):
     bp = self._breakpoints_view.GetBreakpointForLine()
