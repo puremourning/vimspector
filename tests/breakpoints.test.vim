@@ -946,6 +946,43 @@ function! Test_ListBreakpoints()
   %bwipe!
 endfunction
 
+function! Test_BreakpointMovements()
+  lcd testdata/cpp/simple
+  edit simple.cpp
+  let main_win_id = win_getid()
+
+  let breakpoint_lines = [ 7, 9, 16 ]
+  for line in breakpoint_lines
+    call cursor( [ line, 1 ] )
+    call vimspector#ToggleBreakpoint()
+  endfor
+
+  call cursor( [ 1, 1 ] )
+  for line in breakpoint_lines
+    call vimspector#JumpToNextBreakpoint()
+    call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', line, 1 )
+  endfor
+
+  " Don't do anything if already at last breakpoint
+  call vimspector#JumpToNextBreakpoint()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer(
+      \ 'simple.cpp', breakpoint_lines[ -1 ], 1 )
+
+  " Backwards traverse, skip first (last in file) because already at it
+  for line in reverse( copy( breakpoint_lines ) )[ 1: ]
+    call vimspector#JumpToPreviousBreakpoint()
+    call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', line, 1 )
+  endfor
+
+  " Don't do anything if already at first breakpoint
+  call vimspector#JumpToPreviousBreakpoint()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer(
+      \ 'simple.cpp', breakpoint_lines[ 0 ], 1 )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
 function! Test_Custom_Breakpoint_Priority()
   call s:PushSetting( 'vimspector_toggle_disables_breakpoint', 1 )
   let g:vimspector_sign_priority = {

@@ -266,14 +266,7 @@ class ProjectBreakpoints( object ):
     # so they are not touched
     self.UpdateUI()
 
-  def JumpToBreakpointViewBreakpoint( self ):
-    bp = self._breakpoints_view.GetBreakpointForLine()
-    if not bp:
-      return
-
-    if bp.get( 'type' ) != 'L':
-      return
-
+  def JumpToBreakpoint( self, bp ):
     success = int( vim.eval(
         f'win_gotoid( bufwinid( \'{ bp[ "filename" ] }\' ) )' ) )
 
@@ -288,6 +281,37 @@ class ProjectBreakpoints( object ):
       utils.UserMessage( "Unable to jump to file",
                          persist = True,
                          error = True )
+
+  def JumpToBreakpointViewBreakpoint( self ):
+    bp = self._breakpoints_view.GetBreakpointForLine()
+    if not bp:
+      return
+
+    if bp.get( 'type' ) != 'L':
+      return
+
+    self.JumpToBreakpoint( bp )
+
+
+  def JumpToNextBreakpoint( self ):
+    bps = self._breakpoints_view._breakpoint_list
+    if not bps:
+      return
+
+    line = vim.current.window.cursor[ 0 ]
+    bp = next( ( bp for bp in bps if bp[ 'lnum' ] > line ), None )
+    if bp:
+      self.JumpToBreakpoint( bp )
+
+  def JumpToPreviousBreakpoint( self ):
+    bps = self._breakpoints_view._breakpoint_list
+    if not bps:
+      return
+
+    line = vim.current.window.cursor[ 0 ]
+    bp = next( ( bp for bp in reversed(bps) if bp[ 'lnum' ] < line ), None )
+    if bp:
+      self.JumpToBreakpoint( bp )
 
 
   def ClearBreakpointViewBreakpoint( self ):

@@ -469,6 +469,20 @@ function! vimspector#JumpToBreakpointViewBreakpoint() abort
   py3 _vimspector_session.JumpToBreakpointViewBreakpoint()
 endfunction
 
+function! vimspector#JumpToNextBreakpoint() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.JumpToNextBreakpoint()
+endfunction
+
+function! vimspector#JumpToPreviousBreakpoint() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.JumpToPreviousBreakpoint()
+endfunction
+
 function! vimspector#GetConfigurations() abort
   if !s:Enabled()
     return
