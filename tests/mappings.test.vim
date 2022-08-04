@@ -1,7 +1,7 @@
 let s:init = 0
 
 function! SetUp()
-  call vimspector#test#setup#SetUpWithMappings( v:none )
+  call vimspector#test#setup#SetUpWithMappings( v:null )
 
   if ! s:init
     let s:break_main_line = FunctionBreakOnBrace() ? 14 : 15

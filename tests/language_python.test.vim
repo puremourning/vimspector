@@ -1,5 +1,5 @@
 function! SetUp()
-  call vimspector#test#setup#SetUpWithMappings( v:none )
+  call vimspector#test#setup#SetUpWithMappings( v:null )
 endfunction
 
 function! ClearDown()
