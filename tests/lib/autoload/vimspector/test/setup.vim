@@ -82,7 +82,9 @@ function! vimspector#test#setup#Reset() abort
     call vimspector#internal#state#Reset()
   endif
 
-  call popup_clear()
+  if exists( '*popup_clear' )
+    call popup_clear()
+  endif
 endfunction
 
 let s:g_stack = {}
