@@ -184,7 +184,7 @@ function! vimspector#internal#job#StartCommandWithLog( cmd, category ) abort
   if job_status( s:commands[ a:category ][ index ] ) !=# 'run'
     echom 'Unable to start job for ' . string( a:cmd )
     redraw
-    return v:none
+    return v:null
   endif
 
   return bufnr( buf )

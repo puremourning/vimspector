@@ -2,7 +2,7 @@ let s:init = 0
 
 function! SetUp()
   set ambiwidth=double
-  call vimspector#test#setup#SetUpWithMappings( v:none )
+  call vimspector#test#setup#SetUpWithMappings( v:null )
   call ThisTestIsFlaky()
 
   if ! s:init
