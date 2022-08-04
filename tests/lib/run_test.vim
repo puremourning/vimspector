@@ -46,7 +46,9 @@ if has('packages')
   let &packpath = &runtimepath
 endif
 
-call ch_logfile( 'debuglog', 'w' )
+if exists( '*ch_logfile' )
+  call ch_logfile( 'debuglog', 'w' )
+endif
 
 " For consistency run all tests with 'nocompatible' set.
 " This also enables use of line continuation.
@@ -107,7 +109,9 @@ func RunTheTest(test)
   set noshowmode
 
   " Clear any overrides.
-  call test_override('ALL', 0)
+  if exists( '*test_override' )
+    call test_override('ALL', 0)
+  endif
 
   " Some tests wipe out buffers.  To be consistent, always wipe out all
   " buffers.
