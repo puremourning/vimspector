@@ -12,7 +12,12 @@ BASEDIR=$(AbsDirOf "$0")/${VIMSPECTOR_TEST_BASE:-test-base}
 INSTALL=0
 UPDATE=0
 INSTALLER_ARGS=''
-RUN_VIM="vim -N --clean --not-a-term"
+
+VIM_EXE='vim'
+IS_NVIM=$($VIM_EXE --version | grep -cm1 NVIM)
+VERSION_OPTIONS=$([ "$IS_NVIM" ] && echo '' || echo '--not-a-term')
+
+RUN_VIM="${VIM_EXE} -N --clean ${VERSION_OPTIONS}"
 RUN_TEST="${RUN_VIM} -S lib/run_test.vim"
 
 # 1 is stdout
