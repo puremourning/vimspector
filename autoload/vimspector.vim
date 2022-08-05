@@ -30,11 +30,11 @@ EOF
 endfunction
 
 
-" In vim, py3eval( 'None' ) returns v:null
+" In vim, py3eval( 'None' ) returns v:none
 " In neovim, py3eval( 'None' ) returns v:null
 "
 " Vim != Neovim. Go figure.
-let s:None = has( 'nvim' ) ? v:null : v:null
+let s:None = has( 'nvim' ) ? v:null : v:none
 
 function! s:Initialised() abort
   return exists( 's:enabled' )
