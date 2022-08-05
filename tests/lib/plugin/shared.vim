@@ -107,6 +107,19 @@ function! ThisTestIsFlaky()
   let g:test_is_flaky = v:true
 endfunction
 
+" In vim, py3eval( 'None' ) returns v:none, which is not equal v:null
+" but are same type v:t_null
+" In neovim, py3eval( 'None' ) returns v:null, and v:none does not exist
+function! AssertNull( actual ) abort
+  return assert_equal( type( v:null ), type( a:actual ),
+      \ 'actual: ' .. a:actual  )
+endfunction
+
+function! AssertNotNull( actual ) abort
+  return assert_notequal( type( v:null ), type( a:actual ),
+      \ 'actual: ' .. a:actual  )
+endfunction
+
 function! AssertMatchList( expected, actual ) abort
   let ret = assert_equal( len( a:expected ), len( a:actual ), a:actual )
   let len = min( [ len( a:expected ), len( a:actual ) ] )
