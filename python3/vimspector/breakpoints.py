@@ -24,6 +24,23 @@ import json
 from vimspector import utils, signs, settings
 
 
+def _JumpToBreakpoint( bp ):
+  success = int( vim.eval(
+      f'win_gotoid( bufwinid( \'{ bp[ "filename" ] }\' ) )' ) )
+
+  try:
+    if not success:
+      vim.command( "leftabove split {}".format( bp[ 'filename' ] ) )
+
+    utils.SetCursorPosInWindow( vim.current.window, bp[ 'lnum' ], 1 )
+  except vim.error:
+    # 'filename' or 'lnum' might be missing,
+    # so don't trigger an exception here by referring to them
+    utils.UserMessage( "Unable to jump to file",
+                       persist = True,
+                       error = True )
+
+
 class BreakpointsView( object ):
   def __init__( self ):
     self._win = None
@@ -267,22 +284,6 @@ class ProjectBreakpoints( object ):
     # so they are not touched
     self.UpdateUI()
 
-  def JumpToBreakpoint( self, bp ):
-    success = int( vim.eval(
-        f'win_gotoid( bufwinid( \'{ bp[ "filename" ] }\' ) )' ) )
-
-    try:
-      if not success:
-        vim.command( "leftabove split {}".format( bp[ 'filename' ] ) )
-
-      utils.SetCursorPosInWindow( vim.current.window, bp[ 'lnum' ], 1 )
-    except vim.error:
-      # 'filename' or 'lnum' might be missing,
-      # so don't trigger an exception here by referring to them
-      utils.UserMessage( "Unable to jump to file",
-                         persist = True,
-                         error = True )
-
   def JumpToBreakpointViewBreakpoint( self ):
     bp = self._breakpoints_view.GetBreakpointForLine()
     if not bp:
@@ -291,7 +292,7 @@ class ProjectBreakpoints( object ):
     if bp.get( 'type' ) != 'L':
       return
 
-    self.JumpToBreakpoint( bp )
+    _JumpToBreakpoint( bp )
 
   def JumpToNextBreakpoint( self, reverse=False ):
     bps = self._breakpoints_view._breakpoint_list
@@ -300,14 +301,16 @@ class ProjectBreakpoints( object ):
 
     line = vim.current.window.cursor[ 0 ]
     comparator = operator.lt if reverse else operator.gt
-    bp = next(
-      ( bp
-        for bp in sorted( bps, key=operator.itemgetter( 'lnum' ), reverse=reverse )
-        if comparator( bp[ 'lnum' ], line ) ),
-      None )
+    sorted_bps = sorted( bps,
+                         key=operator.itemgetter( 'lnum' ),
+                         reverse=reverse )
+    bp = next( ( bp
+                 for bp in sorted_bps
+                 if comparator( bp[ 'lnum' ], line ) ),
+                None )
 
     if bp:
-      self.JumpToBreakpoint( bp )
+      _JumpToBreakpoint( bp )
 
   def JumpToPreviousBreakpoint( self ):
     self.JumpToNextBreakpoint( reverse=True )
