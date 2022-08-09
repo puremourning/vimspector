@@ -950,7 +950,6 @@ function! Test_BreakpointMovements()
   let g:test_is_flaky = 0
   lcd testdata/cpp/simple
   edit simple.cpp
-  let main_win_id = win_getid()
 
   " Define out of order
   let breakpoint_lines = [ 15, 9, 17 ]
@@ -983,6 +982,36 @@ function! Test_BreakpointMovements()
   call vimspector#JumpToPreviousBreakpoint()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer(
       \ 'simple.cpp', breakpoint_lines[ 0 ], 1 )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+function! Test_BreakpointMovements_MovedByServer()
+  let g:test_is_flaky = 0
+  lcd testdata/cpp/simple
+  edit simple.cpp
+
+  " Line 7 has just declaration without assignment
+  " Line 9 is the next line with actual executable statement
+  let unresolved_line = 7
+  let resolved_line = 9
+  let main_line = 15
+  call cursor( [ unresolved_line, 1 ] )
+  call vimspector#ToggleBreakpoint()
+
+  " Before starting server, breakpoint is on exact line it was placed
+  call cursor( [ 1, 1 ] )
+  call vimspector#JumpToNextBreakpoint()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', unresolved_line, 1 )
+
+  " After starting server, breakpoint is moved to next executable line
+  " First assert is needed to wait for launch to finish before moving cursor
+  call vimspector#Launch()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', main_line, 1 )
+  call cursor( [ 1, 1 ] )
+  call vimspector#JumpToNextBreakpoint()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', resolved_line, 1 )
 
   call vimspector#test#setup#Reset()
   %bwipe!
