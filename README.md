@@ -2323,6 +2323,29 @@ hi link jsonComment Comment
     Or google it.
 13. Can vimspector build my code before debugging it? Can I deploy it to a remote host before debugging it?
     No, not really. Vimspector is just a debugger, not a task system or build automation system - there are other tools for that. There is however a hack you can use - you can use a 'shell' variable to execute a command and just discard the output. Other options are discussed in [this issue](https://github.com/puremourning/vimspector/issues/227)
+14. It's annoying to manually type in the PID when attaching. Do you have a PID picker? There's no PID picker in vimspector at the moment, but you could write something and wrap `vimspector#LaunchWithSettings( { 'ThePID': the_pid_i_picked } )`. Alternatively, you could use a `shell` variable to guess the PID, like this (which runs `pgrep vim | sort | tail -1` to get the 'highest' PID of the command to be debugged (NOTE: this is for debugging Vim. replace with something appropriate to your actual use case. If this doesn't make sense to you, you might be better off just typing in the PID).
+
+```json
+    "Attach: max PID": {
+      "adapter": "CodeLLDB",
+      "variables": {
+        "pid": {
+          "shell": [
+            "/bin/bash",
+            "-c",
+            "pgrep vim | sort | tail -1"
+          ]
+        }
+      },
+      "configuration": {
+        "request": "attach",
+        "program": "${workspaceRoot}/src/vim",
+        "expressions": "native",
+        "stopOnEntry#json": "${StopOnEntry:true}",
+        "pid": "${pid}"
+      }
+    },
+```
 
 
 Example `g:vimspector_adapters` and `g:vimspector_configurations`:
