@@ -3,7 +3,7 @@ function! vimspector#test#setup#SetUpWithMappings( mappings ) abort
     unlet g:loaded_vimpector
   endif
 
-  if a:mappings != v:none
+  if a:mappings != v:null
     let g:vimspector_enable_mappings = a:mappings
   endif
 
@@ -82,7 +82,9 @@ function! vimspector#test#setup#Reset() abort
     call vimspector#internal#state#Reset()
   endif
 
-  call popup_clear()
+  if exists( '*popup_clear' )
+    call popup_clear()
+  endif
 endfunction
 
 let s:g_stack = {}

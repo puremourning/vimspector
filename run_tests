@@ -12,8 +12,7 @@ BASEDIR=$(AbsDirOf "$0")/${VIMSPECTOR_TEST_BASE:-test-base}
 INSTALL=0
 UPDATE=0
 INSTALLER_ARGS=''
-RUN_VIM="vim -N --clean --not-a-term"
-RUN_TEST="${RUN_VIM} -S lib/run_test.vim"
+VIM_EXE='vim'
 
 # 1 is stdout
 out_fd=1
@@ -43,6 +42,11 @@ while [ -n "$1" ]; do
       VIMSPECTOR_TEST_STDOUT=$1
       shift
       ;;
+    "--exe")
+      shift
+      VIM_EXE=$1
+      shift
+      ;;
     "--quiet")
       shift
       # send the output to /dev/null
@@ -59,11 +63,12 @@ while [ -n "$1" ]; do
       ;;
     "--help")
       shift
-      echo "$(basename $0) [--basedir <basedir>] [--report output] [--quiet] [--install]|[--install-method script|vim] <optional list of tests in form file:func>"
+      echo "$(basename $0) [--basedir <basedir>] [--report output] [--exe <executable>] [--quiet] [--install]|[--install-method script|vim] <optional list of tests in form file:func>"
       echo ""
       echo " --basedir <basedir>     path to runtime directory like the option to install_gadget.py"
       echo " --install               run install_gadget.py, useful with --basedir"
       echo " --report <messages|all> which logs to dump to stdout after a test"
+      echo " --exe <executable>      choose vim executable, default 'vim'"
       echo " --quiet                 suppress vim's stdout"
       echo "e.g.: "
       echo " - run all tests: $0"
@@ -77,6 +82,12 @@ while [ -n "$1" ]; do
       ;;
   esac
 done
+
+IS_NVIM=$($VIM_EXE --version | grep -cm1 NVIM)
+VERSION_OPTIONS=$([ "$IS_NVIM" ] && echo '' || echo '--not-a-term')
+
+RUN_VIM="${VIM_EXE} -N --clean ${VERSION_OPTIONS}"
+RUN_TEST="${RUN_VIM} -S lib/run_test.vim"
 
 # We use fd 3 for vim's output. Send it to stdout if not already redirected
 # Note: can't use ${out_fd} in a redirect because redirects happen before

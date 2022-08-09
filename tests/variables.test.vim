@@ -666,7 +666,7 @@ function! Test_VariableEval()
   call feedkeys( ',d', 'xt' )
 
   call WaitForAssert( {->
-        \   assert_notequal( v:none, g:vimspector_session_windows.eval )
+        \   AssertNotNull( g:vimspector_session_windows.eval )
         \ } )
 
   call WaitForAssert( {->
@@ -688,7 +688,7 @@ function! Test_VariableEval()
   call feedkeys( "\<Esc>", 'xt' )
 
   call WaitForAssert( {->
-        \ assert_equal( v:none, g:vimspector_session_windows.eval )
+        \ AssertNull( g:vimspector_session_windows.eval )
         \ } )
 
   " test selection
@@ -698,7 +698,7 @@ function! Test_VariableEval()
   call feedkeys( 'viw,d', 'xt' )
 
   call WaitForAssert( {->
-        \ assert_notequal( v:none, g:vimspector_session_windows.eval )
+        \ AssertNotNull( g:vimspector_session_windows.eval )
         \ } )
 
   call WaitForAssert( {->
@@ -720,7 +720,7 @@ function! Test_VariableEval()
   call feedkeys( "\<Esc>", 'xt' )
 
   call WaitForAssert( {->
-        \ assert_equal( v:none, g:vimspector_session_windows.eval )
+        \ AssertNull( g:vimspector_session_windows.eval )
         \ } )
 
   " Get back to normal mode
@@ -732,7 +732,7 @@ function! Test_VariableEval()
   call feedkeys( ',d', 'xt' )
 
   call WaitForAssert( {->
-        \   assert_notequal( v:none, g:vimspector_session_windows.eval )
+        \   AssertNotNull( g:vimspector_session_windows.eval )
         \ } )
 
   call WaitForAssert( {->
@@ -750,7 +750,7 @@ function! Test_VariableEval()
   call feedkeys( "\<Esc>", 'xt' )
 
   call WaitForAssert( {->
-        \ assert_equal( v:none, g:vimspector_session_windows.eval )
+        \ AssertNull( g:vimspector_session_windows.eval )
         \ } )
 
   call vimspector#test#setup#Reset()
@@ -776,7 +776,7 @@ function! Test_VariableEvalExpand()
   call feedkeys( ',d', 'xt' )
 
   call WaitForAssert( {->
-        \ assert_notequal( v:none, g:vimspector_session_windows.eval )
+        \ AssertNotNull( g:vimspector_session_windows.eval )
         \ } )
 
   call WaitForAssert( {->
@@ -836,7 +836,7 @@ function! Test_VariableEvalExpand()
   call feedkeys( "\<Esc>", 'xt' )
 
   call WaitForAssert( {->
-        \ assert_equal( v:none, g:vimspector_session_windows.eval )
+        \ AssertNull( g:vimspector_session_windows.eval )
         \ } )
 
   call vimspector#test#setup#Reset()
@@ -1088,7 +1088,7 @@ function! Test_SetVariableValue_Balloon()
   call feedkeys( ',d', 'xt' )
 
   call WaitForAssert( {->
-        \   assert_notequal( v:none, g:vimspector_session_windows.eval )
+        \   AssertNotNull( g:vimspector_session_windows.eval )
         \ } )
 
   call WaitForAssert( {->
