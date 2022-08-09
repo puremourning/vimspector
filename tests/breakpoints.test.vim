@@ -964,7 +964,9 @@ function! Test_BreakpointMovements()
   call cursor( [ 1, 1 ] )
   for line in breakpoint_lines
     call vimspector#JumpToNextBreakpoint()
-    call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', line, 1 )
+    call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp',
+                                                           \ line,
+                                                           \ 1 )
   endfor
 
   " Don't do anything if already at last breakpoint
@@ -975,7 +977,9 @@ function! Test_BreakpointMovements()
   " Backwards traverse, skip first (last in file) because already at it
   for line in reverse( copy( breakpoint_lines ) )[ 1: ]
     call vimspector#JumpToPreviousBreakpoint()
-    call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', line, 1 )
+    call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp',
+                                                           \ line,
+                                                           \ 1 )
   endfor
 
   " Don't do anything if already at first breakpoint
@@ -1002,15 +1006,21 @@ function! Test_BreakpointMovements_MovedByServer()
   " Before starting server, breakpoint is on exact line it was placed
   call cursor( [ 1, 1 ] )
   call vimspector#JumpToNextBreakpoint()
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', unresolved_line, 1 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp',
+                                                         \ unresolved_line,
+                                                         \ 1 )
 
   " After starting server, breakpoint is moved to next executable line
   " First assert is needed to wait for launch to finish before moving cursor
   call vimspector#Launch()
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', s:break_main_line, 1 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp',
+                                                         \ s:break_main_line,
+                                                         \ 1 )
   call cursor( [ 1, 1 ] )
   call vimspector#JumpToNextBreakpoint()
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', resolved_line, 1 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp',
+                                                         \ resolved_line,
+                                                         \ 1 )
 
   call vimspector#test#setup#Reset()
   %bwipe!
