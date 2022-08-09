@@ -2651,6 +2651,36 @@ FAQ ~
    'shell' variable to execute a command and just discard the output. Other
    options are discussed in this issue [57]
 
+8. It's annoying to manually type in the PID when attaching. Do you have a
+   PID picker? There's no PID picker in vimspector at the moment, but you
+   could write something and wrap "vimspector#LaunchWithSettings( {
+   'ThePID': the_pid_i_picked } )". Alternatively, you could use a 'shell'
+   variable to guess the PID, like this (which runs 'pgrep vim | sort | tail
+   -1' to get the 'highest' PID of the command to be debugged (NOTE: this is
+   for debugging Vim. replace with something appropriate to your actual use
+   case. If this doesn't make sense to you, you might be better off just
+   typing in the PID).
+>
+  "Attach: max PID": {
+    "adapter": "CodeLLDB",
+    "variables": {
+      "pid": {
+        "shell": [
+          "/bin/bash",
+          "-c",
+          "pgrep vim | sort | tail -1"
+        ]
+      }
+    },
+    "configuration": {
+      "request": "attach",
+      "program": "${workspaceRoot}/src/vim",
+      "expressions": "native",
+      "stopOnEntry#json": "${StopOnEntry:true}",
+      "pid": "${pid}"
+    }
+  },
+<
 Example 'g:vimspector_adapters' and 'g:vimspector_configurations':
 >
   let g:vimspector_adapters = #{
