@@ -996,7 +996,6 @@ function! Test_BreakpointMovements_MovedByServer()
   " Line 9 is the next line with actual executable statement
   let unresolved_line = 7
   let resolved_line = 9
-  let main_line = 15
   call cursor( [ unresolved_line, 1 ] )
   call vimspector#ToggleBreakpoint()
 
@@ -1008,7 +1007,7 @@ function! Test_BreakpointMovements_MovedByServer()
   " After starting server, breakpoint is moved to next executable line
   " First assert is needed to wait for launch to finish before moving cursor
   call vimspector#Launch()
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', main_line, 1 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', s:break_main_line, 1 )
   call cursor( [ 1, 1 ] )
   call vimspector#JumpToNextBreakpoint()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', resolved_line, 1 )
