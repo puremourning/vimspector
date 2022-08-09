@@ -47,6 +47,10 @@ while [ -n "$1" ]; do
       VIM_EXE=$1
       shift
       ;;
+    "--skip-build")
+      shift
+      SKIP_BUILD=1
+      ;;
     "--quiet")
       shift
       # send the output to /dev/null
@@ -63,12 +67,13 @@ while [ -n "$1" ]; do
       ;;
     "--help")
       shift
-      echo "$(basename $0) [--basedir <basedir>] [--report output] [--exe <executable>] [--quiet] [--install]|[--install-method script|vim] <optional list of tests in form file:func>"
+      echo "$(basename $0) [--basedir <basedir>] [--report output] [--exe <executable>] [--skip-build] [--quiet] [--install]|[--install-method script|vim] <optional list of tests in form file:func>"
       echo ""
       echo " --basedir <basedir>     path to runtime directory like the option to install_gadget.py"
       echo " --install               run install_gadget.py, useful with --basedir"
       echo " --report <messages|all> which logs to dump to stdout after a test"
       echo " --exe <executable>      choose vim executable, default 'vim'"
+      echo " --skip-build            do not (re)build test programs"
       echo " --quiet                 suppress vim's stdout"
       echo "e.g.: "
       echo " - run all tests: $0"
@@ -160,16 +165,20 @@ fi
 
 
 
-echo "%SETUP - Building test programs..."
-set -e
-  pushd tests/testdata/cpp/simple
-    make clean all
-  popd
-  pushd support/test/csharp
-    dotnet build
-  popd
-set +e
-echo "%DONE - built test programs"
+if [ "$SKIP_BUILD" = "1" ]; then
+  echo "%SETUP - Skipped building test programs"
+else
+  echo "%SETUP - Building test programs..."
+  set -e
+    pushd tests/testdata/cpp/simple
+      make clean all
+    popd
+    pushd support/test/csharp
+      dotnet build
+    popd
+  set +e
+  echo "%DONE - built test programs"
+fi
 
 # Start
 pushd $(dirname $0)/tests > /dev/null
