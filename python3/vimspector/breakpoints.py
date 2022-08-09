@@ -18,9 +18,27 @@ from collections import defaultdict
 import vim
 import os
 import logging
+import operator
 
 import json
 from vimspector import utils, signs, settings
+
+
+def _JumpToBreakpoint( bp ):
+  success = int( vim.eval(
+      f'win_gotoid( bufwinid( \'{ bp[ "filename" ] }\' ) )' ) )
+
+  try:
+    if not success:
+      vim.command( "leftabove split {}".format( bp[ 'filename' ] ) )
+
+    utils.SetCursorPosInWindow( vim.current.window, bp[ 'lnum' ], 1 )
+  except vim.error:
+    # 'filename' or 'lnum' might be missing,
+    # so don't trigger an exception here by referring to them
+    utils.UserMessage( "Unable to jump to file",
+                       persist = True,
+                       error = True )
 
 
 class BreakpointsView( object ):
@@ -274,21 +292,28 @@ class ProjectBreakpoints( object ):
     if bp.get( 'type' ) != 'L':
       return
 
-    success = int( vim.eval(
-        f'win_gotoid( bufwinid( \'{ bp[ "filename" ] }\' ) )' ) )
+    _JumpToBreakpoint( bp )
 
-    try:
-      if not success:
-        vim.command( "leftabove split {}".format( bp[ 'filename' ] ) )
+  def JumpToNextBreakpoint( self, reverse=False ):
+    bps = self._breakpoints_view._breakpoint_list
+    if not bps:
+      return
 
-      utils.SetCursorPosInWindow( vim.current.window, bp[ 'lnum' ], 1 )
-    except vim.error:
-      # 'filename' or 'lnum' might be missing,
-      # so don't trigger an exception here by referring to them
-      utils.UserMessage( "Unable to jump to file",
-                         persist = True,
-                         error = True )
+    line = vim.current.window.cursor[ 0 ]
+    comparator = operator.lt if reverse else operator.gt
+    sorted_bps = sorted( bps,
+                         key=operator.itemgetter( 'lnum' ),
+                         reverse=reverse )
+    bp = next( ( bp
+                 for bp in sorted_bps
+                 if comparator( bp[ 'lnum' ], line ) ),
+                None )
 
+    if bp:
+      _JumpToBreakpoint( bp )
+
+  def JumpToPreviousBreakpoint( self ):
+    self.JumpToNextBreakpoint( reverse=True )
 
   def ClearBreakpointViewBreakpoint( self ):
     bp = self._breakpoints_view.GetBreakpointForLine()
