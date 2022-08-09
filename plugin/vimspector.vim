@@ -102,6 +102,12 @@ nnoremap <silent> <Plug>VimspectorUpFrame
 nnoremap <silent> <Plug>VimspectorDownFrame
       \ :<c-u>call <SID>SetRepeat( "\<Plug>VimspectorDownFrame" )<CR>
       \:<c-u>call vimspector#DownFrame()<CR>
+nnoremap <silent> <Plug>VimspectorJumpToNextBreakpoint
+      \ :<c-u>call <SID>SetRepeat( "\<Plug>VimspectorJumpToNextBreakpoint" )<CR>
+      \ :<c-u>call vimspector#JumpToNextBreakpoint()<CR>
+nnoremap <silent> <Plug>VimspectorJumpToPreviousBreakpoint
+      \ :<c-u>call <SID>SetRepeat( "\<Plug>VimspectorJumpToPreviousBreakpoint" )<CR>
+      \ :<c-u>call vimspector#JumpToPreviousBreakpoint()<CR>
 
 nnoremap <silent> <Plug>VimspectorBreakpoints
       \ :<c-u>call vimspector#ListBreakpoints()<CR>
