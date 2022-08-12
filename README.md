@@ -693,6 +693,7 @@ features to set your own mappings. To that end, Vimspector defines the following
 | `<Plug>VimspectorDownFrame`                   | Move down a frame in the current call stack                         | `vimspector#DownFrame()`                                          |
 | `<Plug>VimspectorJumpToNextBreakpoint`        | Move Cursor to the next breakpoint in current file                  | `vimspector#JumpToNextBreakpoint()`                               |
 | `<Plug>VimspectorJumpToPreviousBreakpoint`    | Move Cursor to the previous breakpoint in current file              | `vimspector#JumpToPreviousBreakpoint()`                           |
+| `<Plug>VimspectorJumpToProgramCounter`        | Move Cursor to the program counter in the current frame             | `vimspector#JumpToProgramCounter()`                               |
 | `<Plug>VimspectorBalloonEval`                 | Evaluate expression under cursor (or visual) in popup               | *internal*                                                        |
 
 

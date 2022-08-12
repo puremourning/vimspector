@@ -483,6 +483,13 @@ function! vimspector#JumpToPreviousBreakpoint() abort
   py3 _vimspector_session.JumpToPreviousBreakpoint()
 endfunction
 
+function! vimspector#JumpToProgramCounter() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.JumpToProgramCounter()
+endfunction
+
 function! vimspector#GetConfigurations() abort
   if !s:Enabled()
     return

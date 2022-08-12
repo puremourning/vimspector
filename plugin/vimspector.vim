@@ -108,6 +108,8 @@ nnoremap <silent> <Plug>VimspectorJumpToNextBreakpoint
 nnoremap <silent> <Plug>VimspectorJumpToPreviousBreakpoint
       \ :<c-u>call <SID>SetRepeat( "\<Plug>VimspectorJumpToPreviousBreakpoint" )<CR>
       \ :<c-u>call vimspector#JumpToPreviousBreakpoint()<CR>
+nnoremap <silent> <Plug>VimspectorJumpToProgramCounter
+      \ :<c-u>call vimspector#JumpToProgramCounter()<CR>
 
 nnoremap <silent> <Plug>VimspectorBreakpoints
       \ :<c-u>call vimspector#ListBreakpoints()<CR>
