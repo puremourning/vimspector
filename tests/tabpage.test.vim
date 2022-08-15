@@ -2,8 +2,8 @@ function! SetUp()
   call vimspector#test#setup#SetUpWithMappings( 'HUMAN' )
 endfunction
 
-function! ClearDown()
-  call vimspector#test#setup#ClearDown()
+function! TearDown()
+  call vimspector#test#setup#TearDown()
 endfunction
 
 let s:fn='../support/test/python/simple_python/main.py'

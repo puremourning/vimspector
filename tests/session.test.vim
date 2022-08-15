@@ -2,8 +2,8 @@ function! SetUp()
   call vimspector#test#setup#SetUpWithMappings( 'HUMAN' )
 endfunction
 
-function! ClearDown()
-  call vimspector#test#setup#ClearDown()
+function! TearDown()
+  call vimspector#test#setup#TearDown()
 endfunction
 
 function! Test_Save_Session_Specify_Path_Not_Running_LineBreakpoints()

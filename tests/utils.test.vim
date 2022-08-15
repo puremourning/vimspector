@@ -4,8 +4,8 @@ function! SetUp()
   py3 __import__( 'vimspector' )
 endfunction
 
-function! ClearDown()
-  call vimspector#test#setup#ClearDown()
+function! TearDown()
+  call vimspector#test#setup#TearDown()
 endfunction
 
 function! s:RunPyFile( file_name )

@@ -5,8 +5,8 @@ function! SetUp()
   let g:vimspector_variables_display_mode = 'compact'
 endfunction
 
-function! ClearDown()
-  call vimspector#test#setup#ClearDown()
+function! TearDown()
+  call vimspector#test#setup#TearDown()
 endfunction
 
 " TODO: SkipIf: Big endian system!
