@@ -585,10 +585,12 @@ function! Test_JumpToProgramCounter() abort
   call vimspector#StepInto()
   call TestJumpToPCAux( break_foo_line )
 
-  edit 'struct.cpp'
+  edit struct.cpp
   call vimspector#JumpToProgramCounter()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, break_foo_line, 1 )
 
+  call vimspector#ClearBreakpoints()
   call vimspector#test#setup#Reset()
+  delfunc TestJumpToPCAux
   %bwipe!
 endfunction
