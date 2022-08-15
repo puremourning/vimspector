@@ -560,7 +560,7 @@ function! Test_UpDownStack()
   %bwipe!
 endfunction
 
-function! Test_JumpToProgramCounter() abort
+function! Test_JumpToProgramCounter()
   let l:break_main_line = FunctionBreakOnBrace() ? 14 : 15
   let l:break_foo_line = FunctionBreakOnBrace() ? 6 : 9
   lcd testdata/cpp/simple
