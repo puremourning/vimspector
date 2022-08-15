@@ -559,3 +559,38 @@ function! Test_UpDownStack()
   call vimspector#test#setup#Reset()
   %bwipe!
 endfunction
+
+function! Test_JumpToProgramCounter()
+  let l:break_main_line = FunctionBreakOnBrace() ? 14 : 15
+  let l:break_foo_line = FunctionBreakOnBrace() ? 6 : 9
+  lcd testdata/cpp/simple
+  let fn = 'simple.cpp'
+  exe 'edit ' .. fn
+
+  call vimspector#SetLineBreakpoint( fn, 16 )
+  call vimspector#Launch()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn,
+                                                         \ break_main_line,
+                                                         \ 1 )
+
+  function! TestJumpToPCAux( line ) closure abort
+    call cursor( [ 1, 1 ] )
+    call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 1, 1 )
+    call vimspector#JumpToProgramCounter()
+    call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, a:line, 1 )
+  endfunction
+
+  call vimspector#Continue()
+  call TestJumpToPCAux( 16 )
+  call vimspector#StepInto()
+  call TestJumpToPCAux( break_foo_line )
+
+  edit struct.cpp
+  call vimspector#JumpToProgramCounter()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, break_foo_line, 1 )
+
+  call vimspector#ClearBreakpoints()
+  call vimspector#test#setup#Reset()
+  delfunc TestJumpToPCAux
+  %bwipe!
+endfunction

@@ -693,6 +693,7 @@ features to set your own mappings. To that end, Vimspector defines the following
 | `<Plug>VimspectorDownFrame`                   | Move down a frame in the current call stack                         | `vimspector#DownFrame()`                                          |
 | `<Plug>VimspectorJumpToNextBreakpoint`        | Move Cursor to the next breakpoint in current file                  | `vimspector#JumpToNextBreakpoint()`                               |
 | `<Plug>VimspectorJumpToPreviousBreakpoint`    | Move Cursor to the previous breakpoint in current file              | `vimspector#JumpToPreviousBreakpoint()`                           |
+| `<Plug>VimspectorJumpToProgramCounter`        | Move Cursor to the program counter in the current frame             | `vimspector#JumpToProgramCounter()`                               |
 | `<Plug>VimspectorBalloonEval`                 | Evaluate expression under cursor (or visual) in popup               | *internal*                                                        |
 
 
@@ -728,6 +729,8 @@ let g:vimspector_enable_mappings = 'VISUAL_STUDIO'
 | `Shift F5`      | `<Plug>VimspectorStop`                  | Stop debugging.
 | `Ctrl Shift F5` | `<Plug>VimspectorRestart`               | Restart debugging with the same configuration.
 | `F6`            | `<Plug>VimspectorPause`                 | Pause debuggee.
+| `F8`            | `<Plug>VimspectorJumpToNextBreakpoint`  | Jump to next breakpoint in the current file.
+| `Shift F8`      | `<Plug>VimspectorJumpToPreviousBreakpoint` | Jump to previous breakpoint in the current file.
 | `F9`            | `<Plug>VimspectorToggleBreakpoint`      | Toggle line breakpoint on the current line.
 | `Shift F9`      | `<Plug>VimspectorAddFunctionBreakpoint` | Add a function breakpoint for the expression under cursor
 | `F10`           | `<Plug>VimspectorStepOver`              | Step Over

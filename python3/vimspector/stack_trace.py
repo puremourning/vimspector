@@ -419,6 +419,14 @@ class StackTraceView( object ):
       self._JumpToFrame( frame, 'down' )
 
 
+  def JumpToProgramCounter( self ):
+    frame = self._GetFrameOffset( 0 )
+    if not frame:
+      utils.UserMessage( 'No current stack frame' )
+    else:
+      self._JumpToFrame( frame, 'jump' )
+
+
   def AnyThreadsRunning( self ):
     for thread in self._threads:
       if thread.state != Thread.TERMINATED:
