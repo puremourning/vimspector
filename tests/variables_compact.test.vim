@@ -6,8 +6,8 @@ function! SetUp()
   let s:setup_func_line = FunctionBreakOnBrace() ? 17 : 18
 endfunction
 
-function! ClearDown()
-  call vimspector#test#setup#ClearDown()
+function! TearDown()
+  call vimspector#test#setup#TearDown()
 endfunction
 
 function! s:StartDebugging( ... )

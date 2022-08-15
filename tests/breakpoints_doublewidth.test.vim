@@ -15,8 +15,8 @@ function! SetUp()
   let g:vimspector_toggle_disables_breakpoint = 1
 endfunction
 
-function! ClearDown()
-  call vimspector#test#setup#ClearDown()
+function! TearDown()
+  call vimspector#test#setup#TearDown()
 endfunction
 
 function! SetUp_Test_Signs_Placed_Using_API_Are_Shown()

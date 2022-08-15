@@ -42,7 +42,7 @@ function! vimspector#test#setup#PushSetting( setting, value ) abort
   let g:[ a:setting ] = a:value
 endfunction
 
-function! vimspector#test#setup#ClearDown() abort
+function! vimspector#test#setup#TearDown() abort
   if exists( 's:SETTING' )
     for key in keys( s:SETTING )
       call TestLog( 'Resetting ' . key . ' to ' . string( s:SETTING[ key ] ) )

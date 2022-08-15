@@ -6,8 +6,8 @@ function! SetUp()
   call vimspector#test#setup#SetUpWithMappings( 'HUMAN' )
 endfunction
 
-function! ClearDown()
-  call vimspector#test#setup#ClearDown()
+function! TearDown()
+  call vimspector#test#setup#TearDown()
 endfunction
 
 function! s:StartDebugging()

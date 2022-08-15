@@ -17,7 +17,7 @@ function! s:PushSetting( setting, value ) abort
 endfunction
 
 function! TearDown() abort
-  call vimspector#test#setup#ClearDown()
+  call vimspector#test#setup#TearDown()
 endfunction
 
 function! SetUp_Test_Signs_Placed_Using_API_Are_Shown()

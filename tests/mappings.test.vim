@@ -10,8 +10,8 @@ function! SetUp()
   endif
 endfunction
 
-function! ClearDown()
-  call vimspector#test#setup#ClearDown()
+function! TearDown()
+  call vimspector#test#setup#TearDown()
 endfunction
 
 function! SetUp_Test_Mappings_Are_Added_HUMAN()

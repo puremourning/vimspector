@@ -3,8 +3,8 @@ function! SetUp()
   call vimspector#test#setup#SetUpWithMappings( v:null )
 endfunction
 
-function! ClearDown()
-  call vimspector#test#setup#ClearDown()
+function! TearDown()
+  call vimspector#test#setup#TearDown()
 endfunction
 
 function! SkipUnsupported() abort
