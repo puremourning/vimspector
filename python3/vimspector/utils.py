@@ -684,6 +684,8 @@ def ParseVariables( variables_list,
         if 'shell' in v:
           new_v = v.copy()
           # Bit of a hack. Allows environment variables to be used.
+          # FIXME: If this updates new_mapping with new variables entered by the
+          # user, we don't put them in the new_variables
           ExpandReferencesInDict( new_v,
                                   new_mapping,
                                   calculus,
@@ -709,6 +711,9 @@ def ParseVariables( variables_list,
           raise ValueError(
             "Unsupported variable defn {}: Missing 'shell'".format( n ) )
       else:
+        # FIXME: If this updates new_mapping with new variables entered by the
+        # user, we don't put them in the new_variables, this leads to having to
+        # enter them twice
         new_variables[ n ] = ExpandReferencesInObject( v,
                                                        new_mapping,
                                                        calculus,

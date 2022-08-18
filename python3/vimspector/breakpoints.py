@@ -112,6 +112,8 @@ class BreakpointsView( object ):
                      ':call vimspector#WriteSessionFile()<CR>' )
         vim.command( 'nnoremenu <silent> 1.4 WinBar.Load '
                      ':call vimspector#ReadSessionFile()<CR>' )
+        vim.command( 'nnoremenu <silent> 1.5 WinBar.Reset\\ Exception\\ Config '
+                     ':call vimspector#ClearExceptionBreakpoints()<CR>' )
 
       # we want to maintain the height of the window
       self._win.options[ "winfixheight" ] = True
@@ -394,6 +396,11 @@ class ProjectBreakpoints( object ):
       } )
 
     return qf
+
+
+  def ClearExceptionBreakpoints( self ):
+    self._exception_breakpoints = None
+    self.UpdateUI()
 
 
   def ClearBreakpoints( self ):

@@ -790,6 +790,14 @@ function! vimspector#WriteSessionFile( ... ) abort
   py3 _vimspector_session.WriteSessionFile( *vim.eval( 'a:000' ) )
 endfunction
 
+function! vimspector#ClearExceptionBreakpoints() abort
+  if !s:Enabled()
+    return
+  endif
+
+  py3 _vimspector_session.ClearExceptionBreakpoints()
+endfunction
+
 " Boilerplate {{{
 let &cpoptions=s:save_cpo
 unlet s:save_cpo

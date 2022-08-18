@@ -1944,6 +1944,9 @@ class DebugSession( object ):
   def ClearBreakpoints( self ):
     return self._breakpoints.ClearBreakpoints()
 
+  def ClearExceptionBreakpoints( self ):
+    return self._breakpoints.ClearExceptionBreakpoints()
+
   def AddFunctionBreakpoint( self, function, options ):
     return self._breakpoints.AddFunctionBreakpoint( function, options )
 
