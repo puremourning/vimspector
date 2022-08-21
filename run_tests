@@ -88,8 +88,10 @@ while [ -n "$1" ]; do
   esac
 done
 
+# Version specific flags, which exist in vim but not nvim or other way around
+# vim: --not-a-term: silences a warning
 IS_NVIM=$($VIM_EXE --version | grep -cm1 NVIM)
-VERSION_OPTIONS=$([ "$IS_NVIM" ] && echo '' || echo '--not-a-term')
+VERSION_OPTIONS=$([ "$IS_NVIM" -ne 0 ] && echo '' || echo '--not-a-term')
 
 RUN_VIM="${VIM_EXE} -N --clean ${VERSION_OPTIONS}"
 RUN_TEST="${RUN_VIM} -S lib/run_test.vim"
