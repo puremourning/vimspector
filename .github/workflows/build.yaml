@@ -56,7 +56,7 @@ jobs:
         path: gadgets/linux/download
       name: Cache gadgets
 
-    - run: vim --version
+    - run: ${{ matrix.runtime }} --version
       name: 'Print vim version information'
 
     - run: |
@@ -113,6 +113,7 @@ jobs:
         brew install --cask macvim
         brew link --overwrite python@3.8
         brew link --overwrite go@1.16
+        pip3 install --user neovim
       name: 'Install vim and deps'
 
     - run: go install github.com/go-delve/delve/cmd/dlv@latest
@@ -134,7 +135,7 @@ jobs:
         xcode-version: ^11
       name: "Switch to xcode 11 because of .NET debugging bug"
 
-    - run: vim --version
+    - run: ${{ matrix.runtime }} --version
       name: 'Print vim version information'
 
     - run: ./run_tests --exe ${{ matrix.runtime }} --basedir $(pwd) --install --update --report messages --quiet
