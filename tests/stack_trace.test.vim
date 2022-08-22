@@ -358,6 +358,7 @@ function! Test_Multiple_Threads_Step()
 endfunction
 
 function! Test_UpDownStack()
+  call SkipNeovim()
   let fn='../support/test/python/simple_python/main.py'
   exe 'edit ' . fn
   call setpos( '.', [ 0, 6, 1 ] )

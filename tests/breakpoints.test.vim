@@ -141,6 +141,7 @@ function! SetUp_Test_DisableBreakpointWhileDebugging()
 endfunction
 
 function Test_DisableBreakpointWhileDebugging()
+  call SkipNeovim()
   lcd testdata/cpp/simple
   edit simple.cpp
   call setpos( '.', [ 0, 15, 1 ] )
@@ -233,6 +234,7 @@ function! SetUp_Test_DisableBreakpointWhileDebugging_Disable()
 endfunction
 
 function Test_DisableBreakpointWhileDebugging_Disable()
+  call SkipNeovim()
   lcd testdata/cpp/simple
   edit simple.cpp
   call setpos( '.', [ 0, 15, 1 ] )
@@ -366,6 +368,7 @@ function! Test_Add_Breakpoints_In_File_Then_Open()
 endfunction
 
 function! Test_Add_Breakpoints_In_NonOpenedFile_RunToBreak()
+  call SkipNeovim()
   lcd testdata/cpp/simple
 
   " add

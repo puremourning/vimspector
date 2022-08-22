@@ -6,8 +6,10 @@ queue_rules:
       # CI https://doc.mergify.io/conditions.html#github-actions
       - status-success=PythonLint
       - status-success=VimscriptLint
-      - status-success=Linux
-      - status-success=MacOS
+      - status-success=Linux (vim)
+      - status-success=Linux (nvim)
+      - status-success=MacOS (vim)
+      - status-success=MacOS (nvim)
 
 pull_request_rules:
   - name: Merge owner PR when all checks passed
@@ -21,8 +23,10 @@ pull_request_rules:
       # CI https://doc.mergify.io/conditions.html#github-actions
       - status-success=PythonLint
       - status-success=VimscriptLint
-      - status-success=Linux
-      - status-success=MacOS
+      - status-success=Linux (vim)
+      - status-success=Linux (nvim)
+      - status-success=MacOS (vim)
+      - status-success=MacOS (nvim)
     actions: &merge-actions
       queue:
         method: merge
@@ -54,8 +58,10 @@ pull_request_rules:
       # CI https://doc.mergify.io/conditions.html#github-actions
       - status-success=PythonLint
       - status-success=VimscriptLint
-      - status-success=Linux
-      - status-success=MacOS
+      - status-success=Linux (vim)
+      - status-success=Linux (nvim)
+      - status-success=MacOS (vim)
+      - status-success=MacOS (nvim)
     actions:
       <<: *merge-actions
       comment:

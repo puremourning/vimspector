@@ -37,6 +37,7 @@ endfunction
 
 
 function! Test_DumpMemory_VariableWindow()
+  call SkipNeovim()
   call s:StartDebugging()
 
   call WaitForAssert( {->
@@ -128,6 +129,7 @@ EOF
 endfunction
 
 function! Test_DumpMemory_WatchWindow()
+  call SkipNeovim()
   call s:StartDebugging()
 
   call WaitForAssert( {->

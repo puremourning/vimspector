@@ -56,6 +56,7 @@ function! Test_PickConfiguration_FilteredFiletypes()
 endfunction
 
 function Test_Get_Configurations_VimDict()
+  call SkipNeovim()
   call vimspector#test#setup#PushSetting( 'vimspector_configurations', #{
         \ test_config: #{
         \    extends: 'launch - netcoredbg'

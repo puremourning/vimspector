@@ -15,6 +15,7 @@ function! SkipUnsupported() abort
 endfunction
 
 function! Test_CSharp_Simple_Adhoc_Config()
+  call SkipNeovim()
   call SkipUnsupported()
   let fn='Program.cs'
   lcd ../support/test/csharp

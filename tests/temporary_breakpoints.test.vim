@@ -17,6 +17,7 @@ function s:Start()
 endfunction
 
 function Test_Run_To_Cursor_Simple()
+  call SkipNeovim()
   " Run to a position that will certainly be executed
   lcd ../support/test/python/multiple_files
   call vimspector#SetLineBreakpoint( 'moo.py', 13 )
@@ -41,6 +42,7 @@ function Test_Run_To_Cursor_Simple()
 endfunction
 
 function Test_Run_To_Cursor_On_NonBreaking_Line()
+  call SkipNeovim()
   " Run to a position that will certainly be executed, but is not a real line
   lcd ../support/test/python/multiple_files
   call vimspector#SetLineBreakpoint( 'moo.py', 13 )
@@ -80,6 +82,7 @@ function Test_Run_To_Cursor_On_NonBreaking_Line()
 endfunction
 
 function Test_Run_To_Cursor_Different_File()
+  call SkipNeovim()
   " Run into a different file
   " Run to a position that will certainly be executed, but is not a real line
   lcd ../support/test/python/multiple_files
@@ -108,6 +111,7 @@ function Test_Run_To_Cursor_Different_File()
 endfunction
 
 function Test_Run_To_Cursor_Hit_Another_Breakpoint()
+  call SkipNeovim()
   " Run to cursor, but hit a non-temporary breakpoint
   lcd ../support/test/python/multiple_files
   call vimspector#SetLineBreakpoint( 'moo.py', 13 )
@@ -169,6 +173,7 @@ function! Test_InvalidBreakpoint()
 endfunction
 
 function! Test_StartDebuggingWithRunToCursor()
+  call SkipNeovim()
   lcd ../support/test/python/multiple_files
   edit moo.py
   call cursor( 9, 1 )

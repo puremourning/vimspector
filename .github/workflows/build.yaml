@@ -36,6 +36,13 @@ jobs:
     container:
       image: 'puremourning/vimspector:test-x86_64'
       options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime:
+          - vim
+          - nvim
+
     steps:
     - uses: actions/checkout@v2
 
@@ -49,12 +56,12 @@ jobs:
         path: gadgets/linux/download
       name: Cache gadgets
 
-    - run: vim --version
+    - run: ${{ matrix.runtime }} --version
       name: 'Print vim version information'
 
     - run: |
         export GOPATH=$HOME/go
-        ./run_tests --basedir $(pwd) --install --update --report messages --quiet
+        ./run_tests --exe ${{ matrix.runtime }} --basedir $(pwd) --install --update --report messages --quiet
       name: 'Run the tests'
       id: run_tests
       env:
@@ -64,15 +71,17 @@ jobs:
       uses: actions/upload-artifact@v2
       if: failure()
       with:
-        name: 'test-logs-${{ runner.os }}'
+        name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
         path: 'tests/logs/**/*'
 
-    - run: ./make_package linux ${{ github.run_id }}
-      name: 'Package'
+    - name: 'Package'
+      if: matrix.runtime == 'vim'
+      run: ./make_package linux ${{ github.run_id }}
 
     # TODO: test the tarball
 
     - name: "Upload package"
+      if: matrix.runtime == 'vim'
       uses: actions/upload-artifact@v2
       with:
         name: 'package-linux'
@@ -87,19 +96,26 @@ jobs:
 
   MacOS:
     runs-on: 'macos-10.15'
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime:
+          - vim
+          - nvim
     steps:
     - uses: actions/checkout@v2
 
     - run: |
         brew update-reset
         brew doctor || true
-        for p in python@3.8 go@1.16 tcl-tk llvm lua luajit love; do
+        for p in python@3.8 go@1.16 tcl-tk llvm lua luajit love neovim; do
           brew install $p || brew outdated $p || brew upgrade $p
         done
         brew reinstall icu4c
         brew install --cask macvim
         brew link --overwrite python@3.8
         brew link --overwrite go@1.16
+        pip3 install --user neovim
       name: 'Install vim and deps'
 
     - run: go install github.com/go-delve/delve/cmd/dlv@latest
@@ -121,10 +137,10 @@ jobs:
         xcode-version: ^11
       name: "Switch to xcode 11 because of .NET debugging bug"
 
-    - run: vim --version
+    - run: ${{ matrix.runtime }} --version
       name: 'Print vim version information'
 
-    - run: ./run_tests --basedir $(pwd) --install --update --report messages --quiet
+    - run: ./run_tests --exe ${{ matrix.runtime }} --basedir $(pwd) --install --update --report messages --quiet
       name: 'Run the tests'
       id: run_tests
       env:
@@ -134,15 +150,17 @@ jobs:
       uses: actions/upload-artifact@v2
       if: failure()
       with:
-        name: 'test-logs-${{ runner.os }}'
-        path: 'tests/logs'
+        name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
+        path: 'tests/logs/**/*'
 
-    - run: ./make_package macos ${{ github.run_id }}
-      name: 'Package'
+    - name: 'Package'
+      if: matrix.runtime == 'vim'
+      run: ./make_package macos ${{ github.run_id }}
 
     # TODO: test the tarball
 
     - name: "Upload package"
+      if: matrix.runtime == 'vim'
       uses: actions/upload-artifact@v2
       with:
         name: 'package-macos'

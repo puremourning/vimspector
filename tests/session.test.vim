@@ -187,6 +187,7 @@ function! TearDown_Test_Save_NoSession_Specify_Path_While_Running_Watches()
 endfunction
 
 function! Test_Save_Session_NoSpecify_Path_While_Running_Watches()
+  call SkipNeovim()
   let moo = 'moo.py'
   let cow = 'cow.py'
   lcd ../support/test/python/multiple_files
