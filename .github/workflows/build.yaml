@@ -93,7 +93,7 @@ jobs:
     - run: |
         brew update-reset
         brew doctor || true
-        for p in python@3.8 go@1.16 tcl-tk llvm lua luajit love; do
+        for p in python@3.8 go@1.16 tcl-tk llvm lua luajit love neovim; do
           brew install $p || brew outdated $p || brew upgrade $p
         done
         brew reinstall icu4c

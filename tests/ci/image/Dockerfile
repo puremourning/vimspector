@@ -11,6 +11,7 @@ RUN apt-get update && \
                      lsb-release \
                      ca-certificates \
                      software-properties-common && \
+  add-apt-repository ppa:neovim-ppa/stable && \
   curl -sL https://deb.nodesource.com/setup_12.x | bash - && \
   apt-get update && \
   apt-get -y dist-upgrade && \
@@ -31,7 +32,9 @@ RUN apt-get update && \
                      nodejs \
                      pkg-config \
                      lua5.1 \
-                     luajit
+                     luajit \
+                     neovim && \
+  pip3 install neovim
 
 RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
   dpkg-reconfigure --frontend noninteractive tzdata
