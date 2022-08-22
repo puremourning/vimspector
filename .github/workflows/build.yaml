@@ -37,6 +37,7 @@ jobs:
       image: 'puremourning/vimspector:test-x86_64'
       options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined
     strategy:
+      fail-fast: false
       matrix:
         runtime:
           - vim
@@ -94,6 +95,7 @@ jobs:
   MacOS:
     runs-on: 'macos-10.15'
     strategy:
+      fail-fast: false
       matrix:
         runtime:
           - vim
