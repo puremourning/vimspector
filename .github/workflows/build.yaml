@@ -36,6 +36,12 @@ jobs:
     container:
       image: 'puremourning/vimspector:test-x86_64'
       options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined
+    strategy:
+      matrix:
+        runtime:
+          - vim
+          - nvim
+
     steps:
     - uses: actions/checkout@v2
 
@@ -54,7 +60,7 @@ jobs:
 
     - run: |
         export GOPATH=$HOME/go
-        ./run_tests --basedir $(pwd) --install --update --report messages --quiet
+        ./run_tests --exe ${{ matrix.runtime }} --basedir $(pwd) --install --update --report messages --quiet
       name: 'Run the tests'
       id: run_tests
       env:
@@ -87,6 +93,11 @@ jobs:
 
   MacOS:
     runs-on: 'macos-10.15'
+    strategy:
+      matrix:
+        runtime:
+          - vim
+          - nvim
     steps:
     - uses: actions/checkout@v2
 
@@ -124,7 +135,7 @@ jobs:
     - run: vim --version
       name: 'Print vim version information'
 
-    - run: ./run_tests --basedir $(pwd) --install --update --report messages --quiet
+    - run: ./run_tests --exe ${{ matrix.runtime }} --basedir $(pwd) --install --update --report messages --quiet
       name: 'Run the tests'
       id: run_tests
       env:
