@@ -150,6 +150,11 @@ function! GetBufLine( buf, start, end  = '$' )
   return getbufline( a:buf, start, end )
 endfunction
 
+function! SkipNeovim() abort
+  if has( 'nvim' )
+    throw 'skipped: Neovim'
+  endif
+endfunction
 
 function! SkipOn( arch, system ) abort
   if trim( system( 'uname -m' ) ) == a:arch &&

@@ -64,6 +64,7 @@ function! SetUp_Test_Use_Mappings_HUMAN()
 endfunction
 
 function! Test_Use_Mappings_HUMAN()
+  call SkipNeovim()
   lcd testdata/cpp/simple
   edit simple.cpp
   call setpos( '.', [ 0, 16, 1 ] )
@@ -157,6 +158,7 @@ function! SetUp_Test_DisableBreakpointWhileDebugging()
 endfunction
 
 function Test_DisableBreakpointWhileDebugging()
+  call SkipNeovim()
   lcd testdata/cpp/simple
   edit simple.cpp
   call setpos( '.', [ 0, 15, 1 ] )

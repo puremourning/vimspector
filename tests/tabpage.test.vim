@@ -60,6 +60,7 @@ function! Test_Step_With_Different_Tabpage()
 endfunction
 
 function! Test_All_Buffers_Deleted_NoHidden()
+  call SkipNeovim()
   call ThisTestIsFlaky()
 
   set nohidden
@@ -91,6 +92,7 @@ function! Test_All_Buffers_Deleted_NoHidden()
 endfunction
 
 function! Test_All_Buffers_Deleted_Hidden()
+  call SkipNeovim()
   call ThisTestIsFlaky()
 
   set hidden

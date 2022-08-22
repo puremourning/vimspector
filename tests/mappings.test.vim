@@ -52,6 +52,7 @@ function! SetUp_Test_Use_Mappings_HUMAN()
 endfunction
 
 function! Test_Use_Mappings_HUMAN()
+  call SkipNeovim()
   call ThisTestIsFlaky()
   lcd testdata/cpp/simple
   edit simple.cpp
@@ -155,6 +156,7 @@ function! SetUp_Test_Use_Mappings_HUMAN_Disable()
 endfunction
 
 function! Test_Use_Mappings_HUMAN_Disable()
+  call SkipNeovim()
   call ThisTestIsFlaky()
   lcd testdata/cpp/simple
   edit simple.cpp

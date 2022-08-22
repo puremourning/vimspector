@@ -183,6 +183,7 @@ function! Test_SimpleWatches()
 endfunction
 
 function! Test_ExpandVariables()
+  call SkipNeovim()
   let fn =  'testdata/cpp/simple/struct.cpp'
   call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
         \   configuration: 'run-to-breakpoint'
@@ -355,6 +356,7 @@ function! Test_ExpandVariables()
 endfunction
 
 function! Test_ExpandWatch()
+  call SkipNeovim()
   let fn =  'testdata/cpp/simple/struct.cpp'
   call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
         \   configuration: 'run-to-breakpoint'
@@ -648,6 +650,7 @@ function! Test_EvaluateFailure()
 endfunction
 
 function! Test_VariableEval()
+  call SkipNeovim()
   let fn =  'testdata/cpp/simple/struct.cpp'
   call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
         \   configuration: 'run-to-breakpoint'
@@ -758,6 +761,7 @@ function! Test_VariableEval()
 endfunction
 
 function! Test_VariableEvalExpand()
+  call SkipNeovim()
   let fn =  'testdata/cpp/simple/struct.cpp'
   call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
         \   configuration: 'run-to-breakpoint'
@@ -1070,6 +1074,7 @@ EOF
 endfunction
 
 function! Test_SetVariableValue_Balloon()
+  call SkipNeovim()
   let fn =  'testdata/cpp/simple/struct.cpp'
   call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
         \   configuration: 'run-to-breakpoint'

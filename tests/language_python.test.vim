@@ -108,6 +108,7 @@ function! SetUp_Test_Python_Remote_Attach()
 endfunction
 
 function! Test_Python_Remote_Attach()
+  call SkipNeovim()
   lcd ../support/test/python/simple_python
   let fn='main.py'
   exe 'edit ' . fn

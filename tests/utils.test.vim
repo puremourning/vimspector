@@ -24,9 +24,11 @@ function! s:RunPyFile( file_name )
 endfunction
 
 function! Test_ExpandReferencesInDict()
+  call SkipNeovim()
   call s:RunPyFile( 'Test_ExpandReferencesInDict.py' )
 endfunction
 
 function! Test_CoreUtils()
+  call SkipNeovim()
   call s:RunPyFile( 'Test_CoreUtils.py' )
 endfunction

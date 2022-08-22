@@ -98,6 +98,7 @@ endfunction
 
 
 function! Test_Run_To_Cursor_Legacy()
+  call SkipNeovim()
   let fn='hello-world.go'
   lcd ../support/test/go/hello_world
   exe 'edit ' . fn
@@ -215,6 +216,7 @@ endfunction
 
 
 function! Test_Run_To_Cursor_Delve()
+  call SkipNeovim()
   let fn='hello-world.go'
   lcd ../support/test/go/hello_world
   exe 'edit ' . fn
