@@ -71,15 +71,17 @@ jobs:
       uses: actions/upload-artifact@v2
       if: failure()
       with:
-        name: 'test-logs-${{ runner.os }}'
+        name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
         path: 'tests/logs/**/*'
 
-    - run: ./make_package linux ${{ github.run_id }}
-      name: 'Package'
+    - name: 'Package'
+      if: matrix.runtime == 'vim'
+      run: ./make_package linux ${{ github.run_id }}
 
     # TODO: test the tarball
 
     - name: "Upload package"
+      if: matrix.runtime == 'vim'
       uses: actions/upload-artifact@v2
       with:
         name: 'package-linux'
@@ -148,15 +150,17 @@ jobs:
       uses: actions/upload-artifact@v2
       if: failure()
       with:
-        name: 'test-logs-${{ runner.os }}'
-        path: 'tests/logs'
+        name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
+        path: 'tests/logs/**/*'
 
-    - run: ./make_package macos ${{ github.run_id }}
-      name: 'Package'
+    - name: 'Package'
+      if: matrix.runtime == 'vim'
+      run: ./make_package macos ${{ github.run_id }}
 
     # TODO: test the tarball
 
     - name: "Upload package"
+      if: matrix.runtime == 'vim'
       uses: actions/upload-artifact@v2
       with:
         name: 'package-macos'
