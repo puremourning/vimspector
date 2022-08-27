@@ -1294,6 +1294,7 @@ function! Test_Add_Line_BP_In_Other_File_While_Debugging()
 endfunction
 
 function! Test_LineBreakpoint_Moved_By_Server()
+  call SkipNeovim()
   lcd testdata/cpp/simple
   edit simple.cpp
 
