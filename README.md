@@ -842,7 +842,7 @@ For example:
                \    "adapter": "netcoredbg",
                \    "configuration": {
                \      "request": "attach",
-               \      "processId": proc_id
+               \      "processId": pid
                \    }
                \  }
                \})
