@@ -85,25 +85,38 @@ function! vimspector#test#signs#AssertSignAtLine(
 
   let errors_before = v:errors
   let result = 1
-  let errors = [ 'No signs were found' ]
+  let errors = []
 
-  for sign in signs[ 0 ].signs
-    let v:errors = []
+  if len( signs[ 0 ].signs ) == 0
+    call assert_report(
+        \ 'No signs were found. Expected a '
+        \ . a:sign_name
+        \ . ' at line '
+        \ . a:line
+        \ . ' with priority '
+        \ . a:priority
+        \ . ' found only '
+        \ . string( sign_getplaced( '%', { 'group': '*', 'lnum': a:line } ) )
+        \ )
+    let errors = v:errors
+  else
+    for sign in signs[ 0 ].signs
+      let v:errors = []
 
-    let result =
-       \ assert_equal( a:sign_name,
-                     \ sign.name,
-                     \ 'Sign in group ' . a:group . ' at ' . a:line ) ||
-       \ assert_equal( a:priority,
-                     \ sign.priority,
-                     \ 'Sign priority in group ' . a:group . ' at ' . a:line )
-    if result
-      let errors = v:errors
-    else
-      let errors = []
-      break
-    endif
-  endfor
+      let result =
+         \ assert_equal( a:sign_name,
+                       \ sign.name,
+                       \ 'Sign in group ' . a:group . ' at ' . a:line ) ||
+         \ assert_equal( a:priority,
+                       \ sign.priority,
+                       \ 'Sign priority in group ' . a:group . ' at ' . a:line )
+      if result
+        let errors = v:errors
+      else
+        break
+      endif
+    endfor
+  endif
 
   let v:errors = errors_before + errors
   return result

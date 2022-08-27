@@ -254,7 +254,9 @@ class ProjectBreakpoints( object ):
     if bp.get( 'type' ) == 'F':
       self.ClearFunctionBreakpoint( bp.get( 'filename' ) )
     else:
-      self._ToggleBreakpoint( None,
+      # This should find the breakpoint by the "current" line in lnum. If not,
+      # pass an empty options just in case we end up in "ADD" codepath.
+      self._ToggleBreakpoint( {},
                               bp.get( 'filename' ),
                               bp.get( 'lnum' ),
                               should_delete = False )
@@ -388,10 +390,17 @@ class ProjectBreakpoints( object ):
     file_name = utils.NormalizePath( file_name )
     for index, bp in enumerate( self._line_breakpoints[ file_name ] ):
       self._SignToLine( file_name, bp )
-      if bp[ 'line' ] == line:
+      # If we're connected, then operate on the server-bp position, not the
+      # user-bp position, as that's what the user sees in the UI (signs, and in
+      # the breakpoints window)
+      if 'server_bp' in bp:
+        if bp[ 'server_bp' ].get( 'line', line ) == line:
+          return bp, index
+      elif bp[ 'line' ] == line:
         return bp, index
 
     return None, None
+
 
   def _FindPostedBreakpoint( self, breakpoint_id ):
     if breakpoint_id is None:

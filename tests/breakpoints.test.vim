@@ -1294,6 +1294,7 @@ function! Test_Add_Line_BP_In_Other_File_While_Debugging()
 endfunction
 
 function! Test_LineBreakpoint_Moved_By_Server()
+  call SkipNeovim()
   lcd testdata/cpp/simple
   edit simple.cpp
 
@@ -1330,12 +1331,103 @@ function! Test_LineBreakpoint_Moved_By_Server()
   call vimspector#test#signs#AssertSignGroupEmptyAtLine(
         \ 'VimspectorBP',
         \ 5 )
-
   call vimspector#ListBreakpoints()
   call s:CheckBreakpointView( [
         \ 'simple.cpp:' . s:break_foo_line . ' Line breakpoint - VERIFIED: {}'
         \ ] )
   wincmd p
+
+  " toggle off the breakpoint from the line where it is visible
+  call cursor( s:break_foo_line, 1 )
+  call vimspector#ToggleBreakpoint()
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine(
+        \ 'VimspectorBP',
+        \ s:break_foo_line )
+
+  call vimspector#ListBreakpoints()
+  call s:CheckBreakpointView( [] )
+  wincmd p
+
+  " now toggle it back on from the original line
+  call vimspector#SetLineBreakpoint( 'simple.cpp', 5 )
+  call WaitForAssert( { ->
+      \ vimspector#test#signs#AssertSignAtLine(
+        \ 'VimspectorBP',
+        \ s:break_foo_line,
+        \ 'vimspectorBP',
+        \ 9 ) } )
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine(
+        \ 'VimspectorBP',
+        \ 5 )
+  call vimspector#ListBreakpoints()
+  call s:CheckBreakpointView( [
+        \ 'simple.cpp:' . s:break_foo_line . ' Line breakpoint - VERIFIED: {}'
+        \ ] )
+
+  " Toggle off from bp window
+  call cursor( 1, 1 )
+  call vimspector#ToggleBreakpointViewBreakpoint()
+  wincmd p
+  " disabled bp is drawn at _user_ location
+  call WaitForAssert( { ->
+      \ vimspector#test#signs#AssertSignAtLine(
+        \ 'VimspectorBP',
+        \ 5,
+        \ 'vimspectorBPDisabled',
+        \ 9 ) } )
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine(
+        \ 'VimspectorBP',
+        \ s:break_foo_line )
+  wincmd p
+  call s:CheckBreakpointView( [
+        \ 'simple.cpp:5 Line breakpoint - DISABLED: {}'
+        \ ] )
+
+  " And on again
+  call feedkeys( 't', 'xt' )
+  wincmd p
+  call WaitForAssert( { ->
+      \ vimspector#test#signs#AssertSignAtLine(
+        \ 'VimspectorBP',
+        \ s:break_foo_line,
+        \ 'vimspectorBP',
+        \ 9 ) } )
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine(
+        \ 'VimspectorBP',
+        \ 5 )
+  wincmd p
+  call s:CheckBreakpointView( [
+        \ 'simple.cpp:' . s:break_foo_line . ' Line breakpoint - VERIFIED: {}'
+        \ ] )
+
+
+  " now delete it from the breakpoitns window
+  call cursor( 1, 1 )
+  call feedkeys( "\<Del>", 'xt' )
+  wincmd p
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine(
+        \ 'VimspectorBP',
+        \ s:break_foo_line )
+
+  wincmd p
+  call s:CheckBreakpointView( [ '' ] )
+  wincmd p
+
+  " and add it one more time
+  call vimspector#SetLineBreakpoint( 'simple.cpp', 5 )
+  call WaitForAssert( { ->
+      \ vimspector#test#signs#AssertSignAtLine(
+        \ 'VimspectorBP',
+        \ s:break_foo_line,
+        \ 'vimspectorBP',
+        \ 9 ) } )
+  call vimspector#test#signs#AssertSignGroupEmptyAtLine(
+        \ 'VimspectorBP',
+        \ 5 )
+  wincmd p
+  call s:CheckBreakpointView( [
+        \ 'simple.cpp:' . s:break_foo_line . ' Line breakpoint - VERIFIED: {}'
+        \ ] )
 
   call vimspector#Reset()
   call vimspector#test#setup#WaitForReset()
