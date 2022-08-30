@@ -125,6 +125,24 @@
         }
       }
     },
+    "run - debugpy-python2": {
+      "adapter": "debugpy-python2",
+      "configuration": {
+        "request": "launch",
+        "type": "python",
+        "cwd": "${workspaceRoot}",
+        "program": "${file}",
+        "stopOnEntry": false,
+        "console": "integratedTerminal"
+      },
+      "breakpoints": {
+        "exception": {
+          "raised": "N",
+          "uncaught": "",
+          "userUnhandled": ""
+        }
+      }
+    },
     "run - default": {
       "adapter": "debugpy",
       "variables": {

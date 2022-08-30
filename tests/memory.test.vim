@@ -44,7 +44,6 @@ function! Test_DumpMemory_VariableWindow()
         \   AssertMatchList(
         \     [
         \       '- Scope: Local',
-        \       ' \*- : .*',
         \       ' \*+ : {.*}',
         \       ' \*+ t: {i:0, c:''\\0'', fffff:0}',
         \       '+ Scope: Static',
@@ -58,7 +57,7 @@ function! Test_DumpMemory_VariableWindow()
         \ } )
 
   call win_gotoid( g:vimspector_session_windows.variables )
-  call cursor( [ 4, 1 ] )
+  call cursor( [ 3, 1 ] )
   call vimspector#ReadMemory( #{ length: 9, offset: 0 } )
 
   call win_gotoid( g:vimspector_session_windows.code )
@@ -88,7 +87,7 @@ function! Test_DumpMemory_VariableWindow()
         \ v:null )
 
   call win_gotoid( g:vimspector_session_windows.variables )
-  call cursor( [ 4, 1 ] )
+  call cursor( [ 3, 1 ] )
   call vimspector#ReadMemory( #{ length: 9, offset: 0 } )
   call WaitForAssert( {->
         \   AssertMatchList(
@@ -105,7 +104,7 @@ function! Test_DumpMemory_VariableWindow()
         \ } )
 
   call win_gotoid( g:vimspector_session_windows.variables )
-  call cursor( [ 4, 1 ] )
+  call cursor( [ 3, 1 ] )
   " Trigger the default configured mapping and answer the prompts
   py3 <<EOF
 from unittest import mock
@@ -136,7 +135,6 @@ function! Test_DumpMemory_WatchWindow()
         \   AssertMatchList(
         \     [
         \       '- Scope: Local',
-        \       ' \*- : .*',
         \       ' \*+ : {.*}',
         \       ' \*+ t: {i:0, c:''\\0'', fffff:0}',
         \       '+ Scope: Static',

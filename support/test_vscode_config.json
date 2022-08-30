@@ -1,0 +1,96 @@
+{
+    "folders": [
+        {
+            "name": "some-name",
+            "path": "/some/path"
+        },
+        {
+            "name": "src/include",
+            "path": "/path/to/some/where"
+        },
+        {
+            "name": "some-other-name",
+            "path": "/some/other/path"
+        }
+    ],
+    "settings": {
+        "terminal.integrated.env.linux": {
+            "SOME_VAR": "/path/num/one",
+            "SOME_OTHER_VAR":"/path/num/two"
+        }
+    },
+    "launch": {
+        "configurations": [
+            {
+                "name": "Attach",
+                "type": "cppdbg",
+                "request": "attach",
+                "program": "/path/to/executable",
+                "processId": "${command:pickProcess}",
+                "MIMode": "gdb",
+                "miDebuggerPath": "/path/to/gdb",
+                "sourceFileMap": {},
+                "symbolLoadInfo": {
+                    "loadAll": false,
+                    "exceptionList": "some-lib.so;another-lib.so"
+                },
+                "setupCommands": [
+                    {
+                        "text": "breaksegv",
+                        "description": "Issue breaksegv helper",
+                        "ignoreFailures": true
+                    },
+                    {
+                        "description": "Enable pretty-printing for gdb",
+                        "text": "-enable-pretty-printing",
+                        "ignoreFailures": true
+                    },
+                    {
+                        "description": "Add file path directory",
+                        "text": "directory /path/to/root/of/repo",
+                        "ignoreFailures": true
+                    },
+                    {
+                        "description": "Load sbtools source mapping",
+                        "text": "source /path/to/source-path.gdbinit",
+                        "ignoreFailures": true
+                    }
+                ]
+            },
+            {
+                "name": "Launch",
+                "type": "cppdbg",
+                "request": "launch",
+                "program": "/path/to/another/executable",
+                "args": [],
+                "cwd": "/path/to/root/of/repo",
+                "environment": [],
+                "externalConsole": false,
+                "MIMode": "gdb",
+                "miDebuggerPath": "/path/to/gdb",
+                "sourceFileMap": {},
+                "symbolLoadInfo": {
+                    "loadAll": false,
+                    "exceptionList": "some-lib.so;another-lib.so"
+                },
+                "setupCommands": [
+                    {
+                        "text": "breaksegv",
+                        "description": "Issue breaksegv helper",
+                        "ignoreFailures": true
+                    },
+                    {
+                        "description": "Enable pretty-printing for gdb",
+                        "text": "-enable-pretty-printing",
+                        "ignoreFailures": true
+                    },
+                    {
+                        "description": "Load sbtools source mapping",
+                        "text": "source /path/to/source-path.gdbinit",
+                        "ignoreFailures": true
+                    }
+                ]
+            }
+        ]
+    }
+}
