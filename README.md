@@ -152,25 +152,24 @@ runtime dependencies). They are categorised by their level of support:
 * `Legacy`: No longer supported, please migrate your config
 * `Retired`: No longer included or supported.
 
-| Language(s)          | Status      | Switch (for `install_gadget.py`)   | Adapter (for `:VimspectorInstall`)   | Dependencies                                 |
-| -------------------- | ----------- | ---------------------------------- | ------------------------------------ | -------------------------------------------- |
-| C, C++, Rust etc.    | Tested      | `--all` or `--enable-c` (or cpp)   | vscode-cpptools                      | mono-core                                    |
-| C, C++, Rust etc.    | Supported   | `--enable-rust`                    | CodeLLDB                             | Python 3                                     |
-| Python               | Tested      | `--all` or `--enable-python`       | debugpy                              | Python 2.7 or Python 3                       |
-| Go                   | Tested      | `--enable-go`                      | delve                                | Go 1.16+                                     |
-| TCL                  | Supported   | `--all` or `--enable-tcl`          | tclpro                               | TCL 8.5                                      |
-| Bourne Shell         | Supported   | `--all` or `--enable-bash`         | vscode-bash-debug                    | Bash v??                                     |
-| Lua                  | Tested      | `--all` or `--enable-lua`          | local-lua-debugger-vscode            | Node >=12.13.0, Npm, Lua interpreter         |
-| Node.js              | Supported   | `--force-enable-node`              | vscode-node-debug2                   | 6 < Node < 12, Npm                           |
-| Javascript           | Supported   | `--force-enable-chrome`            | debugger-for-chrome                  | Chrome                                       |
-| Javascript           | Supported   | `--force-enable-firefox`           | vscode-firefox-debug                 | Firefox                                      |
-| Java                 | Supported   | `--force-enable-java  `            | vscode-java-debug                    | Compatible LSP plugin (see [later](#java))   |
-| PHP                  | Experimental| `--force-enable-php`               | vscode-php-debug                     | Node, PHP, XDEBUG                            |
-| C# (dotnet core)     | Tested      | `--force-enable-csharp`            | netcoredbg                           | DotNet core                                  |
-| F#, VB, etc.         | Supported   | `--force-enable-[fsharp,vbnet]`    | netcoredbg                           | DotNet core                                  |
-| Go (legacy)          | Legacy      | `--enable-go`                      | vscode-go                            | Node, Go, [Delve][]                          |
-| C# (mono)            | _Retired_   | N/A                                | N/A                                  | N/A                                          |
-| Python.legacy        | _Retired_   | N/A                                | N/A                                  | N/A                                          |
+| Language(s)          | Status       | Switch (for `install_gadget.py`)   | Adapter (for `:VimspectorInstall`)   | Dependencies                                 |
+| -------------------- | -----------  | ---------------------------------- | ------------------------------------ | -------------------------------------------- |
+| C, C++, Rust etc.    | Tested       | `--all` or `--enable-c` (or cpp)   | vscode-cpptools                      | mono-core                                    |
+| C, C++, Rust etc.    | Supported    | `--enable-rust`                    | CodeLLDB                             | none                                         |
+| Python               | Tested       | `--all` or `--enable-python`       | debugpy                              | Python 3                                     |
+| Go                   | Tested       | `--enable-go`                      | delve                                | Go 1.16+                                     |
+| TCL                  | Supported    | `--all` or `--enable-tcl`          | tclpro                               | TCL 8.5                                      |
+| Bourne Shell         | Supported    | `--all` or `--enable-bash`         | vscode-bash-debug                    | Bash v??                                     |
+| Lua                  | Tested       | `--all` or `--enable-lua`          | local-lua-debugger-vscode            | Node >=12.13.0, Npm, Lua interpreter         |
+| Node.js              | Supported    | `--force-enable-node`              | vscode-node-debug2                   | 6 < Node < 12, Npm                           |
+| Javascript           | Supported    | `--force-enable-chrome`            | debugger-for-chrome                  | Chrome                                       |
+| Javascript           | Supported    | `--force-enable-firefox`           | vscode-firefox-debug                 | Firefox                                      |
+| Java                 | Supported    | `--force-enable-java  `            | vscode-java-debug                    | Compatible LSP plugin (see [later](#java))   |
+| PHP                  | Experimental | `--force-enable-php`               | vscode-php-debug                     | Node, PHP, XDEBUG                            |
+| C# (dotnet core)     | Tested       | `--force-enable-csharp`            | netcoredbg                           | DotNet core                                  |
+| F#, VB, etc.         | Supported    | `--force-enable-[fsharp,vbnet]`    | netcoredbg                           | DotNet core                                  |
+| Go (legacy)          | Legacy       | `--enable-go`                      | vscode-go                            | Node, Go, [Delve][]                          |
+| Python 2             | Legacy       | `--force-enable-python2`           | debugpy-python2                      | Python 2.7                                   |
 
 ## Other languages
 
@@ -1479,6 +1478,10 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
 * Install with `install_gadget.py --enable-python` or `:VimspectorInstall
   debugpy`, ideally requires a working compiler and the python development
   headers/libs to build a C python extension for performance.
+* ***NOTE***: Debugpy no longer supports python 2. In order to continue to debug
+  python 2 applications, use the `debugpy-python2` adapter after installing the
+  `debugpy-python2` gadget.
+
 * Full options: https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
 
 ```json
@@ -1548,6 +1551,27 @@ debugpy](https://github.com/microsoft/debugpy/wiki/Debugging-over-SSH).
 
 If you're feeling fancy, checkout the [reference guide][remote-debugging] for
 an example of getting Vimspector to remotely launch and attach.
+
+### Python 2
+
+In order to continue to debug python 2 applications, ensure that you install the
+`debugpy-python2` gadget (e.g. `--force-enable-python2` or
+`:VimspectorInstall debugpy-python2`), and then change your configuration to
+use:
+
+```json
+{
+  "configurations": {
+    "Python Attach": {
+      "adapter": "debugpy-python2",
+      // ...
+    }
+  }
+}
+
+```
+
+for examk
 
 ## TCL
 
