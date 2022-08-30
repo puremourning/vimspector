@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+import sys
+
+p = argparse.ArgumentParser()
+p.add_argument( "vscode_config" )
+args = p.parse_args()
+
+TYPE_TO_ADAPTER = {
+  'cppdbg': 'vscode-cpptools'
+}
+
+configurations = {}
+with open( args.vscode_config ) as vscode_config_file:
+  vscode = json.load( vscode_config_file )
+  vsconfigurations = vscode.get( "launch", {} ).get( "configurations", [] )
+  if not vsconfigurations:
+    exit( f"No launch configurations found in {args.vscode_config}" )
+
+  for vsconfig in vsconfigurations:
+    name = vsconfig.pop( "name" )
+    configurations[ name ] = {
+      "adapter": TYPE_TO_ADAPTER[ vsconfig.pop( "type" ) ],
+      "configuration": vsconfig,
+    }
+
+vimspector = {
+  "$schema": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json",
+  "configurations": configurations
+}
+
+json.dump( vimspector, sys.stdout, indent=2 )
