@@ -62,7 +62,7 @@ class CodeView( object ):
                      ':call vimspector#StepInto()<CR>' )
         vim.command( 'nnoremenu WinBar.←\\ Out '
                      ':call vimspector#StepOut()<CR>' )
-        vim.command( 'nnoremenu WinBar.⟲: '
+        vim.command( 'nnoremenu WinBar.↺ '
                      ':call vimspector#Restart()<CR>' )
         vim.command( 'nnoremenu WinBar.✕ '
                      ':call vimspector#Reset()<CR>' )
