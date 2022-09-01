@@ -87,6 +87,12 @@
         "stopAtEntry": true,
         "MIMode": "gdb"
       }
+    },
+    "cpptools-attach": {
+      "extends": "cpptools",
+      "configuration": {
+        "request": "attach"
+      }
     }
   }
 }
