@@ -81,6 +81,7 @@ DEFAULTS = {
 
   # Custom
   'java_hotcodereplace_mode': 'ask',
+  'custom_process_picker': '',
 
   # Debug configs
   'adapters': {},

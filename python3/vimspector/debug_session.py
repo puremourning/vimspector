@@ -336,6 +336,7 @@ class DebugSession( object ):
       # working directory.
       'cwd': os.getcwd,
       'unusedLocalPort': utils.GetUnusedLocalPort,
+      'selectProcess': _SelectProcess,
     }
 
     # Pretend that vars passed to the launch command were typed in by the user
@@ -1320,7 +1321,7 @@ class DebugSession( object ):
       if attach_config[ 'pidSelect' ] == 'ask':
         prop = attach_config[ 'pidProperty' ]
         if prop not in launch_config:
-          pid = utils.AskForInput( 'Enter PID to attach to: ' )
+          pid = _SelectProcess()
           if pid is None:
             return
           launch_config[ prop ] = pid
@@ -1874,3 +1875,10 @@ def PathsToAllConfigFiles( vimspector_base, current_file, filetypes ):
 
   yield utils.PathToConfigFile( '.vimspector.json',
                                 os.path.dirname( current_file ) )
+
+
+def _SelectProcess():
+  custom_picker = settings.Get( 'custom_process_picker' )
+  if custom_picker:
+    return int( vim.eval( custom_picker ) )
+  return int( utils.AskForInput( 'Enter Process ID: ' ) )
