@@ -57,6 +57,12 @@
         "stopOnEntry": true,
         "MIMode": "lldb"
       }
+    },
+    "cpptools-attach": {
+      "extends": "cpptools",
+      "configuration": {
+        "request": "attach"
+      }
     }
   }
 }
