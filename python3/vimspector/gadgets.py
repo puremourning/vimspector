@@ -152,7 +152,7 @@ GADGETS = {
       'debugpy-python2': {
         "command": [
           sys.executable,
-          "${gadgetDir}/debugpy/build/lib/debugpy/adapter"
+          "${gadgetDir}/debugpy-python2/build/lib/debugpy/adapter"
         ],
         "name": "debugpy",
         "configuration": {
