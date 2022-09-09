@@ -136,8 +136,8 @@ But for now, consider the following example snippet:
       },
       "configuration": {
         "request": "launch" /* or it could be "attach" */,
-        "program": [
-          "${fileBasenameNoExtension}",
+        "program": "${fileBasenameNoExtension}",
+        "args": [
           "-c", "configuration_file.cfg",
           "-u", "${USER}",
           "--test-identifier", "${TestIdentifier}",
