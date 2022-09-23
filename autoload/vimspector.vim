@@ -506,7 +506,7 @@ function! vimspector#CompleteOutput( ArgLead, CmdLine, CursorPos ) abort
   endif
   let buffers = py3eval( '_vimspector_session.GetOutputBuffers() '
                        \ . ' if _vimspector_session else []' )
-  return join( buffers, "\n" )
+  return buffers
 endfunction
 
 function! vimspector#CompleteExpr( ArgLead, CmdLine, CursorPos ) abort
