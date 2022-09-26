@@ -15,7 +15,7 @@
 
 if !has( 'python3' )
   echohl WarningMsg
-  echom 'Vimspector unavailable: Requires Vim compiled with +python3'
+  autocmd VimEnter * ++once echom 'Vimspector unavailable: Requires Vim compiled with +python3'
   echohl None
   finish
 endif
@@ -206,4 +206,3 @@ augroup END
 " boilerplate {{{
 call s:restore_cpo()
 " }}}
-
