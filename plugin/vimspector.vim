@@ -14,10 +14,13 @@
 " limitations under the License.
 
 if !has( 'python3' )
-  autocmd VimEnter * ++once
-        \   echohl WarningMsg
-        \ | echom 'Vimspector unavailable: Requires Vim compiled with +python3'
-        \ | echohl None
+  augroup VimspectorNoPython
+    autocmd!
+    autocmd VimEnter *
+          \   echohl WarningMsg
+          \ | echom 'Vimspector unavailable: Requires Vim compiled with +python3'
+          \ | echohl None
+  augroup END
   finish
 endif
 
