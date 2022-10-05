@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import logging
 
 import vim
 
@@ -24,6 +25,9 @@ SIGN_ID = 1
 
 class DisassemblyView( object ):
   def __init__( self, window, connection, api_prefix ):
+    self._logger = logging.getLogger( __name__ )
+    utils.SetUpLogging( self._logger )
+
     self._window = window
     self._api_prefix = api_prefix
     self._connection = connection
@@ -141,13 +145,20 @@ class DisassemblyView( object ):
     self._UndisplayPC()
 
     if 'line' not in self.current_frame or self.current_frame[ 'line' ] < 1:
+      self._logger.debug( "DisassemblyView(PC): No line in current_frame" )
       return
 
     if 'path' not in self.current_frame.get( 'source', {} ):
+      self._logger.debug( "DisassemblyView(PC): No path in source" )
       return
 
     current_path = self.current_frame[ 'source' ][ 'path' ]
     current_line = self.current_frame[ 'line' ]
+
+    self._logger.debug(
+      "DisassemblyView(PC): Searching for the instruction for %s:%s",
+      current_path,
+      current_line )
 
     # Try and map the current frame to instructions
     cur_location = None
@@ -159,6 +170,7 @@ class DisassemblyView( object ):
         cur_location = instruction.get( 'location' )
 
       if 'line' not in instruction:
+        self._logger.debug( "DisassemblyView(PC): No line in instruction" )
         continue
 
       line = instruction[ 'line' ]
@@ -166,9 +178,11 @@ class DisassemblyView( object ):
 
       if not location or 'path' not in location:
         # TODO: what about sourceReference
+        self._logger.debug( "DisassemblyView(PC): no path in location" )
         continue
 
       if location[ 'path' ] != current_path:
+        self._logger.debug( "DisassemblyView(PC): Path is not for this frame" )
         continue
 
       if line > current_line:
@@ -180,7 +194,10 @@ class DisassemblyView( object ):
         break
 
       # Found it
-      self._logger.debug( "DisassemblyView(PC): Found it (%s)", instr_index )
+      self._logger.debug( "DisassemblyView(PC): Candidate (%s @ %s:%s)",
+                          instr_index,
+                          current_path,
+                          line )
       cur_instr_index = instr_index
 
     self._logger.debug( "DisassemblyView(PC): Finished" )
