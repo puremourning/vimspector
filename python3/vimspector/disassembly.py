@@ -15,6 +15,8 @@
 
 import os
 
+import vim
+
 from vimspector import signs, utils
 
 SIGN_ID = 1
@@ -36,7 +38,22 @@ class DisassemblyView( object ):
 
     with utils.LetCurrentWindow( self._window ):
       if utils.UseWinBar():
-        pass
+        vim.command( 'nnoremenu WinBar.■\\ Stop '
+                     ':call vimspector#Stop()<CR>' )
+        vim.command( 'nnoremenu WinBar.▶\\ Cont '
+                     ':call vimspector#Continue()<CR>' )
+        vim.command( 'nnoremenu WinBar.▷\\ Pause '
+                     ':call vimspector#Pause()<CR>' )
+        vim.command( 'nnoremenu WinBar.↷\\ NextI '
+                     ':call vimspector#StepIOver()<CR>' )
+        vim.command( 'nnoremenu WinBar.→\\ StepI '
+                     ':call vimspector#StepIInto()<CR>' )
+        vim.command( 'nnoremenu WinBar.←\\ OutI '
+                     ':call vimspector#StepIOut()<CR>' )
+        vim.command( 'nnoremenu WinBar.⟲: '
+                     ':call vimspector#Restart()<CR>' )
+        vim.command( 'nnoremenu WinBar.✕ '
+                     ':call vimspector#Reset()<CR>' )
 
     signs.DefineProgramCounterSigns()
 
@@ -129,6 +146,9 @@ class DisassemblyView( object ):
 
     # Try and map the current frame to instructions
     cur_location = None
+    # If not found, assume we are at instruction 0 on the basis that we asked
+    # for a 0 offset
+    cur_instr_index = 0
     for instr_index, instruction in enumerate( self.current_instructions ):
       if cur_location is None:
         cur_location = instruction.get( 'location')
@@ -153,14 +173,17 @@ class DisassemblyView( object ):
         continue
 
       # Found it
-      self._signs[ 'vimspectorPC' ] = SIGN_ID
-      signs.PlaceSign( self._signs[ 'vimspectorPC' ],
-                       'VimspectorDisassembly',
-                       'vimspectorPC',
-                       buf_name,
-                       instr_index + 1 )
-
+      self._logger.debug( "DisassemblyView(PC): Found it (%s)", instr_index )
+      cur_instr_index = instr_index
       break
+
+    self._logger.debug( "DisassemblyView(PC): Finished" )
+    self._signs[ 'vimspectorPC' ] = SIGN_ID
+    signs.PlaceSign( self._signs[ 'vimspectorPC' ],
+                     'VimspectorDisassembly',
+                     'vimspectorPC',
+                     buf_name,
+                     cur_instr_index + 1 )
 
 
   def _UndisplayPC( self ):

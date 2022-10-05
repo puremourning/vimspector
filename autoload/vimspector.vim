@@ -257,6 +257,27 @@ function! vimspector#StepOut() abort
   py3 _vimspector_session.StepOut()
 endfunction
 
+function! vimspector#StepIOver() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.StepOver( granularity = 'instruction' )
+endfunction
+
+function! vimspector#StepIInto() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.StepInto( granularity = 'instruction' )
+endfunction
+
+function! vimspector#StepIOut() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.StepOut( granularity = 'instruction' )
+endfunction
+
 function! vimspector#Continue() abort
   if !s:Enabled()
     return

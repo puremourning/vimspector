@@ -633,22 +633,24 @@ class DebugSession( object ):
 
 
   @IfConnected()
-  def StepOver( self ):
+  def StepOver( self, **kwargs ):
     if self._stackTraceView.GetCurrentThreadId() is None:
       return
 
+    arguments = {
+      'threadId': self._stackTraceView.GetCurrentThreadId()
+    }
+    arguments.update( kwargs )
     self._connection.DoRequest( None, {
       'command': 'next',
-      'arguments': {
-        'threadId': self._stackTraceView.GetCurrentThreadId()
-      },
+      'arguments': arguments,
     } )
 
     self._stackTraceView.OnContinued()
     self.ClearCurrentPC()
 
   @IfConnected()
-  def StepInto( self ):
+  def StepInto( self, **kwargs ):
     threadId = self._stackTraceView.GetCurrentThreadId()
     if threadId is None:
       return
@@ -657,15 +659,17 @@ class DebugSession( object ):
       self._stackTraceView.OnContinued( { 'threadId': threadId } )
       self.ClearCurrentPC()
 
+    arguments = {
+      'threadId': threadId
+    }
+    arguments.update( kwargs )
     self._connection.DoRequest( handler, {
       'command': 'stepIn',
-      'arguments': {
-        'threadId': threadId
-      },
+      'arguments': arguments,
     } )
 
   @IfConnected()
-  def StepOut( self ):
+  def StepOut( self, **kwargs ):
     threadId = self._stackTraceView.GetCurrentThreadId()
     if threadId is None:
       return
@@ -674,11 +678,13 @@ class DebugSession( object ):
       self._stackTraceView.OnContinued( { 'threadId': threadId } )
       self.ClearCurrentPC()
 
+    arguments = {
+      'threadId': threadId
+    }
+    arguments.update( kwargs )
     self._connection.DoRequest( handler, {
       'command': 'stepOut',
-      'arguments': {
-        'threadId': threadId
-      },
+      'arguments': arguments,
     } )
 
 
