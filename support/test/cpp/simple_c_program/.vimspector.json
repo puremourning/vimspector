@@ -44,7 +44,7 @@
         "stopAtEntry": true
       }
     },
-    "cpptools": {
+    "cpptools (lldb)": {
       "adapter": "vscode-cpptools",
       "variables": {
         "BUILDME": {
@@ -54,8 +54,22 @@
       "configuration": {
         "request": "launch",
         "program": "${workspaceRoot}/test",
-        "stopOnEntry": true,
+        "stopAtEntry": true,
         "MIMode": "lldb"
+      }
+    },
+    "cpptools (gdb)": {
+      "adapter": "vscode-cpptools",
+      "variables": {
+        "BUILDME": {
+          "shell": "g++ -o ${workspaceRoot}/test -g -std=c++17 ${workspaceRoot}/test_c.cpp"
+        }
+      },
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/test",
+        "stopAtEntry": true,
+        "MIMode": "gdb"
       }
     }
   }
