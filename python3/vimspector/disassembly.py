@@ -131,7 +131,7 @@ class DisassemblyView( object ):
     utils.SetUpHiddenBuffer( buf, buf_name )
     with utils.ModifiableScratchBuffer( buf ):
       utils.SetBufferContents( buf, [
-        i['address'] + ":\t" + i[ 'instruction' ]
+        f"{ i['address'] }:\t{ i.get( 'instructionBytes', '' ) }\t{ i[ 'instruction' ] }"
           for i in self.current_instructions
       ] )
 
