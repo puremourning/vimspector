@@ -810,6 +810,10 @@ class DebugSession( object ):
                                                            self._connection,
                                                            self._api_prefix )
 
+      utils.UpdateSessionWindows( {
+        'disassembly': utils.WindowID( vim.current.window, self._uiTab )
+      } )
+
       self._disassemblyView.SetCurrentFrame(
         self._stackTraceView.GetCurrentFrame() )
 
