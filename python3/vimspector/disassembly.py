@@ -211,7 +211,8 @@ class DisassemblyView( object ):
     try:
       utils.SetCursorPosInWindow( self._window,
                                   cur_instr_index + 1,
-                                  1 )
+                                  1,
+                                  make_visible = True )
     except vim.error:
       pass
 

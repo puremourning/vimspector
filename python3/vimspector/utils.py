@@ -872,11 +872,14 @@ def UseWinBar():
 
 
 # Jump to a specific 1-based line/column
-def SetCursorPosInWindow( window, line, column = 1 ):
+def SetCursorPosInWindow( window, line, column = 1, make_visible = False ):
   # simplify the interface and make column 1 based, same as line
   column = max( 1, column )
   # ofc column is actually 0 based in vim
   window.cursor = ( line, column - 1 )
+
+  if make_visible:
+    Call( 'win_execute', WindowID( window ), 'normal zz' )
 
 
 def NormalizePath( filepath ):
