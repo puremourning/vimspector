@@ -3,6 +3,12 @@
     "CodeLLDB - StopOnEntry": {
       "extends": "CodeLLDB",
       "name": "CoHostingLLDB"
+    },
+    "custom-cpptools": {
+      "extends": "vscode-cpptools",
+      "command": [
+        "$HOME/Development/vimspector/MIEngine/bin/Debug/vscode/OpenDebugAD7"
+      ]
     }
   },
   "configurations": {
@@ -45,7 +51,7 @@
       }
     },
     "cpptools (lldb)": {
-      "adapter": "vscode-cpptools",
+      "adapter": "custom-cpptools",
       "variables": {
         "BUILDME": {
           "shell": "g++ -o ${workspaceRoot}/test -g -std=c++17 ${workspaceRoot}/test_c.cpp"
@@ -55,11 +61,15 @@
         "request": "launch",
         "program": "${workspaceRoot}/test",
         "stopAtEntry": true,
-        "MIMode": "lldb"
+        "MIMode": "lldb",
+        "MIDebuggerPath": "$HOME/.vim/vimspector-conf/gadgets/macos/vscode-cpptools/debugAdapters/lldb-mi/bin/lldb-mi",
+        "logging": {
+          "engineLogging": true
+        }
       }
     },
     "cpptools (gdb)": {
-      "adapter": "vscode-cpptools",
+      "adapter": "custom-cpptools",
       "variables": {
         "BUILDME": {
           "shell": "g++ -o ${workspaceRoot}/test -g -std=c++17 ${workspaceRoot}/test_c.cpp"
