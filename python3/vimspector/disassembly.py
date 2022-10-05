@@ -88,8 +88,8 @@ class DisassemblyView( object ):
       'arguments': {
         'memoryReference': instructionPointerReference,
         'offset': 0,
-        'instructionOffset': 0,
-        'instructionCount': 60, # TODO: what is a good number? window size?
+        'instructionOffset': -20,
+        'instructionCount': 40, # TODO: what is a good number? window size?
         'resolveSymbols': True
       }
     } )
@@ -156,7 +156,7 @@ class DisassemblyView( object ):
     cur_instr_index = 0
     for instr_index, instruction in enumerate( self.current_instructions ):
       if cur_location is None:
-        cur_location = instruction.get( 'location')
+        cur_location = instruction.get( 'location' )
 
       if 'line' not in instruction:
         continue
@@ -171,16 +171,17 @@ class DisassemblyView( object ):
       if location[ 'path' ] != current_path:
         continue
 
-      if current_line < line:
-        continue
+      if line > current_line:
+        self._logger.debug( "DisassemblyView(PC): Line is beyond current PC line" )
+        break
 
       if 'endLine' in instruction and instruction[ 'endLine' ] < current_line:
-        continue
+        self._logger.debug( "DisassemblyView(PC): Line ends before current PC" )
+        break
 
       # Found it
       self._logger.debug( "DisassemblyView(PC): Found it (%s)", instr_index )
       cur_instr_index = instr_index
-      break
 
     self._logger.debug( "DisassemblyView(PC): Finished" )
     self._signs[ 'vimspectorPC' ] = SIGN_ID
@@ -190,6 +191,12 @@ class DisassemblyView( object ):
                      buf_name,
                      cur_instr_index + 1 )
 
+    try:
+      utils.SetCursorPosInWindow( self._window,
+                                  cur_instr_index + 1,
+                                  1 )
+    except vim.error:
+      pass
 
   def _UndisplayPC( self ):
     if self._signs[ 'vimspectorPC' ]:
