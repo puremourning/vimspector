@@ -1,7 +1,14 @@
 {
   "adapters": {
-    "CodeLLDB - StopOnEntry": {
+    "custom-codelldb": {
       "extends": "CodeLLDB",
+      "command": [
+        "$HOME/Development/vimspector/CodeLLDB/build/adapter/codelldb",
+        "--port", "${unusedLocalPort}"
+      ]
+    },
+    "CodeLLDB - StopOnEntry": {
+      "extends": "custom-codelldb",
       "name": "CoHostingLLDB"
     },
     "custom-cpptools": {
@@ -13,12 +20,7 @@
   },
   "configurations": {
     "CodeLLDB": {
-      "adapter": "CodeLLDB",
-      "variables": {
-        "BUILDME": {
-          "shell": "g++ -o ${workspaceRoot}/test -g -std=c++17 ${workspaceRoot}/test_c.cpp"
-        }
-      },
+      "adapter": "custom-codelldb",
       "configuration": {
         "request": "launch",
         "program": "${workspaceRoot}/test"
