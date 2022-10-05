@@ -80,7 +80,8 @@ class DisassemblyView( object ):
 
     def handler( msg ):
       self.current_instructions = msg.get( 'body', {} ).get( 'instructions' ) 
-      self._DrawInstructions()
+      with utils.RestoreCursorPosition():
+        self._DrawInstructions()
 
     self._connection.DoRequest( handler, {
       'command': 'disassemble',
@@ -88,15 +89,18 @@ class DisassemblyView( object ):
         'memoryReference': instructionPointerReference,
         'offset': 0,
         'instructionOffset': 0,
-        'instructionCount': 60,
+        'instructionCount': 60, # TODO: what is a good number? window size?
         'resolveSymbols': True
       }
     } )
 
+    # TODO: Window scrolled autocommand to update ?
+
 
   def Clear( self ):
     self._UndisplayPC()
-    utils.ClearBuffer( self._window.buffer )
+    with utils.ModifiableScratchBuffer( self._window.buffer ):
+      utils.ClearBuffer( self._window.buffer )
 
 
   def Reset( self ):
@@ -123,7 +127,8 @@ class DisassemblyView( object ):
     utils.SetUpHiddenBuffer( buf, buf_name )
     with utils.ModifiableScratchBuffer( buf ):
       utils.SetBufferContents( buf, [
-        i[ 'instruction' ] for i in self.current_instructions
+        i['address'] + ":\t" + i[ 'instruction' ]
+          for i in self.current_instructions
       ] )
 
     with utils.LetCurrentWindow( self._window ):
