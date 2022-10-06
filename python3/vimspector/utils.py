@@ -948,3 +948,15 @@ class EventEmitter( object ):
 def Base64ToHexDump( data ):
   data = base64.b64decode( data )
   return list( hexdump( data, 'generator' ) )
+
+
+def ParseAddress( addr: str ):
+  base = 10
+  if addr.startswith( '0x' ):
+    base = 16
+  return int( addr, base )
+
+
+def Hex( val: int ):
+  # TODO: is 16 always the right number ? what if your system is 32 bit
+  return f'0x{val:0>16x}'

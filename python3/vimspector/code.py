@@ -199,11 +199,12 @@ class CodeView( object ):
     buf = utils.BufferForFile( buf_name )
     self._scratch_buffers.append( buf )
     utils.SetUpHiddenBuffer( buf, buf_name )
+    body = msg.get( 'body', {} )
+    addr = utils.ParseAddress( body.get( 'address', 0 ) )
+    data = body.get( 'data', '' )
     with utils.ModifiableScratchBuffer( buf ):
-      data = msg.get( 'body', {} ).get( 'data', '' )
       utils.SetBufferContents( buf, [
-        f'Memory Dump for Reference {memoryReference} Length: {length} bytes'
-        f' Offset: {offset}',
+        f'Memory at address { utils.Hex( addr ) }',
         '-' * 80,
         'Offset    Bytes                                             Text',
         '-' * 80,
