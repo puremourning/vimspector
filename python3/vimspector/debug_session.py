@@ -336,7 +336,10 @@ class DebugSession( object ):
       # working directory.
       'cwd': os.getcwd,
       'unusedLocalPort': utils.GetUnusedLocalPort,
-      'selectProcess': _SelectProcess,
+
+      # The following, starting with uppercase letters, are 'functions' taking
+      # arguments.
+      'SelectProcess': _SelectProcess,
     }
 
     # Pretend that vars passed to the launch command were typed in by the user
@@ -1321,6 +1324,8 @@ class DebugSession( object ):
       if attach_config[ 'pidSelect' ] == 'ask':
         prop = attach_config[ 'pidProperty' ]
         if prop not in launch_config:
+          # NOTE: We require that any custom picker process handles no-arguments
+          # as well as any arguments supplied in the config.
           pid = _SelectProcess()
           if pid is None:
             return
@@ -1877,8 +1882,16 @@ def PathsToAllConfigFiles( vimspector_base, current_file, filetypes ):
                                 os.path.dirname( current_file ) )
 
 
-def _SelectProcess():
-  custom_picker = settings.Get( 'custom_process_picker_expr' )
+def _SelectProcess( *args ):
+  custom_picker = settings.Get( 'custom_process_picker_func' )
   if custom_picker:
-    return int( vim.eval( custom_picker ) )
-  return int( utils.AskForInput( 'Enter Process ID: ' ) )
+    try:
+      return int( utils.Call( custom_picker, *args ) )
+    except vim.error:
+      pass
+
+  value = utils.AskForInput( 'Enter Process ID: ' )
+  if value is not None:
+    return int( value )
+
+  return value
