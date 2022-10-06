@@ -18,6 +18,7 @@ class TestExpandReferencesInDict( unittest.TestCase ):
     }
     calculus = {
       'three': lambda : 1 + 2,
+      'three_plus': lambda operand: 3 + operand
     }
     CHOICES = {
       'five': '5ive!'
@@ -35,6 +36,7 @@ class TestExpandReferencesInDict( unittest.TestCase ):
       'one': '${one}',
       'two': '${one} and ${two}',
       'three': '${three}',
+      'successor_to_three': '${three_plus(1)}',
       'three_with_default': '${three_with_default:${three\\}}', # uses calculus
       'four': '${four}',
       'five': '${five}',
@@ -59,6 +61,7 @@ class TestExpandReferencesInDict( unittest.TestCase ):
       'one': 'one',
       'two': 'one and TWO',
       'three': '3',
+      'successor_to_three': '4',
       'three_with_default': '3',
       'four': 'typed text',
       'five': '5ive!',
@@ -86,25 +89,38 @@ class TestExpandReferencesInDict( unittest.TestCase ):
   def test_ParseVariables( self ):
     tests = [
       {
+        # Mock for AskForInput
         'AskForInput': RuntimeError,
-        'in': ( [ { 'a': 'A' }, { 'b': '${a}' } ], {}, {}, {} ),
+        # Formatl arguments to ParseVariables
+        'in': {
+          'variables_list': [ { 'a': 'A' }, { 'b': '${a}' } ],
+          'mapping': {},
+          'calculus': {},
+          'user_choices': {}
+        },
+        # Expected return, i.e. expected
         'out': { 'a': 'A', 'b': 'A' }
       },
       # List of vars, interdependent
       {
         'AskForInput': [ 'first', 'third' ],
-        'in': ( [
-          {
-            'first': '${first:first}',
-          },
-          {
-            'second': 'second, ${first}',
-            'third': '${first:last} and ${third:third}',
-          },
-          {
-            'fourth': '${first}, ${second} and ${third}'
-          }
-        ], {}, {}, {} ),
+        'in': {
+          'variables_list': [
+            {
+              'first': '${first:first}',
+            },
+            {
+              'second': 'second, ${first}',
+              'third': '${first:last} and ${third:third}',
+            },
+            {
+              'fourth': '${first}, ${second} and ${third}'
+            }
+          ],
+          'mapping': {},
+          'calculus': {},
+          'user_choices': {}
+        },
         'out': {
           'first': 'first',
           'second': 'second, first',
@@ -112,12 +128,36 @@ class TestExpandReferencesInDict( unittest.TestCase ):
           'fourth': 'first, second, first and first and third'
         }
       },
+      # Calculus with arguments
+      {
+        'AskForInput': RuntimeError,
+        'in': {
+          'variables_list': {
+            'not_in_list': '${is_in_list( "x", [ "y", "z" ] )}',
+            'in_list': '${is_in_list( "x", [ "y", "x", "z" ] )}',
+            'not_in_listj#json': '${is_in_list( "x", [ "y", "z" ] )}',
+            'in_listj#json': '${is_in_list( "x", [ "y", "x", "z" ] )}',
+          },
+          'mapping': {},
+          'calculus': {
+            'is_in_list':
+              lambda needle, haystack: 'true' if needle in haystack else 'false'
+          },
+          'user_choices': {}
+        },
+        'out': {
+          'not_in_list': 'false',
+          'in_list': 'true',
+          'not_in_listj': False,
+          'in_listj': True,
+        }
+      }
     ]
 
     for test in tests:
       with patch( 'vimspector.utils.AskForInput',
                   side_effect = test[ 'AskForInput' ] ):
-        self.assertDictEqual( utils.ParseVariables( *test[ 'in' ] ),
+        self.assertDictEqual( utils.ParseVariables( **test[ 'in' ] ),
                               test[ 'out' ] )
 
 
