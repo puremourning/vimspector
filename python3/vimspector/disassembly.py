@@ -29,6 +29,8 @@ class DisassemblyView( object ):
     utils.SetUpLogging( self._logger )
 
     self._window = window
+    utils.SetUpUIWindow( self._window )
+
     self._api_prefix = api_prefix
     self._connection = connection
 
@@ -66,6 +68,9 @@ class DisassemblyView( object ):
     self._connection = connection
 
 
+  def WindowIsValid( self ):
+    return self._window is not None and self._window.valid
+
   def SetCurrentFrame( self, frame ):
     if not self._window.valid:
       return
@@ -83,17 +88,21 @@ class DisassemblyView( object ):
     self.current_frame = frame;
 
     def handler( msg ):
-      self.current_instructions = msg.get( 'body', {} ).get( 'instructions' ) 
+      self.current_instructions = msg.get( 'body', {} ).get( 'instructions' )
       with utils.RestoreCursorPosition():
         self._DrawInstructions()
+
+    # TOOD: Do something better
+    self.instruction_offset = -20
+    self.instruction_count = 40
 
     self._connection.DoRequest( handler, {
       'command': 'disassemble',
       'arguments': {
         'memoryReference': instructionPointerReference,
         'offset': 0,
-        'instructionOffset': -20,
-        'instructionCount': 40, # TODO: what is a good number? window size?
+        'instructionOffset': self.instruction_offset,
+        'instructionCount': self.instruction_count,
         'resolveSymbols': True
       }
     } )
@@ -131,7 +140,7 @@ class DisassemblyView( object ):
     utils.SetUpHiddenBuffer( buf, buf_name )
     with utils.ModifiableScratchBuffer( buf ):
       utils.SetBufferContents( buf, [
-        f"{ i['address'] }:\t{ i.get( 'instructionBytes', '' ) }\t{ i[ 'instruction' ] }"
+        f"{ utils.Hex( utils.ParseAddress( i['address'] ) )}:\t{ i.get( 'instructionBytes', '' ):20}\t{ i[ 'instruction' ] }"
           for i in self.current_instructions
       ] )
 
@@ -144,73 +153,26 @@ class DisassemblyView( object ):
   def _DisplayPC( self, buf_name ):
     self._UndisplayPC()
 
-    if 'line' not in self.current_frame or self.current_frame[ 'line' ] < 1:
-      self._logger.debug( "DisassemblyView(PC): No line in current_frame" )
+    if len( self.current_instructions ) < self.instruction_count:
+      self._logger.warn( "Invalid number of instructions returned by adapter: "
+                         "Requested: %s, but got %s",
+                         self.instruction_count,
+                         len( self.current_instructions ) )
       return
 
-    if 'path' not in self.current_frame.get( 'source', {} ):
-      self._logger.debug( "DisassemblyView(PC): No path in source" )
-      return
-
-    current_path = self.current_frame[ 'source' ][ 'path' ]
-    current_line = self.current_frame[ 'line' ]
-
-    self._logger.debug(
-      "DisassemblyView(PC): Searching for the instruction for %s:%s",
-      current_path,
-      current_line )
-
-    # Try and map the current frame to instructions
-    cur_location = None
-    # If not found, assume we are at instruction 0 on the basis that we asked
-    # for a 0 offset
-    cur_instr_index = 0
-    for instr_index, instruction in enumerate( self.current_instructions ):
-      if cur_location is None:
-        cur_location = instruction.get( 'location' )
-
-      if 'line' not in instruction:
-        self._logger.debug( "DisassemblyView(PC): No line in instruction" )
-        continue
-
-      line = instruction[ 'line' ]
-      location = instruction.get( 'location', cur_location )
-
-      if not location or 'path' not in location:
-        # TODO: what about sourceReference
-        self._logger.debug( "DisassemblyView(PC): no path in location" )
-        continue
-
-      if location[ 'path' ] != current_path:
-        self._logger.debug( "DisassemblyView(PC): Path is not for this frame" )
-        continue
-
-      if line > current_line:
-        self._logger.debug( "DisassemblyView(PC): Line is beyond current PC line" )
-        break
-
-      if 'endLine' in instruction and instruction[ 'endLine' ] < current_line:
-        self._logger.debug( "DisassemblyView(PC): Line ends before current PC" )
-        break
-
-      # Found it
-      self._logger.debug( "DisassemblyView(PC): Candidate (%s @ %s:%s)",
-                          instr_index,
-                          current_path,
-                          line )
-      cur_instr_index = instr_index
-
-    self._logger.debug( "DisassemblyView(PC): Finished" )
+    # otherwise, the current instruction is defined as the one we asked for,
+    # accounting for any offset we asked for (note, 1-based line number)
     self._signs[ 'vimspectorPC' ] = SIGN_ID
+    pc_line = -self.instruction_offset + 1
     signs.PlaceSign( self._signs[ 'vimspectorPC' ],
                      'VimspectorDisassembly',
                      'vimspectorPC',
                      buf_name,
-                     cur_instr_index + 1 )
+                     pc_line )
 
     try:
       utils.SetCursorPosInWindow( self._window,
-                                  cur_instr_index + 1,
+                                  pc_line,
                                   1,
                                   make_visible = True )
     except vim.error:
