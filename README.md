@@ -1509,7 +1509,7 @@ Example:
   "$schema": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json",
   "adapters": {
     "gdb-with-build": {
-      "extends": "gdb",
+      "extends": "vscode-cpptools",
       "variables": {
         "buildme": {
           "shell": "jai ${workspaceRoot}/build.jai"
