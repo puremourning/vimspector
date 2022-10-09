@@ -57,28 +57,17 @@ class CodeView( object ):
         vim.command( 'nnoremenu WinBar.▷\\ Pause '
                      ':call vimspector#Pause()<CR>' )
         vim.command( 'nnoremenu WinBar.↷\\ Next '
-                     ':call vimspector#StepOver()<CR>' )
+                     ':call vimspector#StepSOver()<CR>' )
         vim.command( 'nnoremenu WinBar.→\\ Step '
-                     ':call vimspector#StepInto()<CR>' )
+                     ':call vimspector#StepSInto()<CR>' )
         vim.command( 'nnoremenu WinBar.←\\ Out '
-                     ':call vimspector#StepOut()<CR>' )
+                     ':call vimspector#StepSOut()<CR>' )
         vim.command( 'nnoremenu WinBar.⟲: '
                      ':call vimspector#Restart()<CR>' )
         vim.command( 'nnoremenu WinBar.✕ '
                      ':call vimspector#Reset()<CR>' )
 
-      if not signs.SignDefined( 'vimspectorPC' ):
-        signs.DefineSign( 'vimspectorPC',
-                          text = '▶',
-                          double_text = '▶',
-                          texthl = 'MatchParen',
-                          linehl = 'CursorLine' )
-      if not signs.SignDefined( 'vimspectorPCBP' ):
-        signs.DefineSign( 'vimspectorPCBP',
-                          text = '●▶',
-                          double_text  = '▷',
-                          texthl = 'MatchParen',
-                          linehl = 'CursorLine' )
+    signs.DefineProgramCounterSigns()
 
 
   def _UndisplayPC( self, clear_pc = True ):
@@ -122,7 +111,7 @@ class CodeView( object ):
                        frame[ 'line' ] )
 
 
-  def SetCurrentFrame( self, frame ):
+  def SetCurrentFrame( self, frame, should_jump_to_location ):
     """Returns True if the code window was updated with the frame, False
     otherwise. False means either the frame is junk, we couldn't find the file
     (or don't have the data) or the code window no longer exits."""
@@ -140,14 +129,17 @@ class CodeView( object ):
     if not self._window.valid:
       return False
 
-    utils.JumpToWindow( self._window )
-    try:
-      utils.OpenFileInCurrentWindow( frame[ 'source' ][ 'path' ] )
-      vim.command( 'doautocmd <nomodeline> User VimspectorJumpedToFrame' )
-    except vim.error:
-      self._logger.exception( 'Unexpected vim error opening file {}'.format(
-        frame[ 'source' ][ 'path' ] ) )
-      return False
+    with utils.LetCurrentWindow( self._window ):
+      try:
+        utils.OpenFileInCurrentWindow( frame[ 'source' ][ 'path' ] )
+        vim.command( 'doautocmd <nomodeline> User VimspectorJumpedToFrame' )
+      except vim.error:
+        self._logger.exception( 'Unexpected vim error opening file {}'.format(
+          frame[ 'source' ][ 'path' ] ) )
+        return False
+
+    if should_jump_to_location:
+      utils.JumpToWindow( self._window )
 
     # SIC: column is 0-based, line is 1-based in vim. Why? Nobody knows.
     # Note: max() with 0 because some debug adapters (go) return 0 for the
@@ -210,22 +202,20 @@ class CodeView( object ):
     buf = utils.BufferForFile( buf_name )
     self._scratch_buffers.append( buf )
     utils.SetUpHiddenBuffer( buf, buf_name )
+    body = msg.get( 'body', {} )
+    addr = utils.ParseAddress( body.get( 'address', 0 ) )
+    data = body.get( 'data', '' )
     with utils.ModifiableScratchBuffer( buf ):
-      # TODO: The data is encoded in base64, so we need to convert that to the
-      # equivalent output of say xxd
-      data = msg.get( 'body', {} ).get( 'data', '' )
       utils.SetBufferContents( buf, [
-        f'Memory Dump for Reference {memoryReference} Length: {length} bytes'
-        f' Offset: {offset}',
-        '-' * 80,
-        'Offset    Bytes                                             Text',
-        '-' * 80,
+        f'Memory at address { utils.Hex( addr ) }',
+        '-' * 86,
+          'Address             '
+          'Bytes                                             '
+          'Text',
+        '-' * 86,
       ] )
-      utils.AppendToBuffer( buf, utils.Base64ToHexDump( data ) )
+      utils.AppendToBuffer( buf, utils.Base64ToHexDump( data, addr ) )
 
     utils.SetSyntax( '', 'vimspector-memory', buf )
     utils.JumpToWindow( self._window )
     utils.OpenFileInCurrentWindow( buf_name )
-
-    # TODO: Need to set up some mappings here that allow the user to browse
-    # around by setting the offset

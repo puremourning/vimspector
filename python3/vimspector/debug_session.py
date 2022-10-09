@@ -27,6 +27,7 @@ from vimspector import ( breakpoints,
                          code,
                          core_utils,
                          debug_adapter_connection,
+                         disassembly,
                          install,
                          output,
                          stack_trace,
@@ -60,14 +61,18 @@ class DebugSession( object ):
                        install.GetGadgetDir( VIMSPECTOR_HOME ) )
 
     self._uiTab = None
-    self._logView = None
-    self._stackTraceView = None
-    self._variablesView = None
-    self._saved_variables_data = None
-    self._outputView = None
-    self._codeView = None
+
+    self._logView: output.OutputView = None
+    self._stackTraceView: stack_trace.StackTraceView = None
+    self._variablesView: variables.VariablesView = None
+    self._outputView: output.DAPOutputView = None
+    self._codeView: code.CodeView = None
+    self._disassemblyView: disassembly.DisassemblyView = None
+
     self._breakpoints = breakpoints.ProjectBreakpoints(
       self._render_emitter, self._IsPCPresentAt )
+    self._saved_variables_data = None
+
     self._splash_screen = None
     self._remote_term = None
     self._adapter_term = None
@@ -406,6 +411,9 @@ class DebugSession( object ):
       self._outputView.ConnectionUp( self._connection )
       self._breakpoints.ConnectionUp( self._connection )
 
+      if self._disassemblyView:
+        self._disassemblyView.ConnectionUp( self._connection )
+
     if self._connection:
       self._logger.debug( "_StopDebugAdapter with callback: start" )
       self._StopDebugAdapter( interactive = False, callback = start )
@@ -504,11 +512,14 @@ class DebugSession( object ):
         self._outputView.Reset()
       if self._codeView:
         self._codeView.Reset()
+      if self._disassemblyView:
+        self._disassemblyView.Reset()
 
       self._stackTraceView = None
       self._variablesView = None
       self._outputView = None
       self._codeView = None
+      self._disassemblyView = None
       self._remote_term = None
       self._uiTab = None
 
@@ -622,54 +633,72 @@ class DebugSession( object ):
 
 
   @IfConnected()
-  def StepOver( self ):
+  def StepOver( self, **kwargs ):
     if self._stackTraceView.GetCurrentThreadId() is None:
       return
 
+    arguments = {
+      'threadId': self._stackTraceView.GetCurrentThreadId(),
+      'granularity': self._CurrentSteppingGranularity(),
+    }
+    arguments.update( kwargs )
+
+    if not self._server_capabilities.get( 'supportsSteppingGranularity' ):
+      arguments.pop( 'granularity' )
+
     self._connection.DoRequest( None, {
       'command': 'next',
-      'arguments': {
-        'threadId': self._stackTraceView.GetCurrentThreadId()
-      },
+      'arguments': arguments,
     } )
 
     self._stackTraceView.OnContinued()
-    self._codeView.SetCurrentFrame( None )
+    self.ClearCurrentPC()
 
   @IfConnected()
-  def StepInto( self ):
+  def StepInto( self, **kwargs ):
     threadId = self._stackTraceView.GetCurrentThreadId()
     if threadId is None:
       return
 
     def handler( *_ ):
       self._stackTraceView.OnContinued( { 'threadId': threadId } )
-      self._codeView.SetCurrentFrame( None )
+      self.ClearCurrentPC()
 
+    arguments = {
+      'threadId': threadId,
+      'granularity': self._CurrentSteppingGranularity(),
+    }
+    arguments.update( kwargs )
     self._connection.DoRequest( handler, {
       'command': 'stepIn',
-      'arguments': {
-        'threadId': threadId
-      },
+      'arguments': arguments,
     } )
 
   @IfConnected()
-  def StepOut( self ):
+  def StepOut( self, **kwargs ):
     threadId = self._stackTraceView.GetCurrentThreadId()
     if threadId is None:
       return
 
     def handler( *_ ):
       self._stackTraceView.OnContinued( { 'threadId': threadId } )
-      self._codeView.SetCurrentFrame( None )
+      self.ClearCurrentPC()
 
+    arguments = {
+      'threadId': threadId,
+      'granularity': self._CurrentSteppingGranularity(),
+    }
+    arguments.update( kwargs )
     self._connection.DoRequest( handler, {
       'command': 'stepOut',
-      'arguments': {
-        'threadId': threadId
-      },
+      'arguments': arguments,
     } )
 
+  def _CurrentSteppingGranularity( self ):
+    if self._disassemblyView and self._disassemblyView.IsCurrent():
+      return 'instruction'
+
+    return 'statement'
 
   def Continue( self ):
     if not self._connection:
@@ -688,7 +717,7 @@ class DebugSession( object ):
             'allThreadsContinued',
             True )
         } )
-      self._codeView.SetCurrentFrame( None )
+      self.ClearCurrentPC()
 
     self._connection.DoRequest( handler, {
       'command': 'continue',
@@ -769,6 +798,37 @@ class DebugSession( object ):
         'offset': int( offset )
       }
     } )
+
+
+  @IfConnected()
+  @RequiresUI()
+  def ShowDisassembly( self ):
+    if self._disassemblyView and self._disassemblyView.WindowIsValid():
+      return
+
+    if not self._codeView or not self._codeView._window.valid:
+      return
+
+    if not self._stackTraceView:
+      return
+
+    if not self._server_capabilities.get( 'supportsDisassembleRequest', False ):
+      utils.UserMessage( "Sorry, server desn't suport that" )
+      return
+
+    with utils.LetCurrentWindow( self._codeView._window ):
+      vim.command( f'rightbelow { settings.Int( "disassembly_height" ) }new' )
+      self._disassemblyView = disassembly.DisassemblyView( vim.current.window,
+                                                           self._connection,
+                                                           self._api_prefix )
+
+      utils.UpdateSessionWindows( {
+        'disassembly': utils.WindowID( vim.current.window, self._uiTab )
+      } )
+
+      self._disassemblyView.SetCurrentFrame(
+        self._stackTraceView.GetCurrentFrame(),
+        True )
 
 
   @IfConnected()
@@ -1068,14 +1128,30 @@ class DebugSession( object ):
   def ClearCurrentFrame( self ):
     self.SetCurrentFrame( None )
 
+
+  def ClearCurrentPC( self ):
+    self._codeView.SetCurrentFrame( None, False )
+    if self._disassemblyView:
+      self._disassemblyView.SetCurrentFrame( None, False )
+
+
   @RequiresUI()
   def SetCurrentFrame( self, frame, reason = '' ):
     if not frame:
       self._stackTraceView.Clear()
       self._variablesView.Clear()
 
-    if not self._codeView.SetCurrentFrame( frame ):
+    target = self._codeView
+    if self._disassemblyView and self._disassemblyView.IsCurrent():
+      target = self._disassemblyView
+
+    if not self._codeView.SetCurrentFrame( frame,
+                                           target == self._codeView ):
       return False
+
+    if self._disassemblyView:
+      self._disassemblyView.SetCurrentFrame( frame,
+                                             target == self._disassemblyView )
 
     # the codeView.SetCurrentFrame already checked the frame was valid and
     # countained a valid source
@@ -1678,7 +1754,7 @@ class DebugSession( object ):
     utils.UserMessage( 'The debuggee exited with status code: {}'.format(
       message[ 'body' ][ 'exitCode' ] ) )
     self._stackTraceView.OnExited( message )
-    self._codeView.SetCurrentFrame( None )
+    self.ClearCurrentPC()
 
   def OnEvent_process( self, message ):
     utils.UserMessage( 'The debuggee was started: {}'.format(
@@ -1689,10 +1765,12 @@ class DebugSession( object ):
 
   def OnEvent_continued( self, message ):
     self._stackTraceView.OnContinued( message[ 'body' ] )
-    self._codeView.SetCurrentFrame( None )
+    self.ClearCurrentPC()
 
   def Clear( self ):
     self._codeView.Clear()
+    if self._disassemblyView:
+      self._disassemblyView.Clear()
     self._stackTraceView.Clear()
     self._variablesView.Clear()
 

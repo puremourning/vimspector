@@ -872,11 +872,14 @@ def UseWinBar():
 
 
 # Jump to a specific 1-based line/column
-def SetCursorPosInWindow( window, line, column = 1 ):
+def SetCursorPosInWindow( window, line, column = 1, make_visible = False ):
   # simplify the interface and make column 1 based, same as line
   column = max( 1, column )
   # ofc column is actually 0 based in vim
   window.cursor = ( line, column - 1 )
+
+  if make_visible:
+    Call( 'win_execute', WindowID( window ), 'normal zz' )
 
 
 def NormalizePath( filepath ):
@@ -942,6 +945,18 @@ class EventEmitter( object ):
     self.__callbacks = {}
 
 
-def Base64ToHexDump( data ):
+def Base64ToHexDump( data, base_addr ):
   data = base64.b64decode( data )
-  return list( hexdump( data, 'generator' ) )
+  return list( hexdump( data, result = 'generator', base_address = base_addr ) )
+
+
+def ParseAddress( addr: str ):
+  base = 10
+  if addr.startswith( '0x' ):
+    base = 16
+  return int( addr, base )
+
+
+def Hex( val: int ):
+  # TODO: is 16 always the right number ? what if your system is 32 bit
+  return f'0x{val:0>16x}'

@@ -1,18 +1,26 @@
 {
   "adapters": {
-    "CodeLLDB - StopOnEntry": {
+    "custom-codelldb": {
       "extends": "CodeLLDB",
+      "command": [
+        "$HOME/Development/vimspector/CodeLLDB/build/adapter/codelldb",
+        "--port", "${unusedLocalPort}"
+      ]
+    },
+    "CodeLLDB - StopOnEntry": {
+      "extends": "custom-codelldb",
       "name": "CoHostingLLDB"
+    },
+    "custom-cpptools": {
+      "extends": "vscode-cpptools",
+      "command": [
+        "$HOME/Development/vimspector/MIEngine/bin/Debug/vscode/OpenDebugAD7"
+      ]
     }
   },
   "configurations": {
     "CodeLLDB": {
-      "adapter": "CodeLLDB",
-      "variables": {
-        "BUILDME": {
-          "shell": "g++ -o ${workspaceRoot}/test -g -std=c++17 ${workspaceRoot}/test_c.cpp"
-        }
-      },
+      "adapter": "custom-codelldb",
       "configuration": {
         "request": "launch",
         "program": "${workspaceRoot}/test"
@@ -44,8 +52,8 @@
         "stopAtEntry": true
       }
     },
-    "cpptools": {
-      "adapter": "vscode-cpptools",
+    "cpptools (lldb)": {
+      "adapter": "custom-cpptools",
       "variables": {
         "BUILDME": {
           "shell": "g++ -o ${workspaceRoot}/test -g -std=c++17 ${workspaceRoot}/test_c.cpp"
@@ -54,8 +62,26 @@
       "configuration": {
         "request": "launch",
         "program": "${workspaceRoot}/test",
-        "stopOnEntry": true,
-        "MIMode": "lldb"
+        "stopAtEntry": true,
+        "MIMode": "lldb",
+        "MIDebuggerPath": "$HOME/.vim/vimspector-conf/gadgets/macos/vscode-cpptools/debugAdapters/lldb-mi/bin/lldb-mi",
+        "logging": {
+          "engineLogging": true
+        }
+      }
+    },
+    "cpptools (gdb)": {
+      "adapter": "custom-cpptools",
+      "variables": {
+        "BUILDME": {
+          "shell": "g++ -o ${workspaceRoot}/test -g -std=c++17 ${workspaceRoot}/test_c.cpp"
+        }
+      },
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/test",
+        "stopAtEntry": true,
+        "MIMode": "gdb"
       }
     }
   }

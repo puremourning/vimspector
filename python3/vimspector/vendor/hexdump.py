@@ -176,7 +176,7 @@ def dump(binary, size=2, sep=' '):
     hexstr = hexstr.decode('ascii')
   return sep.join(chunks(hexstr.upper(), size))
 
-def dumpgen(data):
+def dumpgen(data, base_address):
   '''
   Generator that produces strings:
 
@@ -185,7 +185,7 @@ def dumpgen(data):
   generator = genchunks(data, 16)
   for addr, d in enumerate(generator):
     # 00000000:
-    line = '%08X: ' % (addr*16)
+    line = '0x%016X: ' % (base_address + (addr*16))
     # 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 
     dumpstr = dump(d)
     line += dumpstr[:8*3]
@@ -210,7 +210,7 @@ def dumpgen(data):
         line += '.'
     yield line
   
-def hexdump(data, result='print'):
+def hexdump(data, result='print', base_address=0):
   '''
   Transform binary data to the hex dump text format:
 
@@ -227,7 +227,7 @@ def hexdump(data, result='print'):
   if PY3K and type(data) == str:
     raise TypeError('Abstract unicode data (expected bytes sequence)')
 
-  gen = dumpgen(data)
+  gen = dumpgen(data, base_address)
   if result == 'generator':
     return gen
   elif result == 'return':
