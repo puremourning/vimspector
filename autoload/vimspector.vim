@@ -236,46 +236,64 @@ function! vimspector#AddAdvancedFunctionBreakpoint() abort
   return vimspector#AddFunctionBreakpoint( function, options )
 endfunction
 
-function! vimspector#StepOver() abort
+function! vimspector#StepOver( ... ) abort
   if !s:Enabled()
     return
   endif
-  py3 _vimspector_session.StepOver()
+  if a:0 == 0
+    let args = {}
+  else
+    let args = a:1
+  endif
+  py3 _vimspector_session.StepOver( **vim.eval( 'args' ) )
 endfunction
 
-function! vimspector#StepInto() abort
+function! vimspector#StepInto( ... ) abort
   if !s:Enabled()
     return
   endif
-  py3 _vimspector_session.StepInto()
+  if a:0 == 0
+    let args = {}
+  else
+    let args = a:1
+  endif
+  py3 _vimspector_session.StepInto( **vim.eval( 'args' ) )
 endfunction
 
-function! vimspector#StepOut() abort
+function! vimspector#StepOut( ... ) abort
   if !s:Enabled()
     return
   endif
-  py3 _vimspector_session.StepOut()
+  if a:0 == 0
+    let args = {}
+  else
+    let args = a:1
+  endif
+  py3 _vimspector_session.StepOut( **vim.eval( 'args' ) )
+endfunction
+
+function! vimspector#StepSOver() abort
+  return vimspector#StepOver( { 'granularity': 'statement' } )
+endfunction
+
+function! vimspector#StepSInto() abort
+  return vimspector#StepInto( { 'granularity': 'statement' } )
+endfunction
+
+function! vimspector#StepSOut() abort
+  return vimspector#StepOut( { 'granularity': 'statement' } )
 endfunction
 
 function! vimspector#StepIOver() abort
-  if !s:Enabled()
-    return
-  endif
-  py3 _vimspector_session.StepOver( granularity = 'instruction' )
+  return vimspector#StepOver( { 'granularity': 'instruction' } )
 endfunction
 
 function! vimspector#StepIInto() abort
-  if !s:Enabled()
-    return
-  endif
-  py3 _vimspector_session.StepInto( granularity = 'instruction' )
+  return vimspector#StepInto( { 'granularity': 'instruction' } )
 endfunction
 
 function! vimspector#StepIOut() abort
-  if !s:Enabled()
-    return
-  endif
-  py3 _vimspector_session.StepOut( granularity = 'instruction' )
+  return vimspector#StepOut( { 'granularity': 'instruction' } )
 endfunction
 
 function! vimspector#Continue() abort
@@ -715,7 +733,7 @@ function! vimspector#OnBufferCreated( file_name ) abort
     return
   endif
 
-  " Don't actually load up vimsepctor python in autocommands that trigger
+  " Don't actually load up vimspector python in autocommands that trigger
   " regularly. We'll only create the session obkect in s:Enabled()
   if !s:Initialised()
     return

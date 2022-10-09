@@ -57,11 +57,11 @@ class CodeView( object ):
         vim.command( 'nnoremenu WinBar.▷\\ Pause '
                      ':call vimspector#Pause()<CR>' )
         vim.command( 'nnoremenu WinBar.↷\\ Next '
-                     ':call vimspector#StepOver()<CR>' )
+                     ':call vimspector#StepSOver()<CR>' )
         vim.command( 'nnoremenu WinBar.→\\ Step '
-                     ':call vimspector#StepInto()<CR>' )
+                     ':call vimspector#StepSInto()<CR>' )
         vim.command( 'nnoremenu WinBar.←\\ Out '
-                     ':call vimspector#StepOut()<CR>' )
+                     ':call vimspector#StepSOut()<CR>' )
         vim.command( 'nnoremenu WinBar.⟲: '
                      ':call vimspector#Restart()<CR>' )
         vim.command( 'nnoremenu WinBar.✕ '
@@ -111,7 +111,7 @@ class CodeView( object ):
                        frame[ 'line' ] )
 
 
-  def SetCurrentFrame( self, frame ):
+  def SetCurrentFrame( self, frame, should_jump_to_location ):
     """Returns True if the code window was updated with the frame, False
     otherwise. False means either the frame is junk, we couldn't find the file
     (or don't have the data) or the code window no longer exits."""
@@ -129,14 +129,17 @@ class CodeView( object ):
     if not self._window.valid:
       return False
 
-    utils.JumpToWindow( self._window )
-    try:
-      utils.OpenFileInCurrentWindow( frame[ 'source' ][ 'path' ] )
-      vim.command( 'doautocmd <nomodeline> User VimspectorJumpedToFrame' )
-    except vim.error:
-      self._logger.exception( 'Unexpected vim error opening file {}'.format(
-        frame[ 'source' ][ 'path' ] ) )
-      return False
+    with utils.LetCurrentWindow( self._window ):
+      try:
+        utils.OpenFileInCurrentWindow( frame[ 'source' ][ 'path' ] )
+        vim.command( 'doautocmd <nomodeline> User VimspectorJumpedToFrame' )
+      except vim.error:
+        self._logger.exception( 'Unexpected vim error opening file {}'.format(
+          frame[ 'source' ][ 'path' ] ) )
+        return False
+
+    if should_jump_to_location:
+      utils.JumpToWindow( self._window )
 
     # SIC: column is 0-based, line is 1-based in vim. Why? Nobody knows.
     # Note: max() with 0 because some debug adapters (go) return 0 for the

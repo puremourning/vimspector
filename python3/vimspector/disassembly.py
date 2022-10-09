@@ -29,6 +29,9 @@ class DisassemblyView( object ):
     utils.SetUpLogging( self._logger )
 
     self._window = window
+    # Initially we don't care about the buffer. We only update it when we have
+    # one crated from the request.
+    self._buf = None
 
     self._api_prefix = api_prefix
     self._connection = connection
@@ -70,7 +73,10 @@ class DisassemblyView( object ):
   def WindowIsValid( self ):
     return self._window is not None and self._window.valid
 
-  def SetCurrentFrame( self, frame ):
+  def IsCurrent( self ):
+    return vim.current.buffer == self._buf
+
+  def SetCurrentFrame( self, frame, should_jump_to_location ):
     if not self._window.valid:
       return
 
@@ -84,14 +90,13 @@ class DisassemblyView( object ):
 
     self._instructionPointerReference = frame[ 'instructionPointerReference' ]
     self.current_frame = frame
-    self._RequestInstructions()
+    self._RequestInstructions( should_jump_to_location )
 
 
-  def _RequestInstructions( self ):
+  def _RequestInstructions( self, should_jump_to_location ):
     def handler( msg ):
       self.current_instructions = msg.get( 'body', {} ).get( 'instructions' )
-      with utils.RestoreCursorPosition():
-        self._DrawInstructions()
+      self._DrawInstructions( should_jump_to_location )
 
     self.instruction_offset = -self._window.height
     self.instruction_count = self._window.height * 2
@@ -125,7 +130,7 @@ class DisassemblyView( object ):
     self._scratch_buffers = []
 
 
-  def _DrawInstructions( self ):
+  def _DrawInstructions( self, should_jump_to_location ):
     if not self._window.valid:
       return
 
@@ -137,18 +142,21 @@ class DisassemblyView( object ):
       self.current_frame[ 'instructionPointerReference' ] )
 
     file_name = ( self.current_frame.get( 'source' ) or {} ).get( 'path' ) or ''
-    buf = utils.BufferForFile( buf_name )
+    self._buf = utils.BufferForFile( buf_name )
 
     utils.Call( 'setbufvar',
-                buf.number,
+                self._buf.number,
                 'vimspector_disassembly_path',
                 file_name )
-    utils.Call( 'setbufvar', buf.number, '&filetype', 'vimspector-disassembly' )
+    utils.Call( 'setbufvar',
+                self._buf.number,
+                '&filetype',
+                'vimspector-disassembly' )
 
-    self._scratch_buffers.append( buf )
-    utils.SetUpHiddenBuffer( buf, buf_name )
-    with utils.ModifiableScratchBuffer( buf ):
-      utils.SetBufferContents( buf, [
+    self._scratch_buffers.append( self._buf )
+    utils.SetUpHiddenBuffer( self._buf, buf_name )
+    with utils.ModifiableScratchBuffer( self._buf ):
+      utils.SetBufferContents( self._buf, [
         f"{ utils.Hex( utils.ParseAddress( i['address'] ) )}:\t"
         f"{ i.get( 'instructionBytes', '' ):20}\t"
         f"{ i[ 'instruction' ] }"
@@ -158,9 +166,12 @@ class DisassemblyView( object ):
     with utils.LetCurrentWindow( self._window ):
       utils.OpenFileInCurrentWindow( buf_name )
       utils.SetUpUIWindow( self._window )
-      self._window.options[ 'signcolumn' ] = 'auto'
+      self._window.options[ 'signcolumn' ] = 'yes'
 
     self._DisplayPC( buf_name )
+
+    if should_jump_to_location:
+      utils.JumpToWindow( self._window )
 
 
   def _DisplayPC( self, buf_name ):
@@ -188,7 +199,10 @@ class DisassemblyView( object ):
                                   pc_line,
                                   1,
                                   make_visible = True )
-    except vim.error:
+    except vim.error as e:
+      utils.UserMessage( f"Failed to set cursor position for disassembly: {e}",
+                         persist = True,
+                         error = True )
       pass
 
   def _UndisplayPC( self ):

@@ -638,9 +638,14 @@ class DebugSession( object ):
       return
 
     arguments = {
-      'threadId': self._stackTraceView.GetCurrentThreadId()
+      'threadId': self._stackTraceView.GetCurrentThreadId(),
+      'granularity': self._CurrentSteppingGranularity(),
     }
     arguments.update( kwargs )
+
+    if not self._server_capabilities.get( 'supportsSteppingGranularity' ):
+      arguments.pop( 'granularity' )
+
     self._connection.DoRequest( None, {
       'command': 'next',
       'arguments': arguments,
@@ -660,7 +665,8 @@ class DebugSession( object ):
       self.ClearCurrentPC()
 
     arguments = {
-      'threadId': threadId
+      'threadId': threadId,
+      'granularity': self._CurrentSteppingGranularity(),
     }
     arguments.update( kwargs )
     self._connection.DoRequest( handler, {
@@ -679,7 +685,8 @@ class DebugSession( object ):
       self.ClearCurrentPC()
 
     arguments = {
-      'threadId': threadId
+      'threadId': threadId,
+      'granularity': self._CurrentSteppingGranularity(),
     }
     arguments.update( kwargs )
     self._connection.DoRequest( handler, {
@@ -687,6 +694,11 @@ class DebugSession( object ):
       'arguments': arguments,
     } )
 
+  def _CurrentSteppingGranularity( self ):
+    if self._disassemblyView and self._disassemblyView.IsCurrent():
+      return 'instruction'
+
+    return 'statement'
 
   def Continue( self ):
     if not self._connection:
@@ -815,7 +827,8 @@ class DebugSession( object ):
       } )
 
       self._disassemblyView.SetCurrentFrame(
-        self._stackTraceView.GetCurrentFrame() )
+        self._stackTraceView.GetCurrentFrame(),
+        True )
 
 
   @IfConnected()
@@ -1117,9 +1130,9 @@ class DebugSession( object ):
 
 
   def ClearCurrentPC( self ):
-    self._codeView.SetCurrentFrame( None )
+    self._codeView.SetCurrentFrame( None, False )
     if self._disassemblyView:
-      self._disassemblyView.SetCurrentFrame( None )
+      self._disassemblyView.SetCurrentFrame( None, False )
 
 
   @RequiresUI()
@@ -1128,13 +1141,17 @@ class DebugSession( object ):
       self._stackTraceView.Clear()
       self._variablesView.Clear()
 
-    if not self._codeView.SetCurrentFrame( frame ):
-      if self._disassemblyView:
-        self._disassemblyView.Clear()
+    target = self._codeView
+    if self._disassemblyView and self._disassemblyView.IsCurrent():
+      target = self._disassemblyView
+
+    if not self._codeView.SetCurrentFrame( frame,
+                                           target == self._codeView ):
       return False
 
     if self._disassemblyView:
-      self._disassemblyView.SetCurrentFrame( frame )
+      self._disassemblyView.SetCurrentFrame( frame,
+                                             target == self._disassemblyView )
 
     # the codeView.SetCurrentFrame already checked the frame was valid and
     # countained a valid source
