@@ -134,6 +134,7 @@ And a couple of brief demos:
 - locals and globals display
 - watch expressions with autocompletion
 - variable inspection tooltip on hover
+- disassembly view and step-by-instruction
 - set variable value in locals, watch and hover windows
 - call stack display and navigation
 - hierarchical variable value display popup (see `<Plug>VimspectorBalloonEval`)
@@ -154,24 +155,24 @@ runtime dependencies). They are categorised by their level of support:
 * `Legacy`: No longer supported, please migrate your config
 * `Retired`: No longer included or supported.
 
-| Language(s)          | Status       | Switch (for `install_gadget.py`)   | Adapter (for `:VimspectorInstall`)   | Dependencies                                 |
-| -------------------- | -----------  | ---------------------------------- | ------------------------------------ | -------------------------------------------- |
-| C, C++, Rust, Jai, etc.    | Tested       | `--all` or `--enable-c` (or cpp)   | vscode-cpptools                      | mono-core                                    |
-| C, C++, Rust, Jai, etc.    | Supported    | `--enable-rust`                    | CodeLLDB                             | none                                         |
-| Python               | Tested       | `--all` or `--enable-python`       | debugpy                              | Python 3                                     |
-| Go                   | Tested       | `--enable-go`                      | delve                                | Go 1.16+                                     |
-| TCL                  | Supported    | `--all` or `--enable-tcl`          | tclpro                               | TCL 8.5                                      |
-| Bourne Shell         | Supported    | `--all` or `--enable-bash`         | vscode-bash-debug                    | Bash v??                                     |
-| Lua                  | Tested       | `--all` or `--enable-lua`          | local-lua-debugger-vscode            | Node >=12.13.0, Npm, Lua interpreter         |
-| Node.js              | Supported    | `--force-enable-node`              | vscode-node-debug2                   | 6 < Node < 12, Npm                           |
-| Javascript           | Supported    | `--force-enable-chrome`            | debugger-for-chrome                  | Chrome                                       |
-| Javascript           | Supported    | `--force-enable-firefox`           | vscode-firefox-debug                 | Firefox                                      |
-| Java                 | Supported    | `--force-enable-java  `            | vscode-java-debug                    | Compatible LSP plugin (see [later](#java))   |
-| PHP                  | Experimental | `--force-enable-php`               | vscode-php-debug                     | Node, PHP, XDEBUG                            |
-| C# (dotnet core)     | Tested       | `--force-enable-csharp`            | netcoredbg                           | DotNet core                                  |
-| F#, VB, etc.         | Supported    | `--force-enable-[fsharp,vbnet]`    | netcoredbg                           | DotNet core                                  |
-| Go (legacy)          | Legacy       | `--enable-go`                      | vscode-go                            | Node, Go, [Delve][]                          |
-| Python 2             | Legacy       | `--force-enable-python2`           | debugpy-python2                      | Python 2.7                                   |
+| Language(s)             | Status       | Switch (for `install_gadget.py`)    | Adapter (for `:VimspectorInstall`)   | Dependencies                                 |
+| --------------------    | -----------  | ----------------------------------  | ------------------------------------ | -------------------------------------------- |
+| C, C++, Rust, Jai, etc. | Tested       | `--all` or `--enable-c` (or cpp)    | vscode-cpptools                      | mono-core                                    |
+| C, C++, Rust, Jai, etc. | Tested       | `--enable-rust`, `--enable-c`, etc. | CodeLLDB                             | none                                         |
+| Python                  | Tested       | `--all` or `--enable-python`        | debugpy                              | Python 3                                     |
+| Go                      | Tested       | `--enable-go`                       | delve                                | Go 1.16+                                     |
+| TCL                     | Supported    | `--all` or `--enable-tcl`           | tclpro                               | TCL 8.5                                      |
+| Bourne Shell            | Supported    | `--all` or `--enable-bash`          | vscode-bash-debug                    | Bash v??                                     |
+| Lua                     | Tested       | `--all` or `--enable-lua`           | local-lua-debugger-vscode            | Node >=12.13.0, Npm, Lua interpreter         |
+| Node.js                 | Supported    | `--force-enable-node`               | vscode-node-debug2                   | 6 < Node < 12, Npm                           |
+| Javascript              | Supported    | `--force-enable-chrome`             | debugger-for-chrome                  | Chrome                                       |
+| Javascript              | Supported    | `--force-enable-firefox`            | vscode-firefox-debug                 | Firefox                                      |
+| Java                    | Supported    | `--force-enable-java  `             | vscode-java-debug                    | Compatible LSP plugin (see [later](#java))   |
+| PHP                     | Experimental | `--force-enable-php`                | vscode-php-debug                     | Node, PHP, XDEBUG                            |
+| C# (dotnet core)        | Tested       | `--force-enable-csharp`             | netcoredbg                           | DotNet core                                  |
+| F#, VB, etc.            | Supported    | `--force-enable-[fsharp,vbnet]`     | netcoredbg                           | DotNet core                                  |
+| Go (legacy)             | Legacy       | `--enable-go`                       | vscode-go                            | Node, Go, [Delve][]                          |
+| Python 2                | Legacy       | `--force-enable-python2`            | debugpy-python2                      | Python 2.7                                   |
 
 ## Other languages
 
@@ -701,6 +702,7 @@ features to set your own mappings. To that end, Vimspector defines the following
 | `<Plug>VimspectorStepOver`                    | Step Over                                                           | `vimspector#StepOver()`                                           |
 | `<Plug>VimspectorStepInto`                    | Step Into                                                           | `vimspector#StepInto()`                                           |
 | `<Plug>VimspectorStepOut`                     | Step out of current function scope                                  | `vimspector#StepOut()`                                            |
+| `<Plug>VimspectorDisassemble`                 | Show disassembly. Enable instruction stepping                       | `vimspector#ShowDisassembly()`                                    |
 | `<Plug>VimspectorUpFrame`                     | Move up a frame in the current call stack                           | `vimspector#UpFrame()`                                            |
 | `<Plug>VimspectorDownFrame`                   | Move down a frame in the current call stack                         | `vimspector#DownFrame()`                                          |
 | `<Plug>VimspectorJumpToNextBreakpoint`        | Move Cursor to the next breakpoint in current file                  | `vimspector#JumpToNextBreakpoint()`                               |
@@ -748,6 +750,7 @@ let g:vimspector_enable_mappings = 'VISUAL_STUDIO'
 | `F10`           | `<Plug>VimspectorStepOver`              | Step Over
 | `F11`           | `<Plug>VimspectorStepInto`              | Step Into
 | `Shift F11`     | `<Plug>VimspectorStepOut`               | Step out of current function scope
+| `Alt 8`         | `<Plug>VimspectorDisassemble            | Show disassembly
 
 ## Human Mode
 
@@ -788,11 +791,14 @@ nmap <Leader>di <Plug>VimspectorBalloonEval
 xmap <Leader>di <Plug>VimspectorBalloonEval
 ```
 
-You may also wish to add mappings for navigating up/down the stack, for example:
+You may also wish to add mappings for navigating up/down the stack, toggling
+the breakpoints window, and showing disassembly, for example:
 
 ```viml
 nmap <LocalLeader><F11> <Plug>VimspectorUpFrame
 nmap <LocalLeader><F12> <Plug>VimspectorDownFrame
+nmap <LocalLeader>B     <Plug>VimspectorBreakpoints
+nmap <LocalLeader>D     <Plug>VimspectorDisassemble
 ```
 
 # Usage and API
@@ -1074,7 +1080,12 @@ autocmd SessionLoadPost * silent! VimspectorLoadSession
 ## Stepping
 
 * Step in/out, finish, continue, pause etc. using the WinBar, or mappings.
-* If you really want to, the API is `vimspector#StepInto()` etc.
+* Stepping is contextual. By default, stepping is statement granularity. But
+  if your cursor is in the [disassembly window](#disassembly), then stepping
+  defaults to instruction granularity.
+* If you really want to, the API is `vimspector#StepInto()` etc.. There are also
+  `vimspector#StepSOver()` and `vimspector#StepIOver()` etc. variants for
+  statement and instruction granularity respectively.
 
 ![code window](https://puremourning.github.io/vimspector-web/img/vimspector-code-window.png)
 
@@ -1159,6 +1170,40 @@ let g:ycm_semantic_triggers =  {
   \   'VimspectorPrompt': [ '.', '->', ':', '<' ]
 }
 ```
+
+## Disassembly
+
+* Dispplay disassembly around current PC
+* Step over/into/out by instruction (contextually, or using the WinBar)
+* `:VimspectorDisassemble`, `vimspector#ShowDisassembly()` or
+  `<Plug>VimspectorDisassemble` 
+
+Some debug adapters (few!) support disassembly. The way this works in DAP is a
+little wierd, but in practice vimspector will ask to disassemble a number of
+instructions around the current stack frame's PC. This is then shown in a window
+with a WinBar similar to the Code window, but with instruction stepping
+granularity. There's a sign for the current instruction and the syntax
+highighting defaults to "asm" which mostly works ok for x86 and ARM.
+
+![disassembly-view](https://user-images.githubusercontent.com/10584846/194766584-d798c96b-6e4e-4914-9d4a-991c219f78d0.png)
+
+As mentioned above, when your current window is the disassembly windows and you
+use the default "step" commands (e.g. `<F10>`), the stepping is automatically
+chnged to per-instruction rather than per statement.
+
+Each time the process stops, vimspector requests about 2 windows full of
+instructions around the current PC. To see more, you have to make the window
+bigger and step. This is not ideal, and may be improved in future.
+
+You can control the intial height of the disassembly window with
+`let g:vimspector_disassembly_height = 10` (or whatver number of lines).
+
+The filetype (and syntax) of the buffers in the disassembly window is
+`vimspector-disassembly`. You can use `FileType` autocommands to customise
+things like the syntax highlighting.
+
+***NOTE***: This feature is experimental and may change in any way based on user
+feedback.
 
 ## Dump memory
 
