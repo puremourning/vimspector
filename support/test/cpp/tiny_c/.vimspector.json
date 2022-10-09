@@ -1,0 +1,48 @@
+{
+  "adapters": {
+    "custom-codelldb": {
+      "extends": "CodeLLDB",
+      "command": [
+        "$HOME/Development/vimspector/CodeLLDB/build/adapter/codelldb",
+        "--port", "${unusedLocalPort}"
+      ]
+    },
+    "custom-cpptools": {
+      "extends": "vscode-cpptools",
+      "command": [
+        "$HOME/Development/vimspector/MIEngine/bin/Debug/vscode/OpenDebugAD7"
+      ]
+    }
+  },
+  "configurations": {
+    "CodeLLDB": {
+      "adapter": "custom-codelldb",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/tiny"
+      }
+    },
+    "cpptools (lldb)": {
+      "adapter": "custom-cpptools",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/tiny",
+        "stopAtEntry": true,
+        "MIMode": "lldb",
+        "MIDebuggerPath": "${gadgetDir}/vscode-cpptools/debugAdapters/lldb-mi/bin/lldb-mi",
+        "logging": {
+          "engineLogging": true
+        }
+      }
+    },
+    "cpptools (gdb)": {
+      "adapter": "custom-cpptools",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/tiny",
+        "stopAtEntry": true,
+        "MIMode": "gdb"
+      }
+    }
+  }
+}

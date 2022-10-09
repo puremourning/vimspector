@@ -29,7 +29,6 @@ class DisassemblyView( object ):
     utils.SetUpLogging( self._logger )
 
     self._window = window
-    utils.SetUpUIWindow( self._window )
 
     self._api_prefix = api_prefix
     self._connection = connection
@@ -62,6 +61,7 @@ class DisassemblyView( object ):
                      ':call vimspector#Reset()<CR>' )
 
     signs.DefineProgramCounterSigns()
+    utils.SetUpUIWindow( self._window )
 
 
   def ConnectionUp( self, connection ):
@@ -135,7 +135,16 @@ class DisassemblyView( object ):
     buf_name = os.path.join(
       '_vimspector_disassembly',
       self.current_frame[ 'instructionPointerReference' ] )
+
+    file_name = ( self.current_frame.get( 'source' ) or {} ).get( 'path' ) or ''
     buf = utils.BufferForFile( buf_name )
+
+    utils.Call( 'setbufvar',
+                buf.number,
+                'vimspector_disassembly_path',
+                file_name )
+    utils.Call( 'setbufvar', buf.number, '&filetype', 'vimspector-disassembly' )
+
     self._scratch_buffers.append( buf )
     utils.SetUpHiddenBuffer( buf, buf_name )
     with utils.ModifiableScratchBuffer( buf ):
