@@ -1444,7 +1444,7 @@ An alternative is to to use `lldb-vscode`, which comes with llvm.  Here's how:
 }
 ```
 
-## Rust
+## Rust, C, C++, Jai, etc.
 
 Rust is supported with any gdb/lldb-based debugger. So it works fine with
 `vscode-cpptools` and `lldb-vscode` above. However, support for rust is best in
@@ -1463,14 +1463,27 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
         "request": "launch",
         "program": "${workspaceRoot}/target/debug/vimspector_test"
       }
+    },
+    "attach": {
+      "adapter": "CodeLLDB",
+      "filetypes": [ "rust", "c", "cpp", "jai" ],
+      "configuration": {
+        "request": "attach",
+        "program": "${workspaceRoot}/${fileBasenameNoExtension}",
+        "PID": "${PID}"
+      }
     }
   }
 }
 ```
 
 * Docs: https://github.com/vadimcn/vscode-lldb/blob/master/MANUAL.md
+* ***NOTE***: The CodeLLDB manual assumes you are using VSCode (sigh) and therefore says things which don't work in vimspector, as there is a whole load of javascript nonesense behind every VSCode plugin. I can't possibly document all the wierdnesses, but the following are known
 
 
+1. To use the ["custom" launch](https://github.com/vadimcn/vscode-lldb/blob/master/MANUAL.md#custom-launch), you can't use `"request": "custom"` - this is invalid. Instead use `"request": "launch", "custom": true`. Because [reasons](https://github.com/vadimcn/vscode-lldb/blob/master/extension/main.ts#L397-L401)
+2. All the integration with `cargo` is done in the vscode javascript madness, so is not supported.
+3. The stuff about [remote agents](https://github.com/vadimcn/vscode-lldb/blob/master/MANUAL.md#connecting-to-a-gdbserver-style-agent) uses `"request": custom`; see the point about "custom" launch above
 
 ## Python
 
