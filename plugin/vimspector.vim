@@ -117,6 +117,8 @@ nnoremap <silent> <Plug>VimspectorJumpToProgramCounter
 
 nnoremap <silent> <Plug>VimspectorBreakpoints
       \ :<c-u>call vimspector#ListBreakpoints()<CR>
+nnoremap <silent> <Plug>VimspectorDisassemble
+      \ :<c-u>call vimspector#ShowDisassembly()<CR>
 
 if s:mappings ==# 'VISUAL_STUDIO'
   nmap <F5>         <Plug>VimspectorContinue
@@ -130,6 +132,7 @@ if s:mappings ==# 'VISUAL_STUDIO'
   nmap <F10>        <Plug>VimspectorStepOver
   nmap <F11>        <Plug>VimspectorStepInto
   nmap <S-F11>      <Plug>VimspectorStepOut
+  nmap <M-8>        <Plug>VimspectorDisassemble
 elseif s:mappings ==# 'HUMAN'
   nmap <F5>         <Plug>VimspectorContinue
   nmap <leader><F5> <Plug>VimspectorLaunch
@@ -166,6 +169,9 @@ command! -bar
 command! -bar
       \ VimspectorBreakpoints
       \ call vimspector#ListBreakpoints()
+command! -bar
+      \ VimspectorDisassemble
+      \ call vimspector#ShowDisassembly()
 
 " Installer commands
 command! -bar -bang -nargs=* -complete=custom,vimspector#CompleteInstall
