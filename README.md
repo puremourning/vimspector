@@ -69,6 +69,7 @@ For detailed explanation of the `.vimspector.json` format, see the
        * [C   Remote debugging](#c-remote-debugging)
        * [C   Remote launch and attach](#c-remote-launch-and-attach)
     * [Rust](#rust)
+    * [Jai](#jai)
     * [Python](#python)
        * [Python Remote Debugging](#python-remote-debugging)
        * [Python Remote launch and attach](#python-remote-launch-and-attach)
@@ -154,8 +155,8 @@ runtime dependencies). They are categorised by their level of support:
 
 | Language(s)          | Status       | Switch (for `install_gadget.py`)   | Adapter (for `:VimspectorInstall`)   | Dependencies                                 |
 | -------------------- | -----------  | ---------------------------------- | ------------------------------------ | -------------------------------------------- |
-| C, C++, Rust etc.    | Tested       | `--all` or `--enable-c` (or cpp)   | vscode-cpptools                      | mono-core                                    |
-| C, C++, Rust etc.    | Supported    | `--enable-rust`                    | CodeLLDB                             | none                                         |
+| C, C++, Rust, Jai, etc.    | Tested       | `--all` or `--enable-c` (or cpp)   | vscode-cpptools                      | mono-core                                    |
+| C, C++, Rust, Jai, etc.    | Supported    | `--enable-rust`                    | CodeLLDB                             | none                                         |
 | Python               | Tested       | `--all` or `--enable-python`       | debugpy                              | Python 3                                     |
 | Go                   | Tested       | `--enable-go`                      | delve                                | Go 1.16+                                     |
 | TCL                  | Supported    | `--all` or `--enable-tcl`          | tclpro                               | TCL 8.5                                      |
@@ -1444,7 +1445,7 @@ An alternative is to to use `lldb-vscode`, which comes with llvm.  Here's how:
 }
 ```
 
-## Rust, C, C++, Jai, etc.
+## Rust
 
 Rust is supported with any gdb/lldb-based debugger. So it works fine with
 `vscode-cpptools` and `lldb-vscode` above. However, support for rust is best in
@@ -1484,6 +1485,74 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
 1. To use the ["custom" launch](https://github.com/vadimcn/vscode-lldb/blob/master/MANUAL.md#custom-launch), you can't use `"request": "custom"` - this is invalid. Instead use `"request": "launch", "custom": true`. Because [reasons](https://github.com/vadimcn/vscode-lldb/blob/master/extension/main.ts#L397-L401)
 2. All the integration with `cargo` is done in the vscode javascript madness, so is not supported.
 3. The stuff about [remote agents](https://github.com/vadimcn/vscode-lldb/blob/master/MANUAL.md#connecting-to-a-gdbserver-style-agent) uses `"request": custom`; see the point about "custom" launch above
+
+## Jai
+
+Jai debugging works fine with any of the other native debuggers. I recommend [CodeLLDB](#rust), but cpptools also works.
+
+Example:
+
+```jsonc
+{
+  "$schema": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json",
+  "adapters": {
+    "gdb-with-build": {
+      "extends": "gdb",
+      "variables": {
+        "buildme": {
+          "shell": "jai ${workspaceRoot}/build.jai"
+        }
+      }
+    },
+    "codelldb-with-build": {
+      "extends": "CodeLLDB",
+      "variables": {
+        "buildme": {
+          "shell": "jai ${workspaceRoot}/build.jai"
+        }
+      }
+    }
+  },
+  "configurations": {
+    "Run - gdb": {
+      "adapter": "gdb-with-build",
+      "filetypes": [ "jai" ],
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/${binaryName}",
+        "args": [ "*${args}" ],
+        "stopAtEntry": true,
+        "stopOnEntry": true
+      }
+    },
+    "Run - lldb": {
+      "extends": "Run - gdb",
+      "filetypes": [ "jai" ],
+      "adapter": "codelldb-with-build"
+    },
+    "Attach - gdb": {
+      "adapter": "vscode-cpptools",
+      "filetypes": [ "jai" ],
+      "configuration": {
+        "request": "attach",
+        "program": "${workspaceRoot}/binaryName}",
+        "processId": "${PID}"
+      }
+    },
+    "Attach - lldb": {
+      "extends": "Attach - gdb",
+      "filetypes": [ "jai" ],
+      "adapter": "CodeLLDB",
+      "configuration": {
+        "pid": "${PID}"
+      }
+    }
+  }
+}
+
+```
+
+<img width="1031" alt="Screenshot 2022-10-09 at 11 27 13" src="https://user-images.githubusercontent.com/10584846/194751648-72419216-2e4c-4ddc-adf7-9008f7e4f3c2.png">
 
 ## Python
 
