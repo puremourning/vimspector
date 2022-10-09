@@ -594,7 +594,7 @@ Vimspector is a vim UI on top of the Debug Adapter Protocol. It's intended to be
 
 Vimspector is not:
 
-* a debugger! It's just the UI and come glue.
+* a debugger! It's just the UI and some glue.
 * fast. It's abstractions all the way down. If you want a fast, native debugger, there are other options.
 * comprehensive. It's limited by DAP, and limited by my time. I implement the features I think most users will need, not every feature possible.
 * for everyone. Vimspector intentionally provides a "one size fits all" UI and aproach. This means that it can only provide essential/basic debugging features for a given language. This makes it convenient for everyday usage, but not ideal for power users or those with very precise or specific requirements. See [motivation](#motivation) for more info. 
