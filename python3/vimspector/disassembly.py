@@ -201,9 +201,8 @@ class DisassemblyView( object ):
                                   make_visible = True )
     except vim.error as e:
       utils.UserMessage( f"Failed to set cursor position for disassembly: {e}",
-                         persist = True,
                          error = True )
-      pass
+
 
   def _UndisplayPC( self ):
     if self._signs[ 'vimspectorPC' ]:
