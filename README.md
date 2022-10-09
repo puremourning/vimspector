@@ -588,7 +588,7 @@ vimspector has first-class support for executing programs remotely and attaching
 to them. This support is unique to vimspector and on top of (complementary to)
 any such support in actual debug adapters.
 
-# What Vimsector is not
+# What Vimspector is not
 
 Vimspector is a vim UI on top of the Debug Adapter Protocol. It's intended to be high level and convenient for day-to-day debugging tasks.
 
