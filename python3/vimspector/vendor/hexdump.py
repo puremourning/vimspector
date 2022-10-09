@@ -185,7 +185,7 @@ def dumpgen(data, base_address):
   generator = genchunks(data, 16)
   for addr, d in enumerate(generator):
     # 00000000:
-    line = '%08X: ' % (base_address + (addr*16))
+    line = '0x%016X: ' % (base_address + (addr*16))
     # 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 
     dumpstr = dump(d)
     line += dumpstr[:8*3]

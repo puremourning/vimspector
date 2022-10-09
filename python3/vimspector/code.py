@@ -208,11 +208,13 @@ class CodeView( object ):
     with utils.ModifiableScratchBuffer( buf ):
       utils.SetBufferContents( buf, [
         f'Memory at address { utils.Hex( addr ) }',
-        '-' * 80,
-        'Offset    Bytes                                             Text',
-        '-' * 80,
+        '-' * 86,
+          'Address             '
+          'Bytes                                             '
+          'Text',
+        '-' * 86,
       ] )
-      utils.AppendToBuffer( buf, utils.Base64ToHexDump( data ) )
+      utils.AppendToBuffer( buf, utils.Base64ToHexDump( data, addr ) )
 
     utils.SetSyntax( '', 'vimspector-memory', buf )
     utils.JumpToWindow( self._window )

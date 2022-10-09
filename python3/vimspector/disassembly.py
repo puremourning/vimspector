@@ -117,6 +117,14 @@ class DisassemblyView( object ):
 
   def Clear( self ):
     self._UndisplayPC()
+    self._buf = None
+    self.current_frame = None
+    self.current_instructions = None
+
+    del self.instruction_count
+    del self.instruction_offset
+    del self._instructionPointerReference
+
     with utils.ModifiableScratchBuffer( self._window.buffer ):
       utils.ClearBuffer( self._window.buffer )
 
