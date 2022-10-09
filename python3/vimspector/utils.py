@@ -945,9 +945,9 @@ class EventEmitter( object ):
     self.__callbacks = {}
 
 
-def Base64ToHexDump( data ):
+def Base64ToHexDump( data, base_addr ):
   data = base64.b64decode( data )
-  return list( hexdump( data, 'generator' ) )
+  return list( hexdump( data, result = 'generator', base_address = base_addr ) )
 
 
 def ParseAddress( addr: str ):
