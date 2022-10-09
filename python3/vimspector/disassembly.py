@@ -61,7 +61,6 @@ class DisassemblyView( object ):
                      ':call vimspector#Reset()<CR>' )
 
     signs.DefineProgramCounterSigns()
-    utils.SetUpUIWindow( self._window )
 
 
   def ConnectionUp( self, connection ):
@@ -155,6 +154,8 @@ class DisassemblyView( object ):
 
     with utils.LetCurrentWindow( self._window ):
       utils.OpenFileInCurrentWindow( buf_name )
+      utils.SetUpUIWindow( self._window )
+      self._window.options[ 'signcolumn' ] = 'auto'
 
     self._DisplayPC( buf_name )
 
