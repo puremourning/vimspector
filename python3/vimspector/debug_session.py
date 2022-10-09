@@ -805,7 +805,7 @@ class DebugSession( object ):
       return
 
     with utils.LetCurrentWindow( self._codeView._window ):
-      vim.command( 'rightbelow 20new' )
+      vim.command( f'rightbelow { settings.Int( "disassembly_height" ) }new' )
       self._disassemblyView = disassembly.DisassemblyView( vim.current.window,
                                                            self._connection,
                                                            self._api_prefix )

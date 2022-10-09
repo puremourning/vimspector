@@ -75,30 +75,31 @@ class DisassemblyView( object ):
       return
 
     if not frame:
-      # TODO(BenJ): Clear PC
+      self._UndisplayPC()
       return
 
     if 'instructionPointerReference' not in frame:
-      # TODO(BenJ): Clear PC
+      self._UndisplayPC()
       return
 
-    instructionPointerReference = frame[ 'instructionPointerReference' ]
+    self._instructionPointerReference = frame[ 'instructionPointerReference' ]
+    self.current_frame = frame
+    self._RequestInstructions()
 
-    self.current_frame = frame;
 
+  def _RequestInstructions( self ):
     def handler( msg ):
       self.current_instructions = msg.get( 'body', {} ).get( 'instructions' )
       with utils.RestoreCursorPosition():
         self._DrawInstructions()
 
-    # TOOD: Do something better
-    self.instruction_offset = -20
-    self.instruction_count = 40
+    self.instruction_offset = -self._window.height
+    self.instruction_count = self._window.height * 2
 
     self._connection.DoRequest( handler, {
       'command': 'disassemble',
       'arguments': {
-        'memoryReference': instructionPointerReference,
+        'memoryReference': self._instructionPointerReference,
         'offset': 0,
         'instructionOffset': self.instruction_offset,
         'instructionCount': self.instruction_count,

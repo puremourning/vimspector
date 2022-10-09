@@ -22,6 +22,7 @@ DEFAULTS = {
   # UI
   'ui_mode':            'auto',
   'bottombar_height':   10,
+  'disassembly_height': 20,
   'variables_display_mode': 'compact', # compact/full
 
   # For ui_mode = 'horizontal':
