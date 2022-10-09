@@ -1535,7 +1535,7 @@ Example:
       "filetypes": [ "jai" ],
       "configuration": {
         "request": "attach",
-        "program": "${workspaceRoot}/binaryName}",
+        "program": "${workspaceRoot}/${binaryName}",
         "processId": "${PID}"
       }
     },
