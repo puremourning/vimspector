@@ -21,7 +21,7 @@ import logging
 import operator
 
 import json
-from vimspector import utils, signs, settings
+from vimspector import utils, signs, settings, disassembly
 
 
 def _JumpToBreakpoint( bp ):
@@ -173,12 +173,17 @@ class BreakpointsView( object ):
 
 
 class ProjectBreakpoints( object ):
-  def __init__( self, render_event_emitter, IsPCPresentAt ):
+  def __init__( self,
+                render_event_emitter,
+                IsPCPresentAt,
+                disassembly_manager: disassembly.DisassemblyView ):
     self._connection = None
     self._logger = logging.getLogger( __name__ )
     self._render_subject = render_event_emitter.subscribe( self.Refresh )
     self._IsPCPresentAt = IsPCPresentAt
+    self._disassembly_manager = disassembly_manager
     utils.SetUpLogging( self._logger )
+
 
     # These are the user-entered breakpoints.
     self._line_breakpoints = defaultdict( list )
@@ -226,6 +231,8 @@ class ProjectBreakpoints( object ):
   def SetServerCapabilities( self, server_capabilities ):
     self._server_capabilities = server_capabilities
 
+  def SetDisassemblyManager( self, disassembly_manager ):
+    self._disassembly_manager = disassembly_manager
 
   def ConnectionClosed( self ):
     self._server_capabilities = {}
@@ -347,15 +354,19 @@ class ProjectBreakpoints( object ):
           state = bp[ 'state' ]
           valid = 1
 
+        is_instruction = ( self._disassembly_manager and
+                           self._disassembly_manager.IsDisassemblyBuffer(
+                             file_name ) )
+
+        desc = "Instruction" if is_instruction else "Line"
+
         qf.append( {
           'filename': file_name,
           'lnum': line,
           'col': 1,
           'type': 'L',
           'valid': valid,
-          'text': "Line breakpoint - {}: {}".format(
-            state,
-            json.dumps( bp[ 'options' ] ) )
+          'text': f"`{desc} breakpoint - {state}: {json.dumps( bp['options'] )}"
         } )
     for bp in self._func_breakpoints:
       qf.append( {
@@ -394,7 +405,7 @@ class ProjectBreakpoints( object ):
       # user-bp position, as that's what the user sees in the UI (signs, and in
       # the breakpoints window)
       if 'server_bp' in bp:
-        if bp[ 'server_bp' ].get( 'line', line ) == line:
+        if bp[ 'server_bp' ].get( 'line', bp[ 'line' ] ) == line:
           return bp, index
       elif bp[ 'line' ] == line:
         return bp, index
@@ -404,15 +415,15 @@ class ProjectBreakpoints( object ):
 
   def _FindPostedBreakpoint( self, breakpoint_id ):
     if breakpoint_id is None:
-      return None
+      return None, None
 
     for filepath, breakpoint_list in self._line_breakpoints.items():
       for index, bp in enumerate( breakpoint_list ):
         server_bp = bp.get( 'server_bp', {} )
         if 'id' in server_bp and server_bp[ 'id' ] == breakpoint_id:
-          return bp
+          return filepath, bp
 
-    return None
+    return None, None
 
 
   def _ClearServerBreakpointData( self ):
@@ -432,11 +443,14 @@ class ProjectBreakpoints( object ):
 
 
   def _CopyServerLineBreakpointProperties( self, bp, server_bp ):
-    # we are just updating position of the existing breakpoint
+    if 'line' in server_bp and not server_bp[ 'line' ]:
+      # Some servers send line=0 or null or something for instruction
+      # breakpoints. drop that and just use the user bp
+      server_bp.pop( 'line' )
     bp[ 'server_bp' ] = server_bp
 
   def UpdatePostedBreakpoint( self, server_bp ):
-    bp = self._FindPostedBreakpoint( server_bp.get( 'id' ) )
+    filename, bp = self._FindPostedBreakpoint( server_bp.get( 'id' ) )
     if bp is None:
       self._logger.warn( "Unexpected update to breakpoint with id %s:"
                          "breakpiont not found. %s",
@@ -444,11 +458,28 @@ class ProjectBreakpoints( object ):
                          server_bp )
       return
 
+    if ( self._disassembly_manager and
+         self._disassembly_manager.IsDisassemblyBuffer( filename ) ):
+      server_bp.pop( 'line', None )
+
     self._CopyServerLineBreakpointProperties( bp, server_bp )
     # Render the breakpoitns, but don't send any updates, as this leads to a
     # feedback loop
     self._render_subject.emit()
 
+  def OnContinued( self ):
+    # clear any instruction breakpoints. They are no longer valid, see:
+    # https://github.com/microsoft/debug-adapter-protocol/issues/340
+
+    # Alternatively we would have to resolve the memory address of each
+    # breakpoint and do shenanigans to persist them across continues. But for
+    # now, this sort-of works.
+    if not self._disassembly_manager:
+      return
+    breakpoint_list: list
+    for filepath, breakpoint_list in self._line_breakpoints.items():
+      if self._disassembly_manager.IsDisassemblyBuffer( filepath ):
+        breakpoint_list.clear()
 
   def AddPostedBreakpoint( self, server_bp ):
     source = server_bp.get( 'source' )
@@ -459,6 +490,8 @@ class ProjectBreakpoints( object ):
 
     if 'line' not in server_bp:
       # There's nothing we can really add without a line
+      # If we get an unsolicited instruction breakpoints it's extremely unlikely
+      # that we'd be able to actually use it
       return
 
     existing_bp, _ = self._FindLineBreakpoint( source[ 'path' ],
@@ -481,7 +514,7 @@ class ProjectBreakpoints( object ):
 
 
   def DeletePostedBreakpoint( self, server_bp ):
-    bp = self._FindPostedBreakpoint( server_bp.get( 'id' ) )
+    _, bp = self._FindPostedBreakpoint( server_bp.get( 'id' ) )
 
     if bp is None:
       return
@@ -613,6 +646,9 @@ class ProjectBreakpoints( object ):
         # We don't modify the 'user" breakpiont
         continue
 
+      # FIXME: Tempoarary instruction breakpoints would not have a line; we
+      # would have to rely on the id returning in the hit (which we should
+      # probably be doing anyway)
       if 'line' not in server_bp or not server_bp[ 'verified' ]:
         utils.UserMessage(
           "Unable to set temporary breakpoint at line "
@@ -690,6 +726,14 @@ class ProjectBreakpoints( object ):
       self._UpdateServerBreakpoints( server_bps, bp_idxs )
       response_received()
 
+    def instruction_response_handler( msg, bp_idxs ):
+      server_bps = ( msg.get( 'body' ) or {} ).get( 'breakpoints' ) or []
+      # Some servers (cpptools) inexplicably return a line number for
+      # instruction breakpoints, which completely screws us over
+      for bp in server_bps:
+        bp.pop( 'line', None )
+      self._UpdateServerBreakpoints( server_bps, bp_idxs )
+      response_received()
 
     # NOTE: Must do this _first_ otherwise we might send requests and get
     # replies before we finished sending all the requests.
@@ -700,6 +744,10 @@ class ProjectBreakpoints( object ):
     # TODO: add the _configured_breakpoints to line_breakpoints
 
     for file_name, line_breakpoints in self._line_breakpoints.items():
+      if ( self._disassembly_manager and
+           self._disassembly_manager.IsDisassemblyBuffer( file_name ) ):
+        continue
+
       bp_idxs = []
       breakpoints = []
       for bp in line_breakpoints:
@@ -778,6 +826,49 @@ class ProjectBreakpoints( object ):
         },
         failure_handler = response_received
       )
+
+    if self._disassembly_manager:
+      for file_name, line_breakpoints in self._line_breakpoints.items():
+        if not self._disassembly_manager.IsDisassemblyBuffer( file_name ):
+          continue
+
+        breakpoints = []
+        bp_idxs = []
+        for bp in line_breakpoints:
+          bp.pop( 'server_bp', None )
+
+          if 'sign_id' in bp:
+            signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
+
+          if bp[ 'state' ] != 'ENABLED':
+            continue
+
+          dap_bp = {}
+          dap_bp.update( bp[ 'options' ] )
+          dap_bp.update( {
+            'instructionReference':
+              self._disassembly_manager.GetMemoryReference(),
+            'offset':
+              self._disassembly_manager.GetOffsetForLine( bp[ 'line' ] ),
+          } )
+
+          dap_bp.pop( 'temporary', None )
+          bp_idxs.append( [ len( breakpoints ), bp ] )
+
+          breakpoints.append( dap_bp )
+
+        self._awaiting_bp_responses += 1
+        self._connection.DoRequest(
+          lambda msg, bp_idxs=bp_idxs: instruction_response_handler( msg,
+                                                                     bp_idxs ),
+          {
+            'command': 'setInstructionBreakpoints',
+            'arguments': {
+              'breakpoints': breakpoints,
+            },
+          },
+          failure_handler = response_received
+        )
 
     if self._exception_breakpoints:
       self._awaiting_bp_responses += 1
@@ -917,6 +1008,10 @@ class ProjectBreakpoints( object ):
 
   def _SignToLine( self, file_name, bp ):
     if self._connection is not None:
+      return
+
+    if ( self._disassembly_manager and
+         self._disassembly_manager.IsDisassemblyBuffer( file_name ) ):
       return
 
     if 'sign_id' not in bp:
