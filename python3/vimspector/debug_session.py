@@ -656,7 +656,6 @@ class DebugSession( object ):
 
     # TODO: WHy is this different from StepInto and StepOut
     self._stackTraceView.OnContinued()
-    self._breakpoints.OnContinued()
     self.ClearCurrentPC()
 
   @IfConnected()
@@ -667,7 +666,6 @@ class DebugSession( object ):
 
     def handler( *_ ):
       self._stackTraceView.OnContinued( { 'threadId': threadId } )
-      self._breakpoints.OnContinued()
       self.ClearCurrentPC()
 
     arguments = {
@@ -688,7 +686,6 @@ class DebugSession( object ):
 
     def handler( *_ ):
       self._stackTraceView.OnContinued( { 'threadId': threadId } )
-      self._breakpoints.OnContinued()
       self.ClearCurrentPC()
 
     arguments = {
@@ -724,7 +721,6 @@ class DebugSession( object ):
             'allThreadsContinued',
             True )
         } )
-      self._breakpoints.OnContinued()
       self.ClearCurrentPC()
 
     self._connection.DoRequest( handler, {
@@ -829,7 +825,8 @@ class DebugSession( object ):
       self._disassemblyView = disassembly.DisassemblyView(
         vim.current.window,
         self._connection,
-        self._api_prefix )
+        self._api_prefix,
+        self._render_emitter )
 
       self._breakpoints.SetDisassemblyManager( self._disassemblyView )
 
@@ -1776,7 +1773,6 @@ class DebugSession( object ):
 
   def OnEvent_continued( self, message ):
     self._stackTraceView.OnContinued( message[ 'body' ] )
-    self._breakpoints.OnContinued()
     self.ClearCurrentPC()
 
   def Clear( self ):
@@ -1800,6 +1796,8 @@ class DebugSession( object ):
     self._variablesView.ConnectionClosed()
     self._outputView.ConnectionClosed()
     self._breakpoints.ConnectionClosed()
+    if self._disassemblyView:
+      self._disassemblyView.ConnectionClosed()
 
     self._ResetServerState()
 
@@ -1837,6 +1835,7 @@ class DebugSession( object ):
     if self._outputView:
       self._outputView.Print( 'server', msg )
 
+    # TODO: We _could_ delete all instruction breakpoints at this point
     self._stackTraceView.OnStopped( event )
 
   def BreakpointsAsQuickFix( self ):
