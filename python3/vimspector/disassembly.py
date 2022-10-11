@@ -159,10 +159,12 @@ class DisassemblyView( object ):
 
     self._scratch_buffers.append( self._buf )
     utils.SetUpHiddenBuffer( self._buf, buf_name )
+    instruction_bytes_len = max( len( i.get( 'instructionBytes', '' ) )
+                                 for i in self.current_instructions )
     with utils.ModifiableScratchBuffer( self._buf ):
       utils.SetBufferContents( self._buf, [
         f"{ utils.Hex( utils.ParseAddress( i['address'] ) )}:\t"
-        f"{ i.get( 'instructionBytes', '' ):20}\t"
+        f"{ i.get( 'instructionBytes', '' ):{instruction_bytes_len}}\t"
         f"{ i[ 'instruction' ] }"
           for i in self.current_instructions
       ] )
