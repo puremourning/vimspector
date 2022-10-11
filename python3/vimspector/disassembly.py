@@ -24,10 +24,12 @@ SIGN_ID = 1
 
 
 class DisassemblyView( object ):
-  def __init__( self, window, connection, api_prefix ):
+  def __init__( self, window, connection, api_prefix, render_event_emitter ):
     self._logger = logging.getLogger( __name__ )
     utils.SetUpLogging( self._logger )
 
+    self._render_emitter = render_event_emitter
+    self._render_emitter.subscribe( self._DisplayPC )
     self._window = window
     # Initially we don't care about the buffer. We only update it when we have
     # one crated from the request.
@@ -69,6 +71,8 @@ class DisassemblyView( object ):
   def ConnectionUp( self, connection ):
     self._connection = connection
 
+  def ConnectionClosed( self ):
+    self._connection = None
 
   def WindowIsValid( self ):
     return self._window is not None and self._window.valid
@@ -112,22 +116,20 @@ class DisassemblyView( object ):
       }
     } )
 
-    # TODO: Window scrolled autocommand to update ?
-
 
   def Clear( self ):
     self._UndisplayPC()
-    self._buf = None
+
+    with utils.ModifiableScratchBuffer( self._buf ):
+      utils.ClearBuffer( self._buf )
+
     self.current_frame = None
     self.current_instructions = None
-
-    with utils.ModifiableScratchBuffer( self._window.buffer ):
-      utils.ClearBuffer( self._window.buffer )
 
 
   def Reset( self ):
     self.Clear()
-
+    self._buf = None
     for b in self._scratch_buffers:
       utils.CleanUpHiddenBuffer( b )
 
@@ -135,17 +137,18 @@ class DisassemblyView( object ):
 
 
   def IsDisassemblyBuffer( self, file_name ):
-    if self._buf is None:
+    if not self._buf:
       return False
     return ( utils.NormalizePath( file_name ) ==
                 utils.NormalizePath( self._buf.name ) )
-
 
   def GetMemoryReference( self ):
     return self._instructionPointerReference
 
   def GetOffsetForLine( self, line_num ):
-    assert line_num > 0 and line_num <= self.instruction_count
+    if line_num <= 0 or line_num > self.instruction_count:
+      return None
+
     # Offset is in bytes
     pc = utils.ParseAddress(
       self.current_instructions[ self._GetPCEntryOffset() ][ 'address' ] )
@@ -153,8 +156,30 @@ class DisassemblyView( object ):
       self.current_instructions[ line_num - 1 ][ 'address' ] )
     return req - pc
 
+  def ResolveAddressAtLine( self, line_num ):
+    if line_num <= 0 or line_num > self.instruction_count:
+      return None
+
+    return utils.ParseAddress(
+      self.current_instructions[ line_num - 1 ][ 'address' ] )
+
+  def FindLineForAddress( self, address ):
+    if not self.current_instructions:
+      return 0
+
+    for index, instruction in enumerate( self.current_instructions ):
+      the_addr = utils.ParseAddress( instruction[ 'address' ] )
+      if the_addr == address:
+        return index + 1
+    return 0
+
   def _GetPCEntryOffset( self ):
     return -self.instruction_offset
+
+  def GetBufferName( self ):
+    if not self._buf:
+      return None
+    return self._buf.name
 
   def _DrawInstructions( self, should_jump_to_location ):
     if not self._window.valid:
@@ -194,14 +219,32 @@ class DisassemblyView( object ):
       utils.SetUpUIWindow( self._window )
       self._window.options[ 'signcolumn' ] = 'yes'
 
-    self._DisplayPC( buf_name )
+    self._render_emitter.emit()
 
-    if should_jump_to_location:
-      utils.JumpToWindow( self._window )
+    try:
+      if should_jump_to_location:
+        utils.JumpToWindow( self._window )
+        utils.SetCursorPosInWindow( self._window,
+                                    self._GetPCEntryOffset() + 1,
+                                    1,
+                                    make_visible = True )
+      else:
+        with utils.RestoreCursorPosition():
+          utils.SetCursorPosInWindow( self._window,
+                                      self._GetPCEntryOffset() + 1,
+                                      1,
+                                      make_visible = True )
+    except vim.error as e:
+      utils.UserMessage( f"Failed to set cursor position for disassembly: {e}",
+                         error = True )
 
 
-  def _DisplayPC( self, buf_name ):
+
+  def _DisplayPC( self ):
     self._UndisplayPC()
+
+    if not self._connection or not self._buf or not self.current_instructions:
+      return
 
     if len( self.current_instructions ) < self.instruction_count:
       self._logger.warn( "Invalid number of instructions returned by adapter: "
@@ -217,17 +260,8 @@ class DisassemblyView( object ):
     signs.PlaceSign( self._signs[ 'vimspectorPC' ],
                      'VimspectorDisassembly',
                      'vimspectorPC',
-                     buf_name,
+                     self._buf.name,
                      pc_line )
-
-    try:
-      utils.SetCursorPosInWindow( self._window,
-                                  pc_line,
-                                  1,
-                                  make_visible = True )
-    except vim.error as e:
-      utils.UserMessage( f"Failed to set cursor position for disassembly: {e}",
-                         error = True )
 
 
   def _UndisplayPC( self ):
