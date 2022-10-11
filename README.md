@@ -21,14 +21,12 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Trying it out](#trying-it-out)
     * [Cloning the plugin](#cloning-the-plugin)
     * [Install some gadgets](#install-some-gadgets)
-       * [VimspectorInstall and VimspectorUpdate commands](#vimspectorinstall-and-vimspectorupdate-commands)
-       * [install_gadget.py](#install_gadgetpy)
     * [Manual gadget installation](#manual-gadget-installation)
        * [The gadget directory](#the-gadget-directory)
     * [Upgrade](#upgrade)
  * [About](#about)
     * [Background](#background)
-    * [What vimspector is not](#what-vimspector-is-not)
+ * [What Vimspector is not](#what-vimspector-is-not)
     * [Status](#status)
        * [Experimental](#experimental)
     * [Motivation](#motivation)
@@ -48,14 +46,17 @@ For detailed explanation of the `.vimspector.json` format, see the
        * [Conditional breakpoints and logpoints](#conditional-breakpoints-and-logpoints)
        * [Exception breakpoints](#exception-breakpoints)
        * [API Summary](#api-summary)
+       * [Instruction breakpoints](#instruction-breakpoints)
        * [Clear breakpoints](#clear-breakpoints)
        * [Run to Cursor](#run-to-cursor)
+       * [Go to current line](#go-to-current-line)
        * [Save and restore](#save-and-restore)
     * [Stepping](#stepping)
     * [Variables and scopes](#variables-and-scopes)
     * [Variable or selection hover evaluation](#variable-or-selection-hover-evaluation)
     * [Watches](#watches)
        * [Watch autocompletion](#watch-autocompletion)
+    * [Disassembly](#disassembly)
     * [Dump memory](#dump-memory)
     * [Stack Traces](#stack-traces)
     * [Program Output](#program-output)
@@ -74,6 +75,7 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Python](#python)
        * [Python Remote Debugging](#python-remote-debugging)
        * [Python Remote launch and attach](#python-remote-launch-and-attach)
+       * [Python 2](#python-2)
     * [TCL](#tcl)
     * [C♯](#c)
     * [Go](#go)
@@ -98,7 +100,7 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Example](#example)
  * [FAQ](#faq)
 
-<!-- Added by: ben, at: Sat  5 Mar 2022 18:59:09 GMT -->
+<!-- Added by: ben, at: Fri 21 Oct 2022 22:27:24 BST -->
 
 <!--te-->
 
@@ -1016,6 +1018,28 @@ Examples:
 * `VimspectorLoadSession` - read `.vimspector.session`
 * `VimspectorMkSession my_session_file` - create `my_session_file`
 * `VimspectorLoadSession my_session_file` - read `my_session_file`
+
+### Instruction breakpoints
+
+**NOTE**: Experimental feature, which may change significantly in future based
+on user feedback.
+
+Instruction breakpoints can be added from the [disassembly window](#disassembly)
+in the same way that you add [line breakpoints](#line-breakpoints) in the code
+window. The same mappings and functions work for adding and toggling them. Where
+supported by the debug adapter, you can even create logpoints and conditional
+breakpoints this way.
+
+Currently, instruction breakpoints are internally modelled as line breakpoints
+against the buffer containing the disassembly, but that may change in future, so
+please don't rely on this.
+
+Instruction breakpoints are also visible from and can be deleted/disabled from
+the [breakpoints window](#breakpoints-window).
+
+Currently, instruction breakpoints are automatically cleared when the debug
+session ends. The reason for this is that the addresses can't be guaranteed to
+be valid for any other debug session. However, this may also change in future. 
 
 ### Clear breakpoints
 

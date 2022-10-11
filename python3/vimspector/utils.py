@@ -48,9 +48,10 @@ SetUpLogging( _logger )
 
 
 def BufferNumberForFile( file_name, create = True ):
-  return int( vim.eval( "bufnr( '{0}', {1} )".format(
-    Escape( file_name ),
-    int( create ) ) ) )
+  with NoAutocommands():
+    return int( vim.eval( "bufnr( '{0}', {1} )".format(
+      Escape( file_name ),
+      int( create ) ) ) )
 
 
 def BufferForFile( file_name ):
@@ -962,12 +963,22 @@ def Base64ToHexDump( data, base_addr ):
 
 
 def ParseAddress( addr: str ):
+  if not addr:
+    return 0
+
   base = 10
   if addr.startswith( '0x' ):
     base = 16
-  return int( addr, base )
+
+  try:
+    return int( addr, base )
+  except ValueError:
+    return 0
 
 
 def Hex( val: int ):
   # TODO: is 16 always the right number ? what if your system is 32 bit
-  return f'0x{val:0>16x}'
+  try:
+    return f'0x{val:0>16x}'
+  except ValueError:
+    return f'0x{0:0>16x}'
