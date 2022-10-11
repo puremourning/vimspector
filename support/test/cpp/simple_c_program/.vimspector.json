@@ -64,10 +64,7 @@
         "program": "${workspaceRoot}/test",
         "stopAtEntry": true,
         "MIMode": "lldb",
-        "MIDebuggerPath": "$HOME/.vim/vimspector-conf/gadgets/macos/vscode-cpptools/debugAdapters/lldb-mi/bin/lldb-mi",
-        "logging": {
-          "engineLogging": true
-        }
+        "MIDebuggerPath": "$HOME/.vim/vimspector-conf/gadgets/macos/vscode-cpptools/debugAdapters/lldb-mi/bin/lldb-mi"
       }
     },
     "cpptools (gdb)": {

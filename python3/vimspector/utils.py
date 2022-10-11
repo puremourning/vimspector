@@ -48,9 +48,10 @@ SetUpLogging( _logger )
 
 
 def BufferNumberForFile( file_name, create = True ):
-  return int( vim.eval( "bufnr( '{0}', {1} )".format(
-    Escape( file_name ),
-    int( create ) ) ) )
+  with NoAutocommands():
+    return int( vim.eval( "bufnr( '{0}', {1} )".format(
+      Escape( file_name ),
+      int( create ) ) ) )
 
 
 def BufferForFile( file_name ):

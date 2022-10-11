@@ -134,6 +134,28 @@ class DisassemblyView( object ):
     self._scratch_buffers = []
 
 
+  def IsDisassemblyBuffer( self, file_name ):
+    if self._buf is None:
+      return False
+    return ( utils.NormalizePath( file_name ) ==
+                utils.NormalizePath( self._buf.name ) )
+
+
+  def GetMemoryReference( self ):
+    return self._instructionPointerReference
+
+  def GetOffsetForLine( self, line_num ):
+    assert line_num > 0 and line_num <= self.instruction_count
+    # Offset is in bytes
+    pc = utils.ParseAddress(
+      self.current_instructions[ self._GetPCEntryOffset() ][ 'address' ] )
+    req = utils.ParseAddress(
+      self.current_instructions[ line_num - 1 ][ 'address' ] )
+    return req - pc
+
+  def _GetPCEntryOffset( self ):
+    return -self.instruction_offset
+
   def _DrawInstructions( self, should_jump_to_location ):
     if not self._window.valid:
       return
@@ -192,8 +214,8 @@ class DisassemblyView( object ):
 
     # otherwise, the current instruction is defined as the one we asked for,
     # accounting for any offset we asked for (note, 1-based line number)
-    self._signs[ 'vimspectorPC' ] = SIGN_ID
-    pc_line = -self.instruction_offset + 1
+    self._signs[ 'vimspectorPC' ] = SIGN_ID * 92
+    pc_line = self._GetPCEntryOffset() + 1
     signs.PlaceSign( self._signs[ 'vimspectorPC' ],
                      'VimspectorDisassembly',
                      'vimspectorPC',
