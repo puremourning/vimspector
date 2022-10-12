@@ -1835,7 +1835,6 @@ class DebugSession( object ):
     if self._outputView:
       self._outputView.Print( 'server', msg )
 
-    # TODO: We _could_ delete all instruction breakpoints at this point
     self._stackTraceView.OnStopped( event )
 
   def BreakpointsAsQuickFix( self ):
