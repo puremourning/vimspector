@@ -50,6 +50,15 @@ while [ -n "$1" ]; do
       VIM_EXE=$1
       shift
       ;;
+    "--failfast")
+      shift
+      export TEST_NO_RETRY=1
+      ;;
+    "--quick")
+      shift
+      export TEST_NO_RETRY=1
+      SKIP_BUILD=1
+      ;;
     "--skip-build")
       shift
       SKIP_BUILD=1
@@ -63,10 +72,6 @@ while [ -n "$1" ]; do
       out_fd=3
       exec 3>/dev/null
       INSTALLER_ARGS="${INSTALLER_ARGS} --quiet"
-      ;;
-    "--quick"|"--failfast")
-      shift
-      export TEST_NO_RETRY=1
       ;;
     "--gdb")
       shift
@@ -219,7 +224,8 @@ else
   echo "%SETUP - Building test programs..."
   set -e
     pushd tests/testdata/cpp/simple
-      make clean all
+      make clean
+      make -j all
     popd
     pushd support/test/csharp
       dotnet build

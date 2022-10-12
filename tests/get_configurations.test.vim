@@ -32,6 +32,7 @@ function! Test_Get_Configurations_FilteredFiletypes()
 endfunction
 
 function! Test_PickConfiguration_FilteredFiletypes()
+  call ThisTestIsFlaky()
   let fn = '../support/test/multiple_filetypes/test.js'
   exe 'edit ' . fn
   normal! G

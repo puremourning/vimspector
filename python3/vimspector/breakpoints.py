@@ -544,6 +544,11 @@ class ProjectBreakpoints( object ):
       'state': 'ENABLED',
       'line': line,
       'options': options,
+      # FIXME: This is crap. We should have a proper model for instruction
+      # breakpoints where we store the address rather than the "line number".
+      # We already have all of the plumbing to do that (give or take), but it
+      # requirs some refactoring and not deleting all the instruction
+      # breakpoints on server close
       'is_instruction_breakpoint': is_instruction_breakpoint,
       # 'sign_id': <filled in when placed>,
       #

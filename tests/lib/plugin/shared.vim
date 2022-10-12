@@ -163,6 +163,12 @@ function! SkipOn( arch, system ) abort
   endif
 endfunction
 
+function! SkipIf( f, msg ) abort
+  if a:f()
+    throw 'skipped: ' . a:msg
+  endif
+endfunction
+
 function! FunctionBreakOnBrace() abort
   " Annoyingly, the behaviour of gcc 8 differs from clang _and_ it differs
   " between x86 and arm
