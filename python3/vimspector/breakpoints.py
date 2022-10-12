@@ -24,15 +24,18 @@ import json
 from vimspector import utils, signs, settings, disassembly
 
 
-def _JumpToBreakpoint( bp ):
+def _JumpToBreakpoint( qfbp ):
+  if not qfbp[ 'lnum' ]:
+    return
+
   success = int( vim.eval(
-      f'win_gotoid( bufwinid( \'{ bp[ "filename" ] }\' ) )' ) )
+      f'win_gotoid( bufwinid( \'{ qfbp[ "filename" ] }\' ) )' ) )
 
   try:
     if not success:
-      vim.command( "leftabove split {}".format( bp[ 'filename' ] ) )
+      vim.command( "leftabove split {}".format( qfbp[ 'filename' ] ) )
 
-    utils.SetCursorPosInWindow( vim.current.window, bp[ 'lnum' ], 1 )
+    utils.SetCursorPosInWindow( vim.current.window, qfbp[ 'lnum' ], 1 )
   except vim.error:
     # 'filename' or 'lnum' might be missing,
     # so don't trigger an exception here by referring to them
@@ -339,16 +342,7 @@ class ProjectBreakpoints( object ):
     for file_name, breakpoints in self._line_breakpoints.items():
       for bp in breakpoints:
         self._SignToLine( file_name, bp )
-
         line = bp[ 'line' ]
-        actual_file_name = file_name
-        if bp[ 'is_instruction_breakpoint' ] and self._disassembly_manager:
-          new_line = self._disassembly_manager.FindLineForAddress(
-            bp[ 'address' ] )
-          if new_line:
-            line = new_line
-            # HACK: We should really _move_ the breakpoints to the new "file"
-            actual_file_name = self._disassembly_manager.GetBufferName()
 
         if 'server_bp' in bp:
           server_bp = bp[ 'server_bp' ]
@@ -363,15 +357,23 @@ class ProjectBreakpoints( object ):
           state = bp[ 'state' ]
           valid = 1
 
-        desc = "Instruction" if bp[ 'is_instruction_breakpoint' ] else "Line"
+        if not line:
+          valid = 0
+
+        desc = "Line"
+        sfx = ''
+        if bp[ 'is_instruction_breakpoint' ]:
+          desc = "Instruction"
+          sfx = f" at { utils.Hex( bp.get( 'address', '<unknown>' ) ) }"
 
         qf.append( {
-          'filename': actual_file_name,
+          'filename': file_name,
           'lnum': line,
           'col': 1,
           'type': 'L',
           'valid': valid,
-          'text': f"{desc} breakpoint - {state}: {json.dumps( bp['options'] )}"
+          'text': ( f"{desc} breakpoint{sfx} - "
+                    f"{state}: {json.dumps( bp['options'] )}" )
         } )
     for bp in self._func_breakpoints:
       qf.append( {
@@ -445,6 +447,15 @@ class ProjectBreakpoints( object ):
             del bp[ 'sign_id' ]
 
           del bp[ 'server_bp' ]
+
+      # Clear all instruction breakpoints because they aren't truly portable
+      # across sessions.
+      #
+      # TODO: It might be possible to re-resolve the address stored in the
+      # breakpoint, though this would only work in a limited way (as load
+      # addresses will frequently not be the same across runs)
+      breakpoints[ : ] = [ bp for bp in breakpoints
+                           if not bp[ 'is_instruction_breakpoint' ] ]
 
 
   def _CopyServerLineBreakpointProperties( self, bp, server_bp ):
@@ -814,19 +825,23 @@ class ProjectBreakpoints( object ):
       )
 
     if self._disassembly_manager:
+      breakpoints = []
+      bp_idxs = []
       for file_name, line_breakpoints in self._line_breakpoints.items():
-        breakpoints = []
-        bp_idxs = []
         for bp in line_breakpoints:
           if not bp[ 'is_instruction_breakpoint' ]:
             continue
 
+          self._SignToLine( file_name, bp )
           bp.pop( 'server_bp', None )
 
           if 'sign_id' in bp:
             signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
 
           if bp[ 'state' ] != 'ENABLED':
+            continue
+
+          if not bp[ 'line' ]:
             continue
 
           dap_bp = {}
@@ -843,6 +858,7 @@ class ProjectBreakpoints( object ):
 
           breakpoints.append( dap_bp )
 
+      if breakpoints:
         self._awaiting_bp_responses += 1
         self._connection.DoRequest(
           lambda msg, bp_idxs=bp_idxs: response_handler( msg, bp_idxs ),
@@ -975,20 +991,15 @@ class ProjectBreakpoints( object ):
           self._next_sign_id += 1
 
         line = bp[ 'line' ]
-        actual_file_name = file_name
-        if bp[ 'is_instruction_breakpoint' ] and self._disassembly_manager:
-          new_line = self._disassembly_manager.FindLineForAddress(
-            bp[ 'address' ] )
-          if new_line:
-            line = new_line
-            # HACK: We should really _move_ the breakpoints to the new "file"
-            actual_file_name = self._disassembly_manager.GetBufferName()
         if 'server_bp' in bp:
           server_bp = bp[ 'server_bp' ]
           line = server_bp.get( 'line', line )
           verified = server_bp[ 'verified' ]
         else:
           verified = self._connection is None
+
+        if not line:
+          continue
 
         sign = ( 'vimspectorBPDisabled'
                    if bp[ 'state' ] != 'ENABLED' or not verified
@@ -999,18 +1010,21 @@ class ProjectBreakpoints( object ):
                    or 'hitCondition' in bp[ 'options' ]
                  else 'vimspectorBP' )
 
-        if utils.BufferExists( actual_file_name ):
+        if utils.BufferExists( file_name ):
           signs.PlaceSign( bp[ 'sign_id' ],
                            'VimspectorBP',
                            sign,
-                           actual_file_name,
+                           file_name,
                            line )
 
   def _SignToLine( self, file_name, bp ):
-    if self._connection is not None:
+    if bp[ 'is_instruction_breakpoint' ]:
+      if self._disassembly_manager and 'address' in bp:
+        bp[ 'line' ] = self._disassembly_manager.FindLineForAddress(
+          bp[ 'address' ] )
       return
 
-    if bp[ 'is_instruction_breakpoint' ]:
+    if self._connection is not None:
       return
 
     if 'sign_id' not in bp:

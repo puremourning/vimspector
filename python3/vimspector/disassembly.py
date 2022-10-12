@@ -188,10 +188,7 @@ class DisassemblyView( object ):
     if not self.current_instructions:
       return
 
-    buf_name = os.path.join(
-      '_vimspector_disassembly',
-      self.current_frame[ 'instructionPointerReference' ] )
-
+    buf_name = '_vimspector_disassembly'
     file_name = ( self.current_frame.get( 'source' ) or {} ).get( 'path' ) or ''
     self._buf = utils.BufferForFile( buf_name )
 
@@ -221,6 +218,17 @@ class DisassemblyView( object ):
       utils.SetUpUIWindow( self._window )
       self._window.options[ 'signcolumn' ] = 'yes'
 
+    # Re-render and re-calcaulte breakpoints
+    #
+    # TODO: If instruction breakpoints are persisted across runs, their
+    # addresses might be resolvable now that we've just got the disassembly.
+    #
+    # But this call won't actually _send_ any breakpoints to the server. THis
+    # means that they don't persist properly until you do something which
+    # triggers the breakpoints code to re-send all the breakpoints.
+    #
+    # Anyway, that complexity is why we always clear instruction breakpoints
+    # at the end of sessions.
     self._render_emitter.emit()
 
     try:
