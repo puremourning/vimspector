@@ -901,20 +901,35 @@ function! Test_ListBreakpoints()
   call setpos( '.', [ 0, 15, 1 ] )
   let main_win_id = win_getid()
 
+  let g:Test_ListBreakpoints_Enter = 0
+  let g:Test_ListBreakpoints_Leave = 0
+
+  augroup Test_ListBreakpoints
+    autocmd!
+    autocmd BufEnter,BufFilePost vimspector.Breakpoints
+          \ let g:Test_ListBreakpoints_Enter += 1
+    autocmd BufLeave vimspector.Breakpoints
+          \ let g:Test_ListBreakpoints_Leave += 1
+  augroup END
+
+  " @show
   call vimspector#ListBreakpoints()
   " buffer is never actually empty
   call s:CheckBreakpointView( [ '' ] )
   " Cursor jumps to the breakpoint window
   call assert_equal( win_getid(), g:vimspector_session_windows.breakpoints )
+  call assert_equal( bufname(), 'vimspector.Breakpoints' )
+  call assert_equal( 1, g:Test_ListBreakpoints_Enter )
 
   call win_gotoid( main_win_id )
+  call assert_equal( 1, g:Test_ListBreakpoints_Leave )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
 
   call vimspector#ToggleBreakpoint()
-  " call vimspector#ListBreakpoints()
   call s:CheckBreakpointView( [
         \ 'simple.cpp:15 Line breakpoint - ENABLED: {}'
         \ ] )
+  " @hide
   call vimspector#ListBreakpoints()
 
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
@@ -923,11 +938,15 @@ function! Test_ListBreakpoints()
   " break on main
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
 
+  " @show
   call vimspector#ListBreakpoints()
+  call assert_equal( 2, g:Test_ListBreakpoints_Enter )
   call s:CheckBreakpointView( [
         \ 'simple.cpp:15 Line breakpoint - VERIFIED: {}'
         \ ] )
+  " @hide
   call vimspector#ListBreakpoints()
+  call assert_equal( 2, g:Test_ListBreakpoints_Leave )
 
   call win_gotoid( main_win_id )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 15, 1 )
@@ -937,14 +956,19 @@ function! Test_ListBreakpoints()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp', 5, 1 )
   call vimspector#ToggleBreakpoint()
 
+  " @show
   call vimspector#ListBreakpoints()
+  call assert_equal( 3, g:Test_ListBreakpoints_Enter )
   call s:CheckBreakpointView( [
         \ 'simple.cpp:15 Line breakpoint - VERIFIED: {}',
         \ 'simple.cpp:' . s:break_foo_line . ' Line breakpoint - VERIFIED: {}'
         \ ] )
 
+  " @hide
   call vimspector#ListBreakpoints()
+  call assert_equal( 3, g:Test_ListBreakpoints_Leave )
 
+  autocmd! Test_ListBreakpoints
   call vimspector#test#setup#Reset()
   %bwipe!
 endfunction
