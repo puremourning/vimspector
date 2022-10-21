@@ -55,12 +55,13 @@ class BreakpointsView( object ):
 
   def _UpdateView( self, breakpoint_list, show=True ):
     if show and not self._HasWindow():
-      vim.command( f'botright { settings.Int( "bottombar_height" ) }new' )
-      self._win = vim.current.window
       if self._HasBuffer():
         with utils.NoAutocommands():
-          vim.current.buffer = self._buffer
+          vim.command( f'botright { settings.Int( "bottombar_height" ) }split' )
+        vim.current.buffer = self._buffer
       else:
+        with utils.NoAutocommands():
+          vim.command( f'botright { settings.Int( "bottombar_height" ) }new' )
         self._buffer = vim.current.buffer
         mappings = settings.Dict( 'mappings' )[ 'breakpoints' ]
         groups = {
@@ -78,6 +79,8 @@ class BreakpointsView( object ):
                          f'vimspector#{ func }()<CR>' )
         utils.SetUpHiddenBuffer( self._buffer,
                                  "vimspector.Breakpoints" )
+
+      self._win = vim.current.window
 
       utils.UpdateSessionWindows( {
         'breakpoints': utils.WindowID( self._win )
