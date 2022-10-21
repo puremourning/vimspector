@@ -61,6 +61,18 @@ while [ -n "$1" ]; do
       exec 3>/dev/null
       INSTALLER_ARGS="${INSTALLER_ARGS} --quiet"
       ;;
+    "--quick"|"--failfast")
+      shift
+      export TEST_NO_RETRY=1
+      ;;
+    "--gdb")
+      shift
+      export VIMSPECTOR_MIMODE=gdb
+      ;;
+    "--lldb")
+      shift
+      export VIMSPECTOR_MIMODE=lldb
+      ;;
     "--")
       shift
       break
@@ -119,14 +131,24 @@ else
 fi
 
 if [ -z "$VIMSPECTOR_MIMODE" ]; then
-  if which lldb >/dev/null 2>&1; then
-    export VIMSPECTOR_MIMODE=lldb
-  elif which gdb >/dev/null 2>&1; then
-    export VIMSPECTOR_MIMODE=gdb
-  else
-    echo "Couldn't guess VIMSPECTOR_MIMODE. Need lldb or gdb in path"
-    exit 1
-  fi
+  case $(uname) in
+    Linux)
+      export VIMSPECTOR_MIMODE=gdb
+      ;;
+    Darwin)
+      export VIMSPECTOR_MIMODE=lldb
+      ;;
+    *)
+      if which lldb-mi >/dev/null 2>&1; then
+        export VIMSPECTOR_MIMODE=lldb
+      elif which gdb >/dev/null 2>&1; then
+        export VIMSPECTOR_MIMODE=gdb
+      else
+        echo "Couldn't guess VIMSPECTOR_MIMODE. Specify --gdb/--lldb"
+        exit 1
+      fi
+      ;;
+  esac
 fi
 
 if [ -z "$VIMSPECTOR_ARCH" ]; then
@@ -137,6 +159,7 @@ if [ -z "$VIMSPECTOR_ARCH" ]; then
 fi
 
 BASEDIR_CMD="let g:vimspector_base_dir='${BASEDIR}'"
+TESTDIR=$(readlink -f "$(dirname $0)/tests")
 
 echo "Testing with:"
 echo " * VIMSPECTOR_MIMODE=$VIMSPECTOR_MIMODE"
@@ -145,6 +168,7 @@ echo " * RUN_VIM=$RUN_VIM"
 echo " * RUN_TEST=$RUN_TEST"
 echo " * BASEDIR=$BASEDIR"
 echo " * BASEDIR_CMD=$BASEDIR_CMD"
+echo " * TESTDIR=$TESTDIR"
 
 if [ "$INSTALL" = "1" ] || [ "$INSTALL" = "script" ]; then
   if ! python3 $(dirname $0)/install_gadget.py \
@@ -198,7 +222,6 @@ else
 fi
 
 # Start
-pushd $(dirname $0)/tests > /dev/null
 echo "Running Vimspector Vim tests"
 
 RESULT=0
@@ -206,58 +229,73 @@ RESULT=0
 TESTS="$@"
 
 if [ -z "$TESTS" ]; then
-  TESTS=*.test.vim
+  TESTS=${TESTDIR}/*.test.vim
 fi
 
 for t in ${TESTS}; do
-  echo ""
-  echo "%RUN: $t"
-
   # split on : into fileName and testName
-  IFS=: read -s t T <<< "$t"
+  IFS=: read -s tt T <<< "$t"
+
+  # Resolve into absolute path ($tt) and test file name ($t)
+  if [ -f "$tt" ]; then
+    tt=$(readlink -f "$tt")
+    t=$(basename "$tt")
+  elif [ -f "$TESTDIR/$tt" ]; then
+    t=$tt
+    tt=$TESTDIR/$t
+  else
+    echo "%ERROR: Unable to find a test named $t"
+    RESULT=1
+    break
+  fi
+
+  echo ""
+  echo "%RUN: $t ($tt)"
 
   TESTLOGDIR=${BASEDIR}/tests/logs/$t
 
-  if ${RUN_TEST} --cmd "${BASEDIR_CMD}" \
-                 --cmd 'au SwapExists * let v:swapchoice = "e"' $t $T \
-                 >&3\
-     && [ -f $t.res ];  then
-    echo "%PASS: $t PASSED"
-  else
-    echo "%FAIL: $t FAILED - see $TESTLOGDIR"
-    RESULT=1
-  fi
-
-  rm -rf $TESTLOGDIR
-  mkdir -p $TESTLOGDIR
-  ${RUN_VIM} --version > ${TESTLOGDIR}/vimversion
-  if [ "$VIMSPECTOR_TEST_STDOUT" = "messages" ]; then
-    if [ -f messages ]; then
-      echo "%MESSAGES"
-      cat messages
-      echo "%END"
+  pushd ${TESTDIR} > /dev/null
+    if ${RUN_TEST} --cmd "${BASEDIR_CMD}" \
+                   --cmd 'au SwapExists * let v:swapchoice = "e"' $tt $T \
+                   >&3\
+       && [ -f $t.res ];  then
+      echo "%PASS: $t PASSED"
     else
-      echo "%MESSAGES"
-      echo "No messages found"
-      echo "%END"
+      echo "%FAIL: $t FAILED - see $TESTLOGDIR"
+      RESULT=1
     fi
-  fi
 
-  for l in messages debuglog test.log *.testlog; do
-    # In CI we can't view the output files, so we just have to cat them
-    if [ -f $l ]; then
-      if [ "$VIMSPECTOR_TEST_STDOUT" = "all" ]; then
-        echo ""
-        echo ""
-        echo "*** START: $l ***"
-        cat $l
-        echo "*** END: $l ***"
+    rm -rf $TESTLOGDIR
+    mkdir -p $TESTLOGDIR
+    ${RUN_VIM} --version > ${TESTLOGDIR}/vimversion
+    if [ "$VIMSPECTOR_TEST_STDOUT" = "messages" ]; then
+      if [ -f messages ]; then
+        echo "%MESSAGES"
+        cat messages
+        echo "%END"
+      else
+        echo "%MESSAGES"
+        echo "No messages found"
+        echo "%END"
       fi
-      mv $l $TESTLOGDIR
     fi
-  done
 
-  rm -f $t.res
+    for l in messages debuglog test.log *.testlog; do
+      # In CI we can't view the output files, so we just have to cat them
+      if [ -f $l ]; then
+        if [ "$VIMSPECTOR_TEST_STDOUT" = "all" ]; then
+          echo ""
+          echo ""
+          echo "*** START: $l ***"
+          cat $l
+          echo "*** END: $l ***"
+        fi
+        mv $l $TESTLOGDIR
+      fi
+    done
+
+    rm -f $t.res
+  popd > /dev/null
 done
 
 # close out_fd if it's not stdout/stderr/
@@ -265,7 +303,6 @@ done
 
 
 echo "Done running tests"
-popd > /dev/null
 
 echo ""
 echo "All done. Exit with ${RESULT}"
