@@ -58,7 +58,7 @@ class BreakpointsView( object ):
       if self._HasBuffer():
         with utils.NoAutocommands():
           vim.command( f'botright { settings.Int( "bottombar_height" ) }split' )
-          vim.current.buffer = self._buffer
+        vim.current.buffer = self._buffer
       else:
         with utils.NoAutocommands():
           vim.command( f'botright { settings.Int( "bottombar_height" ) }new' )
