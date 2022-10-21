@@ -95,7 +95,7 @@ jobs:
     #     SSH_PASS: ${{ secrets.SSH_PASS }}
 
   MacOS:
-    runs-on: 'macos-10.15'
+    runs-on: 'macos-12'
     strategy:
       fail-fast: false
       matrix:
@@ -131,11 +131,6 @@ jobs:
       uses: actions/setup-dotnet@v1.7.2
       with:
         dotnet-version: 3.1
-
-    - uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: ^11
-      name: "Switch to xcode 11 because of .NET debugging bug"
 
     - run: ${{ matrix.runtime }} --version
       name: 'Print vim version information'
