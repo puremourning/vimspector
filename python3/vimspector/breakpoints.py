@@ -86,12 +86,7 @@ class BreakpointsView( object ):
         'breakpoints': utils.WindowID( self._win )
       } )
 
-      # set highlighting
-      vim.eval( "matchadd( 'WarningMsg', 'ENABLED', 100 )" )
-      vim.eval( "matchadd( 'WarningMsg', 'VERIFIED', 100 )" )
-      vim.eval( "matchadd( 'LineNr', 'DISABLED', 100 )" )
-      vim.eval( "matchadd( 'LineNr', 'PENDING', 100 )" )
-      vim.eval( "matchadd( 'Title', '\\v^\\S+:{0,}', 100 )" )
+      utils.SetSyntax( '', 'vimspector-breakpoints', self._buffer )
 
       if utils.UseWinBar():
         vim.command( 'nnoremenu <silent> 1.1 WinBar.Delete '
@@ -350,15 +345,18 @@ class ProjectBreakpoints( object ):
           state = bp[ 'state' ]
           valid = 1
 
+        line_value = utils.BufferLineValue( file_name, line )
+
         qf.append( {
           'filename': file_name,
           'lnum': line,
           'col': 1,
           'type': 'L',
           'valid': valid,
-          'text': "Line breakpoint - {}: {}".format(
+          'text': "Line breakpoint - {}: {}\t{}".format(
             state,
-            json.dumps( bp[ 'options' ] ) )
+            json.dumps( bp[ 'options' ] ),
+            line_value )
         } )
     for bp in self._func_breakpoints:
       qf.append( {
@@ -367,8 +365,13 @@ class ProjectBreakpoints( object ):
         'col': 1,
         'type': 'F',
         'valid': 0,
-        'text': "{}: Function breakpoint - {}".format( bp[ 'function' ],
-                                                       bp[ 'options' ] ),
+        # NOTE: While we store a 'state' for function breakpoints, it isn't
+        # actually used - when toggling, we juse clear the breakpoint.
+        # This is lame (FIXME). In general, FIXME - function breakpoints are
+        # very limnited and kind of broken.
+        'text': "{}: Function breakpoint - {}".format(
+          bp[ 'function' ],
+          json.dumps( bp[ 'options' ] ) )
       } )
 
     return qf

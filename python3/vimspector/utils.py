@@ -61,6 +61,17 @@ def BufferExists( file_name ):
   return bool( int ( vim.eval( f"bufexists( '{ Escape( file_name ) }' )" ) ) )
 
 
+def BufferLineValue( file_name: str, line_num: int ) -> str:
+  if not BufferExists( file_name ):
+    return ''
+  Call( 'bufload', file_name )
+  buf = BufferForFile( file_name )
+  try:
+    return buf[ line_num - 1 ]
+  except IndexError:
+    return ''
+
+
 def NewEmptyBuffer():
   bufnr = int( vim.eval( 'bufadd("")' ) )
   Call( 'bufload', bufnr )
@@ -753,7 +764,7 @@ def Exists( expr ):
   return int( vim.eval( f'exists( "{ expr }" )' ) )
 
 
-def SetSyntax( current_syntax, syntax, *args ):
+def SetSyntax( current_syntax: str, syntax: str, *buffers ):
   if not syntax:
     syntax = ''
 
@@ -763,7 +774,7 @@ def SetSyntax( current_syntax, syntax, *args ):
   # We use set syn= because just setting vim.Buffer.options[ 'syntax' ]
   # doesn't actually trigger the Syntax autocommand, and i'm not sure that
   # 'doautocmd Syntax' is the right solution or not
-  for buf in args:
+  for buf in buffers:
     Call( 'setbufvar', buf.number, '&syntax', syntax )
 
   return syntax
