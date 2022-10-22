@@ -7,7 +7,9 @@ function! SetUp() abort
 
   if ! s:init
     let s:break_main_line = FunctionBreakOnBrace() ? 14 : 15
+    let s:break_main_pat = FunctionBreakOnBrace() ? ' *{$' : '.*printf.*argc'
     let s:break_foo_line = FunctionBreakOnBrace() ? 6 : 9
+    let s:break_foo_pat = FunctionBreakOnBrace() ? ' *{$' : '.*printf.*bar'
     let s:init = 1
   endif
 endfunction
@@ -690,6 +692,15 @@ function! Test_Function_Breakpoint()
   lcd testdata/cpp/simple
   edit simple.cpp
   call vimspector#AddFunctionBreakpoint( 'foo' )
+
+  " @show
+  call vimspector#ListBreakpoints()
+  call s:CheckBreakpointView( [
+        \ 'foo: Function breakpoint - {}$'
+        \ ] )
+  " @hide
+  call vimspector#ListBreakpoints()
+
   call vimspector#Launch()
   " break on main
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer(
@@ -927,7 +938,7 @@ function! Test_ListBreakpoints()
 
   call vimspector#ToggleBreakpoint()
   call s:CheckBreakpointView( [
-        \ 'simple.cpp:15 Line breakpoint - ENABLED: {}'
+        \ 'simple.cpp:15 Line breakpoint - ENABLED: {}\t.*printf.*$'
         \ ] )
   " @hide
   call vimspector#ListBreakpoints()
@@ -1334,7 +1345,7 @@ function! Test_LineBreakpoint_Moved_By_Server()
 
   call vimspector#ListBreakpoints()
   call s:CheckBreakpointView( [
-        \ 'simple.cpp:5 Line breakpoint - ENABLED: {}'
+        \ 'simple.cpp:5 Line breakpoint - ENABLED: {}\t.*foo.*'
         \ ] )
   wincmd p
 
@@ -1357,7 +1368,8 @@ function! Test_LineBreakpoint_Moved_By_Server()
         \ 5 )
   call vimspector#ListBreakpoints()
   call s:CheckBreakpointView( [
-        \ 'simple.cpp:' . s:break_foo_line . ' Line breakpoint - VERIFIED: {}'
+        \ 'simple.cpp:' . s:break_foo_line . ' Line breakpoint - VERIFIED: {}\t'
+        \   . s:break_foo_pat
         \ ] )
   wincmd p
 
