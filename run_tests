@@ -13,6 +13,9 @@ INSTALL=0
 UPDATE=0
 INSTALLER_ARGS=''
 VIM_EXE='vim'
+SCREENCOLS=160
+SCREENROWS=48
+ASCIINEMA="python3 -m asciinema"
 
 # 1 is stdout
 out_fd=1
@@ -106,7 +109,11 @@ IS_NVIM=$($VIM_EXE --version | grep -cm1 NVIM)
 VERSION_OPTIONS=$([ "$IS_NVIM" -ne 0 ] && echo '--headless' || echo '--not-a-term')
 
 RUN_VIM="${VIM_EXE} -N --clean ${VERSION_OPTIONS}"
-RUN_TEST="${RUN_VIM} -S lib/run_test.vim"
+
+# There seems to be a race condition with the way asciinema sets the pty size.
+# It does fork() then if is_child: execvpe(...) else: set_pty_size(). This means
+# the child might read the pty size before it's set. So we use a 1s sleepy.
+RUN_TEST="sleep 1 && ${RUN_VIM} -S lib/run_test.vim"
 
 # We use fd 3 for vim's output. Send it to stdout if not already redirected
 # Note: can't use ${out_fd} in a redirect because redirects happen before
@@ -255,10 +262,11 @@ for t in ${TESTS}; do
   TESTLOGDIR=${BASEDIR}/tests/logs/$t
 
   pushd ${TESTDIR} > /dev/null
-    if ${RUN_TEST} --cmd "${BASEDIR_CMD}" \
-                   --cmd 'au SwapExists * let v:swapchoice = "e"' $tt $T \
-                   >&3\
-       && [ -f $t.res ];  then
+    RUN="${RUN_TEST} --cmd \"${BASEDIR_CMD}\" \
+                     --cmd 'au SwapExists * let v:swapchoice = \"e\"'\
+                     $tt $T"
+
+    if ${ASCIINEMA} rec -q --cols $SCREENCOLS --rows $SCREENROWS --overwrite --command "${RUN}" $t.cast >&3 && [ -f $t.res ];  then
       echo "%PASS: $t PASSED"
     else
       echo "%FAIL: $t FAILED - see $TESTLOGDIR"
@@ -280,6 +288,7 @@ for t in ${TESTS}; do
       fi
     fi
 
+    mv $t.cast $TESTLOGDIR
     for l in messages debuglog test.log *.testlog; do
       # In CI we can't view the output files, so we just have to cat them
       if [ -f $l ]; then

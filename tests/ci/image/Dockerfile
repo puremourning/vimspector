@@ -95,6 +95,9 @@ RUN curl -sSL https://dot.net/v1/dotnet-install.sh \
         update-alternatives --install /usr/bin/dotnet dotnet \
                                                       /usr/share/dotnet/dotnet 1
 
+# test requirements
+RUN pip install "git+https://github.com/puremourning/asciinema@exit_code#egg=asciinema"
+
 # clean up
 RUN rm -rf ~/.cache && \
     rm -rf $HOME/vim
