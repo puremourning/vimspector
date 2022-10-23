@@ -48,6 +48,14 @@ function! s:GetSplashConfig( message ) abort
          \ 'anchor':     'NW',
          \ 'style':      'minimal',
          \ 'focusable':  v:false,
+         \ 'border':     [ ['╔', 'PMenu'],
+         \                 ['═', 'PMenu'],
+         \                 ['╗', 'PMenu'],
+         \                 ['║', 'PMenu'],
+         \                 ['╝', 'PMenu'],
+         \                 ['═', 'PMenu'],
+         \                 ['╚', 'PMenu'],
+         \                 ['║', 'PMenu'] ],
          \ }
 endfunction
 
