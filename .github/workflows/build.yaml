@@ -72,7 +72,7 @@ jobs:
 
     - name: "Upload test logs"
       uses: actions/upload-artifact@v2
-      if: success() || failure()
+      if: always()
       with:
         name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
         path: 'tests/logs/**/*'
@@ -150,7 +150,7 @@ jobs:
 
     - name: "Upload test logs"
       uses: actions/upload-artifact@v2
-      if: success() || failure()
+      if: always()
       with:
         name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
         path: 'tests/logs/**/*'
