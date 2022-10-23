@@ -1202,6 +1202,8 @@ let g:ycm_semantic_triggers =  {
 * `:VimspectorDisassemble`, `vimspector#ShowDisassembly()` or
   `<Plug>VimspectorDisassemble` 
 
+[![Demo](https://asciinema.org/a/esEncAxP45CJmo8Em1sQtxRYe.svg)](https://asciinema.org/a/esEncAxP45CJmo8Em1sQtxRYe)
+
 Some debug adapters (few!) support disassembly. The way this works in DAP is a
 little wierd, but in practice vimspector will ask to disassemble a number of
 instructions around the current stack frame's PC. This is then shown in a window
