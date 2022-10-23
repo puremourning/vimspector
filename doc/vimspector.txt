@@ -46,10 +46,11 @@ Contents ~
    3. Conditional breakpoints and logpoints |vimspector-conditional-breakpoints-logpoints|
    4. Exception breakpoints                  |vimspector-exception-breakpoints|
    5. API Summary                                      |vimspector-api-summary|
-   6. Clear breakpoints                          |vimspector-clear-breakpoints|
-   7. Run to Cursor                                  |vimspector-run-to-cursor|
-   8. Go to current line                        |vimspector-go-to-current-line|
-   9. Save and restore                                |vimspector-save-restore|
+   6. Instruction breakpoints              |vimspector-instruction-breakpoints|
+   7. Clear breakpoints                          |vimspector-clear-breakpoints|
+   8. Run to Cursor                                  |vimspector-run-to-cursor|
+   9. Go to current line                        |vimspector-go-to-current-line|
+   10. Save and restore                               |vimspector-save-restore|
   3. Stepping                                             |vimspector-stepping|
   4. Variables and scopes                         |vimspector-variables-scopes|
   5. Variable or selection hover evaluation |vimspector-variable-or-selection-hover-evaluation|
@@ -126,8 +127,6 @@ Image: Build [3] Image: Matrix [5] Image: Gitter [7]
   - Trying it out
   - Cloning the plugin
   - Install some gadgets
-  - VimspectorInstall and VimspectorUpdate commands
-  - install_gadget.py
   - Manual gadget installation
   - The gadget directory
   - Upgrade
@@ -135,7 +134,9 @@ Image: Build [3] Image: Matrix [5] Image: Gitter [7]
 - About
 
   - Background
-  - What vimspector is not
+
+- What Vimspector is not
+
   - Status
   - Experimental
   - Motivation
@@ -159,14 +160,17 @@ Image: Build [3] Image: Matrix [5] Image: Gitter [7]
   - Conditional breakpoints and logpoints
   - Exception breakpoints
   - API Summary
+  - Instruction breakpoints
   - Clear breakpoints
   - Run to Cursor
+  - Go to current line
   - Save and restore
   - Stepping
   - Variables and scopes
   - Variable or selection hover evaluation
   - Watches
   - Watch autocompletion
+  - Disassembly
   - Dump memory
   - Stack Traces
   - Program Output
@@ -187,6 +191,7 @@ Image: Build [3] Image: Matrix [5] Image: Gitter [7]
   - Python
   - Python Remote Debugging
   - Python Remote launch and attach
+  - Python 2
   - TCL
   - C♯
   - Go
@@ -1286,6 +1291,29 @@ Examples:
 - 'VimspectorMkSession my_session_file' - create 'my_session_file'
 
 - 'VimspectorLoadSession my_session_file' - read 'my_session_file'
+
+-------------------------------------------------------------------------------
+                                           *vimspector-instruction-breakpoints*
+Instruction breakpoints ~
+
+**NOTE**: Experimental feature, which may change significantly in future based
+on user feedback.
+
+Instruction breakpoints can be added from the disassembly window in the same
+way that you add line breakpoints in the code window. The same mappings and
+functions work for adding and toggling them. Where supported by the debug
+adapter, you can even create logpoints and conditional breakpoints this way.
+
+Currently, instruction breakpoints are internally modelled as line breakpoints
+against the buffer containing the disassembly, but that may change in future,
+so please don't rely on this.
+
+Instruction breakpoints are also visible from and can be deleted/disabled from
+the breakpoints window.
+
+Currently, instruction breakpoints are automatically cleared when the debug
+session ends. The reason for this is that the addresses can't be guaranteed to
+be valid for any other debug session. However, this may also change in future.
 
 -------------------------------------------------------------------------------
                                                  *vimspector-clear-breakpoints*
