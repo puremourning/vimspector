@@ -53,10 +53,13 @@
       }
     },
     "cpptools (lldb)": {
-      "adapter": "custom-cpptools",
+      "adapter": "vscode-cpptools",
       "variables": {
         "BUILDME": {
           "shell": "g++ -o ${workspaceRoot}/test -g -std=c++17 ${workspaceRoot}/test_c.cpp"
+        },
+        "arch": {
+          "shell": "uname -m"
         }
       },
       "configuration": {
@@ -67,11 +70,12 @@
         "MIDebuggerPath": "$HOME/.vim/vimspector-conf/gadgets/macos/vscode-cpptools/debugAdapters/lldb-mi/bin/lldb-mi",
         "logging": {
           "engineLogging": true
-        }
+        },
+        "targetArchitecture": "${arch}"
       }
     },
     "cpptools (gdb)": {
-      "adapter": "custom-cpptools",
+      "adapter": "vscode-cpptools",
       "variables": {
         "BUILDME": {
           "shell": "g++ -o ${workspaceRoot}/test -g -std=c++17 ${workspaceRoot}/test_c.cpp"

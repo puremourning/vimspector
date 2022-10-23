@@ -46,6 +46,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: 'Install requirements'
+      run: pip3 install --user -r dev_requirements.txt
+
     - run: |
         go install github.com/go-delve/delve/cmd/dlv@latest
       name: 'Install Delve for Go'
@@ -69,7 +72,7 @@ jobs:
 
     - name: "Upload test logs"
       uses: actions/upload-artifact@v2
-      if: failure()
+      if: success() || failure()
       with:
         name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
         path: 'tests/logs/**/*'
@@ -105,6 +108,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: 'Install requirements'
+      run: pip3 install --user -r dev_requirements.txt
+
     - run: |
         brew update-reset
         brew doctor || true
@@ -135,7 +141,8 @@ jobs:
     - run: ${{ matrix.runtime }} --version
       name: 'Print vim version information'
 
-    - run: ./run_tests --exe ${{ matrix.runtime }} --basedir $(pwd) --install --update --report messages --quiet
+    - run: |
+        ./run_tests --exe ${{ matrix.runtime }} --basedir $(pwd) --install --update --report messages --quiet
       name: 'Run the tests'
       id: run_tests
       env:
@@ -143,7 +150,7 @@ jobs:
 
     - name: "Upload test logs"
       uses: actions/upload-artifact@v2
-      if: failure()
+      if: success() || failure()
       with:
         name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
         path: 'tests/logs/**/*'

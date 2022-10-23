@@ -15,10 +15,13 @@ function! vimspector#test#signs#AssertCursorIsAtLineInBuffer( buffer,
   endif
 endfunction
 
-function! vimspector#test#signs#AssertPCIsAtLineInBuffer( buffer, line ) abort
+function! vimspector#test#signs#AssertPCIsAtLineInBuffer(
+      \ buffer,
+      \ line,
+      \ group = 'VimspectorCode' ) abort
   call WaitFor( {-> bufexists( a:buffer ) } )
   let signs = sign_getplaced( a:buffer, {
-    \ 'group': 'VimspectorCode',
+    \ 'group': a:group,
     \ } )
 
   if assert_equal( 1, len( signs ), 'Number of buffers named ' . a:buffer )
@@ -26,7 +29,7 @@ function! vimspector#test#signs#AssertPCIsAtLineInBuffer( buffer, line ) abort
   endif
 
   if assert_true( len( signs[ 0 ].signs ) >= 1,
-                \ 'At least one VimspectorCode sign' )
+                \ 'At least one ' . a:group . ' sign' )
     return 1
   endif
 

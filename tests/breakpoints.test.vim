@@ -985,7 +985,6 @@ function! Test_ListBreakpoints()
 endfunction
 
 function! Test_BreakpointMovements()
-  let g:test_is_flaky = 0
   lcd testdata/cpp/simple
   edit simple.cpp
 
@@ -1030,7 +1029,6 @@ function! Test_BreakpointMovements()
 endfunction
 
 function! Test_BreakpointMovements_MovedByServer()
-  let g:test_is_flaky = 0
   lcd testdata/cpp/simple
   edit simple.cpp
 

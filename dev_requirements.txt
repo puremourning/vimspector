@@ -1,6 +1,11 @@
-flake8==3.8.3
-flake8-comprehensions==3.2.3
-flake8-ycm>= 0.1.0
+flake8                  == 3.8.3
+flake8-comprehensions   == 3.2.3
+flake8-ycm              >= 0.1.0
+
+# asciinema is used to record the output in case of failure
+# asciinema               >= 2.2.0
+# use a fork which returns the exit code of child
+git+https://github.com/puremourning/asciinema@exit_code#egg=asciinema
 
 # Use fork of vint which is up to date
 git+https://github.com/puremourning/vint

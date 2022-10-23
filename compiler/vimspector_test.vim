@@ -36,6 +36,11 @@ if ! exists( ':' . s:make_cmd )
   let s:make_cmd = 'make'
 endif
 
+let s:standard_test_args = ' --quick --report messages '
+if has( 'nvim' )
+  let s:standard_test_args .= ' --exe nvim '
+endif
+
 function! VimGetCurrentFunction()
   echom s:GetCurrentFunction()[ 0 ]
 endfunction
@@ -127,7 +132,8 @@ function! s:RunTestUnderCursor()
   let l:cwd = getcwd()
   execute 'lcd ' . s:root_dir
   try
-    execute s:make_cmd . ' --report messages '
+    execute s:make_cmd
+          \ . s:standard_test_args
           \ . get( g:, 'vimspector_test_args', '' ) . ' '
           \ . l:test_arg
   finally
@@ -140,7 +146,8 @@ function! s:RunTest()
   let l:cwd = getcwd()
   execute 'lcd ' . s:root_dir
   try
-    execute s:make_cmd . ' --report messages '
+    execute s:make_cmd
+          \ . s:standard_test_args
           \ . get( g:, 'vimspector_test_args', '' )
           \ . ' %:p:t'
   finally
@@ -153,7 +160,8 @@ function! s:RunAllTests()
   let l:cwd = getcwd()
   execute 'lcd ' . s:root_dir
   try
-    execute s:make_cmd . ' --report messages '
+    execute s:make_cmd
+          \ . s:standard_test_args
           \ . get( g:, 'vimspector_test_args', '' )
   finally
     execute 'lcd ' . l:cwd

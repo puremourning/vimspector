@@ -73,7 +73,7 @@ RUN apt-get -y autoremove
 ## cleanup of files from setup
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-ARG VIM_VERSION=v8.2.0716
+ARG VIM_VERSION=v8.2.4797
 
 ENV CONF_ARGS "--with-features=huge \
                --enable-python3interp \
@@ -83,9 +83,8 @@ ENV CONF_ARGS "--with-features=huge \
 
 RUN mkdir -p $HOME/vim && \
     cd $HOME/vim && \
-    git clone https://github.com/vim/vim && \
+    git clone --depth 1 --branch ${VIM_VERSION} https://github.com/vim/vim && \
     cd vim && \
-    git checkout ${VIM_VERSION} && \
     make -j 4 && \
     make install
 
@@ -94,6 +93,9 @@ RUN curl -sSL https://dot.net/v1/dotnet-install.sh \
         | bash /dev/stdin --channel 5.0 --install-dir /usr/share/dotnet && \
         update-alternatives --install /usr/bin/dotnet dotnet \
                                                       /usr/share/dotnet/dotnet 1
+
+# test requirements
+RUN pip install "git+https://github.com/puremourning/asciinema@exit_code#egg=asciinema"
 
 # clean up
 RUN rm -rf ~/.cache && \

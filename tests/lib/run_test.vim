@@ -379,9 +379,6 @@ for s:test in sort(s:tests)
   " Silence, please!
   set belloff=all
 
-  " A test can set g:test_is_flaky to retry running the test.
-  let g:test_is_flaky = 0
-
   call RunTheTest(s:test)
 
   " Repeat a flaky test.  Give up when:
@@ -390,7 +387,6 @@ for s:test in sort(s:tests)
   " - it fails five times
   if len(v:errors) > 0
         \ && ( $TEST_NO_RETRY == '' || $TEST_NO_RETRY == '0' )
-        \ && g:test_is_flaky
     for retry in range( 10 )
       call add( s:messages, 'Found errors in ' . s:test . '. Retrying.' )
       call extend( s:messages, v:errors )

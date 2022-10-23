@@ -104,7 +104,7 @@ func s:WaitForCommon(expr, assert, timeout)
 endfunc
 
 function! ThisTestIsFlaky()
-  let g:test_is_flaky = v:true
+  " Deprectaed for now
 endfunction
 
 " In vim, py3eval( 'None' ) returns v:none, which is not equal v:null
@@ -160,6 +160,12 @@ function! SkipOn( arch, system ) abort
   if trim( system( 'uname -m' ) ) == a:arch &&
         \ trim( system( 'uname -s' ) ) == a:system
     throw 'skipped: Not on this architecture'
+  endif
+endfunction
+
+function! SkipIf( f, msg ) abort
+  if a:f()
+    throw 'skipped: ' . a:msg
   endif
 endfunction
 

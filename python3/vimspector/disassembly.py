@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import logging
 
 import vim
@@ -24,10 +23,12 @@ SIGN_ID = 1
 
 
 class DisassemblyView( object ):
-  def __init__( self, window, connection, api_prefix ):
+  def __init__( self, window, connection, api_prefix, render_event_emitter ):
     self._logger = logging.getLogger( __name__ )
     utils.SetUpLogging( self._logger )
 
+    self._render_emitter = render_event_emitter
+    self._render_emitter.subscribe( self._DisplayPC )
     self._window = window
     # Initially we don't care about the buffer. We only update it when we have
     # one crated from the request.
@@ -69,6 +70,8 @@ class DisassemblyView( object ):
   def ConnectionUp( self, connection ):
     self._connection = connection
 
+  def ConnectionClosed( self ):
+    self._connection = None
 
   def WindowIsValid( self ):
     return self._window is not None and self._window.valid
@@ -112,27 +115,70 @@ class DisassemblyView( object ):
       }
     } )
 
-    # TODO: Window scrolled autocommand to update ?
-
 
   def Clear( self ):
     self._UndisplayPC()
-    self._buf = None
+
+    with utils.ModifiableScratchBuffer( self._buf ):
+      utils.ClearBuffer( self._buf )
+
     self.current_frame = None
     self.current_instructions = None
-
-    with utils.ModifiableScratchBuffer( self._window.buffer ):
-      utils.ClearBuffer( self._window.buffer )
 
 
   def Reset( self ):
     self.Clear()
-
+    self._buf = None
     for b in self._scratch_buffers:
       utils.CleanUpHiddenBuffer( b )
 
     self._scratch_buffers = []
 
+
+  def IsDisassemblyBuffer( self, file_name ):
+    if not self._buf:
+      return False
+    return ( utils.NormalizePath( file_name ) ==
+                utils.NormalizePath( self._buf.name ) )
+
+  def GetMemoryReference( self ):
+    return self._instructionPointerReference
+
+  def GetOffsetForLine( self, line_num ):
+    if line_num <= 0 or line_num > self.instruction_count:
+      return None
+
+    # Offset is in bytes
+    pc = utils.ParseAddress(
+      self.current_instructions[ self._GetPCEntryOffset() ][ 'address' ] )
+    req = utils.ParseAddress(
+      self.current_instructions[ line_num - 1 ][ 'address' ] )
+    return req - pc
+
+  def ResolveAddressAtLine( self, line_num ):
+    if line_num <= 0 or line_num > self.instruction_count:
+      return None
+
+    return utils.ParseAddress(
+      self.current_instructions[ line_num - 1 ][ 'address' ] )
+
+  def FindLineForAddress( self, address ):
+    if not self.current_instructions:
+      return 0
+
+    for index, instruction in enumerate( self.current_instructions ):
+      the_addr = utils.ParseAddress( instruction[ 'address' ] )
+      if the_addr == address:
+        return index + 1
+    return 0
+
+  def _GetPCEntryOffset( self ):
+    return -self.instruction_offset
+
+  def GetBufferName( self ):
+    if not self._buf:
+      return None
+    return self._buf.name
 
   def _DrawInstructions( self, should_jump_to_location ):
     if not self._window.valid:
@@ -141,10 +187,7 @@ class DisassemblyView( object ):
     if not self.current_instructions:
       return
 
-    buf_name = os.path.join(
-      '_vimspector_disassembly',
-      self.current_frame[ 'instructionPointerReference' ] )
-
+    buf_name = '_vimspector_disassembly'
     file_name = ( self.current_frame.get( 'source' ) or {} ).get( 'path' ) or ''
     self._buf = utils.BufferForFile( buf_name )
 
@@ -161,9 +204,11 @@ class DisassemblyView( object ):
     utils.SetUpHiddenBuffer( self._buf, buf_name )
     instruction_bytes_len = max( len( i.get( 'instructionBytes', '' ) )
                                  for i in self.current_instructions )
+    if not instruction_bytes_len:
+      instruction_bytes_len = 1
     with utils.ModifiableScratchBuffer( self._buf ):
       utils.SetBufferContents( self._buf, [
-        f"{ utils.Hex( utils.ParseAddress( i['address'] ) )}:\t"
+        f"{ utils.Hex( utils.ParseAddress( i['address'] ) ) }:\t"
         f"{ i.get( 'instructionBytes', '' ):{instruction_bytes_len}}\t"
         f"{ i[ 'instruction' ] }"
           for i in self.current_instructions
@@ -174,14 +219,43 @@ class DisassemblyView( object ):
       utils.SetUpUIWindow( self._window )
       self._window.options[ 'signcolumn' ] = 'yes'
 
-    self._DisplayPC( buf_name )
+    # Re-render and re-calcaulte breakpoints
+    #
+    # TODO: If instruction breakpoints are persisted across runs, their
+    # addresses might be resolvable now that we've just got the disassembly.
+    #
+    # But this call won't actually _send_ any breakpoints to the server. THis
+    # means that they don't persist properly until you do something which
+    # triggers the breakpoints code to re-send all the breakpoints.
+    #
+    # Anyway, that complexity is why we always clear instruction breakpoints
+    # at the end of sessions.
+    self._render_emitter.emit()
 
-    if should_jump_to_location:
-      utils.JumpToWindow( self._window )
+    try:
+      if should_jump_to_location:
+        utils.JumpToWindow( self._window )
+        utils.SetCursorPosInWindow( self._window,
+                                    self._GetPCEntryOffset() + 1,
+                                    1,
+                                    make_visible = True )
+      else:
+        with utils.RestoreCursorPosition():
+          utils.SetCursorPosInWindow( self._window,
+                                      self._GetPCEntryOffset() + 1,
+                                      1,
+                                      make_visible = True )
+    except vim.error as e:
+      utils.UserMessage( f"Failed to set cursor position for disassembly: {e}",
+                         error = True )
 
 
-  def _DisplayPC( self, buf_name ):
+
+  def _DisplayPC( self ):
     self._UndisplayPC()
+
+    if not self._connection or not self._buf or not self.current_instructions:
+      return
 
     if len( self.current_instructions ) < self.instruction_count:
       self._logger.warn( "Invalid number of instructions returned by adapter: "
@@ -192,22 +266,13 @@ class DisassemblyView( object ):
 
     # otherwise, the current instruction is defined as the one we asked for,
     # accounting for any offset we asked for (note, 1-based line number)
-    self._signs[ 'vimspectorPC' ] = SIGN_ID
-    pc_line = -self.instruction_offset + 1
+    self._signs[ 'vimspectorPC' ] = SIGN_ID * 92
+    pc_line = self._GetPCEntryOffset() + 1
     signs.PlaceSign( self._signs[ 'vimspectorPC' ],
                      'VimspectorDisassembly',
                      'vimspectorPC',
-                     buf_name,
+                     self._buf.name,
                      pc_line )
-
-    try:
-      utils.SetCursorPosInWindow( self._window,
-                                  pc_line,
-                                  1,
-                                  make_visible = True )
-    except vim.error as e:
-      utils.UserMessage( f"Failed to set cursor position for disassembly: {e}",
-                         error = True )
 
 
   def _UndisplayPC( self ):

@@ -70,7 +70,9 @@ class DebugSession( object ):
     self._disassemblyView: disassembly.DisassemblyView = None
 
     self._breakpoints = breakpoints.ProjectBreakpoints(
-      self._render_emitter, self._IsPCPresentAt )
+      self._render_emitter,
+      self._IsPCPresentAt,
+      self._disassemblyView )
     self._saved_variables_data = None
 
     self._splash_screen = None
@@ -520,6 +522,7 @@ class DebugSession( object ):
       self._outputView = None
       self._codeView = None
       self._disassemblyView = None
+      self._breakpoints.SetDisassemblyManager( None )
       self._remote_term = None
       self._uiTab = None
 
@@ -651,6 +654,7 @@ class DebugSession( object ):
       'arguments': arguments,
     } )
 
+    # TODO: WHy is this different from StepInto and StepOut
     self._stackTraceView.OnContinued()
     self.ClearCurrentPC()
 
@@ -818,9 +822,13 @@ class DebugSession( object ):
 
     with utils.LetCurrentWindow( self._codeView._window ):
       vim.command( f'rightbelow { settings.Int( "disassembly_height" ) }new' )
-      self._disassemblyView = disassembly.DisassemblyView( vim.current.window,
-                                                           self._connection,
-                                                           self._api_prefix )
+      self._disassemblyView = disassembly.DisassemblyView(
+        vim.current.window,
+        self._connection,
+        self._api_prefix,
+        self._render_emitter )
+
+      self._breakpoints.SetDisassemblyManager( self._disassemblyView )
 
       utils.UpdateSessionWindows( {
         'disassembly': utils.WindowID( vim.current.window, self._uiTab )
@@ -1788,6 +1796,8 @@ class DebugSession( object ):
     self._variablesView.ConnectionClosed()
     self._outputView.ConnectionClosed()
     self._breakpoints.ConnectionClosed()
+    if self._disassemblyView:
+      self._disassemblyView.ConnectionClosed()
 
     self._ResetServerState()
 
