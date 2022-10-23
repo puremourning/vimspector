@@ -820,7 +820,7 @@ def DisplaySplash( api_prefix: str, splash, text: typing.Union[ str, list ] ):
 
 def HideSplash( api_prefix, splash ):
   if splash:
-    Call( f'vimspector#internal#{api_prefix}popup#HideSplash', splash )
+    return Call( f'vimspector#internal#{api_prefix}popup#HideSplash', splash )
 
   return None
 
