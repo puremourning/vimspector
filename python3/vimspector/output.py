@@ -97,9 +97,8 @@ class OutputView( object ):
 
     # Scroll the buffer
     if self._window.valid:
-      with utils.RestoreCurrentWindow():
-        with utils.RestoreCurrentBuffer( self._window ):
-          self._ShowOutput( category )
+      utils.Call( 'win_execute', utils.WindowID( self._window ), 'normal! G' )
+
 
   def Reset( self ):
     self.Clear()
