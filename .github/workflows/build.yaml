@@ -72,7 +72,7 @@ jobs:
 
     - name: "Upload test logs"
       uses: actions/upload-artifact@v2
-      if: success() || failure()
+      if: always()
       with:
         name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
         path: 'tests/logs/**/*'
@@ -150,7 +150,7 @@ jobs:
 
     - name: "Upload test logs"
       uses: actions/upload-artifact@v2
-      if: success() || failure()
+      if: always()
       with:
         name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
         path: 'tests/logs/**/*'
@@ -168,12 +168,12 @@ jobs:
         name: 'package-macos'
         path: 'package/macos-${{ github.run_id }}.tar.gz'
 
-    # - name: Start SSH session if failed
-    #   uses: luchihoratiu/debug-via-ssh@main
-    #   if: failure()
-    #   with:
-    #     NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-    #     SSH_PASS: ${{ secrets.SSH_PASS }} # [V]imspector
+    - name: Start SSH session if failed
+      uses: luchihoratiu/debug-via-ssh@main
+      if: failure() || cancelled()
+      with:
+        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+        SSH_PASS: ${{ secrets.SSH_PASS }}
 
   PublishRelease:
     runs-on: 'ubuntu-20.04'

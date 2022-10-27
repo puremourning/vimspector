@@ -870,18 +870,17 @@ class ProjectBreakpoints( object ):
 
           breakpoints.append( dap_bp )
 
-      if breakpoints:
-        self._awaiting_bp_responses += 1
-        self._connection.DoRequest(
-          lambda msg, bp_idxs=bp_idxs: response_handler( msg, bp_idxs ),
-          {
-            'command': 'setInstructionBreakpoints',
-            'arguments': {
-              'breakpoints': breakpoints,
-            },
+      self._awaiting_bp_responses += 1
+      self._connection.DoRequest(
+        lambda msg, bp_idxs=bp_idxs: response_handler( msg, bp_idxs ),
+        {
+          'command': 'setInstructionBreakpoints',
+          'arguments': {
+            'breakpoints': breakpoints,
           },
-          failure_handler = response_received
-        )
+        },
+        failure_handler = response_received
+      )
 
     if self._exception_breakpoints:
       self._awaiting_bp_responses += 1

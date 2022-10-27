@@ -77,7 +77,9 @@ endfunction
 function! vimspector#internal#neopopup#HideSplash( id ) abort
   let splash = s:db[ a:id ]
   call nvim_win_close( splash.win, v:true )
+  call nvim_buf_delete( splash.buf, {} )
   unlet s:db[ a:id ]
+  return v:null
 endfunction
 
 function! vimspector#internal#neopopup#Confirm( confirm_id,
