@@ -1497,6 +1497,8 @@ Disassembly ~
 - ':VimspectorDisassemble', 'vimspector#ShowDisassembly()' or
   '<Plug>VimspectorDisassemble'
 
+  Image: Demo [30]
+
 Some debug adapters (few!) support disassembly. The way this works in DAP is a
 little wierd, but in practice vimspector will ask to disassemble a number of
 instructions around the current stack frame's PC. This is then shown in a
@@ -1504,7 +1506,7 @@ window with a WinBar similar to the Code window, but with instruction stepping
 granularity. There's a sign for the current instruction and the syntax
 highighting defaults to "asm" which mostly works ok for x86 and ARM.
 
-  Image: disassembly-view (see reference [30])
+  Image: disassembly-view (see reference [32])
 
 As mentioned above, when your current window is the disassembly windows and you
 use the default "step" commands (e.g. '<F10>'), the stepping is automatically
@@ -1577,7 +1579,7 @@ be changed manually to "switch to" that thread.
 - The current frame when a breakpoint is hit or if manual jumping is also
   highlighted.
 
-  Image: stack trace (see reference [31])
+  Image: stack trace (see reference [33])
 
 The stack trace is represented by the buffer 'vimspector.StackTrace'.
 
@@ -1591,7 +1593,7 @@ Program Output ~
 - The debuggee prints to the stdout channel.
 - Other channels may be useful for debugging.
 
-  Image: output window (see reference [32])
+  Image: output window (see reference [34])
 
 If the output window is closed, a new one can be opened with
 ':VimspectorShowOutput <category>' (use tab-completion - 'wildmenu' to see the
@@ -1695,7 +1697,7 @@ Currently tested with the following debug adapters.
                                                      *vimspector-c-c-rust-etc.*
 C, C++, Rust, etc. ~
 
-- vscode-cpptools [33]
+- vscode-cpptools [35]
 
 - On macOS, I _strongly_ recommend using CodeLLDB instead for C and C++
   projects. It's really excellent, has fewer dependencies and doesn't open
@@ -1801,7 +1803,7 @@ The cpptools documentation describes how to attach cpptools to gdbserver using
                                             *vimspector-c-remote-launch-attach*
 C++ Remote launch and attach ~
 
-If you're feeling fancy, check out the reference guide [34] for an example of
+If you're feeling fancy, check out the reference guide [36] for an example of
 getting Vimspector to remotely launch and attach.
 
 - CodeLLDB (MacOS)
@@ -1847,7 +1849,7 @@ Rust ~
 
 Rust is supported with any gdb/lldb-based debugger. So it works fine with
 'vscode-cpptools' and 'lldb-vscode' above. However, support for rust is best in
-'CodeLLDB' [35].
+'CodeLLDB' [37].
 
 - './install_gadget.py --enable-rust' or ':VimspectorInstall CodeLLDB'
 - Example: 'support/test/rust/vimspector_test'
@@ -1881,14 +1883,14 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
   load of javascript nonesense behind every VSCode plugin. I can't possibly
   document all the wierdnesses, but the following are known
 
-- To use the "custom" launch [36], you can't use '"request": "custom"' - this
+- To use the "custom" launch [38], you can't use '"request": "custom"' - this
   is invalid. Instead use '"request": "launch", "custom": true'. Because
-  reasons [37]
+  reasons [39]
 
 - All the integration with 'cargo' is done in the vscode javascript madness,
   so is not supported.
 
-- The stuff about remote agents [38] uses '"request": custom'; see the point
+- The stuff about remote agents [40] uses '"request": custom'; see the point
   about "custom" launch above
 
 -------------------------------------------------------------------------------
@@ -1957,13 +1959,13 @@ Example:
     }
   }
 <
-  Image: Screenshot 2022-10-09 at 11 27 13 (see reference [39])
+  Image: Screenshot 2022-10-09 at 11 27 13 (see reference [41])
 
 -------------------------------------------------------------------------------
                                                             *vimspector-python*
 Python ~
 
-- Python: debugpy [40]
+- Python: debugpy [42]
 
 - Install with 'install_gadget.py --enable-python' or ':VimspectorInstall
   debugpy', ideally requires a working compiler and the python development
@@ -2007,7 +2009,7 @@ little different from how we normally configure things. Specifically, you need
 to:
 
 - Start your application with debugpy, specifying the '--listen' argument.
-  See the debugpy documentation [41] for details.
+  See the debugpy documentation [43] for details.
 
 - Use the built-in "multi-session" adapter. This just asks for the host/port
   to connect to. For example:
@@ -2027,17 +2029,17 @@ to:
     }
   }
 <
-See details of the launch configuration [42] for explanation of things like
+See details of the launch configuration [44] for explanation of things like
 'pathMappings'.
 
 Additional documentation, including how to do this when the remote machine can
-only be contacted via SSH are provided by debugpy [43].
+only be contacted via SSH are provided by debugpy [45].
 
 -------------------------------------------------------------------------------
                                        *vimspector-python-remote-launch-attach*
 Python Remote launch and attach ~
 
-If you're feeling fancy, checkout the reference guide [34] for an example of
+If you're feeling fancy, checkout the reference guide [36] for an example of
 getting Vimspector to remotely launch and attach.
 
 -------------------------------------------------------------------------------
@@ -2066,7 +2068,7 @@ TCL ~
 
 - TCL (TclProDebug)
 
-See my fork of TclProDebug [44] for instructions.
+See my fork of TclProDebug [46] for instructions.
 
 -------------------------------------------------------------------------------
                                                                  *vimspector-c*
@@ -2132,21 +2134,21 @@ Use Variables to configure the following:
 The debugger (delve) is launched in a terminal window so that you can see its
 output and pass input to the debuggee.
 
-See vscode-go docs [45] for full launch options. Yes, it seems that's the only
+See vscode-go docs [47] for full launch options. Yes, it seems that's the only
 place they are documented (apparently, they are not documented by delve
 itself).
 
-The vscode-go docs also have useful troubleshooting information [46]
+The vscode-go docs also have useful troubleshooting information [48]
 
 - Go (legacy vscode-go)
 
 Requires:
 
 - 'install_gadget.py --enable-go' or ':VimspectorInstall vscode-go'
-- Delve [47] installed, e.g. 'go get -u github.com/go-delve/delve/cmd/dlv'
+- Delve [49] installed, e.g. 'go get -u github.com/go-delve/delve/cmd/dlv'
 - Delve to be in your PATH, or specify the 'dlvToolPath' launch option
 
-NOTE: Vimspector uses the "legacy" vscode-go debug adapter [48] rather than the
+NOTE: Vimspector uses the "legacy" vscode-go debug adapter [50] rather than the
 "built-in" DAP support in Delve. You can track
 https://github.com/puremourning/vimspector/issues/186 for that.
 >
@@ -2167,7 +2169,7 @@ https://github.com/puremourning/vimspector/issues/186 for that.
     }
   }
 <
-See the vscode-go docs for troubleshooting information [49]
+See the vscode-go docs for troubleshooting information [51]
 
 -------------------------------------------------------------------------------
                                                                *vimspector-php*
@@ -2266,7 +2268,7 @@ Requires:
 - 'install_gadget.py --force-enable-node'
 
 - For installation, a Node.js environment that is < node 12. I believe this
-  is an incompatibility with gulp. Advice, use nvm [50] with 'nvm install
+  is an incompatibility with gulp. Advice, use nvm [52] with 'nvm install
   --lts 10; nvm use --lts 10; ./install_gadget.py --force-enable-node ...'
 
 - Options described here:
@@ -2334,12 +2336,12 @@ It allows you to debug scripts running inside chrome from within Vim.
                                                               *vimspector-java*
 Java ~
 
-Vimspector works well with the java debug server [51], which runs as a jdt.ls
+Vimspector works well with the java debug server [53], which runs as a jdt.ls
 (Java Language Server) plugin, rather than a standalone debug adapter.
 
 Vimspector is not in the business of running language servers, only debug
 adapters, so this means that you need a compatible Language Server Protocol
-editor plugin to use Java. I recommend YouCompleteMe [52], which has full
+editor plugin to use Java. I recommend YouCompleteMe [54], which has full
 support for jdt.ls, and most importantly a trivial way to load the debug
 adapter and to use it with Vimspector.
 
@@ -2347,7 +2349,7 @@ adapter and to use it with Vimspector.
                                                   *vimspector-hot-code-replace*
 Hot code replace ~
 
-When using the java debug server [51], Vimspector supports the hot code replace
+When using the java debug server [53], Vimspector supports the hot code replace
 custom feature. By default, when the underlying class files change, vimspector
 asks the user if they wish to reload these classes at runtime.
 
@@ -2366,7 +2368,7 @@ This behaviour can be customised:
                                           *vimspector-usage-with-youcompleteme*
 Usage with YouCompleteMe ~
 
-- Set up YCM for java [52].
+- Set up YCM for java [54].
 
 - Get Vimspector to download the java debug plugin: 'install_gadget.py
   --force-enable-java <other options...>' or ':VimspectorInstall
@@ -2431,24 +2433,24 @@ If you see "Unable to get DAP port - is JDT.LS initialized?", try running
 ':YcmCompleter ExecuteCommand vscode.java.startDebugSession' and note the
 output. If you see an error like 'ResponseFailedException: Request failed:
 -32601: No delegateCommandHandler for vscode.java.startDebugSession', make sure
-that: _Your YCM jdt.ls is actually working, see the YCM docs [53] for
+that: _Your YCM jdt.ls is actually working, see the YCM docs [55] for
 troubleshooting_ The YCM jdt.ls has had time to initialize before you start the
 debugger * That 'g:ycm_java_jdtls_extension_path' is set in '.vimrc' or prior
 to YCM starting
 
-For the launch arguments, see the vscode document [54].
+For the launch arguments, see the vscode document [56].
 
 -------------------------------------------------------------------------------
                                                  *vimspector-other-lsp-clients*
 Other LSP clients ~
 
-See this issue [55] for more background.
+See this issue [57] for more background.
 
 -------------------------------------------------------------------------------
                                                                *vimspector-lua*
 Lua ~
 
-Lua is supported through local-lua-debugger-vscode [56]. This debugger uses
+Lua is supported through local-lua-debugger-vscode [58]. This debugger uses
 stdio to communicate with the running process, so calls to 'io.read' will cause
 problems.
 
@@ -2506,7 +2508,7 @@ problems.
 Other servers ~
 
 - Java - vscode-javac. This works, but is not as functional as Java Debug
-  Server. Take a look at this comment [57] for instructions.
+  Server. Take a look at this comment [59] for instructions.
 
 - See also the wiki [15] which has community-contributed plugin files for
   some languages.
@@ -2824,7 +2826,7 @@ FAQ ~
    additional language support
 
 2. How do I stop it starting a new Terminal.app on macOS? See this comment
-   [58]
+   [60]
 
 3. Can I specify answers to the annoying questions about exception
    breakpoints in my '.vimspector.json' ? Yes, see here [25].
@@ -2861,10 +2863,10 @@ FAQ ~
 
 4. Do I _have_ to put a '.vimspector.json' in the root of every project? No,
    you can use 'g:vimspector_adapters' and 'g:vimspector_configurations' or
-   put all of your adapter and debug configs in a single directory [59] if
+   put all of your adapter and debug configs in a single directory [61] if
    you want to, but note the caveat that '${workspaceRoot}' won't be
    calculated correctly in that case. The vimsepctor author uses this a lot
-   [60]
+   [62]
 
 5. I'm confused about remote debugging configuration, can you explain it?
    eh... kind of. Reference: https://puremourning.github.io/vimspector/confi
@@ -2872,7 +2874,7 @@ FAQ ~
    ://github.com/puremourning/vimspector/issues/478#issuecomment-943515093
 
 6. I'm trying to debug a Django (django?) project and it's not working. Can
-   you help? sure, check this link which has a working example [61]. Or
+   you help? sure, check this link which has a working example [63]. Or
    google it.
 
 7. Can vimspector build my code before debugging it? Can I deploy it to a
@@ -2880,7 +2882,7 @@ FAQ ~
    debugger, not a task system or build automation system - there are other
    tools for that. There is however a hack you can use - you can use a
    'shell' variable to execute a command and just discard the output. Other
-   options are discussed in this issue [62]
+   options are discussed in this issue [64]
 
 8. It's annoying to manually type in the PID when attaching. Do you have a
    PID picker? There's no PID picker in vimspector at the moment, but you
@@ -2974,38 +2976,40 @@ References ~
 [27] https://puremourning.github.io/vimspector-web/img/vimspector-locals-window.png
 [28] https://puremourning.github.io/vimspector-web/img/vimspector-variable-eval-hover.png
 [29] https://puremourning.github.io/vimspector-web/img/vimspector-watch-window.png
-[30] https://user-images.githubusercontent.com/10584846/194766584-d798c96b-6e4e-4914-9d4a-991c219f78d0.png
-[31] https://puremourning.github.io/vimspector-web/img/vimspector-callstack-window.png
-[32] https://puremourning.github.io/vimspector-web/img/vimspector-output-window.png
-[33] https://github.com/Microsoft/vscode-cpptools
-[34] https://puremourning.github.io/vimspector/configuration.html#remote-debugging-support
-[35] https://github.com/vadimcn/vscode-lldb#features
-[36] https://github.com/vadimcn/vscode-lldb/blob/master/MANUAL.md#custom-launch
-[37] https://github.com/vadimcn/vscode-lldb/blob/master/extension/main.ts#L397-L401
-[38] https://github.com/vadimcn/vscode-lldb/blob/master/MANUAL.md#connecting-to-a-gdbserver-style-agent
-[39] https://user-images.githubusercontent.com/10584846/194751648-72419216-2e4c-4ddc-adf7-9008f7e4f3c2.png
-[40] https://github.com/microsoft/debugpy
-[41] https://github.com/microsoft/debugpy#debugpy-cli-usage
-[42] https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
-[43] https://github.com/microsoft/debugpy/wiki/Debugging-over-SSH
-[44] https://github.com/puremourning/TclProDebug
-[45] https://github.com/golang/vscode-go/blob/master/docs/debugging.md#launchjson-attributes
-[46] https://github.com/golang/vscode-go/blob/master/docs/debugging.md#troubleshooting
-[47] https://github.com/go-delve/delve/tree/master/Documentation/installation
-[48] https://github.com/golang/vscode-go/blob/master/docs/debugging-legacy.md
-[49] https://github.com/golang/vscode-go/blob/master/docs/debugging-legacy.md#troubleshooting
-[50] https://github.com/nvm-sh/nvm
-[51] https://github.com/Microsoft/java-debug
-[52] https://github.com/ycm-core/YouCompleteMe#java-semantic-completion
-[53] https://github.com/ycm-core/YouCompleteMe#troubleshooting
-[54] https://code.visualstudio.com/docs/java/java-debugging
-[55] https://github.com/puremourning/vimspector/issues/3
-[56] https://github.com/tomblind/local-lua-debugger-vscode
-[57] https://github.com/puremourning/vimspector/issues/3#issuecomment-576916076
-[58] https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322
-[59] https://puremourning.github.io/vimspector/configuration.html#debug-configurations
-[60] https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf
-[61] https://www.reddit.com/r/neovim/comments/mz4ari/how_to_set_up_vimspector_for_django_debugging/
-[62] https://github.com/puremourning/vimspector/issues/227
+[30] https://asciinema.org/a/esEncAxP45CJmo8Em1sQtxRYe
+[31] https://asciinema.org/a/esEncAxP45CJmo8Em1sQtxRYe.svg
+[32] https://user-images.githubusercontent.com/10584846/194766584-d798c96b-6e4e-4914-9d4a-991c219f78d0.png
+[33] https://puremourning.github.io/vimspector-web/img/vimspector-callstack-window.png
+[34] https://puremourning.github.io/vimspector-web/img/vimspector-output-window.png
+[35] https://github.com/Microsoft/vscode-cpptools
+[36] https://puremourning.github.io/vimspector/configuration.html#remote-debugging-support
+[37] https://github.com/vadimcn/vscode-lldb#features
+[38] https://github.com/vadimcn/vscode-lldb/blob/master/MANUAL.md#custom-launch
+[39] https://github.com/vadimcn/vscode-lldb/blob/master/extension/main.ts#L397-L401
+[40] https://github.com/vadimcn/vscode-lldb/blob/master/MANUAL.md#connecting-to-a-gdbserver-style-agent
+[41] https://user-images.githubusercontent.com/10584846/194751648-72419216-2e4c-4ddc-adf7-9008f7e4f3c2.png
+[42] https://github.com/microsoft/debugpy
+[43] https://github.com/microsoft/debugpy#debugpy-cli-usage
+[44] https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
+[45] https://github.com/microsoft/debugpy/wiki/Debugging-over-SSH
+[46] https://github.com/puremourning/TclProDebug
+[47] https://github.com/golang/vscode-go/blob/master/docs/debugging.md#launchjson-attributes
+[48] https://github.com/golang/vscode-go/blob/master/docs/debugging.md#troubleshooting
+[49] https://github.com/go-delve/delve/tree/master/Documentation/installation
+[50] https://github.com/golang/vscode-go/blob/master/docs/debugging-legacy.md
+[51] https://github.com/golang/vscode-go/blob/master/docs/debugging-legacy.md#troubleshooting
+[52] https://github.com/nvm-sh/nvm
+[53] https://github.com/Microsoft/java-debug
+[54] https://github.com/ycm-core/YouCompleteMe#java-semantic-completion
+[55] https://github.com/ycm-core/YouCompleteMe#troubleshooting
+[56] https://code.visualstudio.com/docs/java/java-debugging
+[57] https://github.com/puremourning/vimspector/issues/3
+[58] https://github.com/tomblind/local-lua-debugger-vscode
+[59] https://github.com/puremourning/vimspector/issues/3#issuecomment-576916076
+[60] https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322
+[61] https://puremourning.github.io/vimspector/configuration.html#debug-configurations
+[62] https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf
+[63] https://www.reddit.com/r/neovim/comments/mz4ari/how_to_set_up_vimspector_for_django_debugging/
+[64] https://github.com/puremourning/vimspector/issues/227
 
 vim: ft=help
