@@ -64,6 +64,12 @@ class DisassemblyView( object ):
         vim.command( 'nnoremenu WinBar.✕ '
                      ':call vimspector#Reset()<CR>' )
 
+      vim.command( 'augroup VimspectorDisassembly' )
+      vim.command( 'autocmd!' )
+      vim.command( f'autocmd WinScrolled { utils.WindowID( self._window ) } '
+                   'call vimspector#internal#disassembly#OnWindowScrolled()' )
+      vim.command( 'augroup END' )
+
     signs.DefineProgramCounterSigns()
 
 
@@ -80,7 +86,7 @@ class DisassemblyView( object ):
     return vim.current.buffer == self._buf
 
   def SetCurrentFrame( self, frame, should_jump_to_location ):
-    if not self._window.valid:
+    if not self._window.valid or not self._connection:
       return
 
     if not frame:
@@ -92,25 +98,36 @@ class DisassemblyView( object ):
       return
 
     self._instructionPointerReference = frame[ 'instructionPointerReference' ]
+    self._instructionPointerAddressOffset = 0
     self.current_frame = frame
-    self._RequestInstructions( should_jump_to_location )
 
-
-  def _RequestInstructions( self, should_jump_to_location ):
-    def handler( msg ):
-      self.current_instructions = msg.get( 'body', {} ).get( 'instructions' )
-      self._DrawInstructions( should_jump_to_location )
-
+    # Centre around the PC
     self.instruction_offset = -self._window.height
     self.instruction_count = self._window.height * 2
+    self._topline = int( self._window.height / 2 )
+
+    self._RequestInstructions( should_jump_to_location,
+                               should_make_visible = True )
+
+
+  def _RequestInstructions( self, should_jump_to_location, should_make_visible ):
+    def handler( msg ):
+      self.current_instructions = msg.get( 'body', {} ).get( 'instructions' )
+      self._DrawInstructions( should_jump_to_location, should_make_visible )
+
+    utils.UserMessage(
+      f'offset: { self.instruction_offset }, '
+      f'count: { self.instruction_count }'
+      f'topline: { self._topline }',
+      persist = True )
 
     self._connection.DoRequest( handler, {
       'command': 'disassemble',
       'arguments': {
         'memoryReference': self._instructionPointerReference,
-        'offset': 0,
-        'instructionOffset': self.instruction_offset,
-        'instructionCount': self.instruction_count,
+        'offset': int( self._instructionPointerAddressOffset ),
+        'instructionOffset': int( self.instruction_offset ),
+        'instructionCount': int( self.instruction_count ),
         'resolveSymbols': True
       }
     } )
@@ -128,6 +145,8 @@ class DisassemblyView( object ):
 
   def Reset( self ):
     self.Clear()
+    vim.command( 'autocmd! VimspectorDisassembly' )
+
     self._buf = None
     for b in self._scratch_buffers:
       utils.CleanUpHiddenBuffer( b )
@@ -180,7 +199,38 @@ class DisassemblyView( object ):
       return None
     return self._buf.name
 
-  def _DrawInstructions( self, should_jump_to_location ):
+  def OnWindowScrolled( self, win_id ):
+    if not self._connection:
+      return
+
+    if not self.WindowIsValid() or utils.WindowID( self._window ) != win_id:
+      return
+
+    new_topline = int( utils.GetWindowInfo( self._window )[ 'topline' ] )
+    pc_line = self._GetPCEntryOffset() + 1
+    old_topline = self._topline
+
+
+    if new_topline >= pc_line:
+      # We've moved past the PC, so set offset to 0 and make sure there are
+      # enough instructions for the current page + 1/2 page + anything above
+      # this line up to the PC
+      self.instruction_count = int( new_topline - new_topline +
+                                    self._window.height / 2  +
+                                    self._window.height )
+      self.instruction_offset = 0
+    else:
+      self.instruction_offset += ( new_topline - old_topline )
+      assert self.instruction_offset < 0
+      self.instruction_count = ( -self.instruction_offset +
+                                 self._window.height * 2 )
+
+    self._topline = new_topline
+    self._RequestInstructions( should_jump_to_location = False,
+                               should_make_visible = False )
+
+
+  def _DrawInstructions( self, should_jump_to_location, should_make_visible ):
     if not self._window.valid:
       return
 
@@ -239,7 +289,7 @@ class DisassemblyView( object ):
                                     self._GetPCEntryOffset() + 1,
                                     1,
                                     make_visible = True )
-      else:
+      elif should_make_visible:
         with utils.RestoreCursorPosition():
           utils.SetCursorPosInWindow( self._window,
                                       self._GetPCEntryOffset() + 1,
@@ -249,6 +299,7 @@ class DisassemblyView( object ):
       utils.UserMessage( f"Failed to set cursor position for disassembly: {e}",
                          error = True )
 
+    self._topline = int( utils.GetWindowInfo( self._window )[ 'topline' ] )
 
 
   def _DisplayPC( self ):

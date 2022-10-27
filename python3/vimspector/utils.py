@@ -248,10 +248,7 @@ def RestoreCurrentBuffer( window ):
     yield
   finally:
     if window.valid:
-      with RestoreCurrentWindow():
-        with NoAutocommands():
-          JumpToWindow( window )
-          vim.current.buffer = old_buffer
+      Call( 'win_execute', WindowID( window ), f'bu { old_buffer.number }' )
 
 
 @contextlib.contextmanager
@@ -874,6 +871,10 @@ def WindowID( window, tab=None ):
   if tab is None:
     tab = window.tabpage
   return int( Call( 'win_getid', window.number, tab.number ) )
+
+
+def GetWindowInfo( window ):
+  return Call( 'getwininfo', WindowID( window ) )[ 0 ]
 
 
 @memoize
