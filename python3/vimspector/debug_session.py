@@ -1470,6 +1470,9 @@ class DebugSession( object ):
 
     return ssh
 
+  def _GetShellCommand( self ):
+    return []
+
   def _GetDockerCommand( self, remote ):
     docker = [ 'docker', 'exec' ]
     docker.append( remote[ 'container' ] )
@@ -1485,7 +1488,9 @@ class DebugSession( object ):
       return self._GetSSHCommand( remote )
     elif is_docker_cmd:
       return self._GetDockerCommand( remote )
-    raise ValueError( 'Could not determine remote exec command' )
+    else:
+      # if it's neither docker nor ssh, run locally
+      return self._GetShellCommand()
 
 
   def _GetCommands( self, remote, pfx ):
