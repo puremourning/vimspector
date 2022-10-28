@@ -839,6 +839,11 @@ class DebugSession( object ):
         True )
 
 
+  def OnDisassemblyWindowScrolled( self, win_id ):
+    if self._disassemblyView:
+      self._disassemblyView.OnWindowScrolled( win_id )
+
+
   @IfConnected()
   def AddWatch( self, expression ):
     self._variablesView.AddWatch( self._stackTraceView.GetCurrentFrame(),
