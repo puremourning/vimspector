@@ -1513,8 +1513,11 @@ use the default "step" commands (e.g. '<F10>'), the stepping is automatically
 chnged to per-instruction rather than per statement.
 
 Each time the process stops, vimspector requests about 2 windows full of
-instructions around the current PC. To see more, you have to make the window
-bigger and step. This is not ideal, and may be improved in future.
+instructions around the current PC. To see more, you can scroll the window.
+Vimspector will page in an extra screenful of instructions when the window
+scrolls to the top or near the bottom. This isn't perfect. Sometimes you have
+to scroll a bit more to make it page in (e.g. ctrl-e ctrl-y at the top). This
+is not ideal, and may be improved in future.
 
 You can control the intial height of the disassembly window with 'let
 g:vimspector_disassembly_height = 10' (or whatver number of lines).
