@@ -17,7 +17,8 @@ import logging
 
 import vim
 
-from vimspector import signs, utils, debug_adapter_connection
+from vimspector import signs, utils
+from vimspector.debug_adapter_connection import DebugAdapterConnection
 
 SIGN_ID = 1
 
@@ -36,7 +37,7 @@ class DisassemblyView( object ):
     self._requesting = False
 
     self._api_prefix = api_prefix
-    self._connection: debug_adapter_connection.DebugAdapterConnection = connection
+    self._connection: DebugAdapterConnection = connection
 
     self.current_frame = None
     self.current_instructions = None

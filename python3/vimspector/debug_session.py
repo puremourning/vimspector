@@ -838,7 +838,7 @@ class DebugSession( object ):
         self._stackTraceView.GetCurrentFrame(),
         True )
 
-  
+
   def OnDisassemblyWindowScrolled( self, win_id ):
     if self._disassemblyView:
       self._disassemblyView.OnWindowScrolled( win_id )
