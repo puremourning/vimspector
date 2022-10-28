@@ -17,7 +17,7 @@ import logging
 
 import vim
 
-from vimspector import signs, utils
+from vimspector import signs, utils, debug_adapter_connection
 
 SIGN_ID = 1
 
@@ -33,9 +33,10 @@ class DisassemblyView( object ):
     # Initially we don't care about the buffer. We only update it when we have
     # one crated from the request.
     self._buf = None
+    self._requesting = False
 
     self._api_prefix = api_prefix
-    self._connection = connection
+    self._connection: debug_adapter_connection.DebugAdapterConnection = connection
 
     self.current_frame = None
     self.current_instructions = None
@@ -97,6 +98,11 @@ class DisassemblyView( object ):
       self._UndisplayPC()
       return
 
+    if self._requesting:
+      # TODO: Do something better
+      self._UndisplayPC()
+      return
+
     self._instructionPointerReference = frame[ 'instructionPointerReference' ]
     self._instructionPointerAddressOffset = 0
     self.current_frame = frame
@@ -104,23 +110,32 @@ class DisassemblyView( object ):
     # Centre around the PC
     self.instruction_offset = -self._window.height
     self.instruction_count = self._window.height * 2
-    self._topline = int( self._window.height / 2 )
 
     self._RequestInstructions( should_jump_to_location,
                                should_make_visible = True )
 
 
-  def _RequestInstructions( self, should_jump_to_location, should_make_visible ):
+  def _RequestInstructions( self,
+                            should_jump_to_location,
+                            should_make_visible,
+                            offset_cursor_by = 0 ):
+    assert not self._requesting
+
+    # Must always include the PC
+    assert self.instruction_offset <= 0
+    assert self._instructionPointerAddressOffset == 0
+
     def handler( msg ):
       self.current_instructions = msg.get( 'body', {} ).get( 'instructions' )
-      self._DrawInstructions( should_jump_to_location, should_make_visible )
+      self._DrawInstructions( should_jump_to_location,
+                              should_make_visible,
+                              offset_cursor_by )
+      self._requesting = False
 
-    utils.UserMessage(
-      f'offset: { self.instruction_offset }, '
-      f'count: { self.instruction_count }'
-      f'topline: { self._topline }',
-      persist = True )
+    def error_handler():
+      self._requesting = False
 
+    self._requesting = True
     self._connection.DoRequest( handler, {
       'command': 'disassemble',
       'arguments': {
@@ -130,7 +145,7 @@ class DisassemblyView( object ):
         'instructionCount': int( self.instruction_count ),
         'resolveSymbols': True
       }
-    } )
+    }, failure_handler = lambda *args: error_handler() )
 
 
   def Clear( self ):
@@ -206,31 +221,36 @@ class DisassemblyView( object ):
     if not self.WindowIsValid() or utils.WindowID( self._window ) != win_id:
       return
 
-    new_topline = int( utils.GetWindowInfo( self._window )[ 'topline' ] )
-    pc_line = self._GetPCEntryOffset() + 1
-    old_topline = self._topline
+    if self._requesting:
+      # TODO: Do something better
+      return
 
+    current_topline = int( utils.GetWindowInfo( self._window )[ 'topline' ] )
+    window_height = self._window.height
 
-    if new_topline >= pc_line:
-      # We've moved past the PC, so set offset to 0 and make sure there are
-      # enough instructions for the current page + 1/2 page + anything above
-      # this line up to the PC
-      self.instruction_count = int( new_topline - new_topline +
-                                    self._window.height / 2  +
-                                    self._window.height )
-      self.instruction_offset = 0
-    else:
-      self.instruction_offset += ( new_topline - old_topline )
-      assert self.instruction_offset < 0
-      self.instruction_count = ( -self.instruction_offset +
-                                 self._window.height * 2 )
+    if current_topline == 1:
+      # We're at the top of the buffer, request another page
+      self.instruction_offset -= window_height
+      self.instruction_count += window_height
+      self._RequestInstructions( should_jump_to_location = False,
+                                 should_make_visible = False,
+                                 offset_cursor_by = window_height )
+    elif current_topline >= len( self._buf ) - window_height:
+      # We're at the botton page, request a new page
+      self.instruction_offset = min( 0,
+                                     self.instruction_offset + window_height )
+      self.instruction_count += window_height
+      self._RequestInstructions( should_jump_to_location = False,
+                                 should_make_visible = False )
 
-    self._topline = new_topline
-    self._RequestInstructions( should_jump_to_location = False,
-                               should_make_visible = False )
+    # TODO: Trim request_count, such that we have:
+    #  - at least 2 screenfulls
+    #  - the PC line visible
 
-
-  def _DrawInstructions( self, should_jump_to_location, should_make_visible ):
+  def _DrawInstructions( self,
+                         should_jump_to_location,
+                         should_make_visible,
+                         offset_cursor_by ):
     if not self._window.valid:
       return
 
@@ -282,6 +302,8 @@ class DisassemblyView( object ):
     # at the end of sessions.
     self._render_emitter.emit()
 
+    assert not should_jump_to_location or offset_cursor_by == 0
+
     try:
       if should_jump_to_location:
         utils.JumpToWindow( self._window )
@@ -299,8 +321,9 @@ class DisassemblyView( object ):
       utils.UserMessage( f"Failed to set cursor position for disassembly: {e}",
                          error = True )
 
-    self._topline = int( utils.GetWindowInfo( self._window )[ 'topline' ] )
-
+    if offset_cursor_by != 0:
+      self._window.cursor = ( self._window.cursor[ 0 ] + offset_cursor_by,
+                              self._window.cursor[ 1 ] )
 
   def _DisplayPC( self ):
     self._UndisplayPC()
