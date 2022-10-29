@@ -86,9 +86,17 @@
           "allOf": [
             {
               "anyOf": [
-                { "required": [] },
-                { "required": [ "host" ] },
-                { "required": [ "container" ] }
+                {
+                  "oneOf": [
+                    { "required": [ "host" ] },
+                    { "required": [ "container" ] }
+                  ]
+                },
+                {
+                  "not": {
+                    "required": [ "host", "container" ]
+                  }
+                }
               ]
             },
             {
