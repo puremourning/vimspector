@@ -82,12 +82,21 @@
       "properties": {
         "remote": {
           "type": "object",
-          "description": "Configures how Vimspector will marshal remote debugging requests. When remote debugging, Vimspector will either ssh to 'account'@'host' or docker exec -it to 'container' and run 'pidCommand', 'attachCommands', 'runCommands', etc. based on the 'remote-command' option in the debug configuration. If 'remote-command' is 'launch', it runs 'runCommand(s)', otherwise (it's 'attach') vimspector runs 'pidCommand', followed by 'attachCommand(s)'.Then it starts up the debug adapter with the debug configuration as normal. Usually this is configured with an 'attach' request (whether we remotely 'launched' or not). Once the initialization exchange is complete, Vimspector runs the optional 'initCompleteCommand' which can be used to force the application to break, e.g. by sending it SIGINT. This is required on some platforms which have buggy gdbservers (for example)",
+          "description": "Configures how Vimspector will marshal remote debugging requests. When remote debugging, Vimspector will either ssh to 'account'@'host', docker exec -it to 'container' or work locally and run 'pidCommand', 'attachCommands', 'runCommands', etc. based on the 'remote-command' option in the debug configuration. If 'remote-command' is 'launch', it runs 'runCommand(s)', otherwise (it's 'attach') vimspector runs 'pidCommand', followed by 'attachCommand(s)'.Then it starts up the debug adapter with the debug configuration as normal. Usually this is configured with an 'attach' request (whether we remotely 'launched' or not). Once the initialization exchange is complete, Vimspector runs the optional 'initCompleteCommand' which can be used to force the application to break, e.g. by sending it SIGINT. This is required on some platforms which have buggy gdbservers (for example)",
           "allOf": [
             {
-              "oneOf": [
-                { "required": [ "host" ] },
-                { "required": [ "container" ] }
+              "anyOf": [
+                {
+                  "oneOf": [
+                    { "required": [ "host" ] },
+                    { "required": [ "container" ] }
+                  ]
+                },
+                {
+                  "not": {
+                    "required": [ "host", "container" ]
+                  }
+                }
               ]
             },
             {

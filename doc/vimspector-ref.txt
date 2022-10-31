@@ -856,8 +856,8 @@ research that.
 
 Vimspector's tools are intended to automate your existing process for setting
 this up rather than to offer batteries-included approach. Ultimately, all
-Vimspector is going to do is run your commands over SSH, or docker, and
-co-ordinate with the adapter.
+Vimspector is going to do is run your commands over SSH, docker, or locally,
+and co-ordinate with the adapter.
 
 -------------------------------------------------------------------------------
                                                 *vimspector-ref-python-example*
@@ -880,7 +880,8 @@ Vimspector then orchestrates the various tools to set you up.
         "host": "${host}",
         "launch": {
           "remote": {
-            "host": "${host}",       // Remote host to ssh to (mandatory if not using container)
+            "host": "${host}", // Remote host to ssh to
+                               // If omitted, runCommand(s) is run locally
             "account": "${account}", // User to connect as (optional)
   
             // Optional.... Manual additional arguments for ssh
@@ -914,7 +915,8 @@ Vimspector then orchestrates the various tools to set you up.
         },
         "attach": {
           "remote": {
-            "host": "${host}", // Remote host to ssh to (mandatory if not using container)
+            "host": "${host}", // Remote host to ssh to
+                               // If omitted, runCommand(s) is run locally
             "account": "${account}", // User to connect as (optional)
             // Command to get the PID of the process to attach  (mandatory)
             "pidCommand": [
