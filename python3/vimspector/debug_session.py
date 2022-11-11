@@ -817,7 +817,7 @@ class DebugSession( object ):
       return
 
     if not self._server_capabilities.get( 'supportsDisassembleRequest', False ):
-      utils.UserMessage( "Sorry, server doesn't suport that" )
+      utils.UserMessage( "Sorry, server doesn't support that" )
       return
 
     with utils.LetCurrentWindow( self._codeView._window ):
