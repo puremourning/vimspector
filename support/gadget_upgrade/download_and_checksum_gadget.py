@@ -5,6 +5,17 @@ import os
 import string
 import fnmatch
 
+if '--help' in sys.argv:
+  print( f"Usage: { os.path.basename( __file__ ) } [-v] gadget [gadget2 ...]" )
+  print( "" )
+  print( "Each gadget is a glob (fnmatch), so use * to do all " )
+  exit(0)
+
+VERBOSE = 0
+if '-v' in sys.argv:
+  VERBOSE = 1
+  sys.argv = list( filter( lambda x: x != "-v", sys.argv ) )
+
 # Gaim access to vimspector libs
 sys.path.insert(
   1,
@@ -14,7 +25,7 @@ sys.path.insert(
                                  'python3' ) )
 )
 
-from vimspector import installer, gadgets
+from vimspector import install, installer, gadgets
 
 gadgets_to_sum = sys.argv[ 1: ]
 results = []
@@ -27,7 +38,12 @@ for gadget_name in gadgets.GADGETS.keys():
       break
 
   if not include:
+    if VERBOSE:
+      print( f"Skipping { gadget_name } (not in { gadgets_to_sum })" )
     continue
+
+  if VERBOSE:
+    print( f"Processing { gadget_name }..." )
 
   gadget = gadgets.GADGETS[ gadget_name ]
   if 'download' not in gadget:
@@ -40,8 +56,9 @@ for gadget_name in gadgets.GADGETS.keys():
                        'download' )
 
   last_url = ''
+  seen_checksums = set()
   for OS in 'linux', 'macos', 'windows':
-    for PLATFORM in 'x86_64', 'x86', 'arm64':
+    for PLATFORM in 'x86_64', 'arm64', 'x86', 'armv7':
       spec = {}
       spec.update( gadget.get( 'all', {} ) )
       spec.update( gadget.get( OS, {} ) )
@@ -67,6 +84,10 @@ for gadget_name in gadgets.GADGETS.keys():
         checksum = spec.get( 'checksum' ) )
 
       checksum = installer.GetChecksumSHA254( file_path )
+      if checksum in seen_checksums:
+        continue
+      seen_checksums.add( checksum )
+
       last_url = url
       results.append(
         f"{ gadget_name } { version } { OS }_{ PLATFORM }: { checksum }" )
