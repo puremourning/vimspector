@@ -113,7 +113,7 @@ function! Test_Disassembly_StepGranularity_Mappings()
   call assert_equal( 'vimspector-disassembly', &syntax )
 
   " Check we're still on the same source line (which just about works on the
-  " suported architectures)
+  " supported architectures)
 
   call win_gotoid( g:vimspector_session_windows.code )
   call vimspector#JumpToProgramCounter()
@@ -165,7 +165,7 @@ function! Test_Disassembly_StepGranularity_API()
         \ } )
 
   " Check we're still on the same source line (which just about works on the
-  " suported architectures)
+  " supported architectures)
   call win_gotoid( g:vimspector_session_windows.code )
   call vimspector#JumpToProgramCounter()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 3, 1 )
@@ -216,7 +216,7 @@ function! Test_Disassembly_StepInGranularity_API()
         \ } )
 
   " Check we're still on the same source line (which just about works on the
-  " suported architectures)
+  " supported architectures)
   call win_gotoid( g:vimspector_session_windows.code )
   call vimspector#JumpToProgramCounter()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 3, 1 )
@@ -273,7 +273,7 @@ function! Test_Disassembly_StepGranularity_API_CodeLLDB()
         \ } )
 
   " Check we're still on the same source line (which just about works on the
-  " suported architectures)
+  " supported architectures)
   "
   " NOTE: codelldb is so good, it actually includes the column number and moves
   " us to the + operator (on arm64 at least). 
