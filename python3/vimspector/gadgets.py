@@ -60,6 +60,11 @@ GADGETS = {
       'checksum':
         'feeeddafc3d162039a842a9b7107c33b32b36f8e85b7e13ab918ea2aada48f8f',
     },
+    'linux_armv7': {
+      'file_name': 'cpptools-linux-armhf.vsix',
+      'checksum':
+        '7f8a4e98add9c651d41066a09051cb18d80b55fdc8882251bb317243a021785c',
+    },
     'macos': {
       'file_name': 'cpptools-osx.vsix',
       'checksum':
@@ -543,6 +548,11 @@ GADGETS = {
       'file_name': 'codelldb-aarch64-linux.vsix',
       'checksum':
         '64d2586b4b84868ba5d59679d0de5cd74f8c5e04c170abd0da2413034a280528',
+    },
+    'linux_armv7': {
+      'file_name': 'codelldb-arm-linux.vsix',
+      'checksum':
+        '352b7fcbc0a8617bd87be6074da5d88afb17e807122bf8b3774c1c41dfbe6a11',
     },
     'windows': {
       'file_name': 'codelldb-x86_64-windows.vsix',
