@@ -168,12 +168,12 @@ jobs:
         name: 'package-macos'
         path: 'package/macos-${{ github.run_id }}.tar.gz'
 
-    - name: Start SSH session if failed
-      uses: luchihoratiu/debug-via-ssh@main
-      if: failure() || cancelled()
-      with:
-        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-        SSH_PASS: ${{ secrets.SSH_PASS }}
+    # - name: Start SSH session if failed
+    #  uses: luchihoratiu/debug-via-ssh@main
+    #  if: failure() || cancelled()
+    #  with:
+    #    NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+    #    SSH_PASS: ${{ secrets.SSH_PASS }}
 
   PublishRelease:
     runs-on: 'ubuntu-20.04'
