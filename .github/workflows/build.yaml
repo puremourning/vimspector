@@ -108,9 +108,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: 'Install requirements'
-      run: pip3 install --user -r dev_requirements.txt
-
     - run: |
         brew update-reset
         brew doctor || true
@@ -123,6 +120,9 @@ jobs:
         brew link --overwrite go@1.16
         pip3 install --user neovim
       name: 'Install vim and deps'
+
+    - name: 'Install requirements'
+      run: pip3 install --user -r dev_requirements.txt
 
     - run: go install github.com/go-delve/delve/cmd/dlv@latest
       name: 'Install Delve for Go'
@@ -168,12 +168,12 @@ jobs:
         name: 'package-macos'
         path: 'package/macos-${{ github.run_id }}.tar.gz'
 
-    - name: Start SSH session if failed
-      uses: luchihoratiu/debug-via-ssh@main
-      if: failure() || cancelled()
-      with:
-        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-        SSH_PASS: ${{ secrets.SSH_PASS }}
+    # - name: Start SSH session if failed
+    #  uses: luchihoratiu/debug-via-ssh@main
+    #  if: failure() || cancelled()
+    #  with:
+    #    NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+    #    SSH_PASS: ${{ secrets.SSH_PASS }}
 
   PublishRelease:
     runs-on: 'ubuntu-20.04'

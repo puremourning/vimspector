@@ -515,12 +515,12 @@ GADGETS = {
              '${version}/${file_name}',
     },
     'all': {
-      'version': 'v1.7.4',
+      'version': 'v1.8.1',
     },
     'macos': {
       'file_name': 'codelldb-x86_64-darwin.vsix',
       'checksum':
-        'f619449a4a151b0944c2c4f194de0b50e6a43e7273768eaf322ccde9a9f1e539',
+        '1735a9be7992ef0f8d89b90dc352e59a2bc41be649044448e4cd966dd00e054d',
       'make_executable': [
         'adapter/codelldb',
         'lldb/bin/debugserver',
@@ -531,12 +531,12 @@ GADGETS = {
     'macos_arm64': {
       'file_name': 'codelldb-aarch64-darwin.vsix',
       'checksum':
-        'eb51069b2b68ec073a739e7b8149aa1511b643f1ccb20a7026d086166e06a270',
+        '20ebd58eb9f30e35820bd7e70dcb2ad1d6dc9fb5e8f56f7efc1ebbf9679e1845',
     },
     'linux': {
       'file_name': 'codelldb-x86_64-linux.vsix',
       'checksum':
-        '9f489edbd15aa0ef4ee6386d1cb40f2c7cab703f347ebc7c3f4855fec6e916d2',
+        '1183adbccf1bf0f6fa4344d278fd1c3963e90e2753c1cb1c6dbfafc8a5411049',
       'make_executable': [
         'adapter/codelldb',
         'lldb/bin/lldb',
@@ -547,17 +547,17 @@ GADGETS = {
     'linux_arm64': {
       'file_name': 'codelldb-aarch64-linux.vsix',
       'checksum':
-        '64d2586b4b84868ba5d59679d0de5cd74f8c5e04c170abd0da2413034a280528',
+        '45645d6cdbb96d5bdc802ea8a85245ea46315b3f17c47411030e8b6ae9bb3f3d',
     },
     'linux_armv7': {
       'file_name': 'codelldb-arm-linux.vsix',
       'checksum':
-        '352b7fcbc0a8617bd87be6074da5d88afb17e807122bf8b3774c1c41dfbe6a11',
+        '1183adbccf1bf0f6fa4344d278fd1c3963e90e2753c1cb1c6dbfafc8a5411049',
     },
     'windows': {
       'file_name': 'codelldb-x86_64-windows.vsix',
       'checksum':
-        '7664f3054354f388eb94c3eae803f60ce2c87df7f36e55d44f84e99ec67a7861',
+        '461399c20f4ee3bad2a8a95dd6f4918fa3d885e0631647f7f17d41b7bec8f713',
       'make_executable': []
     },
     'adapters': {
