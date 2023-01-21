@@ -19,6 +19,7 @@ import vim
 import os
 import logging
 import operator
+import copy
 
 import json
 from vimspector import utils, signs, settings, disassembly
@@ -241,11 +242,13 @@ class ProjectBreakpoints( object ):
 
 
   def Copy( self, other: 'ProjectBreakpoints' ):
-    self._line_breakpoints = dict( other._line_breakpoints )
-    self._func_breakpoints = list( other._func_breakpoints )
+    self._line_breakpoints = copy.deepcopy( other._line_breakpoints )
+    self._func_breakpoints = copy.deepcopy( other._func_breakpoints )
     if other._exception_breakpoints is not None:
-      self._exception_breakpoints = dict( other._exception_breakpoints )
-    self._configured_breakpoints = dict( other._configured_breakpoints )
+      self._exception_breakpoints = copy.deepcopy(
+        other._exception_breakpoints )
+    self._configured_breakpoints = copy.deepcopy(
+      other._configured_breakpoints )
 
 
   def ConnectionUp( self, connection ):
