@@ -1637,7 +1637,7 @@ class DebugSession( object ):
               full_cmd.extend( command_line )
             else:
               full_cmd.append( item.replace( '%CMD%',
-                                             ' '.join( command_line ) ) )
+                                             shlex.join( command_line ) ) )
           else:
             full_cmd.append( item.replace( '%CMD%', command_line ) )
 
