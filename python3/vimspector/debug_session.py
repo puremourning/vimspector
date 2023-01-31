@@ -596,8 +596,13 @@ class DebugSession( object ):
 
   @ParentOnly()
   def Reset( self, interactive = False ):
-    # We reset all of the child sessions in turn
+    if vim.vars.get( 'vimspector_resetting', 0 ) == 1:
+        return
+
+    vim.vars[ 'vimspector_resetting' ] = 1
+
     self._logger.debug( "Stop debug adapter with callback: _Reset" )
+    # We reset all of the child sessions in turn
     self.StopAllSessions( interactive, self._Reset )
 
 
@@ -638,7 +643,6 @@ class DebugSession( object ):
       self._ResetUI()
       return
 
-    vim.vars[ 'vimspector_resetting' ] = 1
     self._logger.info( "Debugging complete." )
 
     if self.HasUI():
