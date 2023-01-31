@@ -491,6 +491,10 @@ class DebugSession( object ):
     self._StopDebugAdapter( interactive = interactive )
 
   def Reset( self, interactive = False ):
+    if vim.vars.get( 'vimspector_resetting', 0 ) == 1:
+      return
+
+    vim.vars[ 'vimspector_resetting' ] = 1
     if self._connection:
       self._logger.debug( "Stop debug adapter with callback : self._Reset()" )
       self._StopDebugAdapter( interactive = interactive,
@@ -502,7 +506,6 @@ class DebugSession( object ):
     return self._codeView and self._codeView.IsPCPresentAt( file_path, line )
 
   def _Reset( self ):
-    vim.vars[ 'vimspector_resetting' ] = 1
     self._logger.info( "Debugging complete." )
 
     def ResetUI():
