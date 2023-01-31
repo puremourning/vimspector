@@ -1444,9 +1444,11 @@ class DebugSession( object ):
             if item == '%CMD%':
               full_cmd.extend( command_line )
             else:
-              full_cmd.append( item )
+              full_cmd.append( item.replace( '%CMD%',
+                                             shlex.join( command_line ) ) )
           else:
-            full_cmd.append( item.replace( '%CMD%', command_line ) )
+            full_cmd.append( item.replace( '%CMD%',
+                                           shlex.join( command_line ) ) )
 
         self._logger.debug( 'Running remote app: %s', full_cmd )
         self._remote_term = terminal.LaunchTerminal(
