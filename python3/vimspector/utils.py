@@ -877,11 +877,20 @@ def GetWindowInfo( window ):
   return Call( 'getwininfo', WindowID( window ) )[ 0 ]
 
 
-@memoize
 def UseWinBar():
   # Buggy neovim doesn't render correctly when the WinBar is defined:
   # https://github.com/neovim/neovim/issues/12689
-  return not int( Call( 'has', 'nvim' ) )
+  return not VimIsNeovim() and VimHasMouseSupport()
+
+
+@memoize
+def VimIsNeovim():
+  return int( Call( 'has', 'nvim' ) )
+
+
+def VimHasMouseSupport():
+  mouse = vim.options[ 'mouse' ]
+  return b'a' in mouse or b'n' in mouse
 
 
 # Jump to a specific 1-based line/column
