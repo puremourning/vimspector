@@ -662,6 +662,20 @@ function! Test_CustomWinBar()
   %bwipe!
 endfunction
 
+function! Test_NoMouseNoWinBar()
+  call SkipNeovim()
+  call vimspector#test#setup#PushOption( 'mouse', '' )
+  call s:StartDebugging()
+  call assert_equal( {}, menu_info( 'WinBar' ) )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+function! TearDown_Test_NoMouseNoWinBar()
+  call vimspector#test#setup#PopOption( 'mouse' )
+endfunction
+
 function! Test_VimspectorJumpedToFrame()
   call SkipNeovim()
   let s:ended = 0
