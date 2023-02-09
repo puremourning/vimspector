@@ -373,16 +373,27 @@ def InputSave():
     vim.eval( 'inputrestore()' )
 
 
-def SelectFromList( prompt, options, ret='label' ):
+def SelectFromList( prompt,
+                    options,
+                    ret='label',
+                    postscript: str = None,
+                    default_value=None ):
   with InputSave():
     display_options = [ prompt ]
     display_options.extend( [ '{0}: {1}'.format( i + 1, v )
                               for i, v in enumerate( options ) ] )
+    if postscript:
+      display_options += postscript.splitlines()
+
+    if len( display_options ) > vim.options[ 'lines' ]:
+      # Ruh roh, this won't work.
+      return None
+
     try:
       selection = int( vim.eval(
         'inputlist( ' + json.dumps( display_options ) + ' )' ) ) - 1
       if selection < 0 or selection >= len( options ):
-        return None
+        return default_value
       if ret == 'index':
         return selection
       else:

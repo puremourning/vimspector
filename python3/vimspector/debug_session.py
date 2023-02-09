@@ -155,6 +155,21 @@ class DebugSession( object ):
                          'application.' )
       return
 
+    def ChooseConfig():
+      default_value = USER_CHOICES.get( '__configuration' )
+      prompt = "Which launch configuration?"
+      postscript = None
+      if default_value:
+        postscript = f"(hit enter for '{default_value}')"
+      name = utils.SelectFromList( prompt,
+                                   sorted( configurations.keys() ),
+                                   postscript = postscript,
+                                   default_value = default_value )
+      if name:
+        USER_CHOICES[ '__configuration' ] = name
+      return name
+
+
     glob.glob( install.GetGadgetDir( VIMSPECTOR_HOME ) )
     for gadget_config_file in PathsToAllGadgetConfigs( VIMSPECTOR_HOME,
                                                        current_file ):
@@ -170,9 +185,7 @@ class DebugSession( object ):
       configuration_name = launch_variables.pop( 'configuration' )
     elif force_choose:
       # Always display the menu
-      configuration_name = utils.SelectFromList(
-        'Which launch configuration?',
-        sorted( configurations.keys() ) )
+      configuration_name = ChooseConfig()
     elif ( len( configurations ) == 1 and
            next( iter( configurations.values() ) ).get( "autoselect", True ) ):
       configuration_name = next( iter( configurations.keys() ) )
@@ -185,9 +198,7 @@ class DebugSession( object ):
       if len( defaults ) == 1:
         configuration_name = next( iter( defaults.keys() ) )
       else:
-        configuration_name = utils.SelectFromList(
-          'Which launch configuration?',
-          sorted( configurations.keys() ) )
+        configuration_name = ChooseConfig()
 
     if not configuration_name or configuration_name not in configurations:
       return
