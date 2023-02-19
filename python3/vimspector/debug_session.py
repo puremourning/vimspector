@@ -1623,8 +1623,7 @@ class DebugSession( object ):
         'arguments': self._launch_config
       },
       failure_handler,
-      timeout = self._connection.sync_timeout
-      )
+      timeout = self._connection.sync_timeout )
 
 
   def _OnLaunchComplete( self ):
