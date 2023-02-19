@@ -1622,7 +1622,9 @@ class DebugSession( object ):
         'command': self._launch_config[ 'request' ],
         'arguments': self._launch_config
       },
-      failure_handler )
+      failure_handler,
+      timeout = self._connection.sync_timeout
+      )
 
 
   def _OnLaunchComplete( self ):
