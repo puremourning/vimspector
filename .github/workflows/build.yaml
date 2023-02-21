@@ -133,6 +133,11 @@ jobs:
         path: gadgets/macos/download
       name: Cache gadgets
 
+    - name: 'Set up node 10'
+      uses: actions/setup-node@v3
+      with:
+        node-version: 10
+
     - name: 'Install .NET Core SDK 3.1'
       uses: actions/setup-dotnet@v1.7.2
       with:
