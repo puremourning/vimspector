@@ -1,0 +1,34 @@
+name: "Build CI containers"
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'tests/ci/**'
+      - 'test/manual/**'
+  workflow_dispatch:
+
+jobs:
+  Intel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: 'Build base CI image'
+        run: |
+          pushd tests/ci
+          ./rebuild
+          popd
+      - name: 'Build manual CI image'
+        run: |
+          pushd tests/manual
+          ./rebuild
+          popd
+      - name: 'Push to docker hub'
+        run: |
+          docker push puremourning/vimspector:test-$(uname -m)
+          docker push puremourning/vimspector:manual-$(uname -m)
