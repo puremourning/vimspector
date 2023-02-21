@@ -111,13 +111,14 @@ jobs:
     - run: |
         brew update-reset
         brew doctor || true
-        for p in vim go@1.16 tcl-tk llvm lua luajit love neovim; do
+        brew cleanup || true
+        for p in vim go tcl-tk llvm lua luajit love neovim; do
           brew install $p || brew outdated $p || brew upgrade $p
         done
         brew reinstall icu4c
         brew link --overwrite python
         brew link --overwrite vim
-        brew link --overwrite go@1.16
+        brew link --overwrite go
         pip3 install --user neovim
       name: 'Install vim and deps'
 
@@ -133,10 +134,10 @@ jobs:
         path: gadgets/macos/download
       name: Cache gadgets
 
-    - name: 'Set up node 10'
+    - name: 'Set up node 12'
       uses: actions/setup-node@v3
       with:
-        node-version: 10
+        node-version: 12
 
     - name: 'Install .NET Core SDK 3.1'
       uses: actions/setup-dotnet@v1.7.2
