@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-20.04
     container: 'puremourning/vimspector:test-x86_64'
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: 'Insatll requirements'
       run: pip3 install --user -r dev_requirements.txt
     - name: 'Run flake8'
@@ -25,7 +25,7 @@ jobs:
     runs-on: 'ubuntu-20.04'
     container: 'puremourning/vimspector:test-x86_64'
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: 'Install requirements'
       run: pip3 install --user -r dev_requirements.txt
     - name: 'Run vint'
@@ -44,7 +44,7 @@ jobs:
           - nvim
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: 'Install requirements'
       run: pip3 install --user -r dev_requirements.txt
@@ -106,7 +106,7 @@ jobs:
           - vim
           - nvim
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - run: |
         brew update-reset
