@@ -27,7 +27,7 @@ function! Test_CSharp_Simple_Adhoc_Config()
     \   'adapter': 'netcoredbg',
     \   'configuration': {
     \     'request': 'launch',
-    \     'program': '${workspaceRoot}/bin/Debug/netcoreapp5.0/csharp.dll',
+    \     'program': '${workspaceRoot}/bin/Debug/netcoreapp6.0/csharp.dll',
     \     'args': [],
     \     'stopAtEntry': v:false
     \   }
@@ -62,7 +62,7 @@ function! Test_CSharp_Simple_VimDict_Config()
   \     'configuration': {
   \       'request': 'launch',
   \       'default': v:true,
-  \       'program': '${workspaceRoot}/bin/Debug/netcoreapp5.0/csharp.dll',
+  \       'program': '${workspaceRoot}/bin/Debug/netcoreapp6.0/csharp.dll',
   \       'args': [],
   \       'stopAtEntry': v:false
   \     }
@@ -106,7 +106,7 @@ function! Test_CSharp_Simple_VimDict_Config_TruthyDefault()
   \     'configuration': {
   \       'request': 'launch',
   \       'default': 1,
-  \       'program': '${workspaceRoot}/bin/Debug/netcoreapp5.0/csharp.dll',
+  \       'program': '${workspaceRoot}/bin/Debug/netcoreapp6.0/csharp.dll',
   \       'args': [],
   \       'stopAtEntry': v:false
   \     }
@@ -149,7 +149,7 @@ function! Test_CSharp_Simple_VimDict_Config_Autoselect()
   \     'adapter': 'test_adapter',
   \     'configuration': {
   \       'request': 'launch',
-  \       'program': '${workspaceRoot}/bin/Debug/netcoreapp5.0/csharp.dll',
+  \       'program': '${workspaceRoot}/bin/Debug/netcoreapp6.0/csharp.dll',
   \       'args': [],
   \       'stopAtEntry': v:false
   \     }

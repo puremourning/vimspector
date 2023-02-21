@@ -90,7 +90,7 @@ RUN mkdir -p $HOME/vim && \
 
 # dotnet
 RUN curl -sSL https://dot.net/v1/dotnet-install.sh \
-        | bash /dev/stdin --channel 5.0 --install-dir /usr/share/dotnet && \
+        | bash /dev/stdin --channel 6.0 --install-dir /usr/share/dotnet && \
         update-alternatives --install /usr/bin/dotnet dotnet \
                                                       /usr/share/dotnet/dotnet 1
 

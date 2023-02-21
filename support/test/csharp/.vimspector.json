@@ -28,7 +28,7 @@
       "configuration": {
         "request": "launch",
         // If this changes, update language_csharp.test.vim
-        "program": "${workspaceRoot}/bin/Debug/netcoreapp5.0/csharp.dll",
+        "program": "${workspaceRoot}/bin/Debug/netcoreapp6.0/csharp.dll",
         "args": [],
         "stopAtEntry": false
       }
@@ -38,7 +38,7 @@
       "configuration": {
         "request": "launch",
         // If this changes, update language_csharp.test.vim
-        "program": "${workspaceRoot}/bin/Debug/netcoreapp5.0/csharp.dll",
+        "program": "${workspaceRoot}/bin/Debug/netcoreapp6.0/csharp.dll",
         "args": [],
         "stopAtEntry": false
       }
