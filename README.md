@@ -752,7 +752,7 @@ let g:vimspector_enable_mappings = 'VISUAL_STUDIO'
 | `F10`           | `<Plug>VimspectorStepOver`              | Step Over
 | `F11`           | `<Plug>VimspectorStepInto`              | Step Into
 | `Shift F11`     | `<Plug>VimspectorStepOut`               | Step out of current function scope
-| `Alt 8`         | `<Plug>VimspectorDisassemble            | Show disassembly
+| `Alt 8`         | `<Plug>VimspectorDisassemble`           | Show disassembly
 
 ## Human Mode
 
