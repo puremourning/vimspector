@@ -164,7 +164,7 @@ runtime dependencies). They are categorised by their level of support:
 | Python                  | Tested       | `--all` or `--enable-python`        | debugpy                              | Python 3                                     |
 | Go                      | Tested       | `--enable-go`                       | delve                                | Go 1.16+                                     |
 | TCL                     | Supported    | `--all` or `--enable-tcl`           | tclpro                               | TCL 8.5                                      |
-| Bourne Shell            | Supported    | `--all` or `--enable-bash`          | vscode-bash-debug                    | Bash v??                                     |
+| Bourne Again Shell            | Supported    | `--all` or `--enable-bash`          | vscode-bash-debug                    | Bash v??                                     |
 | Lua                     | Tested       | `--all` or `--enable-lua`           | local-lua-debugger-vscode            | Node >=12.13.0, Npm, Lua interpreter         |
 | Node.js                 | Supported    | `--force-enable-node`               | vscode-node-debug2                   | 6 < Node < 12, Npm                           |
 | Javascript              | Supported    | `--force-enable-chrome`             | debugger-for-chrome                  | Chrome                                       |
