@@ -175,4 +175,3 @@ function! FunctionBreakOnBrace() abort
   return trim( system( 'uname -m' ) ) ==# 'x86_64'
         \ && trim( system( 'uname -s' ) ) ==# 'Linux'
 endfunction
-

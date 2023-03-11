@@ -231,7 +231,7 @@ endfunction
 
 function! Test_Disassembly_StepGranularity_API_CodeLLDB()
   call s:StartDebugging( #{
-        \ col: 13,
+        \ col: v:null,
         \ launch: #{ configuration: 'CodeLLDB' }
         \ } )
   call vimspector#ShowDisassembly()
@@ -272,13 +272,13 @@ function! Test_Disassembly_StepGranularity_API_CodeLLDB()
   " supported architectures)
   "
   " NOTE: codelldb is so good, it actually includes the column number and moves
-  " us to the + operator (on arm64 at least). 
+  " us to the + operator (on arm64 at least). But this isn't consistent across
+  " macOS and linux and arm and x86, so we don't check for it.
   "
-  " FIXME: These offsets are unlikely to be correct on x86, so maybe just don't
-  " check the column here.
   call win_gotoid( g:vimspector_session_windows.code )
   call vimspector#JumpToProgramCounter()
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 3, 18 )
+  " call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 3, 18 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 3, v:null )
 
   " steps from code window are line steps
   call cursor( 1, 1 )
@@ -324,7 +324,7 @@ endfunction
 
 function! Test_Disassembly_StepInGranularity_API_Direct_CodeLLDB()
   call s:StartDebugging( #{
-        \ col: 13,
+        \ col: v:null,
         \ launch: #{ configuration: 'CodeLLDB' }
         \ } )
   call vimspector#ShowDisassembly()
@@ -336,7 +336,7 @@ function! Test_Disassembly_StepInGranularity_API_Direct_CodeLLDB()
   " Step over instruction
   call win_gotoid( g:vimspector_session_windows.code )
   call vimspector#StepIOver()
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 3, 13 )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 3, v:null )
   call WaitForAssert( {->
         \ vimspector#test#signs#AssertPCIsAtLineInBuffer( s:fn, 3 )
         \ } )
