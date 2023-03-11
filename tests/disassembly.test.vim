@@ -1,6 +1,5 @@
 let s:fn='testdata/cpp/simple/tiny.c'
 let s:buf = '_vimspector_disassembly'
-let s:codelldb_supports_disassembly = 0
 " Need to make this small enough that this many lines fit on the screen as the
 " fixed position in this test require that.
 let s:dlines = 5
@@ -231,9 +230,6 @@ function! Test_Disassembly_StepInGranularity_API()
 endfunction
 
 function! Test_Disassembly_StepGranularity_API_CodeLLDB()
-  call SkipIf( { -> !s:codelldb_supports_disassembly },
-             \ "CodeLLDB doesn't support this yet" )
-
   call s:StartDebugging( #{
         \ col: 13,
         \ launch: #{ configuration: 'CodeLLDB' }
@@ -327,9 +323,6 @@ function! Test_Disassembly_StepInGranularity_API_Direct()
 endfunction
 
 function! Test_Disassembly_StepInGranularity_API_Direct_CodeLLDB()
-  call SkipIf( { -> !s:codelldb_supports_disassembly },
-             \ "CodeLLDB doesn't support this yet" )
-
   call s:StartDebugging( #{
         \ col: 13,
         \ launch: #{ configuration: 'CodeLLDB' }
