@@ -471,7 +471,7 @@ class VariablesView( object ):
     return ''
 
   def HoverVarWinTooltip( self, bufnr, lnum, is_hover ):
-    variable, view = self._GetVariable( vim.buffers[ bufnr ], lnum )
+    variable, view, _ = self._GetVariable( vim.buffers[ bufnr ], lnum )
     if variable is None:
       return ''
 
@@ -547,7 +547,7 @@ class VariablesView( object ):
     self._DrawWatches()
 
   def _GetVariable( self, buf = None, line_num = None ):
-    none = ( None, None )
+    none = ( None, None, None )
 
     if buf is None:
       buf = vim.current.buffer
@@ -568,10 +568,10 @@ class VariablesView( object ):
     if line_num not in view.lines:
       return none
 
-    return view.lines[ line_num ], view
+    return view.lines[ line_num ], view, line_num
 
   def ExpandVariable( self, buf = None, line_num = None ):
-    variable, view = self._GetVariable( buf, line_num )
+    variable, view, _ = self._GetVariable( buf, line_num )
     if variable is None:
       return
 
@@ -594,30 +594,42 @@ class VariablesView( object ):
       },
     } )
 
-  def CollapseContainer( self, buf = None, line_num = None , container = None ):
-    variable, view = self._GetVariable( buf, line_num )
+  def _CollapseVariables( self, variables, view ):
+    for variable in variables:
+      if variable.IsExpanded():
+        self._CollapseVariables( variable.variables, view )
+        variable.expanded = Expandable.COLLAPSED_BY_USER
+        # Make sure this variable and all it's variables are
+        # collapsed before continuing
+        view.draw()
+
+  def CollapseContainer( self, buf = None, line_num = None ):
+    variable, view, line_num = self._GetVariable( buf, line_num )
     if variable is None:
       return
 
-    if not line_num:
-      line_num = vim.current.window.cursor[ 0 ]
-
-    if line_num == 0:
-      return
-
     if variable.IsExpanded():
-      # Collapse
+      self._CollapseVariables( variable.variables, view )
       variable.expanded = Expandable.COLLAPSED_BY_USER
-
-    if id( container ) == id( variable ):
-      vim.current.window.cursor = ( line_num, 0 )
       view.draw()
       return
 
-    if not container:
-        container = variable.container
+    container = variable.container
 
-    self.CollapseContainer( buf, line_num=line_num-1, container=container )
+    if variable.IsContained():
+      self._CollapseVariables( container.variables, view )
+
+    for i in range( line_num, 0, -1 ):
+      variable, view, _ = self._GetVariable( buf, i )
+
+      if variable is None:
+        continue
+
+      if id( container ) == id( variable ):
+        variable.expanded = Expandable.COLLAPSED_BY_USER
+        vim.current.window.cursor = ( i, 0 )
+        view.draw()
+        return
 
   def SetVariableValue( self, new_value = None, buf = None, line_num = None ):
     variable: Variable
@@ -626,7 +638,7 @@ class VariablesView( object ):
     if not self._server_capabilities.get( 'supportsSetVariable' ):
       return
 
-    variable, view = self._GetVariable( buf, line_num )
+    variable, view, _ = self._GetVariable( buf, line_num )
     if variable is None:
       return
 
@@ -681,7 +693,7 @@ class VariablesView( object ):
 
   def GetMemoryReference( self ):
     # Get a memoryReference for use in a ReadMemory request
-    variable, _ = self._GetVariable( None, None )
+    variable, _, _ = self._GetVariable( None, None )
     if variable is None:
       return None
 
