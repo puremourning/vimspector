@@ -61,7 +61,8 @@ DEFAULTS = {
   # Mappings
   'mappings': {
     'variables': {
-      'expand_collapse': [ '<CR>', '<2-LeftMouse>' ],
+      'expand_collapse': [ '<CR>', '<2-LeftMouse>', '<Tab>' ],
+      'collapse': [ 'x' ],
       'delete': [ '<Del>' ],
       'set_value': [ '<C-CR>', '<leader><CR>' ],
       'read_memory': [ '<leader>m' ],

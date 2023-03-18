@@ -343,6 +343,13 @@ function! vimspector#ExpandVariable() abort
   py3 _vimspector_session.ExpandVariable()
 endfunction
 
+function! vimspector#CollapseContainer() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.CollapseContainer()
+endfunction
+
 function! vimspector#SetVariableValue( ... ) abort
   if !s:Enabled()
     return

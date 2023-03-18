@@ -756,6 +756,10 @@ class DebugSession( object ):
     self._variablesView.ExpandVariable( buf, line_num )
 
   @IfConnected()
+  def CollapseContainer( self, buf = None, line_num = None ):
+    self._variablesView.CollapseContainer( buf, line_num )
+
+  @IfConnected()
   def SetVariableValue( self, new_value = None, buf = None, line_num = None ):
     self._variablesView.SetVariableValue( new_value, buf, line_num )
 
@@ -948,6 +952,9 @@ class DebugSession( object ):
         'column': column_in_bytes
       }
     } )
+    import json
+    with open("/Users/daniel.black/temp.log", "a") as wfp:
+        wfp.write(json.dumps(response, indent=4))
     # TODO:
     #  - start / length
     #  - sortText
@@ -1445,6 +1452,11 @@ class DebugSession( object ):
           else:
             full_cmd.append( item.replace( '%CMD%', command_line ) )
 
+        # temp = [f'\"{" ".join(full_cmd)}\"']
+        # full_cmd = remote_exec_cmd + temp
+        # with open("/Users/daniel.black/temp.log", "w") as wfp:
+        #     print(full_cmd, file=wfp)
+
         self._logger.debug( 'Running remote app: %s', full_cmd )
         self._remote_term = terminal.LaunchTerminal(
             self._api_prefix,
@@ -1476,6 +1488,7 @@ class DebugSession( object ):
   def _GetDockerCommand( self, remote ):
     docker = [ 'docker', 'exec' ]
     docker.append( remote[ 'container' ] )
+    # docker.extend(['script', '-q', '-c'])
     return docker
 
   def _GetRemoteExecCommand( self, remote ):

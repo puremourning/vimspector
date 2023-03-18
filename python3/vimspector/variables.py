@@ -200,6 +200,9 @@ def AddExpandMappings( mappings = None ):
   for mapping in utils.GetVimList( mappings, 'expand_collapse' ):
     vim.command( f'nnoremap <silent> <buffer> { mapping } '
                  ':<C-u>call vimspector#ExpandVariable()<CR>' )
+  for mapping in utils.GetVimList( mappings, 'collapse' ):
+    vim.command( f'nnoremap <silent> <buffer> { mapping } '
+                 ':<C-u>call vimspector#CollapseContainer()<CR>' )
 
   for mapping in utils.GetVimList( mappings, 'set_value' ):
     vim.command( f'nnoremap <silent> <buffer> { mapping } '
@@ -590,6 +593,31 @@ class VariablesView( object ):
         'variablesReference': variable.VariablesReference()
       },
     } )
+
+  def CollapseContainer( self, buf = None, line_num = None , container = None ):
+    variable, view = self._GetVariable( buf, line_num )
+    if variable is None:
+      return
+
+    if not line_num:
+      line_num = vim.current.window.cursor[ 0 ]
+
+    if line_num == 0:
+      return
+
+    if variable.IsExpanded():
+      # Collapse
+      variable.expanded = Expandable.COLLAPSED_BY_USER
+
+    if id( container ) == id( variable ):
+      vim.current.window.cursor = ( line_num, 0 )
+      view.draw()
+      return
+
+    if not container:
+        container = variable.container
+
+    self.CollapseContainer( buf, line_num=line_num-1, container=container )
 
   def SetVariableValue( self, new_value = None, buf = None, line_num = None ):
     variable: Variable
