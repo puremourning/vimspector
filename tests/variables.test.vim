@@ -354,6 +354,198 @@ function! Test_ExpandVariables()
   call vimspector#test#setup#Reset()
   %bwipe!
 endfunction
+ 
+function! Test_CollapseContainer()
+  call SkipNeovim()
+  let fn =  'testdata/cpp/simple/struct.cpp'
+  call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
+        \   configuration: 'run-to-breakpoint'
+        \ } } )
+
+  " Make sure the Test t is initialised
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 26, 1 )
+
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       '- Scope: Locals',
+        \       ' *+ t (Test): {...}',
+        \       '+ Scope: Registers',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+  call assert_equal( 'cpp',
+                   \ getbufvar(
+                   \   winbufnr( g:vimspector_session_windows.variables ),
+                   \   '&syntax' ) )
+
+  " Collapse locals
+  call win_gotoid( g:vimspector_session_windows.variables )
+  call setpos( '.', [ 0, 2, 1 ] )
+  call feedkeys( 'x', 'xt' )
+
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       '+ Scope: Locals',
+        \       '+ Scope: Registers',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  " Expand locals again
+  call win_gotoid( g:vimspector_session_windows.variables )
+  call setpos( '.', [ 0, 1, 1 ] )
+  call feedkeys( "\<CR>", 'xt' )
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       '- Scope: Locals',
+        \       '  + t (Test): {...}',
+        \       '+ Scope: Registers',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  " Expand t
+  call win_gotoid( g:vimspector_session_windows.variables )
+  call setpos( '.', [ 0, 2, 1 ] )
+  call feedkeys( "\<CR>", 'xt' )
+  call WaitForAssert( {->
+        \   AssertMatchList(
+        \     [
+        \       '- Scope: Locals',
+        \       '  - t (Test): {...}',
+        \       '   \*- i (int): 0',
+        \       '   \*- c (char): 0 ''\\0\{1,3}''',
+        \       '   \*- fffff (float): 0',
+        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       '+ Scope: Registers',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  " Expand another_test
+  call win_gotoid( g:vimspector_session_windows.variables )
+  call setpos( '.', [ 0, 6, 1 ] )
+  call feedkeys( "\<CR>", 'xt' )
+  call WaitForAssert( {->
+        \   AssertMatchList(
+        \     [
+        \       '- Scope: Locals',
+        \       '  - t (Test): {...}',
+        \       '   \*- i (int): 0',
+        \       '   \*- c (char): 0 ''\\0\{1,3}''',
+        \       '   \*- fffff (float): 0',
+        \       '   \*- another_test (AnotherTest): ',
+        \       '     \*- choo (char): 0 ''\\0\{1,3}''', 
+        \       '     \*+ ints (int \[5\]): ', 
+        \       '+ Scope: Registers',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  " Collapse another_test
+  call win_gotoid( g:vimspector_session_windows.variables )
+  call setpos( '.', [ 0, 7, 1 ] )
+  call feedkeys( 'x', 'xt' )
+  call WaitForAssert( {->
+        \   AssertMatchList(
+        \     [
+        \       '- Scope: Locals',
+        \       '  - t (Test): {...}',
+        \       '   \*- i (int): 0',
+        \       '   \*- c (char): 0 ''\\0\{1,3}''',
+        \       '   \*- fffff (float): 0',
+        \       '   \*+ another_test (AnotherTest):\( {...}\)\?',
+        \       '+ Scope: Registers',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  " Expand another_test again
+  call win_gotoid( g:vimspector_session_windows.variables )
+  call setpos( '.', [ 0, 6, 1 ] )
+  call feedkeys( "\<CR>", 'xt' )
+  call WaitForAssert( {->
+        \   AssertMatchList(
+        \     [
+        \       '- Scope: Locals',
+        \       '  - t (Test): {...}',
+        \       '   \*- i (int): 0',
+        \       '   \*- c (char): 0 ''\\0\{1,3}''',
+        \       '   \*- fffff (float): 0',
+        \       '   \*- another_test (AnotherTest): ',
+        \       '     - choo (char): 0 ''\\0\{1,3}''', 
+        \       '     + ints (int \[5\]): ', 
+        \       '+ Scope: Registers',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  " Collapse t 
+  call win_gotoid( g:vimspector_session_windows.variables )
+  call setpos( '.', [ 0, 3, 1 ] )
+  call feedkeys( 'x', 'xt' )
+  call WaitForAssert( {->
+        \   AssertMatchList(
+        \     [
+        \       '- Scope: Locals',
+        \       '  + t (Test): {...}',
+        \       '+ Scope: Registers',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  " Expand t again (another_test should be collapsed)
+  call win_gotoid( g:vimspector_session_windows.variables )
+  call setpos( '.', [ 0, 2, 1 ] )
+  call feedkeys( "\<CR>", 'xt' )
+  call WaitForAssert( {->
+        \   AssertMatchList(
+        \     [
+        \       '- Scope: Locals',
+        \       '  - t (Test): {...}',
+        \       '   - i (int): 0',
+        \       '   - c (char): 0 ''\\0\{1,3}''',
+        \       '   - fffff (float): 0',
+        \       '   + another_test (AnotherTest):\( {...}\)\?',
+        \       '+ Scope: Registers',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.variables ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
 
 function! Test_ExpandWatch()
   call SkipNeovim()

@@ -169,7 +169,7 @@ function! vimspector#internal#balloon#CursorFilter( winid, key ) abort
                 \ . 'line_num = ' . line( '.', a:winid )
                 \ . ')' )
     return 1
-  if s:MatchKey( a:key, mappings.collapse )
+  elseif s:MatchKey( a:key, mappings.collapse )
     call py3eval( '_vimspector_session.CollapseContainer('
                 \ . 'buf = vim.buffers[ ' .  winbufnr( a:winid ) . ' ],'
                 \ . 'line_num = ' . line( '.', a:winid )
