@@ -156,6 +156,8 @@ class CodeView( object ):
                               frame[ 'source' ][ 'path' ] )
       return False
 
+    vim.command( 'normal! zv' )
+
     self.current_syntax = utils.ToUnicode(
       vim.current.buffer.options[ 'syntax' ] )
 
