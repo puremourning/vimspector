@@ -2340,6 +2340,16 @@ NOTE: This is a fairly advanced feature requiring some nontrivial vimscript.
 It's possible that this feature will be incorporated into Vimspector in future
 as it is a common requirement.
 
+
+## Pre-launch building strategies
+
+In many cases you will want to rebuild your project before starting a new debugging
+session. Vimspector is not a task manager and implementing this functionality
+is out of the scope of this project. However, there are some strategies described in the
+[community wiki](https://github.com/puremourning/vimspector/wiki/Pre-launch-building-strategies) 
+to achieve similar functionality.
+
+
 ## Advanced UI customisation
 
 > ***Please Note***: This customisation API is ***unstable***, meaning that it may

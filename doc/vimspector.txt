@@ -95,9 +95,10 @@ Contents ~
   3. Changing the default window sizes |vimspector-changing-default-window-sizes|
   4. Changing the terminal size             |vimspector-changing-terminal-size|
   5. Custom mappings while debugging |vimspector-custom-mappings-while-debugging|
-  6. Advanced UI customisation           |vimspector-advanced-ui-customisation|
-  7. Customising the WinBar                     |vimspector-customising-winbar|
-  8. Example                                               |vimspector-example|
+  6. Pre-launch building strategies  |vimspector-pre-launch-building-strategies|
+  7. Advanced UI customisation           |vimspector-advanced-ui-customisation|
+  8. Customising the WinBar                     |vimspector-customising-winbar|
+  9. Example                                               |vimspector-example|
  10. FAQ                                                       |vimspector-faq|
  11. References                                         |vimspector-references|
 
@@ -2686,6 +2687,17 @@ section 'Custom mappings while debugging'.
 NOTE: This is a fairly advanced feature requiring some nontrivial vimscript.
 It's possible that this feature will be incorporated into Vimspector in future
 as it is a common requirement.
+
+-------------------------------------------------------------------------------
+                                   *vimspector-pre-launch-building-strategies*
+Pre-launch building strategies ~
+
+In many cases you will want to rebuild your project before starting a new debugging
+session. Vimspector is not a task manager and implementing this functionality
+is out of the scope of this project. However, there are some strategies described in the
+community wiki to achieve similar functionality.
+
+https://github.com/puremourning/vimspector/wiki/Pre-launch-building-strategies
 
 -------------------------------------------------------------------------------
                                          *vimspector-advanced-ui-customisation*
