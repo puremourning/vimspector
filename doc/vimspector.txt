@@ -95,9 +95,10 @@ Contents ~
   3. Changing the default window sizes |vimspector-changing-default-window-sizes|
   4. Changing the terminal size             |vimspector-changing-terminal-size|
   5. Custom mappings while debugging |vimspector-custom-mappings-while-debugging|
-  6. Advanced UI customisation           |vimspector-advanced-ui-customisation|
-  7. Customising the WinBar                     |vimspector-customising-winbar|
-  8. Example                                               |vimspector-example|
+  6. Pre-launch building strategies  vimspector-pre-launch-building-strategies
+  7. Advanced UI customisation           |vimspector-advanced-ui-customisation|
+  8. Customising the WinBar                     |vimspector-customising-winbar|
+  9. Example                                               |vimspector-example|
  10. FAQ                                                       |vimspector-faq|
  11. References                                         |vimspector-references|
 
@@ -2686,6 +2687,49 @@ section 'Custom mappings while debugging'.
 NOTE: This is a fairly advanced feature requiring some nontrivial vimscript.
 It's possible that this feature will be incorporated into Vimspector in future
 as it is a common requirement.
+
+-------------------------------------------------------------------------------
+                                   *vimspector-pre-launch-building-strategies*
+Pre-launch building strategies ~
+
+In many cases you will want to rebuild your project before starting a new debugging
+session. Unfortunately Vimspector is not a task manager and implementing this functionality
+is out of the scope of this project. However, there are some strategies to achieve
+similar functionality.
+
+To use Vim's built-in make command (':h make') to rebuild and run the debugger afterwards you can
+create a simple mapping like
+>
+	nnoremap <F12> :make | vimspector#Launch()<CR>
+<
+Since this solution requires you to press enter every time you want to debug,
+it is not optimal.  Here is one proposal for a more convenient solution:
+
+Install the [vim-dispatch plugin](https://github.com/tpope/vim-dispatch), which provides
+an asynchronous ':Make' alternative to ':make'. Since ':Make' is asynchronous, 
+its successful completion has to be checked differently using 'autocmd QuickFixCmdPost make'.
+
+Now you can create a project-specific configuraton using an '.exrc' file (see ':h exrc')
+in you project root and add it to your Git repository.
+
+An example would be:
+>
+	" Create a custom debug commmand
+	command! Debug call BuildAndDebug()
+
+	" Create a function that builds, closes the quickfix window and runs Vimspector
+	function! BuildAndDebug()
+		:Make
+		:cclose
+		autocmd QuickFixCmdPost make ++once call vimspector#Launch()
+	endfunction
+
+	" Map this command to F12
+	nmap <F12> :Debug<CR>
+<
+
+Now you can just press F12 to rebuild and debug.
+
 
 -------------------------------------------------------------------------------
                                          *vimspector-advanced-ui-customisation*
