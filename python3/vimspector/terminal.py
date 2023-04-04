@@ -22,6 +22,10 @@ def LaunchTerminal( api_prefix,
   args = params[ 'args' ] or []
   env = params.get( 'env' ) or {}
 
+  # Some runtimes (i'm looking at you, p4...) rely on PWD, which isn't set
+  # correctly by setting cwd below... for some reason.
+  env[ 'PWD' ] = cwd
+
   term_options = {
     'norestore': 1,
     'cwd': cwd,
