@@ -1474,7 +1474,7 @@ class DebugSession( object ):
     return []
 
   def _GetDockerCommand( self, remote ):
-    docker = [ 'docker', 'exec' ]
+    docker = [ 'docker', 'exec', '-t' ]
     docker.append( remote[ 'container' ] )
     return docker
 
