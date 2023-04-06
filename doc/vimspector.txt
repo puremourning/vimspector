@@ -870,7 +870,7 @@ If you like Vimspector so much that you're wiling to part with your hard-earned
 cash, please consider donating to one of the following charities, which are
 meaningful to the author of Vimspector (in order of preference):
 
-- Greyhound Rescue Wales [20]
+- Hector's Greyhound Rescue [20]
 - Cancer Research UK [21]
 - ICCF Holland [22]
 - Any charity of your choosing.
@@ -2969,7 +2969,7 @@ References ~
 [17] https://asciinema.org/a/Hfu4ZvuyTZun8THNen9FQbTay.svg
 [18] https://trello.com/b/yvAKK0rD/vimspector
 [19] http://www.apache.org/licenses/LICENSE-2.0
-[20] https://greyhoundrescuewales.co.uk
+[20] http://hectorsgreyhoundrescue.org
 [21] https://www.cancerresearchuk.org
 [22] https://iccf.nl
 [23] https://puremourning.github.io/vimspector/configuration.html#replacements-and-variables
