@@ -1963,7 +1963,8 @@ def PathsToAllConfigFiles( vimspector_base, current_file, filetypes ):
   for ft in filetypes + [ '_all' ]:
     for p in sorted( glob.glob(
       os.path.join( install.GetConfigDirForFiletype( vimspector_base, ft ),
-                    '*.json' ) ) ):
+                    '*.json' ),
+      include_hidden = True ) ):
       yield p
 
   for ft in filetypes:
