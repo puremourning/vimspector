@@ -677,7 +677,7 @@ If you like Vimspector so much that you're wiling to part with your hard-earned
 cash, please consider donating to one of the following charities, which are 
 meaningful to the author of Vimspector (in order of preference):
 
-* [Greyhound Rescue Wales](https://greyhoundrescuewales.co.uk)
+* [Hector's Greyhound Rescue](http://hectorsgreyhoundrescue.org)
 * [Cancer Research UK](https://www.cancerresearchuk.org)
 * [ICCF Holland](https://iccf.nl)
 * Any charity of your choosing.
