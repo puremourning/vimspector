@@ -132,7 +132,6 @@ class CodeView( object ):
     with utils.LetCurrentWindow( self._window ):
       try:
         utils.OpenFileInCurrentWindow( frame[ 'source' ][ 'path' ] )
-        vim.command( 'doautocmd <nomodeline> User VimspectorJumpedToFrame' )
       except vim.error:
         self._logger.exception( 'Unexpected vim error opening file {}'.format(
           frame[ 'source' ][ 'path' ] ) )
@@ -157,6 +156,8 @@ class CodeView( object ):
       return False
 
     vim.command( 'normal! zv' )
+
+    vim.command( 'doautocmd <nomodeline> User VimspectorJumpedToFrame' )
 
     self.current_syntax = utils.ToUnicode(
       vim.current.buffer.options[ 'syntax' ] )
