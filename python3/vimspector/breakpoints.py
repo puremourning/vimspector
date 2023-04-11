@@ -190,7 +190,7 @@ class ProjectBreakpoints( object ):
                 render_event_emitter,
                 IsPCPresentAt,
                 disassembly_manager: disassembly.DisassemblyView ):
-    self._connection = None
+    self._connections = set()
     self._logger = logging.getLogger( __name__ + '.' + str( session_id ) )
     utils.SetUpLogging( self._logger, session_id )
 
@@ -251,8 +251,14 @@ class ProjectBreakpoints( object ):
       other._configured_breakpoints )
 
 
-  def ConnectionUp( self, connection ):
-    self._connection = connection
+  def AddConnection( self, connection ):
+    self._connections.add( connection )
+
+  def RemoveConnection( self, connection ):
+    try:
+      self._connections.remove( connection )
+    except KeyError:
+      pass
 
   def SetServerCapabilities( self, server_capabilities ):
     self._server_capabilities = server_capabilities
@@ -260,15 +266,19 @@ class ProjectBreakpoints( object ):
   def SetDisassemblyManager( self, disassembly_manager ):
     self._disassembly_manager = disassembly_manager
 
-  def ConnectionClosed( self ):
-    self._server_capabilities = {}
-    self._connection = None
-    self._awaiting_bp_responses = 0
-    self._pending_send_breakpoints = None
+  def ResetConnections( self ):
+    self.SetDisassemblyManager( None )
+    self._connections = set()
 
-    self._ClearServerBreakpointData()
-    self.UpdateUI()
+  def ConnectionClosed( self, connection ):
+    self.RemoveConnection( connection )
 
+    if not self._connections:
+      self._server_capabilities = {}
+      self._awaiting_bp_responses = 0
+      self._pending_send_breakpoints = None
+      # TODO: server breakpoint data being different per-session!
+      self._ClearServerBreakpointData()
 
     # NOTE: we don't reset self._exception_breakpoints because we don't want to
     # re-ask the user every time for the sane info.
@@ -729,7 +739,7 @@ class ProjectBreakpoints( object ):
       if then:
         then()
 
-    if self._connection:
+    if self._connections:
       self.SendBreakpoints( callback )
     else:
       callback()
@@ -748,7 +758,7 @@ class ProjectBreakpoints( object ):
     def response_received( *failure_args ):
       self._awaiting_bp_responses -= 1
 
-      if failure_args and self._connection:
+      if failure_args and len( self._connections ):
         reason, msg = failure_args
         utils.UserMessage( 'Unable to set breakpoint: {0}'.format( reason ),
                            persist = True,
@@ -811,27 +821,27 @@ class ProjectBreakpoints( object ):
         'path': file_name,
       }
 
-      self._awaiting_bp_responses += 1
-      self._connection.DoRequest(
-        # The source=source here is critical to ensure that we capture each
-        # source in the iteration, rather than ending up passing the same source
-        # to each callback.
-        lambda msg, bp_idxs=bp_idxs: response_handler( msg, bp_idxs ),
-        {
-          'command': 'setBreakpoints',
-          'arguments': {
-            'source': source,
-            'breakpoints': breakpoints,
-            'sourceModified': False, # TODO: We can actually check this
+      for connection in self._connections:
+        self._awaiting_bp_responses += 1
+        connection.DoRequest(
+          # The source=source here is critical to ensure that we capture each
+          # source in the iteration, rather than ending up passing the same source
+          # to each callback.
+          lambda msg, bp_idxs=bp_idxs: response_handler( msg, bp_idxs ),
+          {
+            'command': 'setBreakpoints',
+            'arguments': {
+              'source': source,
+              'breakpoints': breakpoints,
+              'sourceModified': False, # TODO: We can actually check this
+            },
           },
-        },
-        failure_handler = response_received
-      )
+          failure_handler = response_received
+        )
 
     # TODO: Add the _configured_breakpoints to function breakpoints
 
     if self._server_capabilities.get( 'supportsFunctionBreakpoints' ):
-      self._awaiting_bp_responses += 1
       breakpoints = []
       for bp in self._func_breakpoints:
         bp.pop( 'server_bp', None )
@@ -851,16 +861,18 @@ class ProjectBreakpoints( object ):
       #  - make sure that ConnectionClosed also cleares the server_bp data for
       #    function breakpionts
       #  - make sure that we have tests for this, because i'm sure we don't!
-      self._connection.DoRequest(
-        lambda msg: response_handler( msg ),
-        {
-          'command': 'setFunctionBreakpoints',
-          'arguments': {
-            'breakpoints': breakpoints,
-          }
-        },
-        failure_handler = response_received
-      )
+      for connection in self._connections:
+        self._awaiting_bp_responses += 1
+        connection.DoRequest(
+          lambda msg: response_handler( msg ),
+          {
+            'command': 'setFunctionBreakpoints',
+            'arguments': {
+              'breakpoints': breakpoints,
+            }
+          },
+          failure_handler = response_received
+        )
 
     if self._disassembly_manager:
       breakpoints = []
@@ -896,28 +908,30 @@ class ProjectBreakpoints( object ):
 
           breakpoints.append( dap_bp )
 
-      self._awaiting_bp_responses += 1
-      self._connection.DoRequest(
-        lambda msg, bp_idxs=bp_idxs: response_handler( msg, bp_idxs ),
-        {
-          'command': 'setInstructionBreakpoints',
-          'arguments': {
-            'breakpoints': breakpoints,
+      for connection in self._connections:
+        self._awaiting_bp_responses += 1
+        connection.DoRequest(
+          lambda msg, bp_idxs=bp_idxs: response_handler( msg, bp_idxs ),
+          {
+            'command': 'setInstructionBreakpoints',
+            'arguments': {
+              'breakpoints': breakpoints,
+            },
           },
-        },
-        failure_handler = response_received
-      )
+          failure_handler = response_received
+        )
 
     if self._exception_breakpoints:
-      self._awaiting_bp_responses += 1
-      self._connection.DoRequest(
-        lambda msg: response_received(),
-        {
-          'command': 'setExceptionBreakpoints',
-          'arguments': self._exception_breakpoints
-        },
-        failure_handler = response_received
-      )
+      for connection in self._connections:
+        self._awaiting_bp_responses += 1
+        connection.DoRequest(
+          lambda msg: response_received(),
+          {
+            'command': 'setExceptionBreakpoints',
+            'arguments': self._exception_breakpoints
+          },
+          failure_handler = response_received
+        )
 
     if self._awaiting_bp_responses == 0 and doneHandler:
       doneHandler()
@@ -1033,7 +1047,7 @@ class ProjectBreakpoints( object ):
           line = server_bp.get( 'line', line )
           verified = server_bp[ 'verified' ]
         else:
-          verified = self._connection is None
+          verified = len( self._connections ) == 0
 
         if not line:
           continue
@@ -1061,7 +1075,7 @@ class ProjectBreakpoints( object ):
           bp[ 'address' ] )
       return
 
-    if self._connection is not None:
+    if len( self._connections ) > 0:
       return
 
     if 'sign_id' not in bp:

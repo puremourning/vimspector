@@ -79,11 +79,15 @@ class DebugSession( object ):
     self._codeView: code.CodeView = None
     self._disassemblyView: disassembly.DisassemblyView = None
 
-    self._breakpoints = breakpoints.ProjectBreakpoints(
-      session_id,
-      self._render_emitter,
-      self._IsPCPresentAt,
-      self._disassemblyView )
+    if parent_session:
+      self._breakpoints = parent_session._breakpoints
+    else:
+      self._breakpoints = breakpoints.ProjectBreakpoints(
+        session_id,
+        self._render_emitter,
+        self._IsPCPresentAt,
+        self._disassemblyView )
+
     self._saved_variables_data = None
 
     self._splash_screen = None
@@ -445,9 +449,12 @@ class DebugSession( object ):
 
     self._variablesView.ConnectionUp( self._connection )
     self._outputView.ConnectionUp( self._connection )
-    self._breakpoints.ConnectionUp( self._connection )
     if self._disassemblyView:
       self._disassemblyView.ConnectionUp( self._connection )
+
+    # TODO: Would be kind of gnarly if the capabilities differed
+    self._breakpoints.SetServerCapabilities( self._server_capabilities )
+    self._variablesView.SetServerCapabilities( self._server_capabilities )
 
 
   def Connection( self ):
@@ -469,6 +476,16 @@ class DebugSession( object ):
         if active_session is not None:
           active_session.MakeCurrent()
           return fct( active_session, *args, **kwargs )
+        return fct( self, *args, **kwargs )
+      return wrapper
+    return decorator
+
+  def ParentOnly( otherwise=None ):
+    def decorator( fct ):
+      @functools.wraps( fct )
+      def wrapper( self, *args, **kwargs ):
+        if self.parent_session:
+          return otherwise
         return fct( self, *args, **kwargs )
       return wrapper
     return decorator
@@ -561,7 +578,8 @@ class DebugSession( object ):
           self._codeView.Reset()
         if self._disassemblyView:
           self._disassemblyView.Reset()
-        self._breakpoints.SetDisassemblyManager( None )
+
+        self._breakpoints.ResetConnections()
 
       self._stackTraceView = None
       self._variablesView = None
@@ -593,8 +611,10 @@ class DebugSession( object ):
     vim.vars[ 'vimspector_resetting' ] = 0
 
     # make sure that we're displaying signs in any still-open buffers
-    self._breakpoints.UpdateUI()
+    if not self.parent_session:
+      self._breakpoints.UpdateUI()
 
+  @ParentOnly( False )
   def ReadSessionFile( self, session_file: str = None ):
     if session_file is None:
       session_file = self._DetectSessionFile( invent_one_if_not_found = False )
@@ -640,6 +660,7 @@ class DebugSession( object ):
       return False
 
 
+  @ParentOnly( False )
   def WriteSessionFile( self, session_file: str = None ):
     if session_file is None:
       session_file = self._DetectSessionFile( invent_one_if_not_found = True )
@@ -1033,12 +1054,15 @@ class DebugSession( object ):
 
     return items
 
+
+  @ParentOnly()
   def RefreshSigns( self ):
     if self._connection:
       self._codeView.Refresh()
     self._breakpoints.Refresh()
 
 
+  @ParentOnly()
   def _SetUpUI( self ):
     vim.command( 'tab split' )
 
@@ -1814,6 +1838,7 @@ class DebugSession( object ):
 
     self._breakpoints.SetConfiguredBreakpoints(
       self._configuration.get( 'breakpoints', {} ) )
+    self._breakpoints.AddConnection( self._connection )
     self._breakpoints.UpdateUI( onBreakpointsDone )
 
   def OnEvent_thread( self, message ):
@@ -1821,6 +1846,7 @@ class DebugSession( object ):
 
 
   def OnEvent_breakpoint( self, message ):
+    # TODO: Should Posted breakpoints now be per-session?!
     reason = message[ 'body' ][ 'reason' ]
     bp = message[ 'body' ][ 'breakpoint' ]
     if reason == 'changed':
@@ -1897,10 +1923,6 @@ class DebugSession( object ):
     # tell the new session that it shoud not support "Restart" requests ?
     #
     # In fact, what even would Reset do... ?
-
-    # TODO: Don't copy breakpoints, that's shitty. Just reference this parent
-    # session
-    session._breakpoints.Copy( self._breakpoints )
     session._StartWithConfiguration( { 'configuration': launch_arguments },
                                      adapter )
 
@@ -1935,10 +1957,11 @@ class DebugSession( object ):
       self._connection.Reset()
 
     self._stackTraceView.ConnectionClosed( self )
+    self._breakpoints.ConnectionClosed( self._connection )
+
     if not self.parent_session:
       self._variablesView.ConnectionClosed()
       self._outputView.ConnectionClosed()
-      self._breakpoints.ConnectionClosed()
       if self._disassemblyView:
         self._disassemblyView.ConnectionClosed()
 
