@@ -146,7 +146,7 @@ function! vimspector#internal#channel#StopDebugSession( session_id ) abort
         \ count( [ 'open', 'buffered' ],
         \       ch_status( s:channels[ a:session_id ] ) ) == 1
     let data = ch_read( s:channels[ a:session_id ], { 'timeout': 10 } )
-    call s:_OnServerData( s:channels[ a:session_id ], data )
+    call s:_OnServerData( a:session_id, s:channels[ a:session_id ], data )
   endwhile
   if has_key( s:channels, a:session_id )
     call s:_OnClose( a:session_id, s:channels[ a:session_id ] )

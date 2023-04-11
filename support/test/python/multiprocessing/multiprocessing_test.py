@@ -13,6 +13,11 @@ if __name__ == '__main__':
   p1 = mp.Process( target=First )
 
   p1.start()
+
+  for i in range( 20 ):
+    print( f'in main i {i}' )
+    time.sleep( 0.5 )
+
   p1.join()
 
   print( "Done" )

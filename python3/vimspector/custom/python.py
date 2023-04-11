@@ -23,11 +23,13 @@ class Debugpy( object ):
     self.parent = debug_session
 
   def OnRequest_startDebugging( self, message ):
-    adapter = message[ 'arguments' ][ 'configuration' ][ 'connect' ]
+    config = message[ 'arguments' ][ 'configuration' ]
+    adapter = config[ 'connect' ]
     self.parent._DoStartDebuggingRequest(
       message,
       message[ 'arguments' ][ 'request' ],
       message[ 'arguments' ][ 'configuration' ],
-      adapter )
+      adapter,
+      session_name = config.get( 'name' ) )
     # Indicate that we have processed this request
     return True

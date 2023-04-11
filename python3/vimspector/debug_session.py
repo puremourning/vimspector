@@ -46,9 +46,16 @@ USER_CHOICES = {}
 
 
 class DebugSession( object ):
-  def __init__( self, session_id, session_manager, api_prefix ):
+  def __init__( self,
+                session_id,
+                session_manager,
+                api_prefix,
+                session_name = None,
+                parent_session: "DebugSession" = None ):
     self.session_id = session_id
     self.manager = session_manager
+    self.name = session_name or f'session {session_id}'
+    self.parent_session = parent_session
     self._logger = logging.getLogger( __name__ + '.' + str( session_id ) )
     utils.SetUpLogging( self._logger, session_id )
 
@@ -397,7 +404,18 @@ class DebugSession( object ):
       self._logger.info( 'Adapter: %s',
                          json.dumps( self._adapter ) )
 
-      if not self._uiTab:
+      if self.parent_session:
+        # use the parent session's stuff
+        self._uiTab = self.parent_session._uiTab
+        self._stackTraceView = self.parent_session._stackTraceView
+        self._variablesView = self.parent_session._variablesView
+        self._outputView = self.parent_session._outputView
+        self._disassemblyView = self.parent_session._disassemblyView
+        self._codeView = self.parent_session._codeView
+
+        self._stackTraceView.AddSession( self )
+
+      elif not self._uiTab:
         self._SetUpUI()
       else:
         with utils.NoAutocommands():
@@ -410,20 +428,9 @@ class DebugSession( object ):
 
       self._Initialise()
 
-      self._stackTraceView.ConnectionUp( self._connection )
-      self._variablesView.ConnectionUp( self._connection )
-
+      self.MakeCurrent()
       if self._saved_variables_data:
         self._variablesView.Load( self._saved_variables_data )
-        # TODO: clear it ?
-        # TODO: store this stuff in module scope in variables.py ?
-        # TODO: hmmm...
-
-      self._outputView.ConnectionUp( self._connection )
-      self._breakpoints.ConnectionUp( self._connection )
-
-      if self._disassemblyView:
-        self._disassemblyView.ConnectionUp( self._connection )
 
     if self._connection:
       self._logger.debug( "_StopDebugAdapter with callback: start" )
@@ -432,11 +439,39 @@ class DebugSession( object ):
 
     start()
 
+  def MakeCurrent( self ):
+    if not self._connection:
+      return
+
+    self._variablesView.ConnectionUp( self._connection )
+    self._outputView.ConnectionUp( self._connection )
+    self._breakpoints.ConnectionUp( self._connection )
+    if self._disassemblyView:
+      self._disassemblyView.ConnectionUp( self._connection )
+
+
+  def Connection( self ):
+    return self._connection
+
   def Restart( self ):
     if self._configuration is None or self._adapter is None:
       return self.Start()
 
     self._StartWithConfiguration( self._configuration, self._adapter )
+
+  def CurrentSession():
+    def decorator( fct ):
+      @functools.wraps( fct )
+      def wrapper( self, *args, **kwargs ):
+        active_session = self
+        if self._stackTraceView:
+          active_session = self._stackTraceView.GetCurrentSession()
+        if active_session is not None:
+          active_session.MakeCurrent()
+          return fct( active_session, *args, **kwargs )
+        return fct( self, *args, **kwargs )
+      return wrapper
+    return decorator
 
   def IfConnected( otherwise=None ):
     def decorator( fct ):
@@ -515,27 +550,28 @@ class DebugSession( object ):
     self._logger.info( "Debugging complete." )
 
     def ResetUI():
-      if self._stackTraceView:
-        self._stackTraceView.Reset()
-      if self._variablesView:
-        self._variablesView.Reset()
-      if self._outputView:
-        self._outputView.Reset()
-      if self._codeView:
-        self._codeView.Reset()
-      if self._disassemblyView:
-        self._disassemblyView.Reset()
+      if not self.parent_session:
+        if self._stackTraceView:
+          self._stackTraceView.Reset()
+        if self._variablesView:
+          self._variablesView.Reset()
+        if self._outputView:
+          self._outputView.Reset()
+        if self._codeView:
+          self._codeView.Reset()
+        if self._disassemblyView:
+          self._disassemblyView.Reset()
+        self._breakpoints.SetDisassemblyManager( None )
 
       self._stackTraceView = None
       self._variablesView = None
       self._outputView = None
       self._codeView = None
       self._disassemblyView = None
-      self._breakpoints.SetDisassemblyManager( None )
       self._remote_term = None
       self._uiTab = None
 
-    if self.HasUI():
+    if not self.parent_session and self.HasUI():
       self._logger.debug( "Clearing down UI" )
       with utils.NoAutocommands():
         vim.current.tabpage = self._uiTab
@@ -646,6 +682,7 @@ class DebugSession( object ):
     return None
 
 
+  @CurrentSession()
   @IfConnected()
   def StepOver( self, **kwargs ):
     if self._stackTraceView.GetCurrentThreadId() is None:
@@ -666,9 +703,10 @@ class DebugSession( object ):
     } )
 
     # TODO: WHy is this different from StepInto and StepOut
-    self._stackTraceView.OnContinued()
+    self._stackTraceView.OnContinued( self )
     self.ClearCurrentPC()
 
+  @CurrentSession()
   @IfConnected()
   def StepInto( self, **kwargs ):
     threadId = self._stackTraceView.GetCurrentThreadId()
@@ -676,7 +714,7 @@ class DebugSession( object ):
       return
 
     def handler( *_ ):
-      self._stackTraceView.OnContinued( { 'threadId': threadId } )
+      self._stackTraceView.OnContinued( self, { 'threadId': threadId } )
       self.ClearCurrentPC()
 
     arguments = {
@@ -689,6 +727,7 @@ class DebugSession( object ):
       'arguments': arguments,
     } )
 
+  @CurrentSession()
   @IfConnected()
   def StepOut( self, **kwargs ):
     threadId = self._stackTraceView.GetCurrentThreadId()
@@ -696,7 +735,7 @@ class DebugSession( object ):
       return
 
     def handler( *_ ):
-      self._stackTraceView.OnContinued( { 'threadId': threadId } )
+      self._stackTraceView.OnContinued( self, { 'threadId': threadId } )
       self.ClearCurrentPC()
 
     arguments = {
@@ -715,6 +754,7 @@ class DebugSession( object ):
 
     return 'statement'
 
+  @CurrentSession()
   def Continue( self ):
     if not self._connection:
       self.Start()
@@ -726,7 +766,7 @@ class DebugSession( object ):
       return
 
     def handler( msg ):
-      self._stackTraceView.OnContinued( {
+      self._stackTraceView.OnContinued( self, {
           'threadId': threadId,
           'allThreadsContinued': ( msg.get( 'body' ) or {} ).get(
             'allThreadsContinued',
@@ -741,6 +781,7 @@ class DebugSession( object ):
       },
     } )
 
+  @CurrentSession()
   @IfConnected()
   def Pause( self ):
     if self._stackTraceView.GetCurrentThreadId() is None:
@@ -758,18 +799,22 @@ class DebugSession( object ):
   def PauseContinueThread( self ):
     self._stackTraceView.PauseContinueThread()
 
+  @CurrentSession()
   @IfConnected()
   def SetCurrentThread( self ):
     self._stackTraceView.SetCurrentThread()
 
+  @CurrentSession()
   @IfConnected()
   def ExpandVariable( self, buf = None, line_num = None ):
     self._variablesView.ExpandVariable( buf, line_num )
 
+  @CurrentSession()
   @IfConnected()
   def SetVariableValue( self, new_value = None, buf = None, line_num = None ):
     self._variablesView.SetVariableValue( new_value, buf, line_num )
 
+  @CurrentSession()
   @IfConnected()
   def ReadMemory( self, length = None, offset = None ):
     if not self._server_capabilities.get( 'supportsReadMemoryRequest' ):
@@ -815,6 +860,7 @@ class DebugSession( object ):
     } )
 
 
+  @CurrentSession()
   @IfConnected()
   @RequiresUI()
   def ShowDisassembly( self ):
@@ -855,22 +901,26 @@ class DebugSession( object ):
       self._disassemblyView.OnWindowScrolled( win_id )
 
 
+  @CurrentSession()
   @IfConnected()
   def AddWatch( self, expression ):
     self._variablesView.AddWatch( self._stackTraceView.GetCurrentFrame(),
                                   expression )
 
+  @CurrentSession()
   @IfConnected()
   def EvaluateConsole( self, expression, verbose ):
     self._outputView.Evaluate( self._stackTraceView.GetCurrentFrame(),
                                expression,
                                verbose )
 
+  @CurrentSession()
   @IfConnected()
   def DeleteWatch( self ):
     self._variablesView.DeleteWatch()
 
 
+  @CurrentSession()
   @IfConnected()
   def HoverEvalTooltip( self, winnr, bufnr, lnum, expression, is_hover ):
     frame = self._stackTraceView.GetCurrentFrame()
@@ -889,17 +939,21 @@ class DebugSession( object ):
     # Return variable aware function
 
 
+  @CurrentSession()
   def CleanUpTooltip( self ):
     return self._variablesView.CleanUpTooltip()
 
+  @CurrentSession()
   @IfConnected()
   def ExpandFrameOrThread( self ):
     self._stackTraceView.ExpandFrameOrThread()
 
+  @CurrentSession()
   @IfConnected()
   def UpFrame( self ):
     self._stackTraceView.UpFrame()
 
+  @CurrentSession()
   @IfConnected()
   def DownFrame( self ):
     self._stackTraceView.DownFrame()
@@ -945,6 +999,7 @@ class DebugSession( object ):
   def GetOutputBuffers( self ):
     return self._outputView.GetCategories()
 
+  @CurrentSession()
   @IfConnected( otherwise=[] )
   def GetCompletionsSync( self, text_line, column_in_bytes ):
     if not self._server_capabilities.get( 'supportsCompletionsRequest' ):
@@ -965,6 +1020,7 @@ class DebugSession( object ):
     return response[ 'body' ][ 'targets' ]
 
 
+  @CurrentSession()
   @IfConnected( otherwise=[] )
   def GetCommandLineCompletions( self, ArgLead, prev_non_keyword_char ):
     items = []
@@ -1176,10 +1232,12 @@ class DebugSession( object ):
       self._disassemblyView.SetCurrentFrame( None, False )
 
 
+  @CurrentSession()
   @RequiresUI()
   def SetCurrentFrame( self, frame, reason = '' ):
     if not frame:
-      self._stackTraceView.Clear()
+      if not self.parent_session:
+        self._stackTraceView.Clear()
       self._variablesView.Clear()
 
     target = self._codeView
@@ -1204,6 +1262,7 @@ class DebugSession( object ):
       self._variablesView.SetSyntax( None )
       self._stackTraceView.SetSyntax( None )
 
+    # TODO: Need to store variables per session
     self._variablesView.LoadScopes( frame )
     self._variablesView.EvaluateWatches( frame )
 
@@ -1694,9 +1753,10 @@ class DebugSession( object ):
         h()
       self._on_init_complete_handlers = []
 
-      self._stackTraceView.LoadThreads( True )
+      self._stackTraceView.LoadThreads( self, True )
 
 
+  @CurrentSession()
   @IfConnected()
   @RequiresUI()
   def PrintDebugInfo( self ):
@@ -1757,7 +1817,7 @@ class DebugSession( object ):
     self._breakpoints.UpdateUI( onBreakpointsDone )
 
   def OnEvent_thread( self, message ):
-    self._stackTraceView.OnThreadEvent( message[ 'body' ] )
+    self._stackTraceView.OnThreadEvent( self, message[ 'body' ] )
 
 
   def OnEvent_breakpoint( self, message ):
@@ -1800,13 +1860,14 @@ class DebugSession( object ):
     #
     # FIXME we should always wait for this event before disconnecting closing
     # any socket connection
+    # self._stackTraceView.OnTerminated( self )
     self.SetCurrentFrame( None )
 
 
   def OnEvent_exited( self, message ):
     utils.UserMessage( 'The debuggee exited with status code: {}'.format(
       message[ 'body' ][ 'exitCode' ] ) )
-    self._stackTraceView.OnExited( message )
+    self._stackTraceView.OnExited( self, message )
     self.ClearCurrentPC()
 
 
@@ -1820,8 +1881,12 @@ class DebugSession( object ):
                                 message,
                                 request_type,
                                 launch_arguments,
-                                adapter ):
-    session = self.manager.NewSession( self._api_prefix )
+                                adapter,
+                                session_name = None ):
+
+    session = self.manager.NewSession( self._api_prefix,
+                                       session_name = session_name,
+                                       parent_session = self )
 
     # Inject the launch config (HACK!). This will actually mean that the
     # configuration passed below is ignored.
@@ -1849,32 +1914,35 @@ class DebugSession( object ):
     pass
 
   def OnEvent_continued( self, message ):
-    self._stackTraceView.OnContinued( message[ 'body' ] )
+    self._stackTraceView.OnContinued( self, message[ 'body' ] )
     self.ClearCurrentPC()
 
   def Clear( self ):
-    self._codeView.Clear()
-    if self._disassemblyView:
-      self._disassemblyView.Clear()
-    self._stackTraceView.Clear()
-    self._variablesView.Clear()
+    if not self.parent_session:
+      self._codeView.Clear()
+      if self._disassemblyView:
+        self._disassemblyView.Clear()
+      self._stackTraceView.Clear()
+      self._variablesView.Clear()
 
   def OnServerExit( self, status ):
     self._logger.info( "The server has terminated with status %s",
                        status )
-    self.Clear()
 
     if self._connection is not None:
       # Can be None if the server dies _before_ StartDebugSession vim function
       # returns
       self._connection.Reset()
 
-    self._stackTraceView.ConnectionClosed()
-    self._variablesView.ConnectionClosed()
-    self._outputView.ConnectionClosed()
-    self._breakpoints.ConnectionClosed()
-    if self._disassemblyView:
-      self._disassemblyView.ConnectionClosed()
+    self._stackTraceView.ConnectionClosed( self )
+    if not self.parent_session:
+      self._variablesView.ConnectionClosed()
+      self._outputView.ConnectionClosed()
+      self._breakpoints.ConnectionClosed()
+      if self._disassemblyView:
+        self._disassemblyView.ConnectionClosed()
+
+    self.Clear()
 
     self._ResetServerState()
 
@@ -1912,7 +1980,7 @@ class DebugSession( object ):
     if self._outputView:
       self._outputView.Print( 'server', msg )
 
-    self._stackTraceView.OnStopped( event )
+    self._stackTraceView.OnStopped( self, event )
 
   def BreakpointsAsQuickFix( self ):
     return self._breakpoints.BreakpointsAsQuickFix()
@@ -1952,6 +2020,7 @@ class DebugSession( object ):
                             { 'temporary': True },
                             lambda: self.Continue() )
 
+  @CurrentSession()
   @IfConnected()
   def GoTo( self, file_name, line ):
     def failure_handler( reason, *args ):
