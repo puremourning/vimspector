@@ -84,7 +84,7 @@ function! vimspector#internal#channel#StartDebugSession(
         \           )
 
   if ch_status( s:channels[ a:session_id ] ) !=# 'open'
-    call remove( s:channels[ a:session_id ] )
+    call remove( s:channels, a:session_id )
 
     echom 'Unable to connect to' l:addr
     redraw

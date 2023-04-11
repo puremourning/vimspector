@@ -306,18 +306,21 @@ class DebugAdapterConnection( object ):
           self._logger.error( 'Request failed (unhandled): %s', reason )
           for h in self._handlers:
             if 'OnFailure' in dir( h ):
-              h.OnFailure( reason, request.msg, message )
+              if h.OnFailure( reason, request.msg, message ):
+                break
 
     elif message[ 'type' ] == 'event':
       method = 'OnEvent_' + message[ 'event' ]
       for h in self._handlers:
         if method in dir( h ):
-          getattr( h, method )( message )
+          if getattr( h, method )( message ):
+            break
     elif message[ 'type' ] == 'request':
       method = 'OnRequest_' + message[ 'command' ]
       for h in self._handlers:
         if method in dir( h ):
-          getattr( h, method )( message )
+          if getattr( h, method )( message ):
+            break
 
 
 def _KillTimer( request ):
