@@ -1,5 +1,5 @@
 # vimspector - A multi-language debugging system for Vim
-# Copyright 2021 Ben Jackson
+# Copyright 2023 Ben Jackson
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,15 +15,22 @@
 
 from vimspector.debug_session import DebugSession
 
+import copy
 
-class Debugpy( object ):
+
+class JsDebug( object ):
   parent: DebugSession
 
   def __init__( self, debug_session: DebugSession ):
     self.parent = debug_session
 
+
   def OnRequest_startDebugging( self, message ):
-    adapter = message[ 'arguments' ][ 'configuration' ][ 'connect' ]
+    # Only thge parent session should start the adapter, so pop out the startup
+    # command and use the remaining host/port/etc.
+    adapter = copy.deepcopy( self.parent._adapter )
+    adapter.pop( 'command', None )
+
     self.parent._DoStartDebuggingRequest(
       message,
       message[ 'arguments' ][ 'request' ],

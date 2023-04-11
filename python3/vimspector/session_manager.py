@@ -23,6 +23,11 @@ class SessionManager:
   next_session_id = 0
   sessions = {}
 
+  # TODO: Move breakpoints _out_ of the DebugSession and store/manage them
+  # here. That may help with all the duplicated signs. Or perhaps hack further
+  # by informing the _child_ session of its parent, and have it use the parent's
+  # breakpoints. Actually that may be better first step.
+
 
   def NewSession( self, *args, **kwargs ):
     session_id = self.next_session_id

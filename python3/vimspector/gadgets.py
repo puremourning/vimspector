@@ -112,10 +112,10 @@ GADGETS = {
       'url': 'https://github.com/microsoft/debugpy/archive/${file_name}'
     },
     'all': {
-      'version': '1.6.3',
-      'file_name': 'v1.6.3.zip',
+      'version': '1.6.7',
+      'file_name': 'v1.6.7.zip',
       'checksum':
-        '3bc37b5bc82e50efab52d6d2ea4a1ffa5fd3f100ab725d7ff163cd0a7ee9cb40'
+        ''
     },
     'do': lambda name, root, gadget: installer.InstallDebugpy( name,
                                                                root,
@@ -426,8 +426,40 @@ GADGETS = {
       }
     }
   },
-  'vscode-node-debug2': {
+  'vscode-js-debug': {
     'language': 'node',
+    'enabled': False,
+    'download': {
+      'url': 'https://github.com/microsoft/vscode-js-debug/releases/download/'
+             '${version}/${file_name}',
+      'format': 'tar',
+    },
+    'all': {
+      'file_name': 'js-debug-dap-v1.77.0.tar.gz',
+      'version': 'v1.77.0',
+      'checksum': '',
+    },
+    'model': 'simple',
+    'adapters': {
+      'js-debug': {
+        'variables': {
+          'port': '${unusedLocalPort}'
+        },
+        'custom_handler': 'vimspector.custom.js.JsDebug',
+        'command': [
+          'node',
+          '${gadgetDir}/vscode-js-debug/js-debug/src/dapDebugServer.js',
+          '${port}',
+        ],
+        'port': '${port}',
+        'configuration': {
+          'type': 'pwa-node'
+        }
+      },
+    },
+  },
+  'vscode-node-debug2': {
+    'language': 'node_legacy',
     'enabled': False,
     'repo': {
       'url': 'https://github.com/microsoft/vscode-node-debug2',

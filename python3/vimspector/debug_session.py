@@ -1587,7 +1587,8 @@ class DebugSession( object ):
         'supportsVariableType': True,
         'supportsVariablePaging': False,
         'supportsRunInTerminalRequest': True,
-        'supportsMemoryReferences': True
+        'supportsMemoryReferences': True,
+        'supportsStartDebuggingRequest': True
       },
     } )
 
@@ -1807,6 +1808,38 @@ class DebugSession( object ):
       message[ 'body' ][ 'exitCode' ] ) )
     self._stackTraceView.OnExited( message )
     self.ClearCurrentPC()
+
+
+  def OnRequest_startDebugging( self, message ):
+    self._DoStartDebuggingRequest( message,
+                                   message[ 'arguments' ][ 'request' ],
+                                   message[ 'arguments' ][ 'configuration' ],
+                                   self._adapter )
+
+  def _DoStartDebuggingRequest( self,
+                                message,
+                                request_type,
+                                launch_arguments,
+                                adapter ):
+    session = self.manager.NewSession( self._api_prefix )
+
+    # Inject the launch config (HACK!). This will actually mean that the
+    # configuration passed below is ignored.
+    session._launch_config = launch_arguments
+    session._launch_config[ 'request' ] = request_type
+
+    # FIXME: We probably do need to add a StartWithLauncArguments and somehow
+    # tell the new session that it shoud not support "Restart" requests ?
+    #
+    # In fact, what even would Reset do... ?
+
+    # TODO: Don't copy breakpoints, that's shitty. Just reference this parent
+    # session
+    session._breakpoints.Copy( self._breakpoints )
+    session._StartWithConfiguration( { 'configuration': launch_arguments },
+                                     adapter )
+
+    self._connection.DoResponse( message, None, {} )
 
   def OnEvent_process( self, message ):
     utils.UserMessage( 'The debuggee was started: {}'.format(
