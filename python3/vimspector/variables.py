@@ -302,10 +302,7 @@ class VariablesView( object ):
   def Clear( self ):
     with utils.ModifiableScratchBuffer( self._vars.buf ):
       utils.ClearBuffer( self._vars.buf )
-    with utils.ModifiableScratchBuffer( self._watch.buf ):
-      utils.ClearBuffer( self._watch.buf )
     self.ClearTooltip()
-    self._current_syntax = ''
 
   def ConnectionUp( self, connection ):
     self._connection = connection
@@ -314,7 +311,6 @@ class VariablesView( object ):
     self._server_capabilities = capabilities
 
   def ConnectionClosed( self ):
-    self.Clear()
     self._connection = None
     self._server_capabilities = None
 

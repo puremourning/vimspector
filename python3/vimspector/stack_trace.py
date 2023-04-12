@@ -47,7 +47,7 @@ class Thread:
   stacktrace: typing.List[ typing.Dict ]
   id: str
 
-  def __init__( self, session, thread ):
+  def __init__( self, session: "Session", thread ):
     self.session = session
     self.id = thread[ 'id' ]
     self.stopped_event = None
@@ -126,6 +126,7 @@ class StackTraceView( object ):
     # FIXME: This ID is by group, so should be module scope
     self._current_thread_sign_id = 0 # 1 when used
     self._current_frame_sign_id = 0 # 2 when used
+    self._top_of_stack_signs = []
 
     utils.SetUpHiddenBuffer(
       self._buf,
@@ -334,15 +335,23 @@ class StackTraceView( object ):
     else:
       self._current_thread_sign_id = 1
 
+    if self._current_frame_sign_id:
+      signs.UnplaceSign( self._current_frame_sign_id, 'VimspectorStackTrace' )
+    else:
+      self._current_frame_sign_id = 2
+
+    for sign_id in self._top_of_stack_signs:
+      signs.UnplaceSign( sign_id, 'VimspectorStackTrace' )
+    self._top_of_stack_signs = []
+
     with utils.ModifiableScratchBuffer( self._buf ):
       with utils.RestoreCursorPosition():
         utils.ClearBuffer( self._buf )
 
         for s in self._sessions:
           if len( self._sessions ) > 1:
-            line = utils.AppendToBuffer(
-              self._buf,
-              f'--- { s.session.name }' )
+            line = utils.AppendToBuffer( self._buf,
+                                         f'--- { s.session.name }' )
 
           for thread in s.threads:
             icon = '+' if not thread.IsExpanded() else '-'
@@ -623,11 +632,7 @@ class StackTraceView( object ):
     if not thread.IsExpanded():
       return
 
-    if self._current_frame_sign_id:
-      signs.UnplaceSign( self._current_frame_sign_id, 'VimspectorStackTrace' )
-    else:
-      self._current_frame_sign_id = 2
-
+    set_top_of_stack = False
     for frame in thread.stacktrace:
       if frame.get( 'source' ):
         source = frame[ 'source' ]
@@ -652,13 +657,34 @@ class StackTraceView( object ):
                                        source[ 'name' ],
                                        frame[ 'line' ] ) )
 
-      if ( self._current_frame is not None and
+      if ( thread.session == self._current_session and
+           self._current_frame is not None and
            self._current_frame[ 'id' ] == frame[ 'id' ] ):
+        set_top_of_stack = True
         signs.PlaceSign( self._current_frame_sign_id,
                          'VimspectorStackTrace',
                          'vimspectorCurrentFrame',
                          self._buf.name,
                          line )
+      elif not set_top_of_stack:
+        if utils.BufferExists( frame[ 'source' ][ 'path' ] ):
+          set_top_of_stack = True
+          sign_id = len( self._top_of_stack_signs ) + 100
+          self._top_of_stack_signs.append( sign_id )
+          signs.PlaceSign( sign_id,
+                           'VimspectorStackTrace',
+                           'vimspectorNonActivePC',
+                           frame[ 'source' ][ 'path' ],
+                           frame[ 'line' ] )
+
+          sign_id = len( self._top_of_stack_signs ) + 100
+          self._top_of_stack_signs.append( sign_id )
+          signs.PlaceSign( sign_id,
+                           'VimspectorStackTrace',
+                           'vimspectorNonActivePC',
+                           self._buf.name,
+                           line )
+
 
       self._line_to_frame[ line ] = ( thread, frame )
 

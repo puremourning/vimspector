@@ -254,10 +254,6 @@ class ProjectBreakpoints( object ):
   def SetDisassemblyManager( self, disassembly_manager ):
     self._disassembly_manager = disassembly_manager
 
-  def ResetConnections( self ):
-    self.SetDisassemblyManager( None )
-    self._connections = set()
-
   def ConnectionClosed( self, connection ):
     self.RemoveConnection( connection )
 

@@ -53,6 +53,7 @@ DEFAULTS = {
     'vimspectorBPDisabled':    9,
     'vimspectorCurrentThread': 200,
     'vimspectorCurrentFrame':  200,
+    'vimspectorNonActivePC':   400,
   },
 
   # Installer

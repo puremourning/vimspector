@@ -1,16 +1,14 @@
 {
   "$schema": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json",
   "configurations": {
-    "run": {
+    "run-to-breakpoint": {
       "adapter": "debugpy",
       "configuration": {
         "request": "launch",
-        "type": "python",
         "cwd": "${workspaceRoot}",
         "program": "${file}",
-        "stopOnEntry": true,
-        "console": "integratedTerminal",
-        "subProcess": true
+        "stopOnEntry": false,
+        "console": "integratedTerminal"
       },
       "breakpoints": {
         "exception": {
@@ -18,6 +16,12 @@
           "uncaught": "Y",
           "userUnhandled": ""
         }
+      }
+    },
+    "run-to-start": {
+      "extends": "run-to-breakpoint",
+      "configuration": {
+        "stopOnEntry": true
       }
     },
     "attach": {

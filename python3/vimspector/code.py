@@ -164,6 +164,7 @@ class CodeView( object ):
                               frame[ 'source' ][ 'path' ] )
       return False
 
+    # Open any fold at the cursor position
     vim.command( 'normal! zv' )
 
     self.current_syntax = utils.ToUnicode(

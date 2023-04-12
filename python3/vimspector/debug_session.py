@@ -95,6 +95,8 @@ class DebugSession( object ):
         self._render_emitter,
         self._IsPCPresentAt,
         self._disassemblyView )
+      utils.SetSessionWindows( {} )
+
 
     self._saved_variables_data = None
 
@@ -121,7 +123,6 @@ class DebugSession( object ):
     self._launch_complete = False
     self._on_init_complete_handlers = []
     self._server_capabilities = {}
-    utils.SetSessionWindows( {} )
     self.ClearTemporaryBreakpoints()
 
   def GetConfigurations( self, adapters ):
@@ -608,23 +609,31 @@ class DebugSession( object ):
 
   @WithCurrent()
   def _Reset( self ):
+    if self.parent_session:
+      self._stackTraceView = None
+      self._variablesView = None
+      self._outputView = None
+      self._codeView = None
+      self._disassemblyView = None
+      self._remote_term = None
+      self._uiTab = None
+      self._breakpoints.RemoveConnection( self._connection )
+      return
+
     vim.vars[ 'vimspector_resetting' ] = 1
     self._logger.info( "Debugging complete." )
 
     def ResetUI():
-      if not self.parent_session:
-        if self._stackTraceView:
-          self._stackTraceView.Reset()
-        if self._variablesView:
-          self._variablesView.Reset()
-        if self._outputView:
-          self._outputView.Reset()
-        if self._codeView:
-          self._codeView.Reset()
-        if self._disassemblyView:
-          self._disassemblyView.Reset()
-
-        self._breakpoints.ResetConnections()
+      if self._stackTraceView:
+        self._stackTraceView.Reset()
+      if self._variablesView:
+        self._variablesView.Reset()
+      if self._outputView:
+        self._outputView.Reset()
+      if self._codeView:
+        self._codeView.Reset()
+      if self._disassemblyView:
+        self._disassemblyView.Reset()
 
       self._stackTraceView = None
       self._variablesView = None
@@ -633,8 +642,9 @@ class DebugSession( object ):
       self._disassemblyView = None
       self._remote_term = None
       self._uiTab = None
+      self._breakpoints.RemoveConnection( self._connection )
 
-    if not self.parent_session and self.HasUI():
+    if self.HasUI():
       self._logger.debug( "Clearing down UI" )
       with utils.NoAutocommands():
         vim.current.tabpage = self._uiTab
@@ -645,19 +655,18 @@ class DebugSession( object ):
     else:
       ResetUI()
 
-    # FIXME: vimspector_session_windows is totally buseted with multiple
-    # sessions
+    self._breakpoints.RemoveConnection( self._connection )
+    self._breakpoints.SetDisassemblyManager( None )
     utils.SetSessionWindows( {
       'breakpoints': vim.vars[ 'vimspector_session_windows' ].get(
         'breakpoints' )
     } )
-
     vim.command( 'doautocmd <nomodeline> User VimspectorDebugEnded' )
+
     vim.vars[ 'vimspector_resetting' ] = 0
 
     # make sure that we're displaying signs in any still-open buffers
-    if not self.parent_session:
-      self._breakpoints.UpdateUI()
+    self._breakpoints.UpdateUI()
 
   @ParentOnly( False )
   def ReadSessionFile( self, session_file: str = None ):
@@ -1208,8 +1217,6 @@ class DebugSession( object ):
                                              self._api_prefix,
                                               session_id = self.session_id )
 
-    # TODO: If/when we support multiple sessions, we'll need some way to
-    # indicate which tab was created and store all the tabs
     utils.SetSessionWindows( {
       'mode': 'horizontal',
       'tabpage': self._uiTab.number,
@@ -1275,8 +1282,6 @@ class DebugSession( object ):
                                              self._api_prefix,
                                              session_id = self.session_id )
 
-    # TODO: If/when we support multiple sessions, we'll need some way to
-    # indicate which tab was created and store all the tabs
     utils.SetSessionWindows( {
       'mode': 'vertical',
       'tabpage': self._uiTab.number,
@@ -1311,8 +1316,6 @@ class DebugSession( object ):
   @RequiresUI()
   def SetCurrentFrame( self, frame, reason = '' ):
     if not frame:
-      if not self.parent_session:
-        self._stackTraceView.Clear()
       self._variablesView.Clear()
 
     target = self._codeView

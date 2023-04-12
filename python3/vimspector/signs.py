@@ -74,3 +74,9 @@ def DefineProgramCounterSigns():
                 double_text  = '▷',
                 texthl = 'MatchParen',
                 linehl = 'CursorLine' )
+  if not SignDefined( 'vimspectorNonActivePC' ):
+    DefineSign( 'vimspectorNonActivePC',
+                text = '',
+                double_text = '',
+                texthl = 'Normal',
+                linehl = 'DiffAdd' )
