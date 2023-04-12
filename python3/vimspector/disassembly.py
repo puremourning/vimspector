@@ -24,7 +24,7 @@ SIGN_ID = 1
 
 
 class DisassemblyView( object ):
-  def __init__( self, window, connection, api_prefix, render_event_emitter ):
+  def __init__( self, window, api_prefix, render_event_emitter ):
     self._logger = logging.getLogger( __name__ )
     utils.SetUpLogging( self._logger )
 
@@ -37,8 +37,8 @@ class DisassemblyView( object ):
     self._requesting = False
 
     self._api_prefix = api_prefix
-    self._connection: DebugAdapterConnection = connection
 
+    self.current_connection = None
     self.current_frame = None
     self.current_instructions = None
 
@@ -75,11 +75,15 @@ class DisassemblyView( object ):
     signs.DefineProgramCounterSigns()
 
 
-  def ConnectionUp( self, connection ):
-    self._connection = connection
+  def ConnectionClosed( self, connection ):
+    if connection != self.current_connection:
+      return
 
-  def ConnectionClosed( self ):
-    self._connection = None
+    self._UndisplayPC()
+    self.current_connection = None
+    self.current_frame = None
+    self.current_instructions = None
+
 
   def WindowIsValid( self ):
     return self._window is not None and self._window.valid
@@ -87,11 +91,11 @@ class DisassemblyView( object ):
   def IsCurrent( self ):
     return vim.current.buffer == self._buf
 
-  def SetCurrentFrame( self, frame, should_jump_to_location ):
-    if not self._window.valid or not self._connection:
+  def SetCurrentFrame( self, connection, frame, should_jump_to_location ):
+    if not self._window.valid:
       return
 
-    if not frame:
+    if not frame or not connection:
       self._UndisplayPC()
       return
 
@@ -107,6 +111,7 @@ class DisassemblyView( object ):
     self._instructionPointerReference = frame[ 'instructionPointerReference' ]
     self._instructionPointerAddressOffset = 0
     self.current_frame = frame
+    self.current_connection = connection
 
     # Centre around the PC
     self.instruction_offset = -self._window.height
@@ -137,7 +142,7 @@ class DisassemblyView( object ):
       self._requesting = False
 
     self._requesting = True
-    self._connection.DoRequest( handler, {
+    self.current_connection.DoRequest( handler, {
       'command': 'disassemble',
       'arguments': {
         'memoryReference': self._instructionPointerReference,
@@ -155,6 +160,7 @@ class DisassemblyView( object ):
     with utils.ModifiableScratchBuffer( self._buf ):
       utils.ClearBuffer( self._buf )
 
+    self.current_connection = None
     self.current_frame = None
     self.current_instructions = None
 
@@ -216,7 +222,7 @@ class DisassemblyView( object ):
     return self._buf.name
 
   def OnWindowScrolled( self, win_id ):
-    if not self._connection:
+    if not self.current_connection:
       return
 
     if not self.WindowIsValid() or utils.WindowID( self._window ) != win_id:
@@ -329,7 +335,9 @@ class DisassemblyView( object ):
   def _DisplayPC( self ):
     self._UndisplayPC()
 
-    if not self._connection or not self._buf or not self.current_instructions:
+    if ( not self.current_connection or
+         not self._buf or
+         not self.current_instructions ):
       return
 
     if len( self.current_instructions ) < self.instruction_count:

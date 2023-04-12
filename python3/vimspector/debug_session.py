@@ -468,9 +468,6 @@ class DebugSession( object ):
     if not self._connection:
       return
 
-    if self._disassemblyView:
-      self._disassemblyView.ConnectionUp( self._connection )
-
     # TODO: Would be kind of gnarly if the capabilities differed
     self._breakpoints.SetServerCapabilities( self._server_capabilities )
 
@@ -959,7 +956,6 @@ class DebugSession( object ):
       vim.command( f'rightbelow { settings.Int( "disassembly_height" ) }new' )
       self._disassemblyView = disassembly.DisassemblyView(
         vim.current.window,
-        self._connection,
         self._api_prefix,
         self._render_emitter )
 
@@ -970,6 +966,7 @@ class DebugSession( object ):
       } )
 
       self._disassemblyView.SetCurrentFrame(
+        self._connection,
         self._stackTraceView.GetCurrentFrame(),
         True )
 
@@ -1313,7 +1310,7 @@ class DebugSession( object ):
   def ClearCurrentPC( self ):
     self._codeView.SetCurrentFrame( None, False )
     if self._disassemblyView:
-      self._disassemblyView.SetCurrentFrame( None, False )
+      self._disassemblyView.SetCurrentFrame( None, None, False )
 
 
   @WithCurrent()
@@ -1331,7 +1328,8 @@ class DebugSession( object ):
       return False
 
     if self._disassemblyView:
-      self._disassemblyView.SetCurrentFrame( frame,
+      self._disassemblyView.SetCurrentFrame( self._connection,
+                                             frame,
                                              target == self._disassemblyView )
 
     # the codeView.SetCurrentFrame already checked the frame was valid and
@@ -2033,10 +2031,8 @@ class DebugSession( object ):
     self._stackTraceView.ConnectionClosed( self )
     self._breakpoints.ConnectionClosed( self._connection )
     self._variablesView.ConnectionClosed( self._connection )
-
-    if not self.parent_session:
-      if self._disassemblyView:
-        self._disassemblyView.ConnectionClosed()
+    if self._disassemblyView:
+      self._disassemblyView.ConnectionClosed( self._connection )
 
     self.Clear()
 
