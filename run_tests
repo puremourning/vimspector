@@ -54,7 +54,7 @@ while [ -n "$1" ]; do
       VIM_EXE=$1
       shift
       ;;
-    "--failfast")
+    "--failfast"|"--no-retry")
       shift
       export TEST_NO_RETRY=1
       ;;

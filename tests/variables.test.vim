@@ -557,24 +557,16 @@ function Test_EvaluateInput()
   call WaitForAssert( {->
         \   assert_equal(
         \     [
-        \       ''
-        \     ],
-        \     getbufline( bufnr( ConsoleBufferName() ), '$', '$' )
-        \   )
-        \ } )
-
-  let len = getbufinfo( ConsoleBufferName() )[ 0 ].linecount
-
-  call WaitForAssert( {->
-        \   assert_equal(
-        \     [
         \       'Evaluating: -exec print (int) printf("hello")',
+        \       '(int) $0 = 5'
         \     ],
-        \     getbufline( bufnr( ConsoleBufferName() ), len-2, len-2 )
+        \     GetBufLine( bufnr( ConsoleBufferName() ), -1 )
         \   )
         \ } )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer(
-        \ ConsoleBufferName(), len, v:null )
+        \ ConsoleBufferName(),
+        \ getbufinfo( ConsoleBufferName() )[ 0 ].linecount,
+        \ v:null )
 
   call vimspector#test#setup#Reset()
   %bwipe!

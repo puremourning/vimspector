@@ -200,8 +200,7 @@ class ProjectBreakpoints( object ):
     utils.SetUpLogging( self._logger )
 
 
-    # These are the user-entered breakpoints. NOTE: if updating this, also
-    # update Copy()
+    # These are the user-entered breakpoints.
     self._line_breakpoints = defaultdict( list )
     self._func_breakpoints = []
     self._exception_breakpoints = None
@@ -239,16 +238,6 @@ class ProjectBreakpoints( object ):
                         text = '●',
                         double_text = '●',
                         texthl = 'LineNr' )
-
-
-  def Copy( self, other: 'ProjectBreakpoints' ):
-    self._line_breakpoints = copy.deepcopy( other._line_breakpoints )
-    self._func_breakpoints = copy.deepcopy( other._func_breakpoints )
-    if other._exception_breakpoints is not None:
-      self._exception_breakpoints = copy.deepcopy(
-        other._exception_breakpoints )
-    self._configured_breakpoints = copy.deepcopy(
-      other._configured_breakpoints )
 
 
   def AddConnection( self, connection ):
