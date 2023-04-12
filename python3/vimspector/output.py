@@ -279,7 +279,6 @@ class DAPOutputView( OutputView ):
   def __init__( self, *args, **kwargs ):
     super().__init__( *args, **kwargs )
 
-    self._connection = None
     for b in set( BUFFER_MAP.values() ):
       if b is not None:
         self._CreateBuffer( b )
@@ -287,14 +286,7 @@ class DAPOutputView( OutputView ):
     self.AddLogFileView()
     self._ShowOutput( 'Console' )
 
-  def ConnectionUp( self, connection ):
-    self._connection = connection
-
-  def ConnectionClosed( self ):
-    # Don't clear because output is probably still useful
-    self._connection = None
-
-  def Evaluate( self, frame, expression, verbose ):
+  def Evaluate( self, connection, frame, expression, verbose ):
     if verbose:
       self._Print( 'Console', f"Evaluating: { expression }" )
 
@@ -318,6 +310,4 @@ class DAPOutputView( OutputView ):
     if frame:
       request[ 'arguments' ][ 'frameId' ] = frame[ 'id' ]
 
-    self._connection.DoRequest( print_result,
-                                request,
-                                print_failure )
+    connection.DoRequest( print_result, request, print_failure )

@@ -468,7 +468,6 @@ class DebugSession( object ):
     if not self._connection:
       return
 
-    self._outputView.ConnectionUp( self._connection )
     if self._disassemblyView:
       self._disassemblyView.ConnectionUp( self._connection )
 
@@ -991,7 +990,8 @@ class DebugSession( object ):
   @CurrentSession()
   @IfConnected()
   def EvaluateConsole( self, expression, verbose ):
-    self._outputView.Evaluate( self._stackTraceView.GetCurrentFrame(),
+    self._outputView.Evaluate( self._connection,
+                               self._stackTraceView.GetCurrentFrame(),
                                expression,
                                verbose )
 
@@ -2035,7 +2035,6 @@ class DebugSession( object ):
     self._variablesView.ConnectionClosed( self._connection )
 
     if not self.parent_session:
-      self._outputView.ConnectionClosed()
       if self._disassemblyView:
         self._disassemblyView.ConnectionClosed()
 
