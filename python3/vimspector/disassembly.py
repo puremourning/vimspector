@@ -38,7 +38,7 @@ class DisassemblyView( object ):
 
     self._api_prefix = api_prefix
 
-    self.current_connection = None
+    self.current_connection: DebugAdapterConnection = None
     self.current_frame = None
     self.current_instructions = None
 
@@ -75,7 +75,7 @@ class DisassemblyView( object ):
     signs.DefineProgramCounterSigns()
 
 
-  def ConnectionClosed( self, connection ):
+  def ConnectionClosed( self, connection: DebugAdapterConnection ):
     if connection != self.current_connection:
       return
 
@@ -91,7 +91,10 @@ class DisassemblyView( object ):
   def IsCurrent( self ):
     return vim.current.buffer == self._buf
 
-  def SetCurrentFrame( self, connection, frame, should_jump_to_location ):
+  def SetCurrentFrame( self,
+                       connection: DebugAdapterConnection,
+                       frame,
+                       should_jump_to_location ):
     if not self._window.valid:
       return
 

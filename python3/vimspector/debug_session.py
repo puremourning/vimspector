@@ -49,6 +49,59 @@ USER_CHOICES = {}
 class DebugSession( object ):
   child_sessions: typing.List[ "DebugSession" ]
 
+  def CurrentSession():
+    def decorator( fct ):
+      @functools.wraps( fct )
+      def wrapper( self: "DebugSession", *args, **kwargs ):
+        active_session = self
+        if self._stackTraceView:
+          active_session = self._stackTraceView.GetCurrentSession()
+        if active_session is not None:
+          return fct( active_session, *args, **kwargs )
+        return fct( self, *args, **kwargs )
+      return wrapper
+    return decorator
+
+  def ParentOnly( otherwise=None ):
+    def decorator( fct ):
+      @functools.wraps( fct )
+      def wrapper( self: "DebugSession", *args, **kwargs ):
+        if self.parent_session:
+          return otherwise
+        return fct( self, *args, **kwargs )
+      return wrapper
+    return decorator
+
+  def IfConnected( otherwise=None ):
+    def decorator( fct ):
+      """Decorator, call fct if self._connected else echo warning"""
+      @functools.wraps( fct )
+      def wrapper( self: "DebugSession", *args, **kwargs ):
+        if not self._connection:
+          utils.UserMessage(
+            'Vimspector not connected, start a debug session first',
+            persist=False,
+            error=True )
+          return otherwise
+        return fct( self, *args, **kwargs )
+      return wrapper
+    return decorator
+
+  def RequiresUI( otherwise=None ):
+    """Decorator, call fct if self._connected else echo warning"""
+    def decorator( fct ):
+      @functools.wraps( fct )
+      def wrapper( self, *args, **kwargs ):
+        if not self.HasUI():
+          utils.UserMessage(
+            'Vimspector is not active',
+            persist=False,
+            error=True )
+          return otherwise
+        return fct( self, *args, **kwargs )
+      return wrapper
+    return decorator
+
   def __init__( self,
                 session_id,
                 session_manager,
@@ -154,6 +207,8 @@ class DebugSession( object ):
 
     return launch_config_file, filetype_configurations, configurations
 
+
+  @ParentOnly()
   def Start( self,
              force_choose = False,
              launch_variables = None,
@@ -451,7 +506,7 @@ class DebugSession( object ):
 
     start()
 
-
+  @ParentOnly()
   def Restart( self ):
     if self._configuration is None or self._adapter is None:
       return self.Start()
@@ -461,65 +516,11 @@ class DebugSession( object ):
   def Connection( self ):
     return self._connection
 
-
-  def CurrentSession():
-    def decorator( fct ):
-      @functools.wraps( fct )
-      def wrapper( self: "DebugSession", *args, **kwargs ):
-        active_session = self
-        if self._stackTraceView:
-          active_session = self._stackTraceView.GetCurrentSession()
-        if active_session is not None:
-          return fct( active_session, *args, **kwargs )
-        return fct( self, *args, **kwargs )
-      return wrapper
-    return decorator
-
-  def ParentOnly( otherwise=None ):
-    def decorator( fct ):
-      @functools.wraps( fct )
-      def wrapper( self: "DebugSession", *args, **kwargs ):
-        if self.parent_session:
-          return otherwise
-        return fct( self, *args, **kwargs )
-      return wrapper
-    return decorator
-
-  def IfConnected( otherwise=None ):
-    def decorator( fct ):
-      """Decorator, call fct if self._connected else echo warning"""
-      @functools.wraps( fct )
-      def wrapper( self: "DebugSession", *args, **kwargs ):
-        if not self._connection:
-          utils.UserMessage(
-            'Vimspector not connected, start a debug session first',
-            persist=False,
-            error=True )
-          return otherwise
-        return fct( self, *args, **kwargs )
-      return wrapper
-    return decorator
-
   def HasUI( self ):
     return self._uiTab and self._uiTab.valid
 
   def IsUITab( self, tab_number ):
     return self.HasUI() and self._uiTab.number == tab_number
-
-  def RequiresUI( otherwise=None ):
-    """Decorator, call fct if self._connected else echo warning"""
-    def decorator( fct ):
-      @functools.wraps( fct )
-      def wrapper( self, *args, **kwargs ):
-        if not self.HasUI():
-          utils.UserMessage(
-            'Vimspector is not active',
-            persist=False,
-            error=True )
-          return otherwise
-        return fct( self, *args, **kwargs )
-      return wrapper
-    return decorator
 
   def OnChannelData( self, data ):
     if self._connection is None:
@@ -559,6 +560,7 @@ class DebugSession( object ):
     self._logger.debug( "Stop debug adapter with no callback" )
     self.StopAllSessions( interactive = False )
 
+  @ParentOnly()
   def Reset( self, interactive = False ):
     # We reset all of the child sessions in turn
     self._logger.debug( "Stop debug adapter with callback: _Reset" )
