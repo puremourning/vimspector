@@ -11,6 +11,17 @@ function! TearDown()
   call vimspector#test#setup#TearDown()
 endfunction
 
+function! ConsoleBufferName()
+  return 'vimspector.Console'
+
+  " let session_id = py3eval( '_vimspector_session.session_id' )
+  " if session_id == 0
+  "   return 'vimspector.Console'
+  " endif
+
+  " return 'vimspector.Console' .. session_id
+endfunction
+
 function! s:StartDebugging( ... )
   if a:0 == 0
     let config = #{
@@ -497,18 +508,18 @@ function Test_EvaluateConsole()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 27, 1 )
 
   VimspectorEval t.i
-  call assert_equal( bufnr( 'vimspector.Console' ),
+  call assert_equal( bufnr( ConsoleBufferName() ),
                    \ winbufnr( g:vimspector_session_windows.output ) )
   call WaitForAssert( {->
         \   assert_equal(
         \     [
         \       '1'
         \     ],
-        \     getbufline( bufnr( 'vimspector.Console' ), '$', '$' )
+        \     getbufline( bufnr( ConsoleBufferName() ), '$', '$' )
         \   )
         \ } )
 
-  let len = getbufinfo( 'vimspector.Console' )[ 0 ].linecount
+  let len = getbufinfo( ConsoleBufferName() )[ 0 ].linecount
 
   call WaitForAssert( {->
         \   assert_equal(
@@ -516,11 +527,11 @@ function Test_EvaluateConsole()
         \       'Evaluating: t.i',
         \       '1'
         \     ],
-        \     getbufline( bufnr( 'vimspector.Console' ), len-1, '$' )
+        \     getbufline( bufnr( ConsoleBufferName() ), len-1, '$' )
         \   )
         \ } )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer(
-        \ 'vimspector.Console', len, v:null )
+        \ ConsoleBufferName(), len, v:null )
 
   call vimspector#test#setup#Reset()
   %bwipe!
@@ -541,29 +552,29 @@ function Test_EvaluateInput()
 
   VimspectorEval -exec print (int) printf("hello")
 
-  call assert_equal( bufnr( 'vimspector.Console' ),
+  call assert_equal( bufnr( ConsoleBufferName() ),
                    \ winbufnr( g:vimspector_session_windows.output ) )
   call WaitForAssert( {->
         \   assert_equal(
         \     [
         \       ''
         \     ],
-        \     getbufline( bufnr( 'vimspector.Console' ), '$', '$' )
+        \     getbufline( bufnr( ConsoleBufferName() ), '$', '$' )
         \   )
         \ } )
 
-  let len = getbufinfo( 'vimspector.Console' )[ 0 ].linecount
+  let len = getbufinfo( ConsoleBufferName() )[ 0 ].linecount
 
   call WaitForAssert( {->
         \   assert_equal(
         \     [
         \       'Evaluating: -exec print (int) printf("hello")',
         \     ],
-        \     getbufline( bufnr( 'vimspector.Console' ), len-2, len-2 )
+        \     getbufline( bufnr( ConsoleBufferName() ), len-2, len-2 )
         \   )
         \ } )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer(
-        \ 'vimspector.Console', len, v:null )
+        \ ConsoleBufferName(), len, v:null )
 
   call vimspector#test#setup#Reset()
   %bwipe!
@@ -583,7 +594,7 @@ function Test_EvaluatePromptConsole()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 27, 1 )
 
   VimspectorShowOutput
-  call assert_equal( bufnr( 'vimspector.Console' ),
+  call assert_equal( bufnr( ConsoleBufferName() ),
                    \ winbufnr( g:vimspector_session_windows.output ) )
 
   call feedkeys( "it.i\<CR>", 'xt' )
@@ -592,11 +603,11 @@ function Test_EvaluatePromptConsole()
         \     [
         \       '1'
         \     ],
-        \     getbufline( bufnr( 'vimspector.Console' ), '$', '$' )
+        \     getbufline( bufnr( ConsoleBufferName() ), '$', '$' )
         \   )
         \ } )
 
-  let len = getbufinfo( 'vimspector.Console' )[ 0 ].linecount
+  let len = getbufinfo( ConsoleBufferName() )[ 0 ].linecount
 
   call WaitForAssert( {->
         \   assert_equal(
@@ -605,11 +616,11 @@ function Test_EvaluatePromptConsole()
         \       '',
         \       '1'
         \     ],
-        \     getbufline( bufnr( 'vimspector.Console' ), len-2, '$' )
+        \     getbufline( bufnr( ConsoleBufferName() ), len-2, '$' )
         \   )
         \ } )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer(
-        \ 'vimspector.Console', len, v:null )
+        \ ConsoleBufferName(), len, v:null )
 
   call vimspector#test#setup#Reset()
   %bwipe!
@@ -634,14 +645,14 @@ function! Test_EvaluateFailure()
         \ } )
 
   VimspectorEval test
-  call assert_equal( bufnr( 'vimspector.Console' ),
+  call assert_equal( bufnr( ConsoleBufferName() ),
                    \ winbufnr( g:vimspector_session_windows.output ) )
   call WaitForAssert( {->
         \   assert_equal(
         \     [
         \       "NameError: name 'test' is not defined"
         \     ],
-        \     getbufline( bufnr( 'vimspector.Console' ), '$', '$' )
+        \     getbufline( bufnr( ConsoleBufferName() ), '$', '$' )
         \   )
         \ } )
 

@@ -1,7 +1,11 @@
 function! vimspector#test#signs#AssertCursorIsAtLineInBuffer( buffer,
                                                             \ line,
                                                             \ column ) abort
-  call WaitFor( {-> bufexists( a:buffer ) } )
+  try
+    call WaitFor( {-> bufexists( a:buffer ) } )
+  catch /.*/
+    throw "Buffer " .. a:buffer .. " does not exist"
+  endtry
   call WaitForAssert( {->
         \ assert_equal( fnamemodify( a:buffer, ':p' ),
         \               fnamemodify( bufname( '%' ), ':p' ),

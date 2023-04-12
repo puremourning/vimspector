@@ -209,7 +209,7 @@ class CodeView( object ):
       return False
 
     buf_name = os.path.join( '_vimspector_mem',
-                             self.session_id,
+                             str( self.session_id ),
                              memoryReference )
     buf = utils.BufferForFile( buf_name )
     self._scratch_buffers.append( buf )

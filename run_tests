@@ -8,7 +8,10 @@ AbsDirOf() {
   fi
 }
 
-BASEDIR=$(AbsDirOf "$0")/${VIMSPECTOR_TEST_BASE:-test-base}
+HOMEDIR=$(AbsDirOf "$0")
+pushd ${HOMEDIR}
+
+BASEDIR=${HOMEDIR}/${VIMSPECTOR_TEST_BASE:-test-base}
 INSTALL=0
 UPDATE=0
 INSTALLER_ARGS=''
@@ -16,6 +19,7 @@ VIM_EXE='vim'
 SCREENCOLS=160
 SCREENROWS=48
 ASCIINEMA="python3 -m asciinema"
+
 
 # 1 is stdout
 out_fd=1
@@ -171,7 +175,7 @@ if [ -z "$VIMSPECTOR_ARCH" ]; then
 fi
 
 BASEDIR_CMD="let g:vimspector_base_dir='${BASEDIR}'"
-TESTDIR=$(readlink -f "$(dirname $0)/tests")
+TESTDIR=${HOMEDIR}/tests
 
 echo "Testing with:"
 echo " * VIMSPECTOR_MIMODE=$VIMSPECTOR_MIMODE"
@@ -183,7 +187,7 @@ echo " * BASEDIR_CMD=$BASEDIR_CMD"
 echo " * TESTDIR=$TESTDIR"
 
 if [ "$INSTALL" = "1" ] || [ "$INSTALL" = "script" ]; then
-  if ! python3 $(dirname $0)/install_gadget.py \
+  if ! python3 ${HOMEDIR}/install_gadget.py \
                --basedir ${BASEDIR} \
                ${INSTALLER_ARGS} \
                --all \
@@ -195,7 +199,7 @@ if [ "$INSTALL" = "1" ] || [ "$INSTALL" = "script" ]; then
 fi
 
 if [ "$INSTALL" = "1" ] || [ "$INSTALL" = "vim" ]; then
-  if ! $RUN_VIM -u $(dirname $0)/tests/vimrc \
+  if ! $RUN_VIM -u ${HOMEDIR}/tests/vimrc \
                --cmd "${BASEDIR_CMD}" \
                -c 'autocmd User VimspectorInstallSuccess qa!' \
                -c 'autocmd User VimspectorInstallFailed cquit!' \
@@ -206,7 +210,7 @@ if [ "$INSTALL" = "1" ] || [ "$INSTALL" = "vim" ]; then
 fi
 
 if [ "$UPDATE" = "1" ]; then
-  if ! $RUN_VIM -u $(dirname $0)/tests/vimrc \
+  if ! $RUN_VIM -u ${HOMEDIR}/tests/vimrc \
                --cmd "${BASEDIR_CMD}" \
                -c 'autocmd User VimspectorInstallSuccess qa!' \
                -c 'autocmd User VimspectorInstallFailed cquit!' \
@@ -257,7 +261,7 @@ for t in ${TESTS}; do
     t=$tt
     tt=$TESTDIR/$t
   else
-    echo "%ERROR: Unable to find a test named $t"
+    echo "%ERROR: Unable to find a test named $tt ($t) in $TESTDIR"
     RESULT=1
     break
   fi

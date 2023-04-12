@@ -101,14 +101,14 @@ class StackTraceView( object ):
   _sessions: typing.List[ Session ]
   _line_to_thread: typing.Dict[ int, Thread ]
 
-  def __init__( self, session: "DebugSession", win ):
+  def __init__( self, session_id, win ):
     self._logger = logging.getLogger(
-      __name__ + '.' + str( session.session_id ) )
-    utils.SetUpLogging( self._logger, session.session_id )
+      __name__ + '.' + str( session_id ) )
+    utils.SetUpLogging( self._logger, session_id )
 
     self._buf = win.buffer
 
-    self._sessions = [ Session( session ) ]
+    self._sessions = []
 
     self._current_session = None
     self._current_thread = None
@@ -124,8 +124,7 @@ class StackTraceView( object ):
 
     utils.SetUpHiddenBuffer(
       self._buf,
-      utils.BufferNameForSession( 'vimspector.StackTrace',
-                                  self._sessions[ 0 ].session.session_id ) )
+      utils.BufferNameForSession( 'vimspector.StackTrace', session_id ) )
     utils.SetUpUIWindow( win )
 
     mappings = settings.Dict( 'mappings' )[ 'stack_trace' ]
@@ -458,7 +457,7 @@ class StackTraceView( object ):
     if not frame:
       utils.UserMessage( 'Top of stack' )
     else:
-      self._JumpToFrame( frame, 'up' )
+      self._JumpToFrame( thread, frame, 'up' )
 
 
   def DownFrame( self ):
@@ -466,7 +465,7 @@ class StackTraceView( object ):
     if not frame:
       utils.UserMessage( 'Bottom of stack' )
     else:
-      self._JumpToFrame( frame, 'down' )
+      self._JumpToFrame( thread, frame, 'down' )
 
 
   def JumpToProgramCounter( self ):
