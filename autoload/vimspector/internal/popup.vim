@@ -30,8 +30,8 @@ function! vimspector#internal#popup#UpdateSplash( id, message ) abort
 endfunction
 
 function! vimspector#internal#popup#HideSplash( id ) abort
-  call popup_hide( a:id )
-  return a:id
+  call popup_close( a:id )
+  return v:null
 endfunction
 
 let s:current_selection = 0
