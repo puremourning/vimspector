@@ -547,7 +547,7 @@ class DebugSession( object ):
     def Next():
       if self.child_sessions:
         c = self.child_sessions.pop()
-        c._StopDebugAdapter( interactive = interactive, callback = Next )
+        c.StopAllSessions( interactive = interactive, then = Next )
       elif self._connection:
         self._StopDebugAdapter( interactive = interactive, callback = then )
       else:

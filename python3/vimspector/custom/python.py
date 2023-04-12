@@ -25,6 +25,7 @@ class Debugpy( object ):
   def OnRequest_startDebugging( self, message ):
     config = message[ 'arguments' ][ 'configuration' ]
     adapter = config[ 'connect' ]
+    adapter[ 'custom_handler' ] = self.parent._adapter[ 'custom_handler' ]
     self.parent._DoStartDebuggingRequest(
       message,
       message[ 'arguments' ][ 'request' ],
