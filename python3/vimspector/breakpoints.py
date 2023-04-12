@@ -486,6 +486,8 @@ class ProjectBreakpoints( object ):
 
 
   def _CopyServerLineBreakpointProperties( self, bp, server_bp ):
+    # TODO: Store 'server_bp' as a map from connection (or session_id?) to the
+    # actual data
     if bp[ 'is_instruction_breakpoint' ]:
       # For some reason, MIEngine returns random 'line' values for instruction
       # brakpoints
@@ -669,6 +671,8 @@ class ProjectBreakpoints( object ):
 
 
   def _UpdateServerBreakpoints( self, breakpoints, bp_idxs ):
+    # TODO: Accept the connection here and pass to
+    # _CopyServerLineBreakpointProperties
     for bp_idx, user_bp in bp_idxs:
       if bp_idx >= len( breakpoints ):
         # Just can't trust servers ?
@@ -679,6 +683,10 @@ class ProjectBreakpoints( object ):
 
       server_bp = breakpoints[ bp_idx ]
       self._CopyServerLineBreakpointProperties( user_bp, server_bp )
+
+      # TODO: Change temporary to be a ref to the actual connection that it's
+      # temporary in (i.e. the "current" session when RunToCursor is done) and
+      # only set it there. Setting it in all sessions probably won't work.
       is_temporary = bool( user_bp[ 'options' ].get( 'temporary' ) )
 
       if not is_temporary:

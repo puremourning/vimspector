@@ -47,13 +47,13 @@ DEFAULTS = {
   'sign_priority': {
     'vimspectorPC':            200,
     'vimspectorPCBP':          200,
+    'vimspectorNonActivePC':   9, # must be same as vimspectorBP* to combine
     'vimspectorBP':            9,
     'vimspectorBPCond':        9,
     'vimspectorBPLog':         9,
     'vimspectorBPDisabled':    9,
     'vimspectorCurrentThread': 200,
     'vimspectorCurrentFrame':  200,
-    'vimspectorNonActivePC':   199,
   },
 
   # Installer
