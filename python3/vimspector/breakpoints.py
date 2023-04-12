@@ -19,7 +19,6 @@ import vim
 import os
 import logging
 import operator
-import copy
 
 import json
 from vimspector import utils, signs, settings, disassembly
