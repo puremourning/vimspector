@@ -468,14 +468,12 @@ class DebugSession( object ):
     if not self._connection:
       return
 
-    self._variablesView.ConnectionUp( self._connection )
     self._outputView.ConnectionUp( self._connection )
     if self._disassemblyView:
       self._disassemblyView.ConnectionUp( self._connection )
 
     # TODO: Would be kind of gnarly if the capabilities differed
     self._breakpoints.SetServerCapabilities( self._server_capabilities )
-    self._variablesView.SetServerCapabilities( self._server_capabilities )
 
 
   def Connection( self ):
@@ -890,6 +888,8 @@ class DebugSession( object ):
   @CurrentSession()
   @IfConnected()
   def SetVariableValue( self, new_value = None, buf = None, line_num = None ):
+    if not self._server_capabilities.get( 'supportsSetVariable' ):
+      return
     self._variablesView.SetVariableValue( new_value, buf, line_num )
 
   @CurrentSession()
@@ -984,7 +984,8 @@ class DebugSession( object ):
   @CurrentSession()
   @IfConnected()
   def AddWatch( self, expression ):
-    self._variablesView.AddWatch( self._stackTraceView.GetCurrentFrame(),
+    self._variablesView.AddWatch( self._connection,
+                                  self._stackTraceView.GetCurrentFrame(),
                                   expression )
 
   @CurrentSession()
@@ -1011,7 +1012,10 @@ class DebugSession( object ):
 
     # Check if cursor in code window
     if winnr == int( self._codeView._window.number ):
-      return self._variablesView.HoverEvalTooltip( frame, expression, is_hover )
+      return self._variablesView.HoverEvalTooltip( self._connection,
+                                                   frame,
+                                                   expression,
+                                                   is_hover )
 
     return self._variablesView.HoverVarWinTooltip( bufnr,
                                                    lnum,
@@ -1205,7 +1209,7 @@ class DebugSession( object ):
     with utils.LetCurrentWindow( stack_trace_window ):
       vim.command( f'{ one_third }wincmd _' )
 
-    self._variablesView = variables.VariablesView( self,
+    self._variablesView = variables.VariablesView( self.session_id,
                                                    vars_window,
                                                    watch_window )
 
@@ -1269,7 +1273,7 @@ class DebugSession( object ):
     with utils.LetCurrentWindow( stack_trace_window ):
       vim.command( f'{ one_third }wincmd |' )
 
-    self._variablesView = variables.VariablesView( self,
+    self._variablesView = variables.VariablesView( self.session_id,
                                                    vars_window,
                                                    watch_window )
 
@@ -1312,7 +1316,7 @@ class DebugSession( object ):
       self._disassemblyView.SetCurrentFrame( None, False )
 
 
-  @CurrentSession()
+  @WithCurrent()
   @RequiresUI()
   def SetCurrentFrame( self, frame, reason = '' ):
     if not frame:
@@ -1341,7 +1345,7 @@ class DebugSession( object ):
       self._stackTraceView.SetSyntax( None )
 
     # TODO: Need to store variables per session
-    self._variablesView.LoadScopes( frame )
+    self._variablesView.LoadScopes( self._connection, frame )
     self._variablesView.EvaluateWatches( frame )
 
     if reason == 'stopped':
@@ -1996,7 +2000,7 @@ class DebugSession( object ):
 
   @WithCurrent()
   def OnEvent_process( self, message ):
-    utils.UserMessage( 'The debuggee was started: {}'.format(
+    utils.UserMessage( 'debuggee was started: {}'.format(
       message[ 'body' ][ 'name' ] ) )
 
   @WithCurrent()
@@ -2030,7 +2034,6 @@ class DebugSession( object ):
     self._breakpoints.ConnectionClosed( self._connection )
 
     if not self.parent_session:
-      self._variablesView.ConnectionClosed()
       self._outputView.ConnectionClosed()
       if self._disassemblyView:
         self._disassemblyView.ConnectionClosed()
