@@ -4,7 +4,7 @@ function! vimspector#test#signs#AssertCursorIsAtLineInBuffer( buffer,
   try
     call WaitFor( {-> bufexists( a:buffer ) } )
   catch /.*/
-    throw "Buffer " .. a:buffer .. " does not exist"
+    throw 'Buffer ' .. a:buffer .. ' does not exist'
   endtry
   call WaitForAssert( {->
         \ assert_equal( fnamemodify( a:buffer, ':p' ),

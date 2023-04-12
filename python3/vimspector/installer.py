@@ -570,7 +570,7 @@ def InstallGadget( name: str,
       MakeSymlink( name, root )
     else:
       raise ValueError(
-        f"Invalid configuration - model {model} not recognised")
+        f"Invalid configuration - model {model} not recognised" )
 
     save_adapters()
     manifest.Update( name, spec )

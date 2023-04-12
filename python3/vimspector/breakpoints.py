@@ -825,8 +825,8 @@ class ProjectBreakpoints( object ):
         self._awaiting_bp_responses += 1
         connection.DoRequest(
           # The source=source here is critical to ensure that we capture each
-          # source in the iteration, rather than ending up passing the same source
-          # to each callback.
+          # source in the iteration, rather than ending up passing the same
+          # source to each callback.
           lambda msg, bp_idxs=bp_idxs: response_handler( msg, bp_idxs ),
           {
             'command': 'setBreakpoints',

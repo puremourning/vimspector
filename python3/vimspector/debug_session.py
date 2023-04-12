@@ -517,7 +517,7 @@ class DebugSession( object ):
       def wrapper( self: "DebugSession", *args, **kwargs ):
         if self.parent_session:
           return otherwise
-        self.MakeCurrent();
+        self.MakeCurrent()
         return fct( self, *args, **kwargs )
       return wrapper
     return decorator

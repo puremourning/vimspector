@@ -18,12 +18,21 @@ import os
 import logging
 import typing
 
-from vimspector import utils, signs, settings, session_manager
+from vimspector import utils, signs, settings
+
+# Because flake8 wants this to be defined, but it's a circular import, so we
+# can't do it in proper code;
+# https://adamj.eu/tech/2021/05/13/python-type-hints-how-to-fix-circular-imports
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+  from vimspector.debug_session import DebugSession
+
 
 class ThreadRequestState:
   NO = 0
   REQUESTING = 1
   PENDING = 2
+
 
 class Thread:
   """The state of a single thread."""
@@ -60,10 +69,6 @@ class Thread:
   def Exited( self ):
     self.state = Thread.TERMINATED
     self.stopped_event = None
-
-  def Disconnected( self ):
-    # FIXME: For now... 
-    self.Exited()
 
   def State( self ):
     if self.state == Thread.PAUSED:
@@ -200,7 +205,7 @@ class StackTraceView( object ):
 
 
   def ConnectionClosed( self, session ):
-    self._sessions[:] = [ s for s in self._sessions if s.session != session ]
+    self._sessions[ : ] = [ s for s in self._sessions if s.session != session ]
 
 
   def Reset( self ):
@@ -612,17 +617,6 @@ class StackTraceView( object ):
       thread.Exited()
 
     self._DrawThreads()
-
-#  def OnTerminated( self, debug_session ):
-#    # The debugger disconnected
-#    session = self.FindSession( debug_session )
-#    if session is None:
-#      return
-#
-#    for thread in session.threads:
-#      thread.Disconnected()
-#
-#    self._DrawThreads()
 
 
   def _DrawStackTrace( self, thread: Thread ):
