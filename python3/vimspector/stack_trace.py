@@ -670,7 +670,9 @@ class StackTraceView( object ):
                          self._buf.name,
                          line )
       elif not set_top_of_stack:
-        if utils.BufferExists( frame[ 'source' ][ 'path' ] ):
+        if ( 'source' in frame and
+             'path' in frame[ 'source' ] and
+             utils.BufferExists( frame[ 'source' ][ 'path' ] ) ):
           set_top_of_stack = True
           sign_id = len( self._top_of_stack_signs ) + 100
           self._top_of_stack_signs.append( sign_id )

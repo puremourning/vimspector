@@ -454,7 +454,8 @@ GADGETS = {
         ],
         'port': '${port}',
         'configuration': {
-          'type': 'pwa-node'
+          'type': 'pwa-node',
+          'console': 'integratedTerminal'
         }
       },
     },

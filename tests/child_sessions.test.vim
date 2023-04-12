@@ -153,6 +153,14 @@ function! Test_Python_MultiProcessing()
           \ 200 ) } )
   wincmd w
 
+  " TODO: Should probably toggle breakpoint and show that it applies to both
+  " sessions
+
+  " TODO: should probably do a load of tests for the new watch and scopes
+  " behaviour
+
+  " TODO: should test some subprocesses finishing (child first, then root first)
+
   call vimspector#test#setup#Reset()
   %bwipe!
 endfunction
