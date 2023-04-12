@@ -35,14 +35,17 @@ function! s:_OnEvent( session_id, chan_id, data, event ) abort
 
   " In neovim, the data argument is a list.
   if a:event ==# 'stdout'
-    py3 _vimspector_session.OnChannelData( '\n'.join( vim.eval( 'a:data' ) ) )
+    py3 _VimspectorSession( vim.eval( 'a:session_id' ) ).OnChannelData(
+          \ '\n'.join( vim.eval( 'a:data' ) ) )
   elseif a:event ==# 'stderr'
-    py3 _vimspector_session.OnServerStderr( '\n'.join( vim.eval( 'a:data' ) ) )
+    py3 _VimspectorSession( vim.eval( 'a:session_id' ) ).OnServerStderr(
+          \ '\n'.join( vim.eval( 'a:data' ) ) )
   elseif a:event ==# 'exit'
     echom 'Channel exit with status ' . a:data
     redraw
     unlet s:jobs[ a:session_id ]
-    py3 _vimspector_session.OnServerExit( vim.eval( 'a:data' ) )
+    py3 _VimspectorSession( vim.eval( 'a:session_id' ) ).OnServerExit(
+          \ vim.eval( 'a:data' ) )
   endif
 endfunction
 

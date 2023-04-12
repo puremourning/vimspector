@@ -38,9 +38,10 @@ function! s:_OnEvent( session_id, chan_id, data, event ) abort
     echom 'Channel closed'
     redraw
     unlet s:channels[ a:session_id ]
-    py3 _vimspector_session.OnServerExit( 0 )
+    py3 _VimspectorSession( vim.eval( 'a:session_id' ) ).OnServerExit( 0 )
   else
-    py3 _vimspector_session.OnChannelData( '\n'.join( vim.eval( 'a:data' ) ) )
+    py3 _VimspectorSession( vim.eval( 'a:session_id' ) ).OnChannelData(
+          \ '\n'.join( vim.eval( 'a:data' ) ) )
   endif
 endfunction
 
