@@ -168,7 +168,12 @@ class Watch:
     self.expression = expression
     self.result = None
 
-  def SetCurrentFrame( self, frame ):
+  def SetCurrentFrame( self, connection, frame ):
+    if self.connection is None:
+      self.connection = connection
+    elif self.connection != connection:
+      return
+
     self.expression[ 'frameId' ] = frame[ 'id' ]
 
   @staticmethod
@@ -305,10 +310,20 @@ class VariablesView( object ):
       self._oldoptions[ 'balloonevalterm' ] = vim.options[ 'balloonevalterm' ]
       vim.options[ 'balloonevalterm' ] = True
 
+
   def Clear( self ):
     with utils.ModifiableScratchBuffer( self._vars.buf ):
       utils.ClearBuffer( self._vars.buf )
     self.ClearTooltip()
+
+
+  def ConnectionClosed( self, connection ):
+    self._scopes[ : ] = [
+      s for s in self._scopes if s.connection != connection
+    ]
+    for w in self._watches:
+      if w.connection == connection:
+        w.connection = None
 
 
   def Reset( self ):
@@ -485,7 +500,7 @@ class VariablesView( object ):
 
   def AddWatch( self, connection, frame, expression ):
     self._watches.append( Watch.New( connection, frame, expression, 'watch' ) )
-    self.EvaluateWatches( frame )
+    self.EvaluateWatches( connection, frame )
 
   def DeleteWatch( self ):
     if vim.current.buffer != self._watch.buf:
@@ -509,9 +524,12 @@ class VariablesView( object ):
 
     utils.UserMessage( 'No watch found' )
 
-  def EvaluateWatches( self, current_frame: dict ):
+  def EvaluateWatches( self,
+                       fallback_connection: DebugAdapterConnection,
+                       current_frame: dict ):
+
     for watch in self._watches:
-      watch.SetCurrentFrame( current_frame )
+      watch.SetCurrentFrame( fallback_connection, current_frame )
       watch.connection.DoRequest(
         partial( self._UpdateWatchExpression, watch ),
         {

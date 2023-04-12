@@ -1346,7 +1346,7 @@ class DebugSession( object ):
 
     # TODO: Need to store variables per session
     self._variablesView.LoadScopes( self._connection, frame )
-    self._variablesView.EvaluateWatches( frame )
+    self._variablesView.EvaluateWatches( self._connection, frame )
 
     if reason == 'stopped':
       self._breakpoints.ClearTemporaryBreakpoint( frame[ 'source' ][ 'path' ],
@@ -2032,6 +2032,7 @@ class DebugSession( object ):
 
     self._stackTraceView.ConnectionClosed( self )
     self._breakpoints.ConnectionClosed( self._connection )
+    self._variablesView.ConnectionClosed( self._connection )
 
     if not self.parent_session:
       self._outputView.ConnectionClosed()
