@@ -433,8 +433,6 @@ class DebugSession( object ):
         with utils.NoAutocommands():
           vim.current.tabpage = self._uiTab
 
-      self.MakeCurrent()
-
       self._stackTraceView.AddSession( self )
       self._Prepare()
       if not self._StartDebugAdapter():
@@ -460,36 +458,8 @@ class DebugSession( object ):
 
     self._StartWithConfiguration( self._configuration, self._adapter )
 
-
-  def MakeCurrent( self ):
-    # FIXME: Remove this; instead pass the sessino/connection in to every view
-    # operation. we will need that for at least watches to have per-session
-    # watches like vscode
-    if not self._connection:
-      return
-
-    # TODO: Would be kind of gnarly if the capabilities differed
-    self._breakpoints.SetServerCapabilities( self._server_capabilities )
-
-
   def Connection( self ):
     return self._connection
-
-  def WithCurrent( inst = None ):
-    def decorator( fct ):
-      if inst is None:
-        @functools.wraps( fct )
-        def wrapper( self: "DebugSession", *args, **kwargs ):
-          self.MakeCurrent()
-          return fct( self, *args, **kwargs )
-        return wrapper
-      else:
-        @functools.wraps( fct )
-        def wrapper( *args, **kwargs ):
-          inst.MakeCurrent()
-          return fct( *args, **kwargs )
-        return wrapper
-    return decorator
 
 
   def CurrentSession():
@@ -500,7 +470,6 @@ class DebugSession( object ):
         if self._stackTraceView:
           active_session = self._stackTraceView.GetCurrentSession()
         if active_session is not None:
-          active_session.MakeCurrent()
           return fct( active_session, *args, **kwargs )
         return fct( self, *args, **kwargs )
       return wrapper
@@ -512,7 +481,6 @@ class DebugSession( object ):
       def wrapper( self: "DebugSession", *args, **kwargs ):
         if self.parent_session:
           return otherwise
-        self.MakeCurrent()
         return fct( self, *args, **kwargs )
       return wrapper
     return decorator
@@ -528,7 +496,6 @@ class DebugSession( object ):
             persist=False,
             error=True )
           return otherwise
-        self.MakeCurrent()
         return fct( self, *args, **kwargs )
       return wrapper
     return decorator
@@ -601,7 +568,6 @@ class DebugSession( object ):
   def _IsPCPresentAt( self, file_path, line ):
     return self._codeView and self._codeView.IsPCPresentAt( file_path, line )
 
-  @WithCurrent()
   def _Reset( self ):
     if self.parent_session:
       self._stackTraceView = None
@@ -782,7 +748,6 @@ class DebugSession( object ):
     if threadId is None:
       return
 
-    @DebugSession.WithCurrent( inst = self )
     def handler( *_ ):
       self._stackTraceView.OnContinued( self, { 'threadId': threadId } )
       self.ClearCurrentPC()
@@ -804,7 +769,6 @@ class DebugSession( object ):
     if threadId is None:
       return
 
-    @DebugSession.WithCurrent( inst = self )
     def handler( *_ ):
       self._stackTraceView.OnContinued( self, { 'threadId': threadId } )
       self.ClearCurrentPC()
@@ -836,7 +800,6 @@ class DebugSession( object ):
       utils.UserMessage( 'No current thread', persist = True )
       return
 
-    @DebugSession.WithCurrent( inst = self )
     def handler( msg ):
       self._stackTraceView.OnContinued( self, {
           'threadId': threadId,
@@ -921,7 +884,6 @@ class DebugSession( object ):
       return
 
 
-    @DebugSession.WithCurrent( inst = self )
     def handler( msg ):
       self._codeView.ShowMemory( memoryReference, length, offset, msg )
 
@@ -971,7 +933,6 @@ class DebugSession( object ):
         True )
 
 
-  @WithCurrent()
   def OnDisassemblyWindowScrolled( self, win_id ):
     if self._disassemblyView:
       self._disassemblyView.OnWindowScrolled( win_id )
@@ -1306,14 +1267,12 @@ class DebugSession( object ):
     self.SetCurrentFrame( None )
 
 
-  @WithCurrent()
   def ClearCurrentPC( self ):
     self._codeView.SetCurrentFrame( None, False )
     if self._disassemblyView:
       self._disassemblyView.SetCurrentFrame( None, None, False )
 
 
-  @WithCurrent()
   @RequiresUI()
   def SetCurrentFrame( self, frame, reason = '' ):
     if not frame:
@@ -1709,6 +1668,11 @@ class DebugSession( object ):
     #
     def handle_initialize_response( msg ):
       self._server_capabilities = msg.get( 'body' ) or {}
+      # TODO/FIXME: We assume that the capabilities are the same for all
+      # connections. We should fix this when we split the server bp
+      # representation out?
+      if not self.parent_session:
+        self._breakpoints.SetServerCapabilities( self._server_capabilities )
       self._Launch()
 
     self._connection.DoRequest( handle_initialize_response, {
@@ -1797,12 +1761,10 @@ class DebugSession( object ):
       failure_handler )
 
 
-  @WithCurrent()
   def _OnLaunchComplete( self ):
     self._launch_complete = True
     self._LoadThreadsIfReady()
 
-  @WithCurrent()
   def _OnInitializeComplete( self ):
     self._init_complete = True
     self._LoadThreadsIfReady()
@@ -1870,21 +1832,17 @@ class DebugSession( object ):
     self.ShowOutput( "DebugInfo" )
 
 
-  @WithCurrent()
   def OnEvent_loadedSource( self, msg ):
     pass
 
 
-  @WithCurrent()
   def OnEvent_capabilities( self, msg ):
     self._server_capabilities.update(
       ( msg.get( 'body' ) or {} ).get( 'capabilities' ) or {} )
 
 
-  @WithCurrent()
   def OnEvent_initialized( self, message ):
-    def onBreakpointsDone():
-      self.MakeCurrent()
+    def OnBreakpointsDone():
       self._breakpoints.Refresh()
       if self._server_capabilities.get( 'supportsConfigurationDoneRequest' ):
         self._connection.DoRequest(
@@ -1896,19 +1854,16 @@ class DebugSession( object ):
       else:
         self._OnInitializeComplete()
 
-    self.MakeCurrent()
     self._breakpoints.SetConfiguredBreakpoints(
       self._configuration.get( 'breakpoints', {} ) )
     self._breakpoints.AddConnection( self._connection )
-    self._breakpoints.UpdateUI( onBreakpointsDone )
+    self._breakpoints.UpdateUI( OnBreakpointsDone )
 
 
-  @WithCurrent()
   def OnEvent_thread( self, message ):
     self._stackTraceView.OnThreadEvent( self, message[ 'body' ] )
 
 
-  @WithCurrent()
   def OnEvent_breakpoint( self, message ):
     # TODO: Should Posted breakpoints now be per-session?!
     reason = message[ 'body' ][ 'reason' ]
@@ -1924,7 +1879,6 @@ class DebugSession( object ):
         'Unrecognised breakpoint event (undocumented): {0}'.format( reason ),
         persist = True )
 
-  @WithCurrent()
   def OnRequest_runInTerminal( self, message ):
     params = message[ 'arguments' ]
 
@@ -1943,7 +1897,6 @@ class DebugSession( object ):
 
     self._connection.DoResponse( message, None, response )
 
-  @WithCurrent()
   def OnEvent_terminated( self, message ):
     # The debugging _session_ has terminated. This does not mean that the
     # debuggee has terminated (that's the exited event).
@@ -1956,7 +1909,6 @@ class DebugSession( object ):
     self.SetCurrentFrame( None )
 
 
-  @WithCurrent()
   def OnEvent_exited( self, message ):
     utils.UserMessage( 'The debuggee exited with status code: {}'.format(
       message[ 'body' ][ 'exitCode' ] ) )
@@ -1964,7 +1916,6 @@ class DebugSession( object ):
     self.ClearCurrentPC()
 
 
-  @WithCurrent()
   def OnRequest_startDebugging( self, message ):
     self._DoStartDebuggingRequest( message,
                                    message[ 'arguments' ][ 'request' ],
@@ -1996,16 +1947,13 @@ class DebugSession( object ):
 
     self._connection.DoResponse( message, None, {} )
 
-  @WithCurrent()
   def OnEvent_process( self, message ):
     utils.UserMessage( 'debuggee was started: {}'.format(
       message[ 'body' ][ 'name' ] ) )
 
-  @WithCurrent()
   def OnEvent_module( self, message ):
     pass
 
-  @WithCurrent()
   def OnEvent_continued( self, message ):
     self._stackTraceView.OnContinued( self, message[ 'body' ] )
     self.ClearCurrentPC()
@@ -2018,7 +1966,6 @@ class DebugSession( object ):
     self._stackTraceView.Clear()
     self._variablesView.Clear()
 
-  @WithCurrent()
   def OnServerExit( self, status ):
     self._logger.info( "The server has terminated with status %s",
                        status )
@@ -2046,12 +1993,10 @@ class DebugSession( object ):
     else:
       self._logger.debug( "No server exit handler" )
 
-  @WithCurrent()
   def OnEvent_output( self, message ):
     if self._outputView:
       self._outputView.OnOutput( message[ 'body' ] )
 
-  @WithCurrent()
   def OnEvent_stopped( self, message ):
     event = message[ 'body' ]
     reason = event.get( 'reason' ) or '<protocol error>'
@@ -2076,48 +2021,37 @@ class DebugSession( object ):
 
     self._stackTraceView.OnStopped( self, event )
 
-  @WithCurrent()
   def BreakpointsAsQuickFix( self ):
     return self._breakpoints.BreakpointsAsQuickFix()
 
-  @WithCurrent()
   def ListBreakpoints( self ):
     self._breakpoints.ToggleBreakpointsView()
 
-  @WithCurrent()
   def ToggleBreakpointViewBreakpoint( self ):
     self._breakpoints.ToggleBreakpointViewBreakpoint()
 
-  @WithCurrent()
   def ToggleAllBreakpointsViewBreakpoint( self ):
     self._breakpoints.ToggleAllBreakpointsViewBreakpoint()
 
-  @WithCurrent()
   def DeleteBreakpointViewBreakpoint( self ):
     self._breakpoints.ClearBreakpointViewBreakpoint()
 
-  @WithCurrent()
   def JumpToBreakpointViewBreakpoint( self ):
     self._breakpoints.JumpToBreakpointViewBreakpoint()
 
-  @WithCurrent()
   def JumpToNextBreakpoint( self ):
     self._breakpoints.JumpToNextBreakpoint()
 
-  @WithCurrent()
   def JumpToPreviousBreakpoint( self ):
     self._breakpoints.JumpToPreviousBreakpoint()
 
-  @WithCurrent()
   def JumpToProgramCounter( self ):
     self._stackTraceView.JumpToProgramCounter()
 
-  @WithCurrent()
   def ToggleBreakpoint( self, options ):
     return self._breakpoints.ToggleBreakpoint( options )
 
 
-  @WithCurrent()
   def RunTo( self, file_name, line ):
     self.ClearTemporaryBreakpoints()
     self.SetLineBreakpoint( file_name,
@@ -2170,26 +2104,21 @@ class DebugSession( object ):
     }, failure_handler )
 
 
-  @WithCurrent()
   def ClearTemporaryBreakpoints( self ):
     return self._breakpoints.ClearTemporaryBreakpoints()
 
-  @WithCurrent()
   def SetLineBreakpoint( self, file_name, line_num, options, then = None ):
     return self._breakpoints.SetLineBreakpoint( file_name,
                                                 line_num,
                                                 options,
                                                 then )
 
-  @WithCurrent()
   def ClearLineBreakpoint( self, file_name, line_num ):
     return self._breakpoints.ClearLineBreakpoint( file_name, line_num )
 
-  @WithCurrent()
   def ClearBreakpoints( self ):
     return self._breakpoints.ClearBreakpoints()
 
-  @WithCurrent()
   def AddFunctionBreakpoint( self, function, options ):
     return self._breakpoints.AddFunctionBreakpoint( function, options )
 
