@@ -200,6 +200,9 @@ class StackTraceView( object ):
     if self._current_frame_sign_id:
       signs.UnplaceSign( self._current_frame_sign_id, 'VimspectorStackTrace' )
     self._current_frame_sign_id = 0
+    for sign_id in self._top_of_stack_signs:
+      signs.UnplaceSign( sign_id, 'VimspectorStackTrace' )
+    self._top_of_stack_signs = []
 
     with utils.ModifiableScratchBuffer( self._buf ):
       utils.ClearBuffer( self._buf )

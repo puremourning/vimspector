@@ -31,6 +31,9 @@ function! s:StartDebugging( ... )
 endfunction
 
 function! Test_Python_MultiProcessing()
+  " For some reason the 'fork' mp style causes crashes in debugpy at least on
+  " macOS (but only when using neovim!)
+  call SkipNeovim()
   call s:StartDebugging()
 
   call WaitForAssert( {->
