@@ -19,9 +19,11 @@ import vim
 import os
 import logging
 import operator
+import typing
 
 import json
-from vimspector import utils, signs, settings, disassembly
+from vimspector import utils, signs, settings, disassembly, session_manager
+from vimspector.debug_adapter_connection import DebugAdapterConnection
 
 
 def _JumpToBreakpoint( qfbp ):
@@ -184,6 +186,8 @@ class BreakpointsView( object ):
 #
 # More...
 class ProjectBreakpoints( object ):
+  _connections: typing.Set[ DebugAdapterConnection ]
+
   def __init__( self,
                 session_id,
                 render_event_emitter,
@@ -239,10 +243,10 @@ class ProjectBreakpoints( object ):
                         texthl = 'LineNr' )
 
 
-  def AddConnection( self, connection ):
+  def AddConnection( self, connection: DebugAdapterConnection ):
     self._connections.add( connection )
 
-  def RemoveConnection( self, connection ):
+  def RemoveConnection( self, connection: DebugAdapterConnection ):
     try:
       self._connections.remove( connection )
     except KeyError:
@@ -254,15 +258,15 @@ class ProjectBreakpoints( object ):
   def SetDisassemblyManager( self, disassembly_manager ):
     self._disassembly_manager = disassembly_manager
 
-  def ConnectionClosed( self, connection ):
+  def ConnectionClosed( self, connection: DebugAdapterConnection ):
     self.RemoveConnection( connection )
     self._ClearServerBreakpointData( connection )
 
     if not self._connections:
+      # TODO: This is completely wrong (we should store these per-connection)
       self._server_capabilities = {}
       self._awaiting_bp_responses = 0
       self._pending_send_breakpoints = []
-      # TODO: server breakpoint data being different per-session!
 
     # NOTE: we don't reset self._exception_breakpoints because we don't want to
     # re-ask the user every time for the sane info.
@@ -448,23 +452,25 @@ class ProjectBreakpoints( object ):
     return None, None
 
 
-  def _FindPostedBreakpoint( self, conn, breakpoint_id ):
+  def _FindPostedBreakpoint( self,
+                             conn: DebugAdapterConnection,
+                             breakpoint_id ):
     if breakpoint_id is None:
       return None
 
     for filepath, breakpoint_list in self._line_breakpoints.items():
       for index, bp in enumerate( breakpoint_list ):
-        server_bp = bp.get( 'server_bp', {} ).get( conn, {} )
+        server_bp = bp.get( 'server_bp', {} ).get( conn.GetSessionId(), {} )
         if 'id' in server_bp and server_bp[ 'id' ] == breakpoint_id:
           return bp
 
     return None
 
 
-  def _ClearServerBreakpointData( self, conn ):
+  def _ClearServerBreakpointData( self, conn: DebugAdapterConnection ):
     for _, breakpoints in self._line_breakpoints.items():
       for bp in breakpoints:
-        if 'server_bp' in bp and conn in bp[ 'server_bp' ]:
+        if 'server_bp' in bp and conn.GetSessionId() in bp[ 'server_bp' ]:
           # Unplace the sign. If the sign was moved by the server, then we don't
           # want a subsequent call to _SignToLine to override the user's
           # breakpoint location with the server one. This is not what users
@@ -474,7 +480,7 @@ class ProjectBreakpoints( object ):
             signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
             del bp[ 'sign_id' ]
 
-          del bp[ 'server_bp' ][ conn ]
+          del bp[ 'server_bp' ][ conn.GetSessionId() ]
           if not bp[ 'server_bp' ]:
             del bp[ 'server_bp' ]
 
@@ -490,24 +496,29 @@ class ProjectBreakpoints( object ):
       def ShouldKeep( bp ):
         if not bp[ 'is_instruction_breakpoint' ]:
           return True
-        if 'address' in bp and bp[ 'conn' ] != conn:
+        if 'address' in bp and bp[ 'session_id' ] != conn.GetSessionId():
           return True
         return False
 
       breakpoints[ : ] = [ bp for bp in breakpoints if ShouldKeep( bp ) ]
 
 
-  def _CopyServerLineBreakpointProperties( self, bp, conn, server_bp ):
+  def _CopyServerLineBreakpointProperties( self,
+                                           bp,
+                                           conn: DebugAdapterConnection,
+                                           server_bp ):
     # TODO: Store 'server_bp' as a map from connection (or session_id?) to the
     # actual data
     if bp[ 'is_instruction_breakpoint' ]:
       # For some reason, MIEngine returns random 'line' values for instruction
       # brakpoints
       server_bp.pop( 'line', None )
-    bp.setdefault( 'server_bp', {} )[ conn ] = server_bp
+    bp.setdefault( 'server_bp', {} )[ conn.GetSessionId() ] = server_bp
 
 
-  def UpdatePostedBreakpoint( self, conn, server_bp ):
+  def UpdatePostedBreakpoint( self,
+                              conn: DebugAdapterConnection,
+                              server_bp ):
     bp = self._FindPostedBreakpoint( conn, server_bp.get( 'id' ) )
     if bp is None:
       self._logger.warn( "Unexpected update to breakpoint with id %s:"
@@ -555,13 +566,13 @@ class ProjectBreakpoints( object ):
     self._render_subject.emit()
 
 
-  def DeletePostedBreakpoint( self, conn, server_bp ):
+  def DeletePostedBreakpoint( self, conn: DebugAdapterConnection, server_bp ):
     bp = self._FindPostedBreakpoint( conn, server_bp.get( 'id' ) )
 
     if bp is None:
       return
 
-    del bp[ 'server_bp' ][ conn ]
+    del bp[ 'server_bp' ][ conn.GetSessionId() ]
     if not bp[ 'server_bp' ]:
       del bp[ 'server_bp' ]
 
@@ -577,7 +588,7 @@ class ProjectBreakpoints( object ):
                           file_name,
                           line,
                           options,
-                          connection = None,
+                          connection: DebugAdapterConnection = None,
                           server_bp = None ):
     is_instruction_breakpoint = ( self._disassembly_manager and
                                   self._disassembly_manager.IsDisassemblyBuffer(
@@ -603,9 +614,10 @@ class ProjectBreakpoints( object ):
     }
 
     if is_instruction_breakpoint:
+      conn: DebugAdapterConnection
       conn, address = self._disassembly_manager.ResolveAddressAtLine( line )
       bp[ 'address' ] = address
-      bp[ 'conn' ] = conn
+      bp[ 'session_id' ] = conn.GetSessionId()
 
     if server_bp is not None:
       self._CopyServerLineBreakpointProperties( bp, conn, server_bp )
@@ -901,7 +913,8 @@ class ProjectBreakpoints( object ):
             if not bp[ 'is_instruction_breakpoint' ]:
               continue
 
-            if 'address' in bp and bp[ 'conn' ] != connection:
+            if ( 'address' in bp and
+                 bp[ 'session_id' ] != connection.GetSessionId() ):
               continue
 
             self._SignToLine( file_name, bp )
@@ -1103,7 +1116,7 @@ class ProjectBreakpoints( object ):
     if bp[ 'is_instruction_breakpoint' ]:
       if self._disassembly_manager and 'address' in bp:
         bp[ 'line' ] = self._disassembly_manager.FindLineForAddress(
-          bp[ 'conn' ],
+          session_manager.Get().GetSession( bp[ 'session_id' ] ).Connection(),
           bp[ 'address' ] )
       return
 

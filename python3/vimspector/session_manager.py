@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import typing
 from vimspector.debug_session import DebugSession
 
 # Singleton
@@ -20,6 +21,9 @@ _session_manager = None
 
 
 class SessionManager:
+  next_session_id: int
+  sessions: typing.Dict[ int, DebugSession ]
+
   def __init__( self ):
     self.Reset()
 
@@ -33,7 +37,7 @@ class SessionManager:
     self.sessions = {}
 
 
-  def NewSession( self, *args, **kwargs ):
+  def NewSession( self, *args, **kwargs ) -> DebugSession:
     session_id = self.next_session_id
     self.next_session_id += 1
     session = DebugSession( session_id, self, *args, **kwargs )
@@ -47,11 +51,11 @@ class SessionManager:
     del self.sessions[ session.session_id ]
 
 
-  def GetSession( self, session_id ):
+  def GetSession( self, session_id ) -> DebugSession:
     return self.sessions.get( session_id )
 
 
-  def SessionForTab( self, tabnr ):
+  def SessionForTab( self, tabnr ) -> DebugSession:
     session: DebugSession
     for _, session in self.sessions.items():
       if session.IsUITab( tabnr ):

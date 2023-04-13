@@ -56,6 +56,9 @@ class DebugAdapterConnection( object ):
     self.async_timeout = async_timeout
     self.sync_timeout = sync_timeout
 
+  def GetSessionId( self ):
+    return self._session_id
+
   def DoRequest( self,
                  handler,
                  msg,
