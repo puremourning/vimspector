@@ -21,7 +21,15 @@ set cpoptions&vim
 " }}}
 
 function! vimspector#internal#popup#DisplaySplash( message ) abort
-  return popup_dialog( a:message, {} )
+  return popup_notification( a:message, {
+        \ 'close': 'button',
+        \ 'time': 60000,
+        \ 'col': &columns,
+        \ 'line': &lines,
+        \ 'tabpage': 0,
+        \ 'drag': 1,
+        \ 'pos': 'botright',
+        \ } )
 endfunction
 
 function! vimspector#internal#popup#UpdateSplash( id, message ) abort

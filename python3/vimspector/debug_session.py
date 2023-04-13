@@ -1317,7 +1317,7 @@ class DebugSession( object ):
     self._splash_screen = utils.DisplaySplash(
       self._api_prefix,
       self._splash_screen,
-      "Starting debug adapter..." )
+      f"Starting debug adapter for session {self.name}..." )
 
     if self._connection:
       utils.UserMessage( 'The connection is already created. Please try again',
@@ -1435,7 +1435,7 @@ class DebugSession( object ):
       self._splash_screen = utils.DisplaySplash(
         self._api_prefix,
         self._splash_screen,
-        "Shutting down debug adapter..." )
+        f"Shutting down debug adapter for session {self.name}..." )
 
       def handler( *args ):
         self._splash_screen = utils.HideSplash( self._api_prefix,
@@ -1651,7 +1651,7 @@ class DebugSession( object ):
     self._splash_screen = utils.DisplaySplash(
       self._api_prefix,
       self._splash_screen,
-      "Initializing debug adapter..." )
+      f"Initializing debug session {self.name}..." )
 
     # For a good explanation as to why this sequence is the way it is, see
     # https://github.com/microsoft/vscode/issues/4902#issuecomment-368583522
@@ -1723,14 +1723,14 @@ class DebugSession( object ):
       self._splash_screen = utils.DisplaySplash(
         self._api_prefix,
         self._splash_screen,
-        "Attaching to debuggee..." )
+        f"Attaching to debuggee (self.name)..." )
 
       self._PrepareAttach( self._adapter, self._launch_config )
     elif request == "launch":
       self._splash_screen = utils.DisplaySplash(
         self._api_prefix,
         self._splash_screen,
-        "Launching debuggee..." )
+        f"Launching debuggee (self.name)..." )
 
       # FIXME: This cmdLine hack is not fun.
       self._PrepareLaunch( self._configuration.get( 'remote-cmdLine', [] ),
@@ -1746,7 +1746,7 @@ class DebugSession( object ):
   def _Launch( self ):
     def failure_handler( reason, msg ):
       text = [
-        'Launch Failed',
+        f'Initialize for session {self.name} Failed',
         '' ] + reason.splitlines() + [
         '', 'Use :VimspectorReset to close' ]
       self._logger.info( "Launch failed: %s", '\n'.join( text ) )
