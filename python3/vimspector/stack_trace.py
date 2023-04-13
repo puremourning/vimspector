@@ -252,13 +252,12 @@ class StackTraceView( object ):
       return
 
     def consume_threads( message ):
+      requesting = False
       if s.requesting_threads == ThreadRequestState.PENDING:
         # We may have hit a thread event, so try again.
         s.requesting_threads = ThreadRequestState.NO
-        r = s.pending_thread_request
-        s.pending_thread_request = None
-        self.LoadThreads( s.session, *r )
-        return
+        self.LoadThreads( s.session, *s.pending_thread_request )
+        requesting = True
 
       s.requesting_threads = ThreadRequestState.NO
       s.pending_thread_request = None
@@ -276,7 +275,6 @@ class StackTraceView( object ):
         allThreadsStopped = stopEvent.get( 'allThreadsStopped', False )
 
       # FIXME: This is horribly inefficient
-      requesting = False
       for t in message[ 'body' ][ 'threads' ]:
         thread = None
         for existing_thread in existing_threads:

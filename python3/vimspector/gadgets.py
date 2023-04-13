@@ -463,7 +463,7 @@ GADGETS = {
     },
   },
   'vscode-node-debug2': {
-    'language': 'node_legacy',
+    'language': 'node',
     'enabled': False,
     'repo': {
       'url': 'https://github.com/microsoft/vscode-node-debug2',
