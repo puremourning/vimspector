@@ -6,40 +6,39 @@ def Priant( where, i ):
   print( f"in {where} x is {i}" )
 
 
-def First( remaining ):
-  print( f"P{remaining} starting" )
-  ctx = mp.get_context( 'fork' )
+def First( inst, remaining ):
+  print( f"I{inst}C{remaining} starting" )
   p2 = None
   if remaining > 1:
-    p2 = ctx.Process( target=First, args=( remaining - 1, ), name='SubSub' )
+    p2 = mp.Process( target=First, args=( inst, remaining - 1, ), name='SubSub' )
     p2.start()
 
   for i in range( 10 ):
-    Priant( f'First {remaining}', i )
+    Priant( f'First I{inst}C{remaining}', i )
     time.sleep( 0.1 )
 
   if p2:
     p2.join()
 
-  print( f"P{remaining} done" )
+  print( f"I{inst}C{remaining} done" )
 
 
 if __name__ == '__main__':
   # Even though this is supposedly buggy on macOS, it's required to avoid an
   # additional sub-process which makes testing awkward
-  ctx = mp.get_context( 'fork' )
   print( "main" )
-  p1 = ctx.Process( target=First, args=( 2, ), name='Sub' )
+  ps = []
+  for p in range( 5 ):
+    px = mp.Process( target=First, args=( p, 3, ), name='Sub' )
+    px.start()
 
-  p1.start()
+  print( f"Main starting with len( mp.active_children() ) active children" )
 
-  print( ctx.current_process() )
-  print( ctx.active_children() )
-
-  for i in range( 20 ):
+  for i in range( 10 ):
     Priant( 'main', i )
     time.sleep( 0.5 )
 
-  p1.join()
+  for p in ps:
+    p.join()
 
-  print( "Done" )
+  print( "MainDone" )
