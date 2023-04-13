@@ -1,0 +1,13 @@
+{
+  "configurations": {
+    "run - js-ddbug": {
+      "adapter": "js-debug",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/multi.js",
+        "cwd": "${workspaceRoot}",
+        "console": "intergaredTerminal"
+      }
+    }
+  }
+}
