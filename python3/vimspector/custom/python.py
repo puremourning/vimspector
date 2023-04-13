@@ -30,7 +30,6 @@ class Debugpy( object ):
       message,
       message[ 'arguments' ][ 'request' ],
       message[ 'arguments' ][ 'configuration' ],
-      adapter,
-      session_name = config.get( 'name' ) )
+      adapter )
     # Indicate that we have processed this request
     return True

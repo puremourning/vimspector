@@ -1931,9 +1931,10 @@ class DebugSession( object ):
                                 adapter,
                                 session_name = None ):
 
-    session = self.manager.NewSession( self._api_prefix,
-                                       session_name = session_name,
-                                       parent_session = self )
+    session = self.manager.NewSession(
+      self._api_prefix,
+      session_name = session_name or launch_arguments.get( 'name' ),
+      parent_session = self )
 
     # Inject the launch config (HACK!). This will actually mean that the
     # configuration passed below is ignored.
