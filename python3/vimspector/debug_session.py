@@ -437,12 +437,12 @@ class DebugSession( object ):
 
     try:
       variables.update(
-        utils.ParseVariables( adapter.get( 'variables', {} ),
+        utils.ParseVariables( adapter.pop( 'variables', {} ),
                               variables,
                               calculus,
                               USER_CHOICES ) )
       variables.update(
-        utils.ParseVariables( configuration.get( 'variables', {} ),
+        utils.ParseVariables( configuration.pop( 'variables', {} ),
                               variables,
                               calculus,
                               USER_CHOICES ) )
