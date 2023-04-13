@@ -485,8 +485,13 @@ class ProjectBreakpoints( object ):
       # TODO: It might be possible to re-resolve the address stored in the
       # breakpoint, though this would only work in a limited way (as load
       # addresses will frequently not be the same across runs)
-      breakpoints[ : ] = [ bp for bp in breakpoints
-                           if not bp[ 'is_instruction_breakpoint' ] ]
+      def ShouldKeep( bp ):
+        if not bp[ 'is_instruction_breakpoint' ]:
+          return True
+        if 'address' in bp and bp[ 'conn' ] != conn:
+          return True
+        return False
+      breakpoints[ : ] = [ bp for bp in breakpoints if ShouldKeep( bp ) ]
 
 
   def _CopyServerLineBreakpointProperties( self, bp, conn, server_bp ):
@@ -595,7 +600,9 @@ class ProjectBreakpoints( object ):
     }
 
     if is_instruction_breakpoint:
-      bp[ 'address' ] = self._disassembly_manager.ResolveAddressAtLine( line )
+      conn, address = self._disassembly_manager.ResolveAddressAtLine( line )
+      bp[ 'address' ] = address
+      bp[ 'conn' ] = conn
 
     if server_bp is not None:
       self._CopyServerLineBreakpointProperties( bp, conn, server_bp )
@@ -883,40 +890,43 @@ class ProjectBreakpoints( object ):
         )
 
     if self._disassembly_manager:
-      breakpoints = []
-      bp_idxs = []
-      for file_name, line_breakpoints in self._line_breakpoints.items():
-        for bp in line_breakpoints:
-          if not bp[ 'is_instruction_breakpoint' ]:
-            continue
-
-          self._SignToLine( file_name, bp )
-          bp.pop( 'server_bp', None )
-
-          if 'sign_id' in bp:
-            signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
-
-          if bp[ 'state' ] != 'ENABLED':
-            continue
-
-          if not bp[ 'line' ]:
-            continue
-
-          dap_bp = {}
-          dap_bp.update( bp[ 'options' ] )
-          dap_bp.update( {
-            'instructionReference':
-              self._disassembly_manager.GetMemoryReference(),
-            'offset':
-              self._disassembly_manager.GetOffsetForLine( bp[ 'line' ] ),
-          } )
-
-          dap_bp.pop( 'temporary', None )
-          bp_idxs.append( [ len( breakpoints ), bp ] )
-
-          breakpoints.append( dap_bp )
-
       for connection in self._connections:
+        breakpoints = []
+        bp_idxs = []
+        for file_name, line_breakpoints in self._line_breakpoints.items():
+          for bp in line_breakpoints:
+            if not bp[ 'is_instruction_breakpoint' ]:
+              continue
+
+            if 'address' in bp and bp[ 'conn' ] != connection:
+              continue
+
+            self._SignToLine( file_name, bp )
+            bp.pop( 'server_bp', None )
+
+            if 'sign_id' in bp:
+              signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
+
+            if bp[ 'state' ] != 'ENABLED':
+              continue
+
+            if not bp[ 'line' ]:
+              continue
+
+            dap_bp = {}
+            dap_bp.update( bp[ 'options' ] )
+            dap_bp.update( {
+              'instructionReference':
+                self._disassembly_manager.GetMemoryReference(),
+              'offset':
+                self._disassembly_manager.GetOffsetForLine( bp[ 'line' ] ),
+            } )
+
+            dap_bp.pop( 'temporary', None )
+            bp_idxs.append( [ len( breakpoints ), bp ] )
+
+            breakpoints.append( dap_bp )
+
         self._awaiting_bp_responses += 1
         connection.DoRequest(
           lambda msg, conn=connection, bp_idxs=bp_idxs: response_handler(
@@ -1008,13 +1018,16 @@ class ProjectBreakpoints( object ):
     # and 'server_bp' properties. Otherwise we might end up loading junk
     line = {}
     for file_name, breakpoints in self._line_breakpoints.items():
-      bps = [ dict( bp ) for bp in breakpoints ]
-      for bp in bps:
+      bps = []
+      for bp in breakpoints:
         if bp[ 'is_instruction_breakpoint' ]:
           # Don't save instruction breakpoints because the memory references
           # aren't persistent, and neither are load addresses (probably) that
           # they resolve to
           continue
+
+        bp = dict( bp )
+
         # Save the actual position not the currently stored one, in case user
         # inserted more lines. This is more what the user expects, as it's where
         # the sign is on their screen.
@@ -1022,6 +1035,7 @@ class ProjectBreakpoints( object ):
         # Don't save dynamic info like sign_id and the server's breakpoint info
         bp.pop( 'sign_id', None )
         bp.pop( 'server_bp', None )
+        bps.append( bp )
 
       if bps:
         line[ file_name ] = bps
@@ -1086,6 +1100,7 @@ class ProjectBreakpoints( object ):
     if bp[ 'is_instruction_breakpoint' ]:
       if self._disassembly_manager and 'address' in bp:
         bp[ 'line' ] = self._disassembly_manager.FindLineForAddress(
+          bp[ 'conn' ],
           bp[ 'address' ] )
       return
 

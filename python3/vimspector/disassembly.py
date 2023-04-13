@@ -203,11 +203,14 @@ class DisassemblyView( object ):
     if line_num <= 0 or line_num > self.instruction_count:
       return None
 
-    return utils.ParseAddress(
+    return self.current_connection, utils.ParseAddress(
       self.current_instructions[ line_num - 1 ][ 'address' ] )
 
-  def FindLineForAddress( self, address ):
+  def FindLineForAddress( self, conn, address ):
     if not self.current_instructions:
+      return 0
+
+    if self.current_connection != conn:
       return 0
 
     for index, instruction in enumerate( self.current_instructions ):
