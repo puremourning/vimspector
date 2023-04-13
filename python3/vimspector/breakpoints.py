@@ -209,7 +209,7 @@ class ProjectBreakpoints( object ):
 
     self._next_sign_id = 1000 * session_id + 1
     self._awaiting_bp_responses = 0
-    self._pending_send_breakpoints = None
+    self._pending_send_breakpoints = []
 
 
     self._breakpoints_view = BreakpointsView()
@@ -260,7 +260,7 @@ class ProjectBreakpoints( object ):
     if not self._connections:
       self._server_capabilities = {}
       self._awaiting_bp_responses = 0
-      self._pending_send_breakpoints = None
+      self._pending_send_breakpoints = []
       # TODO: server breakpoint data being different per-session!
       self._ClearServerBreakpointData()
 
@@ -742,7 +742,7 @@ class ProjectBreakpoints( object ):
 
   def SendBreakpoints( self, doneHandler = None ):
     if self._awaiting_bp_responses > 0:
-      self._pending_send_breakpoints = ( doneHandler, )
+      self._pending_send_breakpoints.append( ( doneHandler, ) )
       return
 
     self._awaiting_bp_responses = 0
@@ -763,8 +763,7 @@ class ProjectBreakpoints( object ):
         doneHandler()
 
       if bool( self._pending_send_breakpoints ):
-        args = self._pending_send_breakpoints
-        self._pending_send_breakpoints = None
+        args = self._pending_send_breakpoints.pop( 0 )
         self.SendBreakpoints( *args )
 
 
