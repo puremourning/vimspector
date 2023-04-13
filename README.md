@@ -59,6 +59,7 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Disassembly](#disassembly)
     * [Dump memory](#dump-memory)
     * [Stack Traces](#stack-traces)
+       * [Multiple sessions](#multiple-sessions)
     * [Program Output](#program-output)
        * [Console](#console)
        * [Console autocompletion](#console-autocompletion)
@@ -100,7 +101,7 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Example](#example)
  * [FAQ](#faq)
 
-<!-- Added by: ben, at: Fri 21 Oct 2022 22:27:24 BST -->
+<!-- Added by: ben, at: Thu 13 Apr 2023 17:03:26 BST -->
 
 <!--te-->
 
@@ -145,6 +146,7 @@ And a couple of brief demos:
 - logging/stdout display
 - simple stable API for custom tooling (e.g. integrate with language server)
 - view hex dump of process memory
+- multi-process (multi-session) debugging
 
 ## Supported languages
 
@@ -166,7 +168,8 @@ runtime dependencies). They are categorised by their level of support:
 | TCL                     | Supported    | `--all` or `--enable-tcl`           | tclpro                               | TCL 8.5                                      |
 | Bourne Shell            | Supported    | `--all` or `--enable-bash`          | vscode-bash-debug                    | Bash v??                                     |
 | Lua                     | Tested       | `--all` or `--enable-lua`           | local-lua-debugger-vscode            | Node >=12.13.0, Npm, Lua interpreter         |
-| Node.js                 | Supported    | `--force-enable-node`               | vscode-node-debug2                   | 6 < Node < 12, Npm                           |
+| Node.js                 | Supported    | `--force-enable-node`               | vscode-js-debug                      | Node                                         |
+| Node.js (legacy)        | Supported    | `--force-enable-node`               | vscode-node-debug2                   | 6 < Node < 12, Npm                           |
 | Javascript              | Supported    | `--force-enable-chrome`             | debugger-for-chrome                  | Chrome                                       |
 | Javascript              | Supported    | `--force-enable-firefox`            | vscode-firefox-debug                 | Firefox                                      |
 | Java                    | Supported    | `--force-enable-java  `             | vscode-java-debug                    | Compatible LSP plugin (see [later](#java))   |
@@ -1278,6 +1281,15 @@ be changed manually to "switch to" that thread.
 * The current frame when a breakpoint is hit or if manual jumping is also
   highlighted.
 
+### Multiple sessions
+
+If there are multiple concurrent debug sessions, such as where the debugee
+launches multiple child processes and the debug adapter supports multi-session
+debugging, then each session's threads are shown separately. The currently
+active session is the one that is highlighted as the currently active
+thread/stack frame. To switch control to a different session, focus a thread
+within that session.
+
 ![stack trace](https://puremourning.github.io/vimspector-web/img/vimspector-callstack-window.png)
 
 The stack trace is represented by the buffer `vimspector.StackTrace`.
@@ -1931,6 +1943,49 @@ php <path to script>
 ## JavaScript, TypeScript, etc.
 
 * Node.js
+
+Requires:
+
+* `install_gadget.py --force-enable-node`
+* Options described here:
+  https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md
+* Example: `support/test/node/simple`, `support/test/node/multiprocess'
+
+```json
+{
+  "configurations": {
+    "run": {
+      "adapter": "js-debug",
+      "filetypes": [ "javascript", "typescript" ], // optional
+      "configuration": {
+        "request": "launch",
+        "stopOnEntry": true,
+        "console": "integratedTerminal",
+        "program": "${workspaceRoot}/simple.js",
+        "cwd": "${workspaceRoot}",
+        "type": "pwa-node" // this is the default, but see below
+      }
+    }
+  }
+}
+```
+
+`vscode-js-debug` supports a number of different "types" and can do some stuff
+that may or may not work. The `type` field is sadly not documented, but the
+valid values are [defined here in the DebugType enum](https://github.com/microsoft/vscode-js-debug/blob/main/src/common/contributionUtils.ts#L61).
+
+Vimspector has only been tested with `pwa-node` type.
+
+Note also that for some reason this debug adapter always forces us to start
+multiple debug sessions. For a user, that shouldn't change anything (other than
+perhaps a slightly confusing stack trace). But it does make things more
+complicated and so there may be subtle bugs.
+
+* Node.js (legacy)
+
+**NOTE**: This configuration uses the *deprecated* legacy debug adapter and will
+be removed in future. Please update your configurations to use the `js-debug`
+adapter. You _may_ be able to just change the adapter name.
 
 Requires:
 

@@ -255,6 +255,8 @@ class StackTraceView( object ):
       requesting = False
       if s.requesting_threads == ThreadRequestState.PENDING:
         # We may have hit a thread event, so try again.
+        # Note that we do have to process this message though to ensure that our
+        # thread states are all correct.
         s.requesting_threads = ThreadRequestState.NO
         self.LoadThreads( s.session, *s.pending_thread_request )
         requesting = True
