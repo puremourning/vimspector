@@ -110,7 +110,8 @@ class DebugSession( object ):
                 parent_session: "DebugSession" = None ):
     self.session_id = session_id
     self.manager = session_manager
-    self.name = session_name or f'session {session_id}'
+    self.name = ( ( session_name or f'session {session_id}' )
+                  + f' ({self.session_id})' )
     self.parent_session = parent_session
     self.child_sessions = []
 
