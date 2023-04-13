@@ -317,16 +317,18 @@ class DisassemblyView( object ):
     try:
       if should_jump_to_location:
         utils.JumpToWindow( self._window )
-        utils.SetCursorPosInWindow( self._window,
-                                    self._GetPCEntryOffset() + 1,
-                                    1,
-                                    make_visible = True )
+        utils.SetCursorPosInWindow(
+          self._window,
+          self._GetPCEntryOffset() + 1,
+          1,
+          make_visible = utils.VisiblePosition.MIDDLE )
       elif should_make_visible:
         with utils.RestoreCursorPosition():
-          utils.SetCursorPosInWindow( self._window,
-                                      self._GetPCEntryOffset() + 1,
-                                      1,
-                                      make_visible = True )
+          utils.SetCursorPosInWindow(
+            self._window,
+            self._GetPCEntryOffset() + 1,
+            1,
+            make_visible = utils.VisiblePosition.MIDDLE )
     except vim.error as e:
       utils.UserMessage( f"Failed to set cursor position for disassembly: {e}",
                          error = True )

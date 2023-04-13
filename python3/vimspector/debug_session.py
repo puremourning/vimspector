@@ -2018,7 +2018,7 @@ class DebugSession( object ):
     msg = 'Paused in thread {0} due to {1}'.format(
       event.get( 'threadId', '<unknown>' ),
       explanation )
-    utils.UserMessage( msg, persist = True )
+    utils.UserMessage( msg )
 
     if self._outputView:
       self._outputView.Print( 'server', msg )

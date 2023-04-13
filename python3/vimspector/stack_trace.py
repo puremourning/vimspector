@@ -252,12 +252,13 @@ class StackTraceView( object ):
       return
 
     def consume_threads( message ):
-      requesting = False
       if s.requesting_threads == ThreadRequestState.PENDING:
         # We may have hit a thread event, so try again.
         s.requesting_threads = ThreadRequestState.NO
-        self.LoadThreads( s.session, *s.pending_thread_request )
-        requesting = True
+        r = s.pending_thread_request 
+        s.pending_thread_request = None
+        self.LoadThreads( s.session, *r )
+        return
 
       s.requesting_threads = ThreadRequestState.NO
       s.pending_thread_request = None
@@ -275,6 +276,7 @@ class StackTraceView( object ):
         allThreadsStopped = stopEvent.get( 'allThreadsStopped', False )
 
       # FIXME: This is horribly inefficient
+      requesting = False
       for t in message[ 'body' ][ 'threads' ]:
         thread = None
         for existing_thread in existing_threads:
@@ -364,13 +366,18 @@ class StackTraceView( object ):
               f'({thread.State()})' )
 
             if self._current_session == s and self._current_thread == thread.id:
-              # TODO - Scroll the window such that this line is visible (e.g. at
-              # the top)
               signs.PlaceSign( self._current_thread_sign_id,
                                'VimspectorStackTrace',
                                'vimspectorCurrentThread',
                                self._buf.name,
                                line )
+
+              for win in utils.AllWindowsForBuffer( self._buf ):
+                utils.SetCursorPosInWindow(
+                  win,
+                  line,
+                  make_visible =
+                  utils.VisiblePosition.TOP )
 
             self._line_to_thread[ line ] = thread
             self._DrawStackTrace( thread )

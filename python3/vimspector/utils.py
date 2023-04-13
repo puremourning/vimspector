@@ -96,12 +96,15 @@ def NewEmptyBuffer():
   return vim.buffers[ bufnr ]
 
 
-def WindowForBuffer( buf ):
+def AllWindowsForBuffer( buf ):
   for w in vim.current.tabpage.windows:
     if w.buffer == buf:
-      return w
+      yield w
 
-  return None
+
+def WindowForBuffer( buf ):
+  i = AllWindowsForBuffer( buf )
+  return next( i, None )
 
 
 def OpenFileInCurrentWindow( file_name ):
@@ -919,15 +922,24 @@ def VimHasMouseSupport():
   return b'a' in mouse or b'n' in mouse
 
 
+class VisiblePosition:
+  UNCHANGED = None
+  TOP = 'zt'
+  BOTTOM = 'zb'
+  MIDDLE = 'zz'
+
 # Jump to a specific 1-based line/column
-def SetCursorPosInWindow( window, line, column = 1, make_visible = False ):
+def SetCursorPosInWindow( window,
+                          line,
+                          column = 1,
+                          make_visible = VisiblePosition.UNCHANGED ):
   # simplify the interface and make column 1 based, same as line
   column = max( 1, column )
   # ofc column is actually 0 based in vim
   window.cursor = ( line, column - 1 )
 
   if make_visible:
-    Call( 'win_execute', WindowID( window ), 'normal zz' )
+    Call( 'win_execute', WindowID( window ), f'normal! { make_visible }' )
 
 
 def NormalizePath( filepath ):
