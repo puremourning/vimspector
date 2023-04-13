@@ -928,6 +928,7 @@ class VisiblePosition:
   BOTTOM = 'zb'
   MIDDLE = 'zz'
 
+
 # Jump to a specific 1-based line/column
 def SetCursorPosInWindow( window,
                           line,

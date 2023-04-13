@@ -39,11 +39,13 @@ function! Test_Python_MultiProcessing()
   call WaitForAssert( {->
         \   AssertMatchList(
         \     [
-        \         '--- session [0-9]\+',
+        \         '---',
+        \         'Session: run-to-breakpoint ([0-9]\+)',
         \         '- Thread [0-9]\+: MainThread (paused)',
         \         '  [0-9]\+: Priant@multiprocessing_test.py:6',
         \         '  [0-9]\+: <module>@multiprocessing_test.py:28',
-        \         '--- Subprocess [0-9]\+',
+        \         '---',
+        \         'Session: Subprocess [0-9]\+ ([0-9]\+)',
         \         '- Thread [0-9]\+: MainThread (paused)',
         \         '  [0-9]\+: Priant@multiprocessing_test.py:6',
         \         '  [0-9]\+: First@multiprocessing_test.py:11',
@@ -59,13 +61,13 @@ function! Test_Python_MultiProcessing()
   call WaitForAssert( { ->
         \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
           \ 'VimspectorStackTrace',
-          \ 6,
+          \ 8,
           \ 'vimspectorCurrentThread',
           \ 200 ) } )
   call WaitForAssert( { ->
         \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
           \ 'VimspectorStackTrace',
-          \ 7,
+          \ 9,
           \ 'vimspectorCurrentFrame',
           \ 200 ) } )
   wincmd w
@@ -77,11 +79,13 @@ function! Test_Python_MultiProcessing()
   call WaitForAssert( {->
         \   AssertMatchList(
         \     [
-        \         '--- session [0-9]\+',
+        \         '---',
+        \         'Session: run-to-breakpoint ([0-9]\+)',
         \         '- Thread [0-9]\+: MainThread (paused)',
         \         '  [0-9]\+: Priant@multiprocessing_test.py:6',
         \         '  [0-9]\+: <module>@multiprocessing_test.py:28',
-        \         '--- Subprocess [0-9]\+',
+        \         '---',
+        \         'Session: Subprocess [0-9]\+ ([0-9]\+)',
         \         '- Thread [0-9]\+: MainThread (paused)',
         \         '  [0-9]\+: First@multiprocessing_test.py:12',
         \         '  [0-9]\+: <module>@multiprocessing_test.py:22',
@@ -96,13 +100,13 @@ function! Test_Python_MultiProcessing()
   call WaitForAssert( { ->
         \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
           \ 'VimspectorStackTrace',
-          \ 6,
+          \ 8,
           \ 'vimspectorCurrentThread',
           \ 200 ) } )
   call WaitForAssert( { ->
         \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
           \ 'VimspectorStackTrace',
-          \ 7,
+          \ 9,
           \ 'vimspectorCurrentFrame',
           \ 200 ) } )
   wincmd w
@@ -122,7 +126,7 @@ function! Test_Python_MultiProcessing()
 
   " Switch to 1st process, check signs
   call win_gotoid( g:vimspector_session_windows.stack_trace )
-  call cursor( 3, 1 )
+  call cursor( 4, 1 )
   call vimspector#GoToFrame()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 6, 1 )
   call WaitForAssert( { ->
@@ -142,13 +146,13 @@ function! Test_Python_MultiProcessing()
   call WaitForAssert( { ->
         \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
           \ 'VimspectorStackTrace',
-          \ 2,
+          \ 3,
           \ 'vimspectorCurrentThread',
           \ 200 ) } )
   call WaitForAssert( { ->
         \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
           \ 'VimspectorStackTrace',
-          \ 3,
+          \ 4,
           \ 'vimspectorCurrentFrame',
           \ 200 ) } )
   wincmd w

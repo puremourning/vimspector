@@ -255,7 +255,7 @@ class StackTraceView( object ):
       if s.requesting_threads == ThreadRequestState.PENDING:
         # We may have hit a thread event, so try again.
         s.requesting_threads = ThreadRequestState.NO
-        r = s.pending_thread_request 
+        r = s.pending_thread_request
         s.pending_thread_request = None
         self.LoadThreads( s.session, *r )
         return
@@ -356,7 +356,8 @@ class StackTraceView( object ):
         for s in self._sessions:
           if len( self._sessions ) > 1:
             line = utils.AppendToBuffer( self._buf,
-                                         f'--- { s.session.name }' )
+                                         [ '---',
+                                           f'Session: { s.session.Name() }' ] )
 
           for thread in s.threads:
             icon = '+' if not thread.IsExpanded() else '-'

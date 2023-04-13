@@ -102,6 +102,7 @@ class DebugSession( object ):
       return wrapper
     return decorator
 
+
   def __init__( self,
                 session_id,
                 session_manager,
@@ -110,8 +111,7 @@ class DebugSession( object ):
                 parent_session: "DebugSession" = None ):
     self.session_id = session_id
     self.manager = session_manager
-    self.name = ( ( session_name or f'session {session_id}' )
-                  + f' ({self.session_id})' )
+    self.name = session_name
     self.parent_session = parent_session
     self.child_sessions = []
 
@@ -209,6 +209,11 @@ class DebugSession( object ):
     return launch_config_file, filetype_configurations, configurations
 
 
+  def Name( self ):
+    name = self.name if self.name else "<Unnamed>"
+    return f'{name} ({self.session_id})'
+
+
   @ParentOnly()
   def Start( self,
              force_choose = False,
@@ -276,6 +281,9 @@ class DebugSession( object ):
 
     if not configuration_name or configuration_name not in configurations:
       return
+
+    if self.name is None:
+      self.name = configuration_name
 
     if launch_config_file:
       self._workspace_root = os.path.dirname( launch_config_file )
@@ -1318,7 +1326,7 @@ class DebugSession( object ):
     self._splash_screen = utils.DisplaySplash(
       self._api_prefix,
       self._splash_screen,
-      f"Starting debug adapter for session {self.name}..." )
+      f"Starting debug adapter for session {self.Name()}..." )
 
     if self._connection:
       utils.UserMessage( 'The connection is already created. Please try again',
@@ -1436,7 +1444,7 @@ class DebugSession( object ):
       self._splash_screen = utils.DisplaySplash(
         self._api_prefix,
         self._splash_screen,
-        f"Shutting down debug adapter for session {self.name}..." )
+        f"Shutting down debug adapter for session {self.Name()}..." )
 
       def handler( *args ):
         self._splash_screen = utils.HideSplash( self._api_prefix,
@@ -1652,7 +1660,7 @@ class DebugSession( object ):
     self._splash_screen = utils.DisplaySplash(
       self._api_prefix,
       self._splash_screen,
-      f"Initializing debug session {self.name}..." )
+      f"Initializing debug session {self.Name()}..." )
 
     # For a good explanation as to why this sequence is the way it is, see
     # https://github.com/microsoft/vscode/issues/4902#issuecomment-368583522
@@ -1724,14 +1732,14 @@ class DebugSession( object ):
       self._splash_screen = utils.DisplaySplash(
         self._api_prefix,
         self._splash_screen,
-        f"Attaching to debuggee (self.name)..." )
+        f"Attaching to debuggee {self.Name()}..." )
 
       self._PrepareAttach( self._adapter, self._launch_config )
     elif request == "launch":
       self._splash_screen = utils.DisplaySplash(
         self._api_prefix,
         self._splash_screen,
-        f"Launching debuggee (self.name)..." )
+        f"Launching debuggee {self.Name()}..." )
 
       # FIXME: This cmdLine hack is not fun.
       self._PrepareLaunch( self._configuration.get( 'remote-cmdLine', [] ),
@@ -1747,7 +1755,7 @@ class DebugSession( object ):
   def _Launch( self ):
     def failure_handler( reason, msg ):
       text = [
-        f'Initialize for session {self.name} Failed',
+        f'Initialize for session {self.Name()} Failed',
         '' ] + reason.splitlines() + [
         '', 'Use :VimspectorReset to close' ]
       self._logger.info( "Launch failed: %s", '\n'.join( text ) )
