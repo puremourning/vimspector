@@ -485,12 +485,15 @@ class ProjectBreakpoints( object ):
       # TODO: It might be possible to re-resolve the address stored in the
       # breakpoint, though this would only work in a limited way (as load
       # addresses will frequently not be the same across runs)
+
+
       def ShouldKeep( bp ):
         if not bp[ 'is_instruction_breakpoint' ]:
           return True
         if 'address' in bp and bp[ 'conn' ] != conn:
           return True
         return False
+
       breakpoints[ : ] = [ bp for bp in breakpoints if ShouldKeep( bp ) ]
 
 
