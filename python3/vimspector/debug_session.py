@@ -996,17 +996,14 @@ class DebugSession( object ):
   def CleanUpTooltip( self ):
     return self._variablesView.CleanUpTooltip()
 
-  @CurrentSession()
   @IfConnected()
   def ExpandFrameOrThread( self ):
     self._stackTraceView.ExpandFrameOrThread()
 
-  @CurrentSession()
   @IfConnected()
   def UpFrame( self ):
     self._stackTraceView.UpFrame()
 
-  @CurrentSession()
   @IfConnected()
   def DownFrame( self ):
     self._stackTraceView.DownFrame()

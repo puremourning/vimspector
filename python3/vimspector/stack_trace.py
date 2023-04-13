@@ -95,10 +95,12 @@ class Session( object ):
   session: "DebugSession"
   requesting_threads = ThreadRequestState.NO
   pending_thread_request = None
+  sources: dict
 
   def __init__( self, session: "DebugSession" ):
     self.session = session
     self.threads = []
+    self.sources = {}
 
 
 class StackTraceView( object ):
@@ -120,7 +122,6 @@ class StackTraceView( object ):
     self._current_frame = None
     self._current_syntax = ""
 
-    self._sources = {}
     self._scratch_buffers = []
 
     # FIXME: This ID is by group, so should be module scope
@@ -188,7 +189,6 @@ class StackTraceView( object ):
 
   def Clear( self ):
     self._sessions.clear()
-    self._sources = {}
 
     self._current_session = None
     self._current_frame = None
@@ -375,8 +375,7 @@ class StackTraceView( object ):
                 utils.SetCursorPosInWindow(
                   win,
                   line,
-                  make_visible =
-                  utils.VisiblePosition.TOP )
+                  make_visible = utils.VisiblePosition.TOP )
 
             self._line_to_thread[ line ] = thread
             self._DrawStackTrace( thread )
@@ -511,9 +510,8 @@ class StackTraceView( object ):
   def _JumpToFrame( self, thread: Thread, frame, reason = '' ):
     def do_jump():
       if 'line' in frame and frame[ 'line' ] > 0:
-        # Should this set the current _Thread_ too ? If i jump to a frame in
-        # Thread 2, should that become the focussed thread ?
         self._current_session = thread.session
+        self._current_thread = thread.id
         self._current_frame = frame
         self._DrawThreads()
         return thread.session.session.SetCurrentFrame( self._current_frame,
@@ -701,15 +699,16 @@ class StackTraceView( object ):
   def _ResolveSource( self, thread: Thread, source, and_then ):
     source_reference = int( source[ 'sourceReference' ] )
     try:
-      and_then( self._sources[ source_reference ] )
+      and_then( thread.session.sources[ source_reference ] )
     except KeyError:
       # We must retrieve the source contents from the server
       self._logger.debug( "Requesting source: %s", source )
 
       def consume_source( msg ):
-        self._sources[ source_reference ] = source
+        thread.session.sources[ source_reference ] = source
 
         buf_name = os.path.join( '_vimspector_tmp',
+                                 str( thread.session.session.session_id ),
                                  source.get( 'path', source[ 'name' ] ) )
 
         self._logger.debug( "Received source %s: %s", buf_name, msg )
@@ -724,7 +723,7 @@ class StackTraceView( object ):
         with utils.ModifiableScratchBuffer( buf ):
           utils.SetBufferContents( buf, msg[ 'body' ][ 'content' ] )
 
-        and_then( self._sources[ source_reference ] )
+        and_then( thread.session.sources[ source_reference ] )
 
       thread.session.session.Connection().DoRequest( consume_source, {
         'command': 'source',
