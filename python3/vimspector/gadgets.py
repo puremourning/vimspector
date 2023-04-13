@@ -451,8 +451,10 @@ GADGETS = {
           'node',
           '${gadgetDir}/vscode-js-debug/js-debug/src/dapDebugServer.js',
           '${port}',
+          '127.0.0.1'
         ],
         'port': '${port}',
+        'host': '127.0.0.1',
         'configuration': {
           'type': 'pwa-node',
           'console': 'integratedTerminal'
