@@ -256,13 +256,13 @@ class ProjectBreakpoints( object ):
 
   def ConnectionClosed( self, connection ):
     self.RemoveConnection( connection )
+    self._ClearServerBreakpointData( connection )
 
     if not self._connections:
       self._server_capabilities = {}
       self._awaiting_bp_responses = 0
       self._pending_send_breakpoints = []
       # TODO: server breakpoint data being different per-session!
-      self._ClearServerBreakpointData()
 
     # NOTE: we don't reset self._exception_breakpoints because we don't want to
     # re-ask the user every time for the sane info.
@@ -363,14 +363,14 @@ class ProjectBreakpoints( object ):
         line = bp[ 'line' ]
 
         if 'server_bp' in bp:
-          server_bp = bp[ 'server_bp' ]
-          line = server_bp.get( 'line', line )
-          if server_bp[ 'verified' ]:
-            state = 'VERIFIED'
-            valid = 1
-          else:
-            state = 'PENDING'
-            valid = 0
+          state = 'PENDING'
+          valid = 0
+          for conn, server_bp in bp[ 'server_bp' ].items():
+            if server_bp[ 'verified' ]:
+              line = server_bp.get( 'line', line )
+              state = 'VERIFIED'
+              valid = 1
+              break
         else:
           state = bp[ 'state' ]
           valid = 1
@@ -439,31 +439,32 @@ class ProjectBreakpoints( object ):
       # user-bp position, as that's what the user sees in the UI (signs, and in
       # the breakpoints window)
       if 'server_bp' in bp:
-        if bp[ 'server_bp' ].get( 'line', bp[ 'line' ] ) == line:
-          return bp, index
+        for conn, server_bp in bp[ 'server_bp' ].items():
+          if server_bp.get( 'line', bp[ 'line' ] ) == line:
+            return bp, index
       elif bp[ 'line' ] == line:
         return bp, index
 
     return None, None
 
 
-  def _FindPostedBreakpoint( self, breakpoint_id ):
+  def _FindPostedBreakpoint( self, conn, breakpoint_id ):
     if breakpoint_id is None:
       return None
 
     for filepath, breakpoint_list in self._line_breakpoints.items():
       for index, bp in enumerate( breakpoint_list ):
-        server_bp = bp.get( 'server_bp', {} )
+        server_bp = bp.get( 'server_bp', {} ).get( conn, {} )
         if 'id' in server_bp and server_bp[ 'id' ] == breakpoint_id:
           return bp
 
     return None
 
 
-  def _ClearServerBreakpointData( self ):
+  def _ClearServerBreakpointData( self, conn ):
     for _, breakpoints in self._line_breakpoints.items():
       for bp in breakpoints:
-        if 'server_bp' in bp:
+        if 'server_bp' in bp and conn in bp[ 'server_bp' ]:
           # Unplace the sign. If the sign was moved by the server, then we don't
           # want a subsequent call to _SignToLine to override the user's
           # breakpoint location with the server one. This is not what users
@@ -473,7 +474,10 @@ class ProjectBreakpoints( object ):
             signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
             del bp[ 'sign_id' ]
 
-          del bp[ 'server_bp' ]
+          del bp[ 'server_bp' ][ conn ]
+          if not bp[ 'server_bp' ]:
+            del bp[ 'server_bp' ]
+
 
       # Clear all instruction breakpoints because they aren't truly portable
       # across sessions.
@@ -485,17 +489,18 @@ class ProjectBreakpoints( object ):
                            if not bp[ 'is_instruction_breakpoint' ] ]
 
 
-  def _CopyServerLineBreakpointProperties( self, bp, server_bp ):
+  def _CopyServerLineBreakpointProperties( self, bp, conn, server_bp ):
     # TODO: Store 'server_bp' as a map from connection (or session_id?) to the
     # actual data
     if bp[ 'is_instruction_breakpoint' ]:
       # For some reason, MIEngine returns random 'line' values for instruction
       # brakpoints
       server_bp.pop( 'line', None )
-    bp[ 'server_bp' ] = server_bp
+    bp.setdefault( 'server_bp', {} )[ conn ] = server_bp
 
-  def UpdatePostedBreakpoint( self, server_bp ):
-    bp = self._FindPostedBreakpoint( server_bp.get( 'id' ) )
+
+  def UpdatePostedBreakpoint( self, conn, server_bp ):
+    bp = self._FindPostedBreakpoint( conn, server_bp.get( 'id' ) )
     if bp is None:
       self._logger.warn( "Unexpected update to breakpoint with id %s:"
                          "breakpiont not found. %s",
@@ -504,12 +509,12 @@ class ProjectBreakpoints( object ):
       # FIXME ? self.AddPostedBreakpoint( server_bp )
       return
 
-    self._CopyServerLineBreakpointProperties( bp, server_bp )
+    self._CopyServerLineBreakpointProperties( bp, conn, server_bp )
     # Render the breakpoitns, but don't send any updates, as this leads to a
     # feedback loop
     self._render_subject.emit()
 
-  def AddPostedBreakpoint( self, server_bp ):
+  def AddPostedBreakpoint( self, conn, server_bp ):
     source = server_bp.get( 'source' )
     if not source or 'path' not in source:
       self._logger.warn( 'missing source/path in server breakpoint {0}'.format(
@@ -530,24 +535,28 @@ class ProjectBreakpoints( object ):
       self._PutLineBreakpoint( source[ 'path' ],
                                server_bp[ 'line' ],
                                {},
-                               server_bp )
+                               connection = conn,
+                               server_bp = server_bp )
     else:
       # This probably should not happen, but update the existing breakpoint that
       # happens to be on this line
-      self._CopyServerLineBreakpointProperties( existing_bp, server_bp )
+      self._CopyServerLineBreakpointProperties( existing_bp, conn, server_bp )
 
     # Render the breakpoitns, but don't send any updates, as this leads to a
     # feedback loop
     self._render_subject.emit()
 
 
-  def DeletePostedBreakpoint( self, server_bp ):
-    bp = self._FindPostedBreakpoint( server_bp.get( 'id' ) )
+  def DeletePostedBreakpoint( self, conn, server_bp ):
+    bp = self._FindPostedBreakpoint( conn, server_bp.get( 'id' ) )
 
     if bp is None:
       return
 
-    del bp[ 'server_bp' ]
+    del bp[ 'server_bp' ][ conn ]
+    if not bp[ 'server_bp' ]:
+      del bp[ 'server_bp' ]
+
     # Render the breakpoitns, but don't send any updates, as this leads to a
     # feedback loop
     self._render_subject.emit()
@@ -556,7 +565,12 @@ class ProjectBreakpoints( object ):
   def IsBreakpointPresentAt( self, file_path, line ):
     return self._FindLineBreakpoint( file_path, line )[ 0 ] is not None
 
-  def _PutLineBreakpoint( self, file_name, line, options, server_bp = None ):
+  def _PutLineBreakpoint( self,
+                          file_name,
+                          line,
+                          options,
+                          connection = None,
+                          server_bp = None ):
     is_instruction_breakpoint = ( self._disassembly_manager and
                                   self._disassembly_manager.IsDisassemblyBuffer(
                                     file_name ) )
@@ -584,7 +598,7 @@ class ProjectBreakpoints( object ):
       bp[ 'address' ] = self._disassembly_manager.ResolveAddressAtLine( line )
 
     if server_bp is not None:
-      self._CopyServerLineBreakpointProperties( bp, server_bp )
+      self._CopyServerLineBreakpointProperties( bp, conn, server_bp )
 
     self._line_breakpoints[ path ].append( bp )
 
@@ -670,7 +684,7 @@ class ProjectBreakpoints( object ):
       self._DeleteLineBreakpoint( *entry )
 
 
-  def _UpdateServerBreakpoints( self, breakpoints, bp_idxs ):
+  def _UpdateServerBreakpoints( self, conn, breakpoints, bp_idxs ):
     # TODO: Accept the connection here and pass to
     # _CopyServerLineBreakpointProperties
     for bp_idx, user_bp in bp_idxs:
@@ -682,7 +696,7 @@ class ProjectBreakpoints( object ):
         continue
 
       server_bp = breakpoints[ bp_idx ]
-      self._CopyServerLineBreakpointProperties( user_bp, server_bp )
+      self._CopyServerLineBreakpointProperties( user_bp, conn, server_bp )
 
       # TODO: Change temporary to be a ref to the actual connection that it's
       # temporary in (i.e. the "current" session when RunToCursor is done) and
@@ -767,9 +781,9 @@ class ProjectBreakpoints( object ):
         self.SendBreakpoints( *args )
 
 
-    def response_handler( msg, bp_idxs = [] ):
+    def response_handler( conn, msg, bp_idxs = [] ):
       server_bps = ( msg.get( 'body' ) or {} ).get( 'breakpoints' ) or []
-      self._UpdateServerBreakpoints( server_bps, bp_idxs )
+      self._UpdateServerBreakpoints( conn, server_bps, bp_idxs )
       response_received()
 
     # NOTE: Must do this _first_ otherwise we might send requests and get
@@ -818,7 +832,10 @@ class ProjectBreakpoints( object ):
           # The source=source here is critical to ensure that we capture each
           # source in the iteration, rather than ending up passing the same
           # source to each callback.
-          lambda msg, bp_idxs=bp_idxs: response_handler( msg, bp_idxs ),
+          lambda msg, conn=connection, bp_idxs=bp_idxs: response_handler(
+            conn,
+            msg,
+            bp_idxs ),
           {
             'command': 'setBreakpoints',
             'arguments': {
@@ -855,7 +872,7 @@ class ProjectBreakpoints( object ):
       for connection in self._connections:
         self._awaiting_bp_responses += 1
         connection.DoRequest(
-          lambda msg: response_handler( msg ),
+          lambda msg, conn=connection: response_handler( conn, msg ),
           {
             'command': 'setFunctionBreakpoints',
             'arguments': {
@@ -902,7 +919,10 @@ class ProjectBreakpoints( object ):
       for connection in self._connections:
         self._awaiting_bp_responses += 1
         connection.DoRequest(
-          lambda msg, bp_idxs=bp_idxs: response_handler( msg, bp_idxs ),
+          lambda msg, conn=connection, bp_idxs=bp_idxs: response_handler(
+            conn,
+            msg,
+            bp_idxs ),
           {
             'command': 'setInstructionBreakpoints',
             'arguments': {
@@ -1034,9 +1054,12 @@ class ProjectBreakpoints( object ):
 
         line = bp[ 'line' ]
         if 'server_bp' in bp:
-          server_bp = bp[ 'server_bp' ]
-          line = server_bp.get( 'line', line )
-          verified = server_bp[ 'verified' ]
+          verified = False
+          for conn, server_bp in bp[ 'server_bp' ].items():
+            if server_bp[ 'verified' ]:
+              line = server_bp.get( 'line', line )
+              verified = True
+              break
         else:
           verified = len( self._connections ) == 0
 

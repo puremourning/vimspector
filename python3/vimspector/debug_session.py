@@ -1880,11 +1880,11 @@ class DebugSession( object ):
     reason = message[ 'body' ][ 'reason' ]
     bp = message[ 'body' ][ 'breakpoint' ]
     if reason == 'changed':
-      self._breakpoints.UpdatePostedBreakpoint( bp )
+      self._breakpoints.UpdatePostedBreakpoint( self._connection, bp )
     elif reason == 'new':
-      self._breakpoints.AddPostedBreakpoint( bp )
+      self._breakpoints.AddPostedBreakpoint( self._connection, bp )
     elif reason == 'removed':
-      self._breakpoints.DeletePostedBreakpoint( bp )
+      self._breakpoints.DeletePostedBreakpoint( self._connection, bp )
     else:
       utils.UserMessage(
         'Unrecognised breakpoint event (undocumented): {0}'.format( reason ),
