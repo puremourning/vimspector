@@ -670,18 +670,8 @@ class StackTraceView( object ):
                          self._buf.name,
                          line )
       elif not set_top_of_stack:
-        if ( 'source' in frame and
-             'path' in frame[ 'source' ] and
-             utils.BufferExists( frame[ 'source' ][ 'path' ] ) ):
+        if 'source' in frame and 'path' in frame[ 'source' ]:
           set_top_of_stack = True
-          sign_id = len( self._top_of_stack_signs ) + 100
-          self._top_of_stack_signs.append( sign_id )
-          signs.PlaceSign( sign_id,
-                           'VimspectorStackTrace',
-                           'vimspectorNonActivePC',
-                           frame[ 'source' ][ 'path' ],
-                           frame[ 'line' ] )
-
           sign_id = len( self._top_of_stack_signs ) + 100
           self._top_of_stack_signs.append( sign_id )
           signs.PlaceSign( sign_id,
@@ -689,6 +679,15 @@ class StackTraceView( object ):
                            'vimspectorNonActivePC',
                            self._buf.name,
                            line )
+
+          if utils.BufferExists( frame[ 'source' ][ 'path' ] ):
+            sign_id = len( self._top_of_stack_signs ) + 100
+            self._top_of_stack_signs.append( sign_id )
+            signs.PlaceSign( sign_id,
+                             'VimspectorStackTrace',
+                             'vimspectorNonActivePC',
+                             frame[ 'source' ][ 'path' ],
+                             frame[ 'line' ] )
 
 
       self._line_to_frame[ line ] = ( thread, frame )
