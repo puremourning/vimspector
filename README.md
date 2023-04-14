@@ -2255,6 +2255,7 @@ define them in your `vimrc`.
 | `vimspectorBPDisabled`    | Disabled breakpoint                     | 9        |
 | `vimspectorPC`            | Program counter (i.e. current line)     | 200      |
 | `vimspectorPCBP`          | Program counter and breakpoint          | 200      |
+| `vimspectorNonActivePC``  | Program counter for non-focused thread  | 9        |
 | `vimspectorCurrentThread` | Focussed thread in stack trace view     | 200      |
 | `vimspectorCurrentFrame`  | Current stack frame in stack trace view | 200      |
 
@@ -2267,6 +2268,7 @@ sign define vimspectorBPLog         text=\ ◆ texthl=SpellRare
 sign define vimspectorBPDisabled    text=\ ● texthl=LineNr
 sign define vimspectorPC            text=\ ▶ texthl=MatchParen linehl=CursorLine
 sign define vimspectorPCBP          text=●▶  texthl=MatchParen linehl=CursorLine
+sign define vimspectorNonActivePC   linehl=DiffAdd
 sign define vimspectorCurrentThread text=▶   texthl=MatchParen linehl=CursorLine
 sign define vimspectorCurrentFrame  text=▶   texthl=Special    linehl=CursorLine
 ```
@@ -2305,11 +2307,13 @@ For example:
 
 ```viml
 let g:vimspector_sign_priority = {
-  \    'vimspectorBP':         3,
-  \    'vimspectorBPCond':     2,
-  \    'vimspectorBPLog':      2,
-  \    'vimspectorBPDisabled': 1,
-  \    'vimspectorPC':         999,
+  \    'vimspectorBP':          3,
+  \    'vimspectorBPCond':      3,
+  \    'vimspectorBPLog':       3,
+  \    'vimspectorBPDisabled':  3,
+  \    'vimspectorNonActivePC': 3,
+  \    'vimspectorPC':          999,
+  \    'vimspectorPCBP':        999,
   \ }
 ```
 
@@ -2318,6 +2322,19 @@ All keys are optional. If a sign is not customised, the default priority it used
 
 See `:help sign-priority`. The default priority is 10, larger numbers override
 smaller ones.
+
+***NOTE***: The default `vimspectorNonActivePC` sign does not add any text to
+the sign column, it simply adds a line highlight so that you can see the lines
+where other threads or processes are currently stopped. As a result this sign
+normally should _merge_ with any sign that adds a symbol (such as a breakpoint
+sign).  Vim will only merge the properties of signs with the same priority, so
+if changing the default priorities, it's recommended that:
+
+1. All the breakpoint signs (`vimspectorBP`, `vimspectorBPCond`, etc.) have the
+   same priority.
+2. You also set the `vimspectorNonActivePC` sign that same priority
+3. Active PC ( `vimspectorPC`, `vimspectorPCBP`, etc.) have a higher priority.
+
 
 ## Changing the default window sizes
 
