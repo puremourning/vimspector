@@ -105,9 +105,11 @@ function! vimspector#internal#popup#Confirm(
       \ default_value,
       \ keys ) abort
 
-  silent! call prop_type_add( 'VimspectorSelectedItem', {
-        \ 'highlight': 'PMenuSel'
-        \ } )
+  if empty( prop_type_get( 'VimspectorSelectedItem' )  )
+    call prop_type_add( 'VimspectorSelectedItem', {
+          \ 'highlight': 'PMenuSel'
+          \ } )
+  endif
 
   let lines = split( a:text, "\n", v:true )
   let buf = []

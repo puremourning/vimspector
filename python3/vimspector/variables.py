@@ -21,6 +21,7 @@ import typing
 
 from vimspector import utils, settings
 from vimspector.debug_adapter_connection import DebugAdapterConnection
+from vimspector.utils import PRESENTATION_HINT_HL
 
 
 class Expandable:
@@ -693,6 +694,9 @@ class VariablesView( object ):
       name = variable.variable.get( 'name', '' )
       kind = variable.variable.get( 'type', '' )
       value = variable.variable.get( 'value', '<unknown>' )
+      hl = PRESENTATION_HINT_HL.get(
+        variable.variable.get( 'presentationHint', {} ).get( 'kind' ) )
+
 
       # FIXME: If 'value' is multi-line, somehow turn it into an expandable item
       # where the expansion is done "internally", resolving to the multi-line
@@ -713,7 +717,8 @@ class VariablesView( object ):
 
       line = utils.AppendToBuffer(
         view.buf,
-        text.split( '\n' )
+        text.split( '\n' ),
+        hl = hl
       )
 
       view.lines[ line ] = variable
@@ -743,22 +748,25 @@ class VariablesView( object ):
     with utils.RestoreCursorPosition():
       with utils.ModifiableScratchBuffer( self._watch.buf ):
         utils.ClearBuffer( self._watch.buf )
-        utils.AppendToBuffer( self._watch.buf, 'Watches: ----' )
+        utils.AppendToBuffer( self._watch.buf, 'Watches: ----', hl = 'Title' )
         for watch in self._watches:
           line = utils.AppendToBuffer( self._watch.buf,
                                        'Expression: '
-                                       + watch.expression[ 'expression' ] )
+                                       + watch.expression[ 'expression' ],
+                                       hl = 'Title' )
           watch.line = line
           self._DrawWatchResult( self._watch, 2, watch )
 
   def _DrawScope( self, indent, scope ):
     icon = '+' if scope.IsExpandable() and not scope.IsExpanded() else '-'
 
+    hl = PRESENTATION_HINT_HL.get( scope.scope.get( 'presentationHint' ) )
     line = utils.AppendToBuffer( self._vars.buf,
                                  '{0}{1} Scope: {2}'.format(
                                    ' ' * indent,
                                    icon,
-                                   scope.scope[ 'name' ] ) )
+                                   scope.scope[ 'name' ] ),
+                                 hl = hl )
     self._vars.lines[ line ] = scope
 
     if scope.ShouldDrawDrillDown():

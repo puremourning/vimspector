@@ -38,6 +38,28 @@ _log_handler.setFormatter(
                      '%(context)s - %(message)s' ) )
 
 
+PRESENTATION_HINT_HL = {
+  # Source.presentationHint
+  'emphasize': 'Title',
+  'deemphasize': 'Conceal',
+
+  # StackFrame.presentationHint
+  'label': 'NonText',
+  'subtle': 'Conceal',
+
+  # Scope.presentationHint
+  'arguments': 'Title',
+  'locals': 'Title',
+  'registers': 'Title',
+
+  # VariablePresentaionHint.kind
+  'property': 'Identifier',
+  'method': 'Function',
+  'class': 'Type',
+  'data': 'String',
+}
+
+
 class ContextLogFilter( logging.Filter ):
   context: str
 
@@ -477,7 +499,10 @@ def Confirm( api_prefix,
         keys )
 
 
-def AppendToBuffer( buf, line_or_lines, modified=False ):
+def AppendToBuffer( buf,
+                    line_or_lines,
+                    modified=False,
+                    hl = None ):
   line = 1
   try:
     # After clearing the buffer (using buf[:] = None) there is always a single
@@ -485,6 +510,7 @@ def AppendToBuffer( buf, line_or_lines, modified=False ):
     if len( buf ) > 1 or buf[ 0 ]:
       line = len( buf ) + 1
       buf.append( line_or_lines )
+
     elif isinstance( line_or_lines, str ):
       line = 1
       buf[ -1 ] = line_or_lines
@@ -500,12 +526,35 @@ def AppendToBuffer( buf, line_or_lines, modified=False ):
     if not modified:
       buf.options[ 'modified' ] = False
 
+  if hl and Exists( '*prop_add' ):
+    text_property_type = f'vimspector-p-{hl}'
+    if int( vim.eval( f'empty( prop_type_get( "{text_property_type}" ) )' ) ):
+      Call( 'prop_type_add', text_property_type, {
+        'highlight': hl,
+        'start_incl': 0,
+        'end_incl': 0,
+        'priority': 10,
+        'combine': 1
+      } )
+
+    Call( 'prop_add', line, 1, {
+      'bufnr': buf.number,
+      'type': text_property_type,
+      'end_lnum': len( buf ),
+      'end_col': len( buf[ -1 ] ) + 1
+    } )
+
+
   # Return the first Vim line number (1-based) that we just set.
   return line
 
 
+def ClearTextPropertiesForBuffer( buf ):
+  Call( 'prop_clear', 1, len( buf ), { 'bufnr': buf.number } )
+
 
 def ClearBuffer( buf, modified = False ):
+  ClearTextPropertiesForBuffer( buf )
   buf[ : ] = None
   if not modified:
     buf.options[ 'modified' ] = False

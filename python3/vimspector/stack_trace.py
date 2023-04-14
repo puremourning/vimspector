@@ -19,6 +19,7 @@ import logging
 import typing
 
 from vimspector import utils, signs, settings
+from vimspector.utils import PRESENTATION_HINT_HL
 
 # Because flake8 wants this to be defined, but it's a circular import, so we
 # can't do it in proper code;
@@ -357,14 +358,16 @@ class StackTraceView( object ):
           if len( self._sessions ) > 1:
             line = utils.AppendToBuffer( self._buf,
                                          [ '---',
-                                           f'Session: { s.session.Name() }' ] )
+                                           f'Session: { s.session.Name() }' ],
+                                         hl = 'CursorLineNr' )
 
           for thread in s.threads:
             icon = '+' if not thread.IsExpanded() else '-'
             line = utils.AppendToBuffer(
               self._buf,
               f'{icon} Thread {thread.id}: {thread.thread["name"]} '
-              f'({thread.State()})' )
+              f'({thread.State()})',
+              hl = 'Title' )
 
             if self._current_session == s and self._current_thread == thread.id:
               signs.PlaceSign( self._current_thread_sign_id,
@@ -651,20 +654,26 @@ class StackTraceView( object ):
       if 'name' not in source:
         source[ 'name' ] = os.path.basename( source.get( 'path', 'unknown' ) )
 
+      hl = PRESENTATION_HINT_HL.get( frame.get( 'presentationHint',
+                                                source.get( 'presentationHint',
+                                                            'normal' ) ) )
+
       if frame.get( 'presentationHint' ) == 'label':
         # Sigh. FOr some reason, it's OK for debug adapters to completely ignore
         # the protocol; it seems that the chrome adapter sets 'label' and
         # doesn't set 'line'
         line = utils.AppendToBuffer(
           self._buf,
-          '  {0}: {1}'.format( frame[ 'id' ], frame[ 'name' ] ) )
+          '  {0}: {1}'.format( frame[ 'id' ], frame[ 'name' ] ),
+          hl = hl )
       else:
         line = utils.AppendToBuffer(
           self._buf,
           '  {0}: {1}@{2}:{3}'.format( frame[ 'id' ],
                                        frame[ 'name' ],
                                        source[ 'name' ],
-                                       frame[ 'line' ] ) )
+                                       frame[ 'line' ] ),
+          hl = hl )
 
       if ( thread.session == self._current_session and
            self._current_frame is not None and
