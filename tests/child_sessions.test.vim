@@ -32,7 +32,10 @@ endfunction
 
 function! Test_Python_MultiProcessing()
   " For some reason the 'fork' mp style causes crashes in debugpy at least on
-  " macOS (but only when using neovim!)
+  " macOS (but only when using neovim!). And for the tests to be stable, we need
+  " to ensure there's only 1 child launched. With the default 'launch' behaviour
+  " of multiprocessing, we get arbitrary ordering for the additional watchdog
+  " chld process
   call SkipNeovim()
   call s:StartDebugging()
 
@@ -169,4 +172,107 @@ function! Test_Python_MultiProcessing()
   %bwipe!
 endfunction
 
+function! Test_NodeJsDebug_Simple()
+  let fn = '../support/test/node/simple/simple.js'
+  call s:StartDebugging( #{ fn: fn, line: 10, launch: #{
+        \ configuration: 'run - js-debug'
+        \ } } )
 
+  " See that breakpoitns basically work
+  call vimspector#SetLineBreakpoint( fn, 6 )
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorBP',
+          \ 6,
+          \ 'vimspectorBP',
+          \ 9 ) } )
+
+  " @show
+  call vimspector#ListBreakpoints()
+  call WaitForAssert( {->
+          \ AssertMatchList( [
+          \   'simple.js:10 Line breakpoint - VERIFIED: {}',
+          \   'simple.js:6 Line breakpoint - VERIFIED: {}',
+          \ ],
+          \ GetBufLine(
+                      \ winbufnr( g:vimspector_session_windows.breakpoints ),
+                      \ 1,
+                      \ '$' ) ) } )
+  " @hide
+  call vimspector#ListBreakpoints()
+  call vimspector#Continue()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 6, 5 )
+
+  call WaitForAssert( {->
+      \   AssertMatchList(
+      \     [
+      \         '---',
+      \         'Session: run - js-debug ([0-9]\+)',
+      \         '---',
+      \         'Session: simple.js \[[0-9]\+\] ([0-9]\+)',
+      \         '- Thread [0-9]\+: simple.js \[[0-9]\+\] (Paused on breakpoint)',
+      \         '  [0-9]\+: toast@.*/simple.js:6',
+      \     ],
+      \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
+      \                 1,
+      \                 6 )
+      \   )
+      \ } )
+
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+function! Test_BPMovedByServer_Simple()
+  let fn = '../support/test/node/simple/simple.js'
+  call s:StartDebugging( #{ fn: fn, line: 10, launch: #{
+        \ configuration: 'run - js-debug'
+        \ } } )
+
+  " Gets moved back to line 6
+  call vimspector#SetLineBreakpoint( fn, 7 )
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorBP',
+          \ 6,
+          \ 'vimspectorBP',
+          \ 9 ) } )
+
+  " @show
+  call vimspector#ListBreakpoints()
+  call WaitForAssert( {->
+          \ AssertMatchList( [
+          \   'simple.js:10 Line breakpoint - VERIFIED: {}',
+          \   'simple.js:6 Line breakpoint - VERIFIED: {}',
+          \ ],
+          \ GetBufLine(
+                      \ winbufnr( g:vimspector_session_windows.breakpoints ),
+                      \ 1,
+                      \ '$' ) ) } )
+  " @hide
+  call vimspector#ListBreakpoints()
+  call vimspector#Continue()
+  " Note the cursor is on the end of the previous line. Seems the debugger
+  " actually _does_ break _after_ the line (the bp is placed on the closecurly)
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 6, 32 )
+
+  " close down
+  call vimspector#Reset()
+  call vimspector#test#setup#WaitForReset()
+
+  " @show
+  call vimspector#ListBreakpoints()
+  call WaitForAssert( {->
+          \ AssertMatchList( [
+          \   'simple.js:10 Line breakpoint - ENABLED: {}',
+          \   'simple.js:7 Line breakpoint - ENABLED: {}',
+          \ ],
+          \ GetBufLine(
+                      \ winbufnr( g:vimspector_session_windows.breakpoints ),
+                      \ 1,
+                      \ '$' ) ) } )
+  " @hide
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction

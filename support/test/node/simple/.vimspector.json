@@ -11,12 +11,19 @@
         "cwd": "${workspaceRoot}"
       }
     },
-    "run - js-ddbug": {
+    "run - js-debug": {
       "adapter": "js-debug",
       "configuration": {
         "request": "launch",
         "program": "${workspaceRoot}/simple.js",
-        "cwd": "${workspaceRoot}"
+        "cwd": "${workspaceRoot}",
+        "stopOnEntry": false
+      },
+      "breakpoints": {
+        "exception": {
+          "all": "",
+          "uncaught": ""
+        }
       }
     }
   }
