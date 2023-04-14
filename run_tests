@@ -203,7 +203,7 @@ if [ "$INSTALL" = "1" ] || [ "$INSTALL" = "vim" ]; then
                --cmd "${BASEDIR_CMD}" \
                -c 'autocmd User VimspectorInstallSuccess qa!' \
                -c 'autocmd User VimspectorInstallFailed cquit!' \
-               -c "VimspectorInstall --all netcoredbg vscode-node-debug2"; then
+               -c "VimspectorInstall --all netcoredbg vscode-js-debug"; then
     echo "Vim installation reported errors" >&2
     exit 1
   fi

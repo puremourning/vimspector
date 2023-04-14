@@ -168,8 +168,8 @@ runtime dependencies). They are categorised by their level of support:
 | TCL                     | Supported    | `--all` or `--enable-tcl`           | tclpro                               | TCL 8.5                                      |
 | Bourne Shell            | Supported    | `--all` or `--enable-bash`          | vscode-bash-debug                    | Bash v??                                     |
 | Lua                     | Tested       | `--all` or `--enable-lua`           | local-lua-debugger-vscode            | Node >=12.13.0, Npm, Lua interpreter         |
-| Node.js                 | Supported    | `--force-enable-node`               | vscode-js-debug                      | Node                                         |
-| Node.js (legacy)        | Supported    | `--force-enable-node`               | vscode-node-debug2                   | 6 < Node < 12, Npm                           |
+| Node.js                 | Supported    | `--force-enable-node`               | vscode-js-debug                      | Node >= 18                                   |
+| Node.js (legacy)        | Supported    | `--force-enable-node_legacy`        | vscode-node-debug2                   | 6 < Node < 12, Npm                           |
 | Javascript              | Supported    | `--force-enable-chrome`             | debugger-for-chrome                  | Chrome                                       |
 | Javascript              | Supported    | `--force-enable-firefox`            | vscode-firefox-debug                 | Firefox                                      |
 | Java                    | Supported    | `--force-enable-java  `             | vscode-java-debug                    | Compatible LSP plugin (see [later](#java))   |

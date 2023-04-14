@@ -13,7 +13,7 @@ RUN apt-get update && \
                      ca-certificates \
                      software-properties-common && \
   add-apt-repository ppa:neovim-ppa/stable && \
-  curl -sL https://deb.nodesource.com/setup_12.x | bash - && \
+  curl -sL https://deb.nodesource.com/setup_18.x | bash - && \
   apt-get update && \
   apt-get -y dist-upgrade && \
   apt-get -y install gcc-8 \

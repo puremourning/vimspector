@@ -1,12 +1,11 @@
 {
   "configurations": {
     "Node": {
-      "adapter": "vscode-node",
+      "adapter": "js-debug",
       "filetypes": [ "javascript" ],
       "default": true,
       "configuration": {
         "request": "launch",
-        "protocol": "auto",
         "stopOnEntry": false,
         "console": "integratedTerminal",
         "program": "${workspaceRoot}/test.js",
