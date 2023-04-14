@@ -253,19 +253,18 @@ class DebugAdapterConnection( object ):
     self._buffer = self._buffer[ content_length : ]
 
     # self._logger.debug( 'Message received (raw): %s', payload )
+    # We read the message, so the next time we get data from the socket it must
+    # be a header.
+    self._SetState( 'READ_HEADER' )
 
     try:
       message = json.loads( payload, strict = False )
     except Exception:
       self._logger.exception( "Invalid message received: %s", payload )
-      self._SetState( 'READ_HEADER' )
       raise
 
     self._logger.debug( 'Message received: {0}'.format( message ) )
 
-    # We read the message, so the next time we get data from the socket it must
-    # be a header.
-    self._SetState( 'READ_HEADER' )
     self._OnMessageReceived( message )
 
 

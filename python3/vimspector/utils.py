@@ -31,7 +31,7 @@ from vimspector.vendor.hexdump import hexdump
 
 LOG_FILE = os.path.expanduser( os.path.join( '~', '.vimspector.log' ) )
 
-_log_handler = logging.FileHandler( LOG_FILE, mode = 'w' )
+_log_handler = logging.FileHandler( LOG_FILE, mode = 'w', encoding = 'utf-8' )
 
 _log_handler.setFormatter(
   logging.Formatter( '%(asctime)s - %(levelname)s - %(filename)s:%(lineno)s - '
