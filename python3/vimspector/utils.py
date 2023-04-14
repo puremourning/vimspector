@@ -550,6 +550,9 @@ def AppendToBuffer( buf,
 
 
 def ClearTextPropertiesForBuffer( buf ):
+  if not Exists( '*prop_clear' ):
+    return
+
   Call( 'prop_clear', 1, len( buf ), { 'bufnr': buf.number } )
 
 
