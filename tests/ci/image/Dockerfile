@@ -12,7 +12,6 @@ RUN apt-get update && \
                      lsb-release \
                      ca-certificates \
                      software-properties-common && \
-  add-apt-repository ppa:neovim-ppa/stable && \
   curl -sL https://deb.nodesource.com/setup_18.x | bash - && \
   apt-get update && \
   apt-get -y dist-upgrade && \
@@ -33,9 +32,9 @@ RUN apt-get update && \
                      nodejs \
                      pkg-config \
                      lua5.1 \
-                     luajit \
-                     neovim && \
+                     luajit && \
   pip3 install neovim
+
 
 RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
   dpkg-reconfigure --frontend noninteractive tzdata
@@ -69,6 +68,8 @@ RUN curl -LO https://github.com/love2d/love/releases/download/11.3/love-11.3-lin
     rm -rf love-11.3 && \
     rm -f love-11.3-linux-src.tar.gz
 
+RUN apt-get install -y ninja-build gettext cmake unzip curl
+
 RUN apt-get -y autoremove
 
 ## cleanup of files from setup
@@ -87,7 +88,20 @@ RUN mkdir -p $HOME/vim && \
     git clone --depth 1 --branch ${VIM_VERSION} https://github.com/vim/vim && \
     cd vim && \
     make -j 4 && \
-    make install
+    make install && \
+    cd && \
+    rm -rf $HOME/vim
+
+ARG NVIM_VERSION=v0.8.3
+
+RUN mkdir -p $HOME/nvim && \
+    cd $HOME/nvim && \
+    git clone --depth 1 --branch ${NVIM_VERSION} https://github.com/neovim/neovim && \
+    cd neovim && \
+    make CMAKE_BUILD_TYPE=Release CMAKE_GENERTOR=Ninja -j 4 && \
+    make install && \
+    cd && \
+    rm -rf $HOME/nvim
 
 # dotnet
 RUN curl -sSL https://dot.net/v1/dotnet-install.sh \
@@ -99,5 +113,4 @@ RUN curl -sSL https://dot.net/v1/dotnet-install.sh \
 RUN pip install "git+https://github.com/puremourning/asciinema@exit_code#egg=asciinema"
 
 # clean up
-RUN rm -rf ~/.cache && \
-    rm -rf $HOME/vim
+RUN rm -rf ~/.cache
