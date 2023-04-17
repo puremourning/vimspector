@@ -175,16 +175,17 @@ class BreakpointsView( object ):
     self._UpdateView( breakpoint_list, show=False )
 
 
-# FIXME: THis really should be project scope and not associated with a debug
+# FIXME: This really should be project scope and not associated with a debug
 # session. Breakpoints set by the user should be independent and breakpoints for
 # the current active session should be associated with the session when they are
 # in use.
 #
-# Questions include:
-#  1. what happens if we set/chnage a breakpiont in session #2 while session #1
-#  is active ? Maybe we re-send the breakpoints to _all_ active sessions?
+# Otherwise, if we had multiple concurrent _root_ sessions (tabs), how would we
+# konw how to associate them when the user presses F9?
 #
-# More...
+# For _child_ sessions, we essentially broadcast breakpoints to all connections.
+# Perhaps we should do that too, but just hoist this out of the debug session
+# when supporting multiple root sessions.
 class ProjectBreakpoints( object ):
   _connections: typing.Set[ DebugAdapterConnection ]
 
@@ -507,8 +508,6 @@ class ProjectBreakpoints( object ):
                                            bp,
                                            conn: DebugAdapterConnection,
                                            server_bp ):
-    # TODO: Store 'server_bp' as a map from connection (or session_id?) to the
-    # actual data
     if bp[ 'is_instruction_breakpoint' ]:
       # For some reason, MIEngine returns random 'line' values for instruction
       # brakpoints
@@ -707,8 +706,6 @@ class ProjectBreakpoints( object ):
 
 
   def _UpdateServerBreakpoints( self, conn, breakpoints, bp_idxs ):
-    # TODO: Accept the connection here and pass to
-    # _CopyServerLineBreakpointProperties
     for bp_idx, user_bp in bp_idxs:
       if bp_idx >= len( breakpoints ):
         # Just can't trust servers ?

@@ -30,7 +30,6 @@ class CodeView( object ):
                 render_event_emitter,
                 IsBreakpointPresentAt ):
 
-    self.session_id = session_id
     self._window = window
     self._api_prefix = api_prefix
     self._render_subject = render_event_emitter.subscribe( self._DisplayPC )
@@ -42,7 +41,7 @@ class CodeView( object ):
     self._logger = logging.getLogger( __name__ + '.' + str( session_id ) )
     utils.SetUpLogging( self._logger )
 
-    self._next_sign_id = 1000 * self.session_id + 1
+    self._next_sign_id = 1000 * session_id + 1
     self._signs = {
       'vimspectorPC': None,
     }
@@ -205,12 +204,12 @@ class CodeView( object ):
     return self._terminal.buffer_number
 
 
-  def ShowMemory( self, memoryReference, length, offset, msg ):
+  def ShowMemory( self, session_id, memoryReference, length, offset, msg ):
     if not self._window.valid:
       return False
 
     buf_name = os.path.join( '_vimspector_mem',
-                             str( self.session_id ),
+                             str( session_id ),
                              memoryReference )
     buf = utils.BufferForFile( buf_name )
     self._scratch_buffers.append( buf )

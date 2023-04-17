@@ -862,16 +862,19 @@ class DebugSession( object ):
       return
     self._variablesView.SetVariableValue( new_value, buf, line_num )
 
-  @CurrentSession()
-  @IfConnected()
+  @ParentOnly()
   def ReadMemory( self, length = None, offset = None ):
+    # We use the parent session because the actual connection is returned from
+    # the variables view (and might not be our self._connection) at least in
+    # theory.
     if not self._server_capabilities.get( 'supportsReadMemoryRequest' ):
       utils.UserMessage( "Server does not support memory request",
                          error = True )
       return
 
-    memoryReference = self._variablesView.GetMemoryReference()
-    if memoryReference is None:
+    connection: debug_adapter_connection.DebugAdapterConnection
+    connection, memoryReference = self._variablesView.GetMemoryReference()
+    if memoryReference is None or connection is None:
       utils.UserMessage( "Cannot find memory reference for that",
                          error = True )
       return
@@ -896,9 +899,13 @@ class DebugSession( object ):
 
 
     def handler( msg ):
-      self._codeView.ShowMemory( memoryReference, length, offset, msg )
+      self._codeView.ShowMemory( connection.GetSessionId(),
+                                 memoryReference,
+                                 length,
+                                 offset,
+                                 msg )
 
-    self._connection.DoRequest( handler, {
+    connection.DoRequest( handler, {
       'command': 'readMemory',
       'arguments': {
         'memoryReference': memoryReference,
@@ -1309,7 +1316,6 @@ class DebugSession( object ):
       self._variablesView.SetSyntax( None )
       self._stackTraceView.SetSyntax( None )
 
-    # TODO: Need to store variables per session
     self._variablesView.LoadScopes( self._connection, frame )
     self._variablesView.EvaluateWatches( self._connection, frame )
 
@@ -1873,7 +1879,6 @@ class DebugSession( object ):
 
 
   def OnEvent_breakpoint( self, message ):
-    # TODO: Should Posted breakpoints now be per-session?!
     reason = message[ 'body' ][ 'reason' ]
     bp = message[ 'body' ][ 'breakpoint' ]
     if reason == 'changed':

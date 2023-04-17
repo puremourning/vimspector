@@ -27,10 +27,6 @@ class SessionManager:
   def __init__( self ):
     self.Reset()
 
-  # TODO: Move breakpoints _out_ of the DebugSession and store/manage them
-  # here. That may help with all the duplicated signs. Or perhaps hack further
-  # by informing the _child_ session of its parent, and have it use the parent's
-  # breakpoints. Actually that may be better first step.
 
   def Reset( self ):
     self.next_session_id = 0
@@ -47,7 +43,6 @@ class SessionManager:
 
 
   def DestroySession( self, session: DebugSession ):
-    # TODO: Call this!
     del self.sessions[ session.session_id ]
 
 

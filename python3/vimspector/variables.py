@@ -293,10 +293,6 @@ class VariablesView( object ):
         'balloonexpr': vim.options[ 'balloonexpr' ],
         'balloondelay': vim.options[ 'balloondelay' ],
       }
-      # TODO: How can we make this work. I think we can set ballooneval as a
-      # buffer-local or maybe window-local variable ? We could pass session_id
-      # to the expression here, but still how would it work with 2 concurrent
-      # sessions?
       vim.options[ 'balloonexpr' ] = (
         "vimspector#internal#balloon#HoverEvalTooltip()"
       )
@@ -679,7 +675,7 @@ class VariablesView( object ):
       return None
 
     # TODO: Return the connection too!
-    return variable.MemoryReference()
+    return variable.connection, variable.MemoryReference()
 
 
   def _DrawVariables( self, view, variables, indent_len, is_short = False ):
