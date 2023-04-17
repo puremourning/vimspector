@@ -39,29 +39,6 @@ _log_handler.setFormatter(
                      '%(context)s - %(message)s' ) )
 
 
-PRESENTATION_HINT_HL = {
-  # Source.presentationHint
-  'emphasize': 'Title',
-  'deemphasize': 'Conceal',
-
-  # StackFrame.presentationHint
-  'label': 'NonText',
-  'subtle': 'Conceal',
-
-  # Scope.presentationHint
-  'arguments': 'Title',
-  'locals': 'Title',
-  'registers': 'Title',
-
-  # VariablePresentaionHint.kind
-  'property': 'Identifier',
-  'method': 'Function',
-  'class': 'Type',
-  'data': 'String',
-}
-
-
-
 class ContextLogFilter( logging.Filter ):
   context: str
 

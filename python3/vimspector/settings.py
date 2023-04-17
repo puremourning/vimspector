@@ -56,6 +56,28 @@ DEFAULTS = {
     'vimspectorCurrentFrame':  200,
   },
 
+  # Presentation hints
+  'presentation_hint_hl': {
+    # Source.presentationHint
+    'emphasize': 'Title',
+    'deemphasize': 'Conceal',
+
+    # StackFrame.presentationHint
+    'label': 'NonText',
+    'subtle': 'Conceal',
+
+    # Scope.presentationHint
+    'arguments': 'Title',
+    'locals': 'Title',
+    'registers': 'Title',
+
+    # VariablePresentaionHint.kind
+    'property': 'Identifier',
+    'method': 'Function',
+    'class': 'Type',
+    'data': 'String',
+  },
+
   # Installer
   'install_gadgets': [],
 

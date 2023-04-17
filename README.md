@@ -1281,6 +1281,10 @@ be changed manually to "switch to" that thread.
 * The current frame when a breakpoint is hit or if manual jumping is also
   highlighted.
 
+![stack trace](https://puremourning.github.io/vimspector-web/img/vimspector-callstack-window.png)
+
+The stack trace is represented by the buffer `vimspector.StackTrace`.
+
 ### Multiple sessions
 
 If there are multiple concurrent debug sessions, such as where the debugee
@@ -1290,9 +1294,7 @@ active session is the one that is highlighted as the currently active
 thread/stack frame. To switch control to a different session, focus a thread
 within that session.
 
-![stack trace](https://puremourning.github.io/vimspector-web/img/vimspector-callstack-window.png)
-
-The stack trace is represented by the buffer `vimspector.StackTrace`.
+![multiple sessions](https://user-images.githubusercontent.com/10584846/232473234-666d1a77-81f2-40d5-bc65-ebab774888ce.png)
 
 ## Program Output
 
@@ -2334,6 +2336,47 @@ if changing the default priorities, it's recommended that:
    same priority.
 2. You also set the `vimspectorNonActivePC` sign that same priority
 3. Active PC ( `vimspectorPC`, `vimspectorPCBP`, etc.) have a higher priority.
+
+## Presentation Hints
+
+***NOTE:*** This customisation point is currently ***unsable*** and may change
+at any time.
+
+Sometimes the Debug Adapter provides hints as to how the UI should display
+certain things. This includes stack frames, variables etc.
+
+Vimspector provides a simple way to customise how these are displayed, by
+setting values in the dictionary `g:vimsepctor_presentation_hint_hl`.
+
+The following keys are supported with the mentioned default highlight group.
+
+
+| Group        | Key           | Usage                                                           | Default      |
+| ------------ | ------------  | -------------------------------------                           | ------------ |
+| *all*        | `normal`      | anything not covered below                                      | `Normal`     |
+| Stack trace  | `emphasize`   | emphasize sources in stack trace                                | `Title`      |
+| Stack trace  | `deemphasize` | deemphasize sources in stack trace                              | `Conceal`    |
+| Stack trace  | `label`       | stack frames which are "labels", not representing actual frames | `NonText`    |
+| Stack trace  | `subtle`      | stack frames which are internal or not interesting              | `Conceal`    |
+| Scopes       | `arguments`   | Function arguments scope                                        | `Title`      |
+| Scopes       | `locals`      | Local variables scope                                           | `Title`      |
+| Scopes       | `registers`   | Registers scope                                                 | `Title`      |
+| Variables    | `property`    | Function arguments scope                                        | `Identifier` |
+| Variables    | `method`      | Local variables scope                                           | `Function`   |
+| Variables    | `class`       | Registers scope                                                 | `Type`       |
+| Variables    | `data`        | Registers scope                                                 | `String`     |
+
+In addition, any value supplied in the DAP `VariablePresentationHint` can be set
+which will be used if supplied by the debug adapter.
+
+A silly example; the defaults should probably be OK for most colour scehemes:
+
+```viml
+let g:vimspector_presentation_hint_hl = {
+  \    'normal': 'Identifier',
+  \    'label':  'Title',
+  \ }
+```
 
 
 ## Changing the default window sizes

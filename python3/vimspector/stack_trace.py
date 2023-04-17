@@ -19,7 +19,6 @@ import logging
 import typing
 
 from vimspector import utils, signs, settings
-from vimspector.utils import PRESENTATION_HINT_HL
 
 # Because flake8 wants this to be defined, but it's a circular import, so we
 # can't do it in proper code;
@@ -654,9 +653,10 @@ class StackTraceView( object ):
       if 'name' not in source:
         source[ 'name' ] = os.path.basename( source.get( 'path', 'unknown' ) )
 
-      hl = PRESENTATION_HINT_HL.get( frame.get( 'presentationHint',
-                                                source.get( 'presentationHint',
-                                                            'normal' ) ) )
+      hl = settings.Dict( 'presentation_hint_hl' ).get(
+        frame.get( 'presentationHint',
+                   source.get( 'presentationHint',
+                               'normal' ) ) )
 
       if frame.get( 'presentationHint' ) == 'label':
         # Sigh. FOr some reason, it's OK for debug adapters to completely ignore

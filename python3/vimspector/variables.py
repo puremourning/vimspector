@@ -21,7 +21,6 @@ import typing
 
 from vimspector import utils, settings
 from vimspector.debug_adapter_connection import DebugAdapterConnection
-from vimspector.utils import PRESENTATION_HINT_HL
 
 
 class Expandable:
@@ -690,8 +689,9 @@ class VariablesView( object ):
       name = variable.variable.get( 'name', '' )
       kind = variable.variable.get( 'type', '' )
       value = variable.variable.get( 'value', '<unknown>' )
-      hl = PRESENTATION_HINT_HL.get(
-        variable.variable.get( 'presentationHint', {} ).get( 'kind' ) )
+      hl = settings.Dict( 'presentation_hint_hl' ).get(
+        variable.variable.get( 'presentationHint', {} ).get( 'kind',
+                                                             'normal' ) )
 
 
       # FIXME: If 'value' is multi-line, somehow turn it into an expandable item
@@ -756,7 +756,8 @@ class VariablesView( object ):
   def _DrawScope( self, indent, scope ):
     icon = '+' if scope.IsExpandable() and not scope.IsExpanded() else '-'
 
-    hl = PRESENTATION_HINT_HL.get( scope.scope.get( 'presentationHint' ) )
+    hl = settings.Dict( 'presentation_hint_hl' ).get(
+      scope.scope.get( 'presentationHint', 'normal' ) )
     line = utils.AppendToBuffer( self._vars.buf,
                                  '{0}{1} Scope: {2}'.format(
                                    ' ' * indent,
