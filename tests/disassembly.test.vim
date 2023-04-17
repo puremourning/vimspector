@@ -4,6 +4,9 @@ let s:buf = '_vimspector_disassembly'
 " fixed position in this test require that.
 let s:dlines = 5
 if has( 'nvim' )
+  " Making these tests work with neovim is tricky because for some reason it
+  " always says "not enough room" whereas vim works with the same layout!
+  let g:vimspector_enable_winbar = 0
   let s:offset = 1
 else
   let s:offset = 0

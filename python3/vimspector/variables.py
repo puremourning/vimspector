@@ -246,10 +246,10 @@ class VariablesView( object ):
                                   session_id ) )
     with utils.LetCurrentWindow( variables_win ):
       if utils.UseWinBar():
-        vim.command( 'nnoremenu <silent> 1.1 WinBar.Set '
-                     ':call vimspector#SetVariableValue()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.2 WinBar.Dump '
-                     ':call vimspector#ReadMemory()<CR>' )
+        utils.SetWinBar(
+          ( 'Set', 'vimspector#SetVariableValue()', ),
+          ( 'Dump', 'vimspector#ReadMemory()' )
+        )
       AddExpandMappings( mappings )
 
     # Set up the "Watches" buffer in the watches_win (and create a WinBar in
@@ -271,16 +271,13 @@ class VariablesView( object ):
           f'nnoremap <buffer> { mapping } :call vimspector#DeleteWatch()<CR>' )
 
       if utils.UseWinBar():
-        vim.command( 'nnoremenu <silent> 1.1 WinBar.Add '
-                     ':call vimspector#AddWatch()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.2 WinBar.Delete '
-                     ':call vimspector#DeleteWatch()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.3 WinBar.+/- '
-                     ':call vimspector#ExpandVariable()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.4 WinBar.Set '
-                     ':call vimspector#SetVariableValue()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.5 WinBar.Dump '
-                     ':call vimspector#ReadMemory()<CR>' )
+        utils.SetWinBar(
+          ( 'Add', 'vimspector#AddWatch()', ),
+          ( 'Delete', 'vimspector#DeleteWatch()', ),
+          ( '+/-', 'vimspector#ExpandVariable()', ),
+          ( 'Set', 'vimspector#SetVariableValue()', ),
+          ( 'Dump', 'vimspector#ReadMemory()', )
+        )
 
     # Set the (global!) balloon expr if supported
     has_balloon      = int( vim.eval( "has( 'balloon_eval' )" ) )

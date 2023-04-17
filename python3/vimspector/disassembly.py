@@ -47,25 +47,9 @@ class DisassemblyView( object ):
       'vimspectorPC': None,
     }
 
-    with utils.LetCurrentWindow( self._window ):
-      if utils.UseWinBar():
-        vim.command( 'nnoremenu WinBar.■\\ Stop '
-                     ':call vimspector#Stop()<CR>' )
-        vim.command( 'nnoremenu WinBar.▶\\ Cont '
-                     ':call vimspector#Continue()<CR>' )
-        vim.command( 'nnoremenu WinBar.▷\\ Pause '
-                     ':call vimspector#Pause()<CR>' )
-        vim.command( 'nnoremenu WinBar.↷\\ NextI '
-                     ':call vimspector#StepIOver()<CR>' )
-        vim.command( 'nnoremenu WinBar.→\\ StepI '
-                     ':call vimspector#StepIInto()<CR>' )
-        vim.command( 'nnoremenu WinBar.←\\ OutI '
-                     ':call vimspector#StepIOut()<CR>' )
-        vim.command( 'nnoremenu WinBar.⟲: '
-                     ':call vimspector#Restart()<CR>' )
-        vim.command( 'nnoremenu WinBar.✕ '
-                     ':call vimspector#Reset()<CR>' )
+    self._RenderWinBar()
 
+    with utils.LetCurrentWindow( self._window ):
       vim.command( 'augroup VimspectorDisassembly' )
       vim.command( 'autocmd!' )
       vim.command( f'autocmd WinScrolled { utils.WindowID( self._window ) } '
@@ -73,6 +57,21 @@ class DisassemblyView( object ):
       vim.command( 'augroup END' )
 
     signs.DefineProgramCounterSigns()
+
+
+  def _RenderWinBar( self ):
+    with utils.LetCurrentWindow( self._window ):
+      if utils.UseWinBar():
+        utils.SetWinBar(
+          ( '■ Stop', 'vimspector#Stop()', ),
+          ( '▶ Cont', 'vimspector#Continue()', ),
+          ( '▷ Pause', 'vimspector#Pause()', ),
+          ( '↷ Next', 'vimspector#StepIOver()', ),
+          ( '→ Step', 'vimspector#StepIInto()', ),
+          ( '← Out', 'vimspector#StepIOut()', ),
+          ( '↺', 'vimspector#Restart()', ),
+          ( '✕', 'vimspector#Reset()', )
+        )
 
 
   def ConnectionClosed( self, connection: DebugAdapterConnection ):
@@ -299,6 +298,8 @@ class DisassemblyView( object ):
 
     with utils.LetCurrentWindow( self._window ):
       utils.OpenFileInCurrentWindow( buf_name )
+      if utils.VimIsNeovim():
+        self._RenderWinBar()
       utils.SetUpUIWindow( self._window )
       self._window.options[ 'signcolumn' ] = 'yes'
 

@@ -110,13 +110,16 @@ def WindowForBuffer( buf ):
 
 def OpenFileInCurrentWindow( file_name ):
   buffer_number = BufferNumberForFile( file_name )
+  if vim.current.buffer.number == buffer_number:
+    return False
+
   try:
     vim.current.buffer = vim.buffers[ buffer_number ]
   except vim.error as e:
     if 'E325' not in str( e ):
       raise
 
-  return vim.buffers[ buffer_number ]
+  return True
 
 
 COMMAND_HANDLERS = {}
@@ -505,12 +508,13 @@ def AppendToBuffer( buf,
     if not modified:
       buf.options[ 'modified' ] = False
 
-  HighlightTextSection( buf,
-                        hl = hl,
-                        start_line = line,
-                        start_col = 1,
-                        end_line = len( buf ),
-                        end_col = len( buf[ -1 ] ) )
+  if len( buf ) > 0:
+    HighlightTextSection( buf,
+                          hl = hl,
+                          start_line = line,
+                          start_col = 1,
+                          end_line = len( buf ),
+                          end_col = len( buf[ -1 ] ) )
 
   # Return the first Vim line number (1-based) that we just set.
   return line
@@ -918,10 +922,47 @@ def GetWindowInfo( window ):
   return Call( 'getwininfo', WindowID( window ) )[ 0 ]
 
 
+NVIM_WINBAR = {}
+
+
+def SetWinBarOption( *args ):
+  window = vim.current.window
+  win_id = WindowID( window )
+
+  NVIM_WINBAR[ win_id ] = []
+  winbar = []
+  for idx, button in enumerate( args ):
+    button, action = button
+    winbar.append( '%#ToolbarButton#'
+                    f'%{idx}@vimspector#internal#neowinbar#Do@ { button } %X'
+                    '%*' )
+    NVIM_WINBAR[ win_id ].append( action )
+
+  window.options[ 'winbar' ] = '  '.join( winbar )
+  return True
+
+
+def DoWinBarAction( win_id, idx ):
+  action = NVIM_WINBAR[ win_id ][ idx ]
+  vim.command( f':call { action }' )
+
+
+def SetWinBar( *args ):
+  if VimIsNeovim():
+    return SetWinBarOption( *args )
+
+  vim.command( 'silent! nunmenu WinBar' )
+  for idx, button in enumerate( args ):
+    button, action = button
+    button = button.replace( ' ', '\\ ' )
+    vim.command( f'nnoremenu <silent> 1.{idx} '
+                 f'WinBar.{ button } '
+                 f':call {action}<CR>' )
+
+
 def UseWinBar():
-  # Buggy neovim doesn't render correctly when the WinBar is defined:
-  # https://github.com/neovim/neovim/issues/12689
-  return not VimIsNeovim() and VimHasMouseSupport()
+  from vimspector import settings
+  return settings.Bool( 'enable_winbar' ) and VimHasMouseSupport()
 
 
 @memoize
@@ -930,8 +971,8 @@ def VimIsNeovim():
 
 
 def VimHasMouseSupport():
-  mouse = vim.options[ 'mouse' ]
-  return b'a' in mouse or b'n' in mouse
+  mouse = ToUnicode( vim.options[ 'mouse' ] )
+  return 'a' in mouse or 'n' in mouse
 
 
 class VisiblePosition:
