@@ -34,11 +34,12 @@ class PendingRequest( object ):
 class DebugAdapterConnection( object ):
   def __init__( self,
                 handlers,
+                session_id,
                 send_func,
                 sync_timeout = None,
                 async_timeout = None ):
-    self._logger = logging.getLogger( __name__ )
-    utils.SetUpLogging( self._logger )
+    self._logger = logging.getLogger( __name__ + '.' + str( session_id ) )
+    utils.SetUpLogging( self._logger, session_id )
 
     if not sync_timeout:
       sync_timeout = DEFAULT_SYNC_TIMEOUT
@@ -49,10 +50,14 @@ class DebugAdapterConnection( object ):
     self._SetState( 'READ_HEADER' )
     self._buffer = bytes()
     self._handlers = handlers
+    self._session_id = session_id
     self._next_message_id = 0
     self._outstanding_requests = {}
     self.async_timeout = async_timeout
     self.sync_timeout = sync_timeout
+
+  def GetSessionId( self ):
+    return self._session_id
 
   def DoRequest( self,
                  handler,
@@ -69,10 +74,12 @@ class DebugAdapterConnection( object ):
     msg[ 'seq' ] = this_id
     msg[ 'type' ] = 'request'
 
-    # TODO/FIXME: This is so messy
     expiry_id = vim.eval(
-      'timer_start( {}, "vimspector#internal#channel#Timeout" )'.format(
-        timeout ) )
+      'timer_start( {}, '
+      '             function( "vimspector#internal#channel#Timeout", '
+      '                       [ {} ] ) )'.format(
+        timeout,
+        self._session_id ) )
 
     request = PendingRequest( msg,
                               handler,
@@ -246,19 +253,18 @@ class DebugAdapterConnection( object ):
     self._buffer = self._buffer[ content_length : ]
 
     # self._logger.debug( 'Message received (raw): %s', payload )
+    # We read the message, so the next time we get data from the socket it must
+    # be a header.
+    self._SetState( 'READ_HEADER' )
 
     try:
       message = json.loads( payload, strict = False )
     except Exception:
       self._logger.exception( "Invalid message received: %s", payload )
-      self._SetState( 'READ_HEADER' )
       raise
 
     self._logger.debug( 'Message received: {0}'.format( message ) )
 
-    # We read the message, so the next time we get data from the socket it must
-    # be a header.
-    self._SetState( 'READ_HEADER' )
     self._OnMessageReceived( message )
 
 
@@ -302,18 +308,21 @@ class DebugAdapterConnection( object ):
           self._logger.error( 'Request failed (unhandled): %s', reason )
           for h in self._handlers:
             if 'OnFailure' in dir( h ):
-              h.OnFailure( reason, request.msg, message )
+              if h.OnFailure( reason, request.msg, message ):
+                break
 
     elif message[ 'type' ] == 'event':
       method = 'OnEvent_' + message[ 'event' ]
       for h in self._handlers:
         if method in dir( h ):
-          getattr( h, method )( message )
+          if getattr( h, method )( message ):
+            break
     elif message[ 'type' ] == 'request':
       method = 'OnRequest_' + message[ 'command' ]
       for h in self._handlers:
         if method in dir( h ):
-          getattr( h, method )( message )
+          if getattr( h, method )( message ):
+            break
 
 
 def _KillTimer( request ):

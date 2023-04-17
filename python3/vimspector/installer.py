@@ -561,10 +561,16 @@ def InstallGadget( name: str,
         'download',
         name )
 
+    model = gadget.get( 'model', 'extension' )
     if 'do' in gadget:
       gadget[ 'do' ]( name, root, spec )
-    else:
+    elif model == 'extension':
       InstallGeneric( name, root, spec )
+    elif model == 'simple':
+      MakeSymlink( name, root )
+    else:
+      raise ValueError(
+        f"Invalid configuration - model {model} not recognised" )
 
     save_adapters()
     manifest.Update( name, spec )

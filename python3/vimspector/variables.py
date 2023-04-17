@@ -20,6 +20,7 @@ from functools import partial
 import typing
 
 from vimspector import utils, settings
+from vimspector.debug_adapter_connection import DebugAdapterConnection
 
 
 class Expandable:
@@ -28,13 +29,18 @@ class Expandable:
   COLLAPSED_BY_USER = 0
   COLLAPSED_BY_DEFAULT = None
 
+  connection: DebugAdapterConnection
+
   """Base for anything which might contain a hierarchy of values represented by
   a 'variablesReference' to be resolved by the 'variables' request. Records the
   current state expanded/collapsed. Implementations just implement
   VariablesReference to get the variables."""
-  def __init__( self, container: 'Expandable' = None ):
+  def __init__( self,
+                connection: DebugAdapterConnection,
+                container: 'Expandable' = None ):
     self.variables: typing.List[ 'Variable' ] = None
     self.container: Expandable = container
+    self.connection = connection
     # None is Falsy and represents collapsed _by default_. WHen set to False,
     # this means the user explicitly collapsed it. When True, the user expanded
     # it (or we expanded it by default).
@@ -66,8 +72,8 @@ class Expandable:
 
 class Scope( Expandable ):
   """Holds an expandable scope (a DAP scope dict), with expand/collapse state"""
-  def __init__( self, scope: dict ):
-    super().__init__()
+  def __init__( self, connection: DebugAdapterConnection, scope: dict ):
+    super().__init__( connection )
     self.scope = scope
 
   def VariablesReference( self ):
@@ -85,8 +91,8 @@ class Scope( Expandable ):
 
 class WatchResult( Expandable ):
   """Holds the result of a Watch expression with expand/collapse."""
-  def __init__( self, result: dict ):
-    super().__init__()
+  def __init__( self, connection: DebugAdapterConnection, result: dict ):
+    super().__init__( connection )
     self.result = result
     # A new watch result is marked as changed
     self.changed = True
@@ -114,15 +120,17 @@ class WatchResult( Expandable ):
 
 
 class WatchFailure( WatchResult ):
-  def __init__( self, reason ):
-    super().__init__( { 'result': reason } )
+  def __init__( self, connection: DebugAdapterConnection, reason ):
+    super().__init__( connection, { 'result': reason } )
     self.changed = True
 
 
 class Variable( Expandable ):
   """Holds one level of an expanded value tree. Also itself expandable."""
-  def __init__( self, container: Expandable, variable: dict ):
-    super().__init__( container = container )
+  def __init__( self,
+                connection: DebugAdapterConnection,
+                container: Expandable, variable: dict ):
+    super().__init__( connection = connection, container = container )
     self.variable = variable
     # A new variable appearing is marked as changed
     self.changed = True
@@ -152,18 +160,24 @@ class Variable( Expandable ):
 
 class Watch:
   """Holds a user watch expression (DAP request) and the result (WatchResult)"""
-  def __init__( self, expression: dict ):
+  def __init__( self, connection: DebugAdapterConnection, expression: dict ):
     self.result: WatchResult
     self.line = None
+    self.connection = connection
 
     self.expression = expression
     self.result = None
 
-  def SetCurrentFrame( self, frame ):
+  def SetCurrentFrame( self, connection, frame ):
+    if self.connection is None:
+      self.connection = connection
+    elif self.connection != connection:
+      return
+
     self.expression[ 'frameId' ] = frame[ 'id' ]
 
   @staticmethod
-  def New( frame, expression, context ):
+  def New( connection, frame, expression, context ):
     watch = {
       'expression': expression,
       'context': context,
@@ -171,7 +185,7 @@ class Watch:
     if frame:
       watch[ 'frameId' ] = frame[ 'id' ]
 
-    return Watch( watch )
+    return Watch( connection, watch )
 
 
 class View:
@@ -211,13 +225,12 @@ def AddExpandMappings( mappings = None ):
 
 
 class VariablesView( object ):
-  def __init__( self, variables_win, watches_win ):
-    self._logger = logging.getLogger( __name__ )
-    utils.SetUpLogging( self._logger )
+  def __init__( self, session_id, variables_win, watches_win ):
+    self._logger = logging.getLogger(
+      __name__ + '.' + str( session_id ) )
+    utils.SetUpLogging( self._logger, session_id )
 
-    self._connection = None
     self._current_syntax = ''
-    self._server_capabilities = None
 
     self._variable_eval: Scope = None
     self._variable_eval_view: View = None
@@ -227,7 +240,10 @@ class VariablesView( object ):
     # Set up the "Variables" buffer in the variables_win
     self._scopes: typing.List[ Scope ] = []
     self._vars = View( variables_win, {}, self._DrawScopes )
-    utils.SetUpHiddenBuffer( self._vars.buf, 'vimspector.Variables' )
+    utils.SetUpHiddenBuffer(
+      self._vars.buf,
+      utils.BufferNameForSession( 'vimspector.Variables',
+                                  session_id ) )
     with utils.LetCurrentWindow( variables_win ):
       if utils.UseWinBar():
         vim.command( 'nnoremenu <silent> 1.1 WinBar.Set '
@@ -240,11 +256,14 @@ class VariablesView( object ):
     # there)
     self._watches: typing.List[ Watch ] = []
     self._watch = View( watches_win, {}, self._DrawWatches )
-    utils.SetUpPromptBuffer( self._watch.buf,
-                             'vimspector.Watches',
-                             'Expression: ',
-                             'vimspector#AddWatchPrompt',
-                             'vimspector#OmniFuncWatch' )
+    utils.SetUpPromptBuffer(
+      self._watch.buf,
+      utils.BufferNameForSession( 'vimspector.Watches',
+                                  session_id ),
+      'Expression: ',
+      'vimspector#AddWatchPrompt',
+      'vimspector#OmniFuncWatch' )
+
     with utils.LetCurrentWindow( watches_win ):
       AddExpandMappings( mappings )
       for mapping in utils.GetVimList( mappings, 'delete' ):
@@ -287,28 +306,23 @@ class VariablesView( object ):
       self._oldoptions[ 'balloonevalterm' ] = vim.options[ 'balloonevalterm' ]
       vim.options[ 'balloonevalterm' ] = True
 
+
   def Clear( self ):
     with utils.ModifiableScratchBuffer( self._vars.buf ):
       utils.ClearBuffer( self._vars.buf )
-    with utils.ModifiableScratchBuffer( self._watch.buf ):
-      utils.ClearBuffer( self._watch.buf )
     self.ClearTooltip()
-    self._current_syntax = ''
 
-  def ConnectionUp( self, connection ):
-    self._connection = connection
 
-  def SetServerCapabilities( self, capabilities ):
-    self._server_capabilities = capabilities
+  def ConnectionClosed( self, connection ):
+    self._scopes[ : ] = [
+      s for s in self._scopes if s.connection != connection
+    ]
+    for w in self._watches:
+      if w.connection == connection:
+        w.connection = None
 
-  def ConnectionClosed( self ):
-    self.Clear()
-    self._connection = None
-    self._server_capabilities = None
 
   def Reset( self ):
-    self._server_capabilities = None
-
     for k, v in self._oldoptions.items():
       vim.options[ k ] = v
 
@@ -326,9 +340,9 @@ class VariablesView( object ):
   def Load( self, save_data ):
     for expression in save_data.get( 'watches', [] ):
       # It's not really possible to save the frameId, so we just supply None
-      self._watches.append( Watch.New( None, expression, 'watch' ) )
+      self._watches.append( Watch.New( None, None, expression, 'watch' ) )
 
-  def LoadScopes( self, frame ):
+  def LoadScopes( self, connection, frame ):
     def scopes_consumer( message ):
       new_scopes = []
       expanded_some_scope = False
@@ -336,13 +350,14 @@ class VariablesView( object ):
         # Find it in the scopes list
         found = False
         for index, s in enumerate( self._scopes ):
-          if s.scope[ 'name' ] == scope_body[ 'name' ]:
+          if ( s.connection == connection and
+               s.scope[ 'name' ] == scope_body[ 'name' ] ):
             found = True
             scope = s
             break
 
         if not found:
-          scope = Scope( scope_body )
+          scope = Scope( connection, scope_body )
         else:
           scope.Update( scope_body )
 
@@ -359,9 +374,9 @@ class VariablesView( object ):
           scope.expanded = Expandable.COLLAPSED_BY_DEFAULT
 
         if scope.IsExpanded():
-          self._connection.DoRequest( partial( self._ConsumeVariables,
-                                               self._DrawScopes,
-                                               scope ), {
+          connection.DoRequest( partial( self._ConsumeVariables,
+                                         self._DrawScopes,
+                                         scope ), {
             'command': 'variables',
             'arguments': {
               'variablesReference': scope.VariablesReference(),
@@ -371,7 +386,7 @@ class VariablesView( object ):
       self._scopes = new_scopes
       self._DrawScopes()
 
-    self._connection.DoRequest( scopes_consumer, {
+    connection.DoRequest( scopes_consumer, {
       'command': 'scopes',
       'arguments': {
         'frameId': frame[ 'id' ]
@@ -406,16 +421,16 @@ class VariablesView( object ):
     self._variable_eval_view = None
     vim.vars[ 'vimspector_session_windows' ][ 'eval' ] = None
 
-  def HoverEvalTooltip( self, frame, expression, is_hover ):
+  def HoverEvalTooltip( self, connection, frame, expression, is_hover ):
     """Callback to display variable under cursor `:h ballonexpr`"""
-    if not self._connection:
+    if not connection:
       return ''
 
     def handler( message ):
 
       watch = self._variable_eval
-      if watch.result is None:
-        watch.result = WatchResult( message[ 'body' ] )
+      if watch.result is None or watch.result.connection != connection:
+        watch.result = WatchResult( connection, message[ 'body' ] )
       else:
         watch.result.Update( message[ 'body' ] )
 
@@ -437,9 +452,9 @@ class VariablesView( object ):
         watch.result.expanded = Expandable.EXPANDED_BY_US
 
       if watch.result.IsExpanded():
-        self._connection.DoRequest( partial( self._ConsumeVariables,
-                                             self._variable_eval_view.draw,
-                                             watch.result ), {
+        connection.DoRequest( partial( self._ConsumeVariables,
+                                       self._variable_eval_view.draw,
+                                       watch.result ), {
           'command': 'variables',
           'arguments': {
             'variablesReference': watch.result.VariablesReference(),
@@ -454,12 +469,13 @@ class VariablesView( object ):
       # record the global eval window id
       vim.vars[ 'vimspector_session_windows' ][ 'eval' ] = int( float_win_id )
 
-    self._variable_eval = Watch.New( frame,
+    self._variable_eval = Watch.New( connection,
+                                     frame,
                                      expression,
                                      'hover' )
 
     # Send async request
-    self._connection.DoRequest( handler, {
+    connection.DoRequest( handler, {
       'command': 'evaluate',
       'arguments': self._variable_eval.expression,
     }, failure_handler )
@@ -478,9 +494,9 @@ class VariablesView( object ):
 
     return ''
 
-  def AddWatch( self, frame, expression ):
-    self._watches.append( Watch.New( frame, expression, 'watch' ) )
-    self.EvaluateWatches( frame )
+  def AddWatch( self, connection, frame, expression ):
+    self._watches.append( Watch.New( connection, frame, expression, 'watch' ) )
+    self.EvaluateWatches( connection, frame )
 
   def DeleteWatch( self ):
     if vim.current.buffer != self._watch.buf:
@@ -504,10 +520,13 @@ class VariablesView( object ):
 
     utils.UserMessage( 'No watch found' )
 
-  def EvaluateWatches( self, current_frame: dict ):
+  def EvaluateWatches( self,
+                       fallback_connection: DebugAdapterConnection,
+                       current_frame: dict ):
+
     for watch in self._watches:
-      watch.SetCurrentFrame( current_frame )
-      self._connection.DoRequest(
+      watch.SetCurrentFrame( fallback_connection, current_frame )
+      watch.connection.DoRequest(
         partial( self._UpdateWatchExpression, watch ),
         {
           'command': 'evaluate',
@@ -520,11 +539,11 @@ class VariablesView( object ):
     if watch.result is not None:
       watch.result.Update( message[ 'body' ] )
     else:
-      watch.result = WatchResult( message[ 'body' ] )
+      watch.result = WatchResult( watch.connection, message[ 'body' ] )
 
     if ( watch.result.IsExpandable() and
          watch.result.IsExpanded() ):
-      self._connection.DoRequest( partial( self._ConsumeVariables,
+      watch.connection.DoRequest( partial( self._ConsumeVariables,
                                            self._watch.draw,
                                            watch.result ), {
         'command': 'variables',
@@ -540,7 +559,7 @@ class VariablesView( object ):
       # We already have a result for this watch. Wut ?
       return
 
-    watch.result = WatchFailure( reason )
+    watch.result = WatchFailure( watch.connection, reason )
     self._DrawWatches()
 
   def _GetVariable( self, buf = None, line_num = None ):
@@ -582,9 +601,9 @@ class VariablesView( object ):
       return
 
     variable.expanded = Expandable.EXPANDED_BY_USER
-    self._connection.DoRequest( partial( self._ConsumeVariables,
-                                         view.draw,
-                                         variable ), {
+    variable.connection.DoRequest( partial( self._ConsumeVariables,
+                                            view.draw,
+                                            variable ), {
       'command': 'variables',
       'arguments': {
         'variablesReference': variable.VariablesReference()
@@ -594,9 +613,6 @@ class VariablesView( object ):
   def SetVariableValue( self, new_value = None, buf = None, line_num = None ):
     variable: Variable
     view: View
-
-    if not self._server_capabilities.get( 'supportsSetVariable' ):
-      return
 
     variable, view = self._GetVariable( buf, line_num )
     if variable is None:
@@ -626,9 +642,9 @@ class VariablesView( object ):
 
       # If the variable is expanded, re-request its children
       if variable.IsExpanded():
-        self._connection.DoRequest( partial( self._ConsumeVariables,
-                                             view.draw,
-                                             variable ), {
+        variable.connection.DoRequest( partial( self._ConsumeVariables,
+                                                view.draw,
+                                                variable ), {
           'command': 'variables',
           'arguments': {
             'variablesReference': variable.VariablesReference()
@@ -641,7 +657,7 @@ class VariablesView( object ):
     def failure_handler( reason, message ):
       utils.UserMessage( f'Cannot set value: { reason }', error = True )
 
-    self._connection.DoRequest( handler, {
+    variable.connection.DoRequest( handler, {
       'command': 'setVariable',
       'arguments': {
         'variablesReference': variable.container.VariablesReference(),
@@ -657,7 +673,8 @@ class VariablesView( object ):
     if variable is None:
       return None
 
-    return variable.MemoryReference()
+    # TODO: Return the connection too!
+    return variable.connection, variable.MemoryReference()
 
 
   def _DrawVariables( self, view, variables, indent_len, is_short = False ):
@@ -672,6 +689,10 @@ class VariablesView( object ):
       name = variable.variable.get( 'name', '' )
       kind = variable.variable.get( 'type', '' )
       value = variable.variable.get( 'value', '<unknown>' )
+      hl = settings.Dict( 'presentation_hint_hl' ).get(
+        variable.variable.get( 'presentationHint', {} ).get( 'kind',
+                                                             'normal' ) )
+
 
       # FIXME: If 'value' is multi-line, somehow turn it into an expandable item
       # where the expansion is done "internally", resolving to the multi-line
@@ -692,7 +713,8 @@ class VariablesView( object ):
 
       line = utils.AppendToBuffer(
         view.buf,
-        text.split( '\n' )
+        text.split( '\n' ),
+        hl = hl
       )
 
       view.lines[ line ] = variable
@@ -722,22 +744,26 @@ class VariablesView( object ):
     with utils.RestoreCursorPosition():
       with utils.ModifiableScratchBuffer( self._watch.buf ):
         utils.ClearBuffer( self._watch.buf )
-        utils.AppendToBuffer( self._watch.buf, 'Watches: ----' )
+        utils.AppendToBuffer( self._watch.buf, 'Watches: ----', hl = 'Title' )
         for watch in self._watches:
           line = utils.AppendToBuffer( self._watch.buf,
                                        'Expression: '
-                                       + watch.expression[ 'expression' ] )
+                                       + watch.expression[ 'expression' ],
+                                       hl = 'Title' )
           watch.line = line
           self._DrawWatchResult( self._watch, 2, watch )
 
   def _DrawScope( self, indent, scope ):
     icon = '+' if scope.IsExpandable() and not scope.IsExpanded() else '-'
 
+    hl = settings.Dict( 'presentation_hint_hl' ).get(
+      scope.scope.get( 'presentationHint', 'normal' ) )
     line = utils.AppendToBuffer( self._vars.buf,
                                  '{0}{1} Scope: {2}'.format(
                                    ' ' * indent,
                                    icon,
-                                   scope.scope[ 'name' ] ) )
+                                   scope.scope[ 'name' ] ),
+                                 hl = hl )
     self._vars.lines[ line ] = scope
 
     if scope.ShouldDrawDrillDown():
@@ -797,16 +823,16 @@ class VariablesView( object ):
           found = True
           break
       if not found:
-        variable = Variable( parent, variable_body )
+        variable = Variable( parent.connection, parent, variable_body )
       else:
         variable.Update( variable_body )
 
       new_variables.append( variable )
 
       if variable.IsExpandable() and variable.IsExpanded():
-        self._connection.DoRequest( partial( self._ConsumeVariables,
-                                             draw,
-                                             variable ), {
+        variable.connection.DoRequest( partial( self._ConsumeVariables,
+                                                draw,
+                                                variable ), {
           'command': 'variables',
           'arguments': {
             'variablesReference': variable.VariablesReference()

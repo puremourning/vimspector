@@ -24,7 +24,7 @@ SIGN_ID = 1
 
 
 class DisassemblyView( object ):
-  def __init__( self, window, connection, api_prefix, render_event_emitter ):
+  def __init__( self, window, api_prefix, render_event_emitter ):
     self._logger = logging.getLogger( __name__ )
     utils.SetUpLogging( self._logger )
 
@@ -37,8 +37,8 @@ class DisassemblyView( object ):
     self._requesting = False
 
     self._api_prefix = api_prefix
-    self._connection: DebugAdapterConnection = connection
 
+    self.current_connection: DebugAdapterConnection = None
     self.current_frame = None
     self.current_instructions = None
 
@@ -75,11 +75,15 @@ class DisassemblyView( object ):
     signs.DefineProgramCounterSigns()
 
 
-  def ConnectionUp( self, connection ):
-    self._connection = connection
+  def ConnectionClosed( self, connection: DebugAdapterConnection ):
+    if connection != self.current_connection:
+      return
 
-  def ConnectionClosed( self ):
-    self._connection = None
+    self._UndisplayPC()
+    self.current_connection = None
+    self.current_frame = None
+    self.current_instructions = None
+
 
   def WindowIsValid( self ):
     return self._window is not None and self._window.valid
@@ -87,11 +91,14 @@ class DisassemblyView( object ):
   def IsCurrent( self ):
     return vim.current.buffer == self._buf
 
-  def SetCurrentFrame( self, frame, should_jump_to_location ):
-    if not self._window.valid or not self._connection:
+  def SetCurrentFrame( self,
+                       connection: DebugAdapterConnection,
+                       frame,
+                       should_jump_to_location ):
+    if not self._window.valid:
       return
 
-    if not frame:
+    if not frame or not connection:
       self._UndisplayPC()
       return
 
@@ -107,6 +114,7 @@ class DisassemblyView( object ):
     self._instructionPointerReference = frame[ 'instructionPointerReference' ]
     self._instructionPointerAddressOffset = 0
     self.current_frame = frame
+    self.current_connection = connection
 
     # Centre around the PC
     self.instruction_offset = -self._window.height
@@ -137,7 +145,7 @@ class DisassemblyView( object ):
       self._requesting = False
 
     self._requesting = True
-    self._connection.DoRequest( handler, {
+    self.current_connection.DoRequest( handler, {
       'command': 'disassemble',
       'arguments': {
         'memoryReference': self._instructionPointerReference,
@@ -155,6 +163,7 @@ class DisassemblyView( object ):
     with utils.ModifiableScratchBuffer( self._buf ):
       utils.ClearBuffer( self._buf )
 
+    self.current_connection = None
     self.current_frame = None
     self.current_instructions = None
 
@@ -194,11 +203,14 @@ class DisassemblyView( object ):
     if line_num <= 0 or line_num > self.instruction_count:
       return None
 
-    return utils.ParseAddress(
+    return self.current_connection, utils.ParseAddress(
       self.current_instructions[ line_num - 1 ][ 'address' ] )
 
-  def FindLineForAddress( self, address ):
+  def FindLineForAddress( self, conn, address ):
     if not self.current_instructions:
+      return 0
+
+    if self.current_connection != conn:
       return 0
 
     for index, instruction in enumerate( self.current_instructions ):
@@ -216,7 +228,7 @@ class DisassemblyView( object ):
     return self._buf.name
 
   def OnWindowScrolled( self, win_id ):
-    if not self._connection:
+    if not self.current_connection:
       return
 
     if not self.WindowIsValid() or utils.WindowID( self._window ) != win_id:
@@ -308,16 +320,18 @@ class DisassemblyView( object ):
     try:
       if should_jump_to_location:
         utils.JumpToWindow( self._window )
-        utils.SetCursorPosInWindow( self._window,
-                                    self._GetPCEntryOffset() + 1,
-                                    1,
-                                    make_visible = True )
+        utils.SetCursorPosInWindow(
+          self._window,
+          self._GetPCEntryOffset() + 1,
+          1,
+          make_visible = utils.VisiblePosition.MIDDLE )
       elif should_make_visible:
         with utils.RestoreCursorPosition():
-          utils.SetCursorPosInWindow( self._window,
-                                      self._GetPCEntryOffset() + 1,
-                                      1,
-                                      make_visible = True )
+          utils.SetCursorPosInWindow(
+            self._window,
+            self._GetPCEntryOffset() + 1,
+            1,
+            make_visible = utils.VisiblePosition.MIDDLE )
     except vim.error as e:
       utils.UserMessage( f"Failed to set cursor position for disassembly: {e}",
                          error = True )
@@ -329,7 +343,9 @@ class DisassemblyView( object ):
   def _DisplayPC( self ):
     self._UndisplayPC()
 
-    if not self._connection or not self._buf or not self.current_instructions:
+    if ( not self.current_connection or
+         not self._buf or
+         not self.current_instructions ):
       return
 
     if len( self.current_instructions ) < self.instruction_count:

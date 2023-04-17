@@ -22,6 +22,7 @@ import subprocess
 import functools
 import vim
 import importlib
+import typing
 
 from vimspector import ( breakpoints,
                          code,
@@ -46,15 +47,86 @@ USER_CHOICES = {}
 
 
 class DebugSession( object ):
-  def __init__( self, api_prefix ):
-    self._logger = logging.getLogger( __name__ )
-    utils.SetUpLogging( self._logger )
+  child_sessions: typing.List[ "DebugSession" ]
+
+  def CurrentSession():
+    def decorator( fct ):
+      @functools.wraps( fct )
+      def wrapper( self: "DebugSession", *args, **kwargs ):
+        active_session = self
+        if self._stackTraceView:
+          active_session = self._stackTraceView.GetCurrentSession()
+        if active_session is not None:
+          return fct( active_session, *args, **kwargs )
+        return fct( self, *args, **kwargs )
+      return wrapper
+    return decorator
+
+  def ParentOnly( otherwise=None ):
+    def decorator( fct ):
+      @functools.wraps( fct )
+      def wrapper( self: "DebugSession", *args, **kwargs ):
+        if self.parent_session:
+          return otherwise
+        return fct( self, *args, **kwargs )
+      return wrapper
+    return decorator
+
+  def IfConnected( otherwise=None ):
+    def decorator( fct ):
+      """Decorator, call fct if self._connected else echo warning"""
+      @functools.wraps( fct )
+      def wrapper( self: "DebugSession", *args, **kwargs ):
+        if not self._connection:
+          utils.UserMessage(
+            'Vimspector not connected, start a debug session first',
+            persist=False,
+            error=True )
+          return otherwise
+        return fct( self, *args, **kwargs )
+      return wrapper
+    return decorator
+
+  def RequiresUI( otherwise=None ):
+    """Decorator, call fct if self._connected else echo warning"""
+    def decorator( fct ):
+      @functools.wraps( fct )
+      def wrapper( self, *args, **kwargs ):
+        if not self.HasUI():
+          utils.UserMessage(
+            'Vimspector is not active',
+            persist=False,
+            error=True )
+          return otherwise
+        return fct( self, *args, **kwargs )
+      return wrapper
+    return decorator
+
+
+  def __init__( self,
+                session_id,
+                session_manager,
+                api_prefix,
+                session_name = None,
+                parent_session: "DebugSession" = None ):
+    self.session_id = session_id
+    self.manager = session_manager
+    self.name = session_name
+    self.parent_session = parent_session
+    self.child_sessions = []
+
+    if parent_session:
+      parent_session.child_sessions.append( self )
+
+    self._logger = logging.getLogger( __name__ + '.' + str( session_id ) )
+    utils.SetUpLogging( self._logger, session_id )
 
     self._api_prefix = api_prefix
 
     self._render_emitter = utils.EventEmitter()
 
-    self._logger.info( "**** INITIALISING NEW VIMSPECTOR SESSION ****" )
+    self._logger.info( "**** INITIALISING NEW VIMSPECTOR SESSION FOR ID "
+                       f"{session_id } ****" )
     self._logger.info( "API is: {}".format( api_prefix ) )
     self._logger.info( 'VIMSPECTOR_HOME = %s', VIMSPECTOR_HOME )
     self._logger.info( 'gadgetDir = %s',
@@ -69,10 +141,17 @@ class DebugSession( object ):
     self._codeView: code.CodeView = None
     self._disassemblyView: disassembly.DisassemblyView = None
 
-    self._breakpoints = breakpoints.ProjectBreakpoints(
-      self._render_emitter,
-      self._IsPCPresentAt,
-      self._disassemblyView )
+    if parent_session:
+      self._breakpoints = parent_session._breakpoints
+    else:
+      self._breakpoints = breakpoints.ProjectBreakpoints(
+        session_id,
+        self._render_emitter,
+        self._IsPCPresentAt,
+        self._disassemblyView )
+      utils.SetSessionWindows( {} )
+
+
     self._saved_variables_data = None
 
     self._splash_screen = None
@@ -87,13 +166,17 @@ class DebugSession( object ):
 
     self._ResetServerState()
 
+
+  def __del__( self ):
+    self.manager.DestroySession( self )
+
+
   def _ResetServerState( self ):
     self._connection = None
     self._init_complete = False
     self._launch_complete = False
     self._on_init_complete_handlers = []
     self._server_capabilities = {}
-    utils.SetSessionWindows( {} )
     self.ClearTemporaryBreakpoints()
 
   def GetConfigurations( self, adapters ):
@@ -125,6 +208,13 @@ class DebugSession( object ):
 
     return launch_config_file, filetype_configurations, configurations
 
+
+  def Name( self ):
+    name = self.name if self.name else "<Unnamed>"
+    return f'{name} ({self.session_id})'
+
+
+  @ParentOnly()
   def Start( self,
              force_choose = False,
              launch_variables = None,
@@ -191,6 +281,9 @@ class DebugSession( object ):
 
     if not configuration_name or configuration_name not in configurations:
       return
+
+    if self.name is None:
+      self.name = configuration_name
 
     if launch_config_file:
       self._workspace_root = os.path.dirname( launch_config_file )
@@ -352,12 +445,12 @@ class DebugSession( object ):
 
     try:
       variables.update(
-        utils.ParseVariables( adapter.get( 'variables', {} ),
+        utils.ParseVariables( adapter.pop( 'variables', {} ),
                               variables,
                               calculus,
                               USER_CHOICES ) )
       variables.update(
-        utils.ParseVariables( configuration.get( 'variables', {} ),
+        utils.ParseVariables( configuration.pop( 'variables', {} ),
                               variables,
                               calculus,
                               USER_CHOICES ) )
@@ -388,12 +481,23 @@ class DebugSession( object ):
       self._logger.info( 'Adapter: %s',
                          json.dumps( self._adapter ) )
 
-      if not self._uiTab:
+
+      if self.parent_session:
+        # use the parent session's stuff
+        self._uiTab = self.parent_session._uiTab
+        self._stackTraceView = self.parent_session._stackTraceView
+        self._variablesView = self.parent_session._variablesView
+        self._outputView = self.parent_session._outputView
+        self._disassemblyView = self.parent_session._disassemblyView
+        self._codeView = self.parent_session._codeView
+
+      elif not self._uiTab:
         self._SetUpUI()
       else:
         with utils.NoAutocommands():
           vim.current.tabpage = self._uiTab
 
+      self._stackTraceView.AddSession( self )
       self._Prepare()
       if not self._StartDebugAdapter():
         self._logger.info( "Failed to launch or attach to the debug adapter" )
@@ -401,69 +505,31 @@ class DebugSession( object ):
 
       self._Initialise()
 
-      self._stackTraceView.ConnectionUp( self._connection )
-      self._variablesView.ConnectionUp( self._connection )
-
       if self._saved_variables_data:
         self._variablesView.Load( self._saved_variables_data )
-        # TODO: clear it ?
-        # TODO: store this stuff in module scope in variables.py ?
-        # TODO: hmmm...
-
-      self._outputView.ConnectionUp( self._connection )
-      self._breakpoints.ConnectionUp( self._connection )
-
-      if self._disassemblyView:
-        self._disassemblyView.ConnectionUp( self._connection )
 
     if self._connection:
-      self._logger.debug( "_StopDebugAdapter with callback: start" )
-      self._StopDebugAdapter( interactive = False, callback = start )
+      self._logger.debug( "Stop debug adapter with callback: start" )
+      self.StopAllSessions( interactive = False, then = start )
       return
 
     start()
 
+  @ParentOnly()
   def Restart( self ):
     if self._configuration is None or self._adapter is None:
       return self.Start()
 
     self._StartWithConfiguration( self._configuration, self._adapter )
 
-  def IfConnected( otherwise=None ):
-    def decorator( fct ):
-      """Decorator, call fct if self._connected else echo warning"""
-      @functools.wraps( fct )
-      def wrapper( self, *args, **kwargs ):
-        if not self._connection:
-          utils.UserMessage(
-            'Vimspector not connected, start a debug session first',
-            persist=False,
-            error=True )
-          return otherwise
-        return fct( self, *args, **kwargs )
-      return wrapper
-    return decorator
+  def Connection( self ):
+    return self._connection
 
   def HasUI( self ):
     return self._uiTab and self._uiTab.valid
 
   def IsUITab( self, tab_number ):
     return self.HasUI() and self._uiTab.number == tab_number
-
-  def RequiresUI( otherwise=None ):
-    """Decorator, call fct if self._connected else echo warning"""
-    def decorator( fct ):
-      @functools.wraps( fct )
-      def wrapper( self, *args, **kwargs ):
-        if not self.HasUI():
-          utils.UserMessage(
-            'Vimspector is not active',
-            persist=False,
-            error=True )
-          return otherwise
-        return fct( self, *args, **kwargs )
-      return wrapper
-    return decorator
 
   def OnChannelData( self, data ):
     if self._connection is None:
@@ -485,23 +551,46 @@ class DebugSession( object ):
     # TODO: Not called
     self._connection = None
 
+
+  def StopAllSessions( self, interactive = False, then = None ):
+    def Next():
+      if self.child_sessions:
+        c = self.child_sessions.pop()
+        c.StopAllSessions( interactive = interactive, then = Next )
+      elif self._connection:
+        self._StopDebugAdapter( interactive = interactive, callback = then )
+      else:
+        then()
+    Next()
+
+  @ParentOnly()
   @IfConnected()
   def Stop( self, interactive = False ):
     self._logger.debug( "Stop debug adapter with no callback" )
-    self._StopDebugAdapter( interactive = interactive )
+    self.StopAllSessions( interactive = False )
 
+  @ParentOnly()
   def Reset( self, interactive = False ):
-    if self._connection:
-      self._logger.debug( "Stop debug adapter with callback : self._Reset()" )
-      self._StopDebugAdapter( interactive = interactive,
-                              callback = lambda: self._Reset() )
-    else:
-      self._Reset()
+    # We reset all of the child sessions in turn
+    self._logger.debug( "Stop debug adapter with callback: _Reset" )
+    self.StopAllSessions( interactive, self._Reset )
+
 
   def _IsPCPresentAt( self, file_path, line ):
     return self._codeView and self._codeView.IsPCPresentAt( file_path, line )
 
   def _Reset( self ):
+    if self.parent_session:
+      self._stackTraceView = None
+      self._variablesView = None
+      self._outputView = None
+      self._codeView = None
+      self._disassemblyView = None
+      self._remote_term = None
+      self._uiTab = None
+      self._breakpoints.RemoveConnection( self._connection )
+      return
+
     vim.vars[ 'vimspector_resetting' ] = 1
     self._logger.info( "Debugging complete." )
 
@@ -522,9 +611,9 @@ class DebugSession( object ):
       self._outputView = None
       self._codeView = None
       self._disassemblyView = None
-      self._breakpoints.SetDisassemblyManager( None )
       self._remote_term = None
       self._uiTab = None
+      self._breakpoints.RemoveConnection( self._connection )
 
     if self.HasUI():
       self._logger.debug( "Clearing down UI" )
@@ -537,17 +626,20 @@ class DebugSession( object ):
     else:
       ResetUI()
 
+    self._breakpoints.RemoveConnection( self._connection )
+    self._breakpoints.SetDisassemblyManager( None )
     utils.SetSessionWindows( {
       'breakpoints': vim.vars[ 'vimspector_session_windows' ].get(
         'breakpoints' )
     } )
-
     vim.command( 'doautocmd <nomodeline> User VimspectorDebugEnded' )
+
     vim.vars[ 'vimspector_resetting' ] = 0
 
     # make sure that we're displaying signs in any still-open buffers
     self._breakpoints.UpdateUI()
 
+  @ParentOnly( False )
   def ReadSessionFile( self, session_file: str = None ):
     if session_file is None:
       session_file = self._DetectSessionFile( invent_one_if_not_found = False )
@@ -593,6 +685,7 @@ class DebugSession( object ):
       return False
 
 
+  @ParentOnly( False )
   def WriteSessionFile( self, session_file: str = None ):
     if session_file is None:
       session_file = self._DetectSessionFile( invent_one_if_not_found = True )
@@ -635,6 +728,7 @@ class DebugSession( object ):
     return None
 
 
+  @CurrentSession()
   @IfConnected()
   def StepOver( self, **kwargs ):
     if self._stackTraceView.GetCurrentThreadId() is None:
@@ -655,9 +749,10 @@ class DebugSession( object ):
     } )
 
     # TODO: WHy is this different from StepInto and StepOut
-    self._stackTraceView.OnContinued()
+    self._stackTraceView.OnContinued( self )
     self.ClearCurrentPC()
 
+  @CurrentSession()
   @IfConnected()
   def StepInto( self, **kwargs ):
     threadId = self._stackTraceView.GetCurrentThreadId()
@@ -665,7 +760,7 @@ class DebugSession( object ):
       return
 
     def handler( *_ ):
-      self._stackTraceView.OnContinued( { 'threadId': threadId } )
+      self._stackTraceView.OnContinued( self, { 'threadId': threadId } )
       self.ClearCurrentPC()
 
     arguments = {
@@ -678,6 +773,7 @@ class DebugSession( object ):
       'arguments': arguments,
     } )
 
+  @CurrentSession()
   @IfConnected()
   def StepOut( self, **kwargs ):
     threadId = self._stackTraceView.GetCurrentThreadId()
@@ -685,7 +781,7 @@ class DebugSession( object ):
       return
 
     def handler( *_ ):
-      self._stackTraceView.OnContinued( { 'threadId': threadId } )
+      self._stackTraceView.OnContinued( self, { 'threadId': threadId } )
       self.ClearCurrentPC()
 
     arguments = {
@@ -704,6 +800,7 @@ class DebugSession( object ):
 
     return 'statement'
 
+  @CurrentSession()
   def Continue( self ):
     if not self._connection:
       self.Start()
@@ -715,7 +812,7 @@ class DebugSession( object ):
       return
 
     def handler( msg ):
-      self._stackTraceView.OnContinued( {
+      self._stackTraceView.OnContinued( self, {
           'threadId': threadId,
           'allThreadsContinued': ( msg.get( 'body' ) or {} ).get(
             'allThreadsContinued',
@@ -730,6 +827,7 @@ class DebugSession( object ):
       },
     } )
 
+  @CurrentSession()
   @IfConnected()
   def Pause( self ):
     if self._stackTraceView.GetCurrentThreadId() is None:
@@ -747,27 +845,36 @@ class DebugSession( object ):
   def PauseContinueThread( self ):
     self._stackTraceView.PauseContinueThread()
 
+  @CurrentSession()
   @IfConnected()
   def SetCurrentThread( self ):
     self._stackTraceView.SetCurrentThread()
 
+  @CurrentSession()
   @IfConnected()
   def ExpandVariable( self, buf = None, line_num = None ):
     self._variablesView.ExpandVariable( buf, line_num )
 
+  @CurrentSession()
   @IfConnected()
   def SetVariableValue( self, new_value = None, buf = None, line_num = None ):
+    if not self._server_capabilities.get( 'supportsSetVariable' ):
+      return
     self._variablesView.SetVariableValue( new_value, buf, line_num )
 
-  @IfConnected()
+  @ParentOnly()
   def ReadMemory( self, length = None, offset = None ):
+    # We use the parent session because the actual connection is returned from
+    # the variables view (and might not be our self._connection) at least in
+    # theory.
     if not self._server_capabilities.get( 'supportsReadMemoryRequest' ):
       utils.UserMessage( "Server does not support memory request",
                          error = True )
       return
 
-    memoryReference = self._variablesView.GetMemoryReference()
-    if memoryReference is None:
+    connection: debug_adapter_connection.DebugAdapterConnection
+    connection, memoryReference = self._variablesView.GetMemoryReference()
+    if memoryReference is None or connection is None:
       utils.UserMessage( "Cannot find memory reference for that",
                          error = True )
       return
@@ -792,9 +899,13 @@ class DebugSession( object ):
 
 
     def handler( msg ):
-      self._codeView.ShowMemory( memoryReference, length, offset, msg )
+      self._codeView.ShowMemory( connection.GetSessionId(),
+                                 memoryReference,
+                                 length,
+                                 offset,
+                                 msg )
 
-    self._connection.DoRequest( handler, {
+    connection.DoRequest( handler, {
       'command': 'readMemory',
       'arguments': {
         'memoryReference': memoryReference,
@@ -804,6 +915,7 @@ class DebugSession( object ):
     } )
 
 
+  @CurrentSession()
   @IfConnected()
   @RequiresUI()
   def ShowDisassembly( self ):
@@ -824,7 +936,6 @@ class DebugSession( object ):
       vim.command( f'rightbelow { settings.Int( "disassembly_height" ) }new' )
       self._disassemblyView = disassembly.DisassemblyView(
         vim.current.window,
-        self._connection,
         self._api_prefix,
         self._render_emitter )
 
@@ -835,6 +946,7 @@ class DebugSession( object ):
       } )
 
       self._disassemblyView.SetCurrentFrame(
+        self._connection,
         self._stackTraceView.GetCurrentFrame(),
         True )
 
@@ -844,22 +956,28 @@ class DebugSession( object ):
       self._disassemblyView.OnWindowScrolled( win_id )
 
 
+  @CurrentSession()
   @IfConnected()
   def AddWatch( self, expression ):
-    self._variablesView.AddWatch( self._stackTraceView.GetCurrentFrame(),
+    self._variablesView.AddWatch( self._connection,
+                                  self._stackTraceView.GetCurrentFrame(),
                                   expression )
 
+  @CurrentSession()
   @IfConnected()
   def EvaluateConsole( self, expression, verbose ):
-    self._outputView.Evaluate( self._stackTraceView.GetCurrentFrame(),
+    self._outputView.Evaluate( self._connection,
+                               self._stackTraceView.GetCurrentFrame(),
                                expression,
                                verbose )
 
+  @CurrentSession()
   @IfConnected()
   def DeleteWatch( self ):
     self._variablesView.DeleteWatch()
 
 
+  @CurrentSession()
   @IfConnected()
   def HoverEvalTooltip( self, winnr, bufnr, lnum, expression, is_hover ):
     frame = self._stackTraceView.GetCurrentFrame()
@@ -870,7 +988,10 @@ class DebugSession( object ):
 
     # Check if cursor in code window
     if winnr == int( self._codeView._window.number ):
-      return self._variablesView.HoverEvalTooltip( frame, expression, is_hover )
+      return self._variablesView.HoverEvalTooltip( self._connection,
+                                                   frame,
+                                                   expression,
+                                                   is_hover )
 
     return self._variablesView.HoverVarWinTooltip( bufnr,
                                                    lnum,
@@ -878,6 +999,7 @@ class DebugSession( object ):
     # Return variable aware function
 
 
+  @CurrentSession()
   def CleanUpTooltip( self ):
     return self._variablesView.CleanUpTooltip()
 
@@ -934,6 +1056,7 @@ class DebugSession( object ):
   def GetOutputBuffers( self ):
     return self._outputView.GetCategories()
 
+  @CurrentSession()
   @IfConnected( otherwise=[] )
   def GetCompletionsSync( self, text_line, column_in_bytes ):
     if not self._server_capabilities.get( 'supportsCompletionsRequest' ):
@@ -954,6 +1077,7 @@ class DebugSession( object ):
     return response[ 'body' ][ 'targets' ]
 
 
+  @CurrentSession()
   @IfConnected( otherwise=[] )
   def GetCommandLineCompletions( self, ArgLead, prev_non_keyword_char ):
     items = []
@@ -966,14 +1090,26 @@ class DebugSession( object ):
 
     return items
 
+
+  @ParentOnly()
   def RefreshSigns( self ):
     if self._connection:
       self._codeView.Refresh()
     self._breakpoints.Refresh()
 
 
+  @ParentOnly()
   def _SetUpUI( self ):
     vim.command( 'tab split' )
+
+    # Switch to this session now that we've made it visible. Note that the
+    # TabEnter autocmd does trigger when the above is run, but that's before the
+    # following line assigns the tab to this session, so when we try to find
+    # this session by tab number, it's not found. So we have to manually switch
+    # to it when creating a new tab.
+    utils.Call( 'vimspector#internal#state#SwitchToSession',
+                self.session_id )
+
     self._uiTab = vim.current.tabpage
 
     mode = settings.Get( 'ui_mode' )
@@ -1017,17 +1153,18 @@ class DebugSession( object ):
   def _SetUpUIHorizontal( self ):
     # Code window
     code_window = vim.current.window
-    self._codeView = code.CodeView( code_window,
-      self._api_prefix,
-      self._render_emitter,
-      self._breakpoints.IsBreakpointPresentAt )
+    self._codeView = code.CodeView( self.session_id,
+                                    code_window,
+                                    self._api_prefix,
+                                    self._render_emitter,
+                                    self._breakpoints.IsBreakpointPresentAt )
 
     # Call stack
     vim.command(
       f'topleft vertical { settings.Int( "sidebar_width" ) }new' )
     stack_trace_window = vim.current.window
     one_third = int( vim.eval( 'winheight( 0 )' ) ) / 3
-    self._stackTraceView = stack_trace.StackTraceView( self,
+    self._stackTraceView = stack_trace.StackTraceView( self.session_id,
                                                        stack_trace_window )
 
     # Watches
@@ -1045,17 +1182,18 @@ class DebugSession( object ):
     with utils.LetCurrentWindow( stack_trace_window ):
       vim.command( f'{ one_third }wincmd _' )
 
-    self._variablesView = variables.VariablesView( vars_window, watch_window )
+    self._variablesView = variables.VariablesView( self.session_id,
+                                                   vars_window,
+                                                   watch_window )
 
     # Output/logging
     vim.current.window = code_window
     vim.command( f'rightbelow { settings.Int( "bottombar_height" ) }new' )
     output_window = vim.current.window
     self._outputView = output.DAPOutputView( output_window,
-                                             self._api_prefix )
+                                             self._api_prefix,
+                                              session_id = self.session_id )
 
-    # TODO: If/when we support multiple sessions, we'll need some way to
-    # indicate which tab was created and store all the tabs
     utils.SetSessionWindows( {
       'mode': 'horizontal',
       'tabpage': self._uiTab.number,
@@ -1077,7 +1215,8 @@ class DebugSession( object ):
   def _SetUpUIVertical( self ):
     # Code window
     code_window = vim.current.window
-    self._codeView = code.CodeView( code_window,
+    self._codeView = code.CodeView( self.session_id,
+                                    code_window,
                                     self._api_prefix,
                                     self._render_emitter,
                                     self._breakpoints.IsBreakpointPresentAt )
@@ -1107,7 +1246,9 @@ class DebugSession( object ):
     with utils.LetCurrentWindow( stack_trace_window ):
       vim.command( f'{ one_third }wincmd |' )
 
-    self._variablesView = variables.VariablesView( vars_window, watch_window )
+    self._variablesView = variables.VariablesView( self.session_id,
+                                                   vars_window,
+                                                   watch_window )
 
 
     # Output/logging
@@ -1115,10 +1256,9 @@ class DebugSession( object ):
     vim.command( f'rightbelow { settings.Int( "bottombar_height" ) }new' )
     output_window = vim.current.window
     self._outputView = output.DAPOutputView( output_window,
-                                             self._api_prefix )
+                                             self._api_prefix,
+                                             session_id = self.session_id )
 
-    # TODO: If/when we support multiple sessions, we'll need some way to
-    # indicate which tab was created and store all the tabs
     utils.SetSessionWindows( {
       'mode': 'vertical',
       'tabpage': self._uiTab.number,
@@ -1145,13 +1285,12 @@ class DebugSession( object ):
   def ClearCurrentPC( self ):
     self._codeView.SetCurrentFrame( None, False )
     if self._disassemblyView:
-      self._disassemblyView.SetCurrentFrame( None, False )
+      self._disassemblyView.SetCurrentFrame( None, None, False )
 
 
   @RequiresUI()
   def SetCurrentFrame( self, frame, reason = '' ):
     if not frame:
-      self._stackTraceView.Clear()
       self._variablesView.Clear()
 
     target = self._codeView
@@ -1163,7 +1302,8 @@ class DebugSession( object ):
       return False
 
     if self._disassemblyView:
-      self._disassemblyView.SetCurrentFrame( frame,
+      self._disassemblyView.SetCurrentFrame( self._connection,
+                                             frame,
                                              target == self._disassemblyView )
 
     # the codeView.SetCurrentFrame already checked the frame was valid and
@@ -1176,8 +1316,8 @@ class DebugSession( object ):
       self._variablesView.SetSyntax( None )
       self._stackTraceView.SetSyntax( None )
 
-    self._variablesView.LoadScopes( frame )
-    self._variablesView.EvaluateWatches( frame )
+    self._variablesView.LoadScopes( self._connection, frame )
+    self._variablesView.EvaluateWatches( self._connection, frame )
 
     if reason == 'stopped':
       self._breakpoints.ClearTemporaryBreakpoint( frame[ 'source' ][ 'path' ],
@@ -1189,7 +1329,7 @@ class DebugSession( object ):
     self._splash_screen = utils.DisplaySplash(
       self._api_prefix,
       self._splash_screen,
-      "Starting debug adapter..." )
+      f"Starting debug adapter for session {self.Name()}..." )
 
     if self._connection:
       utils.UserMessage( 'The connection is already created. Please try again',
@@ -1254,8 +1394,10 @@ class DebugSession( object ):
           self._adapter_term )
 
     if not vim.eval( "vimspector#internal#{}#StartDebugSession( "
+                     "  {},"
                      "  g:_vimspector_adapter_spec "
-                     ")".format( self._connection_type ) ):
+                     ")".format( self._connection_type,
+                                 self.session_id ) ):
       self._logger.error( "Unable to start debug server" )
       self._splash_screen = utils.DisplaySplash(
         self._api_prefix,
@@ -1286,12 +1428,14 @@ class DebugSession( object ):
                                   spec )
 
       self._connection = debug_adapter_connection.DebugAdapterConnection(
-        handlers,
-        lambda msg: utils.Call(
+        handlers = handlers,
+        session_id = self.session_id,
+        send_func = lambda msg: utils.Call(
           "vimspector#internal#{}#Send".format( self._connection_type ),
+          self.session_id,
           msg ),
-        self._adapter.get( 'sync_timeout' ),
-        self._adapter.get( 'async_timeout' ) )
+        sync_timeout = self._adapter.get( 'sync_timeout' ),
+        async_timeout = self._adapter.get( 'async_timeout' ) )
 
     self._logger.info( 'Debug Adapter Started' )
     return True
@@ -1303,7 +1447,7 @@ class DebugSession( object ):
       self._splash_screen = utils.DisplaySplash(
         self._api_prefix,
         self._splash_screen,
-        "Shutting down debug adapter..." )
+        f"Shutting down debug adapter for session {self.Name()}..." )
 
       def handler( *args ):
         self._splash_screen = utils.HideSplash( self._api_prefix,
@@ -1314,8 +1458,9 @@ class DebugSession( object ):
           assert not self._run_on_server_exit
           self._run_on_server_exit = callback
 
-        vim.eval( 'vimspector#internal#{}#StopDebugSession()'.format(
-          self._connection_type ) )
+        vim.eval( 'vimspector#internal#{}#StopDebugSession( {} )'.format(
+          self._connection_type,
+          self.session_id ) )
 
       self._connection.DoRequest(
         handler,
@@ -1518,7 +1663,7 @@ class DebugSession( object ):
     self._splash_screen = utils.DisplaySplash(
       self._api_prefix,
       self._splash_screen,
-      "Initializing debug adapter..." )
+      f"Initializing debug session {self.Name()}..." )
 
     # For a good explanation as to why this sequence is the way it is, see
     # https://github.com/microsoft/vscode/issues/4902#issuecomment-368583522
@@ -1537,8 +1682,11 @@ class DebugSession( object ):
     #
     def handle_initialize_response( msg ):
       self._server_capabilities = msg.get( 'body' ) or {}
-      self._breakpoints.SetServerCapabilities( self._server_capabilities )
-      self._variablesView.SetServerCapabilities( self._server_capabilities )
+      # TODO/FIXME: We assume that the capabilities are the same for all
+      # connections. We should fix this when we split the server bp
+      # representation out?
+      if not self.parent_session:
+        self._breakpoints.SetServerCapabilities( self._server_capabilities )
       self._Launch()
 
     self._connection.DoRequest( handle_initialize_response, {
@@ -1554,7 +1702,8 @@ class DebugSession( object ):
         'supportsVariableType': True,
         'supportsVariablePaging': False,
         'supportsRunInTerminalRequest': True,
-        'supportsMemoryReferences': True
+        'supportsMemoryReferences': True,
+        'supportsStartDebuggingRequest': True
       },
     } )
 
@@ -1570,12 +1719,13 @@ class DebugSession( object ):
     self._on_init_complete_handlers = []
 
     self._logger.debug( "LAUNCH!" )
-    self._launch_config = {}
-    # TODO: Should we use core_utils.override for this? That would strictly be a
-    # change in behaviour as dicts in the specific configuration would merge
-    # with dicts in the adapter, where before they would overlay
-    self._launch_config.update( self._adapter.get( 'configuration', {} ) )
-    self._launch_config.update( self._configuration[ 'configuration' ] )
+    if self._launch_config is None:
+      self._launch_config = {}
+      # TODO: Should we use core_utils.override for this? That would strictly be
+      # a change in behaviour as dicts in the specific configuration would merge
+      # with dicts in the adapter, where before they would overlay
+      self._launch_config.update( self._adapter.get( 'configuration', {} ) )
+      self._launch_config.update( self._configuration[ 'configuration' ] )
 
     request = self._configuration.get(
       'remote-request',
@@ -1585,14 +1735,14 @@ class DebugSession( object ):
       self._splash_screen = utils.DisplaySplash(
         self._api_prefix,
         self._splash_screen,
-        "Attaching to debuggee..." )
+        f"Attaching to debuggee {self.Name()}..." )
 
       self._PrepareAttach( self._adapter, self._launch_config )
     elif request == "launch":
       self._splash_screen = utils.DisplaySplash(
         self._api_prefix,
         self._splash_screen,
-        "Launching debuggee..." )
+        f"Launching debuggee {self.Name()}..." )
 
       # FIXME: This cmdLine hack is not fun.
       self._PrepareLaunch( self._configuration.get( 'remote-cmdLine', [] ),
@@ -1608,7 +1758,7 @@ class DebugSession( object ):
   def _Launch( self ):
     def failure_handler( reason, msg ):
       text = [
-        'Launch Failed',
+        f'Initialize for session {self.Name()} Failed',
         '' ] + reason.splitlines() + [
         '', 'Use :VimspectorReset to close' ]
       self._logger.info( "Launch failed: %s", '\n'.join( text ) )
@@ -1659,9 +1809,10 @@ class DebugSession( object ):
         h()
       self._on_init_complete_handlers = []
 
-      self._stackTraceView.LoadThreads( True )
+      self._stackTraceView.LoadThreads( self, True )
 
 
+  @CurrentSession()
   @IfConnected()
   @RequiresUI()
   def PrintDebugInfo( self ):
@@ -1705,7 +1856,7 @@ class DebugSession( object ):
 
 
   def OnEvent_initialized( self, message ):
-    def onBreakpointsDone():
+    def OnBreakpointsDone():
       self._breakpoints.Refresh()
       if self._server_capabilities.get( 'supportsConfigurationDoneRequest' ):
         self._connection.DoRequest(
@@ -1719,21 +1870,23 @@ class DebugSession( object ):
 
     self._breakpoints.SetConfiguredBreakpoints(
       self._configuration.get( 'breakpoints', {} ) )
-    self._breakpoints.UpdateUI( onBreakpointsDone )
+    self._breakpoints.AddConnection( self._connection )
+    self._breakpoints.UpdateUI( OnBreakpointsDone )
+
 
   def OnEvent_thread( self, message ):
-    self._stackTraceView.OnThreadEvent( message[ 'body' ] )
+    self._stackTraceView.OnThreadEvent( self, message[ 'body' ] )
 
 
   def OnEvent_breakpoint( self, message ):
     reason = message[ 'body' ][ 'reason' ]
     bp = message[ 'body' ][ 'breakpoint' ]
     if reason == 'changed':
-      self._breakpoints.UpdatePostedBreakpoint( bp )
+      self._breakpoints.UpdatePostedBreakpoint( self._connection, bp )
     elif reason == 'new':
-      self._breakpoints.AddPostedBreakpoint( bp )
+      self._breakpoints.AddPostedBreakpoint( self._connection, bp )
     elif reason == 'removed':
-      self._breakpoints.DeletePostedBreakpoint( bp )
+      self._breakpoints.DeletePostedBreakpoint( self._connection, bp )
     else:
       utils.UserMessage(
         'Unrecognised breakpoint event (undocumented): {0}'.format( reason ),
@@ -1765,26 +1918,61 @@ class DebugSession( object ):
     #
     # FIXME we should always wait for this event before disconnecting closing
     # any socket connection
+    # self._stackTraceView.OnTerminated( self )
     self.SetCurrentFrame( None )
 
 
   def OnEvent_exited( self, message ):
     utils.UserMessage( 'The debuggee exited with status code: {}'.format(
       message[ 'body' ][ 'exitCode' ] ) )
-    self._stackTraceView.OnExited( message )
+    self._stackTraceView.OnExited( self, message )
     self.ClearCurrentPC()
 
+
+  def OnRequest_startDebugging( self, message ):
+    self._DoStartDebuggingRequest( message,
+                                   message[ 'arguments' ][ 'request' ],
+                                   message[ 'arguments' ][ 'configuration' ],
+                                   self._adapter )
+
+  def _DoStartDebuggingRequest( self,
+                                message,
+                                request_type,
+                                launch_arguments,
+                                adapter,
+                                session_name = None ):
+
+    session = self.manager.NewSession(
+      self._api_prefix,
+      session_name = session_name or launch_arguments.get( 'name' ),
+      parent_session = self )
+
+    # Inject the launch config (HACK!). This will actually mean that the
+    # configuration passed below is ignored.
+    session._launch_config = launch_arguments
+    session._launch_config[ 'request' ] = request_type
+
+    # FIXME: We probably do need to add a StartWithLauncArguments and somehow
+    # tell the new session that it shoud not support "Restart" requests ?
+    #
+    # In fact, what even would Reset do... ?
+    session._StartWithConfiguration( { 'configuration': launch_arguments },
+                                     adapter )
+
+    self._connection.DoResponse( message, None, {} )
+
   def OnEvent_process( self, message ):
-    utils.UserMessage( 'The debuggee was started: {}'.format(
+    utils.UserMessage( 'debuggee was started: {}'.format(
       message[ 'body' ][ 'name' ] ) )
 
   def OnEvent_module( self, message ):
     pass
 
   def OnEvent_continued( self, message ):
-    self._stackTraceView.OnContinued( message[ 'body' ] )
+    self._stackTraceView.OnContinued( self, message[ 'body' ] )
     self.ClearCurrentPC()
 
+  @ParentOnly()
   def Clear( self ):
     self._codeView.Clear()
     if self._disassemblyView:
@@ -1795,19 +1983,19 @@ class DebugSession( object ):
   def OnServerExit( self, status ):
     self._logger.info( "The server has terminated with status %s",
                        status )
-    self.Clear()
 
     if self._connection is not None:
       # Can be None if the server dies _before_ StartDebugSession vim function
       # returns
       self._connection.Reset()
 
-    self._stackTraceView.ConnectionClosed()
-    self._variablesView.ConnectionClosed()
-    self._outputView.ConnectionClosed()
-    self._breakpoints.ConnectionClosed()
+    self._stackTraceView.ConnectionClosed( self )
+    self._breakpoints.ConnectionClosed( self._connection )
+    self._variablesView.ConnectionClosed( self._connection )
     if self._disassemblyView:
-      self._disassemblyView.ConnectionClosed()
+      self._disassemblyView.ConnectionClosed( self._connection )
+
+    self.Clear()
 
     self._ResetServerState()
 
@@ -1840,12 +2028,12 @@ class DebugSession( object ):
     msg = 'Paused in thread {0} due to {1}'.format(
       event.get( 'threadId', '<unknown>' ),
       explanation )
-    utils.UserMessage( msg, persist = True )
+    utils.UserMessage( msg )
 
     if self._outputView:
       self._outputView.Print( 'server', msg )
 
-    self._stackTraceView.OnStopped( event )
+    self._stackTraceView.OnStopped( self, event )
 
   def BreakpointsAsQuickFix( self ):
     return self._breakpoints.BreakpointsAsQuickFix()
@@ -1885,6 +2073,7 @@ class DebugSession( object ):
                             { 'temporary': True },
                             lambda: self.Continue() )
 
+  @CurrentSession()
   @IfConnected()
   def GoTo( self, file_name, line ):
     def failure_handler( reason, *args ):

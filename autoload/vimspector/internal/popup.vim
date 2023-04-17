@@ -21,7 +21,10 @@ set cpoptions&vim
 " }}}
 
 function! vimspector#internal#popup#DisplaySplash( message ) abort
-  return popup_dialog( a:message, {} )
+  return popup_dialog( a:message, {
+        \ 'close': 'button',
+        \ 'drag': 1,
+        \ } )
 endfunction
 
 function! vimspector#internal#popup#UpdateSplash( id, message ) abort
@@ -30,8 +33,8 @@ function! vimspector#internal#popup#UpdateSplash( id, message ) abort
 endfunction
 
 function! vimspector#internal#popup#HideSplash( id ) abort
-  call popup_hide( a:id )
-  return a:id
+  call popup_close( a:id )
+  return v:null
 endfunction
 
 let s:current_selection = 0
@@ -102,9 +105,11 @@ function! vimspector#internal#popup#Confirm(
       \ default_value,
       \ keys ) abort
 
-  silent! call prop_type_add( 'VimspectorSelectedItem', {
-        \ 'highlight': 'PMenuSel'
-        \ } )
+  if empty( prop_type_get( 'VimspectorSelectedItem' )  )
+    call prop_type_add( 'VimspectorSelectedItem', {
+          \ 'highlight': 'PMenuSel'
+          \ } )
+  endif
 
   let lines = split( a:text, "\n", v:true )
   let buf = []

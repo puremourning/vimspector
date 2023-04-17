@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+pushd $(dirname $0)
+  if [ -d env ]; then
+    rm -rf env
+  fi
+
+  python3 -m venv env
+  . env/bin/activate
+  python -m pip install -r requirements.txt
+popd
