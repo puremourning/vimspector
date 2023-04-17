@@ -14,16 +14,16 @@ Contents ~
    2. Method 2: Using a repo clone, Vim packages and select gadgets to be installed |vimspector-method-2-using-repo-clone-vim-packages-select-gadgets-to-be-installed|
    3. Method 3: Using a plugin manager |vimspector-method-3-using-plugin-manager|
   2. Dependencies                                     |vimspector-dependencies|
-  3. Neovim differences                         |vimspector-neovim-differences|
-  4. Windows differences                       |vimspector-windows-differences|
-  5. Trying it out                                   |vimspector-trying-it-out|
-  6. Cloning the plugin                             |vimspector-cloning-plugin|
-  7. Install some gadgets                          |vimspector-install-gadgets|
+   1. Neovim limitations                        |vimspector-neovim-limitations|
+   2. Windows differences                      |vimspector-windows-differences|
+  3. Trying it out                                   |vimspector-trying-it-out|
+  4. Cloning the plugin                             |vimspector-cloning-plugin|
+  5. Install some gadgets                          |vimspector-install-gadgets|
    1. VimspectorInstall and VimspectorUpdate commands |vimspectorinstall-vimspectorupdate-commands|
    2. install_gadget.py                          |vimspector-install_gadget.py|
-  8. Manual gadget installation         |vimspector-manual-gadget-installation|
+  6. Manual gadget installation         |vimspector-manual-gadget-installation|
    1. The gadget directory                        |vimspector-gadget-directory|
-  9. Upgrade                                               |vimspector-upgrade|
+  7. Upgrade                                               |vimspector-upgrade|
  4. About                                                    |vimspector-about|
   1. Background                                         |vimspector-background|
  5. What Vimspector is not                             |what-vimspector-is-not|
@@ -97,9 +97,10 @@ Contents ~
   4. Changing the default window sizes |vimspector-changing-default-window-sizes|
   5. Changing the terminal size             |vimspector-changing-terminal-size|
   6. Custom mappings while debugging |vimspector-custom-mappings-while-debugging|
-  7. Advanced UI customisation           |vimspector-advanced-ui-customisation|
-  8. Customising the WinBar                     |vimspector-customising-winbar|
-  9. Example                                               |vimspector-example|
+  7. Disabling the WinBar                         |vimspector-disabling-winbar|
+  8. Advanced UI customisation           |vimspector-advanced-ui-customisation|
+  9. Customising the WinBar                     |vimspector-customising-winbar|
+  10. Example                                              |vimspector-example|
  10. FAQ                                                       |vimspector-faq|
  11. References                                         |vimspector-references|
 
@@ -403,56 +404,22 @@ Dependencies ~
 Vimspector requires:
 
 - One of:
-- Vim 8.2 Huge build compiled with Python 3.6 or later
-- Neovim 0.4.3 with Python 3.6 or later (experimental)
+- Vim 8.2 Huge build compiled with Python 3.10 or later
+- Neovim 0.8 with Python 3.10 or later (experimental)
 - One of the following operating systems:
 - Linux
 - macOS Mojave or later
 - Windows (experimental)
 
-Why such a new vim? Well 2 reasons:
-
-1. Because vimspector uses a lot of new Vim features
-2. Because there are Vim bugs that vimspector triggers that will frustrate
-   you if you hit them.
-
-Why is neovim experimental? Because the author doesn't use neovim regularly,
-and there are no regression tests for vimspector in neovim, so it may break
-occasionally. Issue reports are handled on best-efforts basis, and PRs are
-welcome to fix bugs. See also the next section describing differences for
-neovim vs vim.
-
-Why is Windows support experimental? Because it's effort and it's not a
-priority for the author. PRs are welcome to fix bugs. Windows will not be
-regularly tested.
-
-Which Linux versions? I only test on Ubuntu 18.04 and later and RHEL 7.
+Which Linux versions? I only test on Ubuntu 20.04 and later and RHEL 7.
 
 -------------------------------------------------------------------------------
-                                                *vimspector-neovim-differences*
-Neovim differences ~
+                                                *vimspector-neovim-limitations*
+Neovim limitations ~
 
-neovim doesn't implement some features Vimspector relies on:
-
-- WinBar - used for the buttons at the top of the code window and for
-  changing the output window's current output.
-
-- Prompt Buffers - used to send commands in the Console and add Watches.
-  (_Note_: prompt buffers are available in neovim nightly)
-
-- Balloons - this allows for the variable evaluation popup to be displayed
-  when hovering the mouse. See below for how to create a keyboard mapping
-  instead.
-
-Workarounds are in place as follows:
-
-- WinBar - There are mappings, ':VimspectorShowOutput' and ':VimspectorReset'
-
-- Prompt Buffers - There are ':VimspectorEval' and ':VimspectorWatch'
-
-- Balloons - There is the '<Plug>VimspectorBalloonEval' mapping. There is no
-  default mapping for this, so I recommend something like this to get
-  variable display in a popup:
+neovim doesn't implement mouse hover balloons. Instead there is the
+'<Plug>VimspectorBalloonEval' mapping. There is no default mapping for this, so
+I recommend something like this to get variable display in a popup:
 >
   " mnemonic 'di' = 'debug inspect' (pick your own, if you prefer!)
   
@@ -2820,6 +2787,17 @@ section 'Custom mappings while debugging'.
 NOTE: This is a fairly advanced feature requiring some nontrivial vimscript.
 It's possible that this feature will be incorporated into Vimspector in future
 as it is a common requirement.
+
+-------------------------------------------------------------------------------
+                                                  *vimspector-disabling-winbar*
+Disabling the WinBar ~
+
+You can tell vimspector not to draw the WinBar (the toolbars in the code,
+variables, output, etc. windows) by setting:
+>
+  let g:vimspector_enable_winbar=0
+<
+The WinBar is in any case not displayed if the mouse is not enabled.
 
 -------------------------------------------------------------------------------
                                          *vimspector-advanced-ui-customisation*
