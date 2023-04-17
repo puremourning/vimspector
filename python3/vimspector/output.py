@@ -114,8 +114,6 @@ class OutputView( object ):
   def Clear( self ):
     for category, tab_buffer in self._buffers.items():
       self._CleanUpBuffer( category, tab_buffer )
-
-    # FIXME: nunmenu the WinBar ?
     self._buffers = {}
 
 
@@ -139,9 +137,7 @@ class OutputView( object ):
   def UseWindow( self, win ):
     assert not self._window.valid
     self._window = win
-    # TODO: Sorting of the WinBar ?
-    for category, _ in self._buffers.items():
-      self._RenderWinBar( category )
+    self._RenderWinBar()
 
 
   def _ShowOutput( self, category ):
@@ -153,6 +149,10 @@ class OutputView( object ):
       vim.current.buffer = self._buffers[ category ].buf
       vim.command( 'normal! G' )
 
+      if utils.VimIsNeovim():
+        # Sigh: https://github.com/neovim/neovim/issues/23165
+        self._RenderWinBar()
+
   def ShowOutput( self, category ):
     self._ToggleFlag( category, False )
     self._ShowOutput( category )
@@ -163,7 +163,7 @@ class OutputView( object ):
 
       if self._window.valid:
         with utils.LetCurrentWindow( self._window ):
-          self._RenderWinBar( category )
+          self._RenderWinBar()
 
 
   def RunJobWithOutput( self, category, cmd, **kwargs ):
@@ -205,7 +205,6 @@ class OutputView( object ):
 
       self._buffers[ category ] = TabBuffer( out, len( self._buffers ) )
       self._buffers[ category ].is_job = True
-      self._RenderWinBar( category )
     else:
       if category == 'Console':
         name = 'vimspector.Console'
@@ -227,7 +226,7 @@ class OutputView( object ):
       else:
         utils.SetUpHiddenBuffer( tab_buffer.buf, name )
 
-      self._RenderWinBar( category )
+    self._RenderWinBar()
 
     self._buffers[ category ].syntax = utils.SetSyntax(
       self._buffers[ category ].syntax,
@@ -239,7 +238,7 @@ class OutputView( object ):
         self._ShowOutput( category )
       utils.CleanUpHiddenBuffer( buf_to_delete )
 
-  def _RenderWinBar( self, category ):
+  def _RenderWinBar( self ):
     if not utils.UseWinBar():
       return
 
@@ -247,25 +246,18 @@ class OutputView( object ):
       return
 
     with utils.LetCurrentWindow( self._window ):
-      tab_buffer = self._buffers[ category ]
+      tab_buffers = sorted( self._buffers.items(),
+                            key = lambda i: i[ 1 ].index )
 
-      try:
-        if tab_buffer.flag:
-          vim.command( 'nunmenu WinBar.{}'.format( utils.Escape( category ) ) )
-        else:
-          vim.command( 'nunmenu WinBar.{}*'.format( utils.Escape( category ) ) )
-      except vim.error as e:
-        # E329 means the menu doesn't exist; ignore that.
-        if 'E329' not in str( e ):
-          raise
-
-      vim.command(
-        "nnoremenu <silent> 1.{0} WinBar.{1}{2} "
-        ":call vimspector#ShowOutputInWindow( {3}, '{1}' )<CR>".format(
-          tab_buffer.index,
-          utils.Escape( category ),
-          '*' if tab_buffer.flag else '',
-          utils.WindowID( self._window ) ) )
+      buttons = []
+      for category, tab_buffer in tab_buffers:
+        buttons.append(
+          ( category + ( '*' if tab_buffer.flag else '' ),
+            "vimspector#ShowOutputInWindow( {}, '{}' )".format(
+              utils.WindowID( self._window ),
+              utils.Escape( category ) ) )
+        )
+      utils.SetWinBar( *buttons )
 
   def GetCategories( self ):
     return list( self._buffers.keys() )

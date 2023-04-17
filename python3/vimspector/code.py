@@ -48,29 +48,23 @@ class CodeView( object ):
     self._current_frame = None
     self._scratch_buffers = []
 
-    with utils.LetCurrentWindow( self._window ):
-      if utils.UseWinBar():
-        # Buggy neovim doesn't render correctly when the WinBar is defined:
-        # https://github.com/neovim/neovim/issues/12689
-        vim.command( 'nnoremenu WinBar.■\\ Stop '
-                     ':call vimspector#Stop()<CR>' )
-        vim.command( 'nnoremenu WinBar.▶\\ Cont '
-                     ':call vimspector#Continue()<CR>' )
-        vim.command( 'nnoremenu WinBar.▷\\ Pause '
-                     ':call vimspector#Pause()<CR>' )
-        vim.command( 'nnoremenu WinBar.↷\\ Next '
-                     ':call vimspector#StepSOver()<CR>' )
-        vim.command( 'nnoremenu WinBar.→\\ Step '
-                     ':call vimspector#StepSInto()<CR>' )
-        vim.command( 'nnoremenu WinBar.←\\ Out '
-                     ':call vimspector#StepSOut()<CR>' )
-        vim.command( 'nnoremenu WinBar.↺ '
-                     ':call vimspector#Restart()<CR>' )
-        vim.command( 'nnoremenu WinBar.✕ '
-                     ':call vimspector#Reset()<CR>' )
-
+    self._RenderWinBar()
     signs.DefineProgramCounterSigns()
 
+
+  def _RenderWinBar( self ):
+    with utils.LetCurrentWindow( self._window ):
+      if utils.UseWinBar():
+        utils.SetWinBar(
+          ( '■ Stop', 'vimspector#Stop()', ),
+          ( '▶ Cont', 'vimspector#Continue()', ),
+          ( '▷ Pause', 'vimspector#Pause()', ),
+          ( '↷ Next', 'vimspector#StepSOver()', ),
+          ( '→ Step', 'vimspector#StepSInto()', ),
+          ( '← Out', 'vimspector#StepSOut()', ),
+          ( '↺', 'vimspector#Restart()', ),
+          ( '✕', 'vimspector#Reset()', )
+        )
 
   def _UndisplayPC( self, clear_pc = True ):
     if clear_pc:
@@ -138,7 +132,10 @@ class CodeView( object ):
 
     with utils.LetCurrentWindow( self._window ):
       try:
-        utils.OpenFileInCurrentWindow( frame[ 'source' ][ 'path' ] )
+        if utils.OpenFileInCurrentWindow( frame[ 'source' ][ 'path' ] ):
+          if utils.VimIsNeovim():
+            # Sigh: https://github.com/neovim/neovim/issues/23165
+            self._RenderWinBar()
         vim.command( 'doautocmd <nomodeline> User VimspectorJumpedToFrame' )
       except vim.error:
         self._logger.exception( 'Unexpected vim error opening file {}'.format(
@@ -170,7 +167,6 @@ class CodeView( object ):
       vim.current.buffer.options[ 'syntax' ] )
 
     self._DisplayPC()
-
     return True
 
   def Clear( self ):

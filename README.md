@@ -250,52 +250,20 @@ The following sections expand on the above brief overview.
 Vimspector requires:
 
 * One of:
-  * Vim 8.2 Huge build compiled with Python 3.6 or later
-  * Neovim 0.4.3 with Python 3.6 or later (experimental)
+  * Vim 8.2 Huge build compiled with Python 3.10 or later
+  * Neovim 0.8 with Python 3.10 or later (experimental)
 * One of the following operating systems:
   * Linux
   * macOS Mojave or later
   * Windows (experimental)
 
-Why such a new vim? Well 2 reasons:
+Which Linux versions? I only test on Ubuntu 20.04 and later and RHEL 7.
 
-1. Because vimspector uses a lot of new Vim features
-2. Because there are Vim bugs that vimspector triggers that will frustrate you
-   if you hit them.
+### Neovim limitations
 
-Why is neovim experimental? Because the author doesn't use neovim regularly, and
-there are no regression tests for vimspector in neovim, so it may break
-occasionally. Issue reports are handled on best-efforts basis, and PRs are
-welcome to fix bugs. See also the next section describing differences for neovim
-vs vim.
-
-Why is Windows support experimental? Because it's effort and it's not a priority
-for the author. PRs are welcome to fix bugs. Windows will not be regularly
-tested.
-
-Which Linux versions? I only test on Ubuntu 18.04 and later and RHEL 7.
-
-## Neovim differences
-
-neovim doesn't implement some features Vimspector relies on:
-
-* WinBar - used for the buttons at the top of the code window and for changing
-  the output window's current output.
-* Prompt Buffers - used to send commands in the Console and add Watches.
-  (*Note*: prompt buffers are available in neovim nightly)
-* Balloons - this allows for the variable evaluation popup to be displayed when
-  hovering the mouse. See below for how to create a keyboard mapping instead.
-
-Workarounds are in place as follows:
-
-* WinBar - There are [mappings](#mappings),
-  [`:VimspectorShowOutput`](#program-output) and
-  [`:VimspectorReset`](#closing-debugger)
-* Prompt Buffers - There are [`:VimspectorEval`](#console)
-  and [`:VimspectorWatch`](#watches)
-* Balloons - There is the `<Plug>VimspectorBalloonEval` mapping. There is no
-default mapping for this, so I recommend something like this to get variable
-display in a popup:
+neovim doesn't implement mouse hover balloons. Instead there is the
+`<Plug>VimspectorBalloonEval` mapping. There is no default mapping for this, so
+I recommend something like this to get variable display in a popup:
 
 ```viml
 " mnemonic 'di' = 'debug inspect' (pick your own, if you prefer!)
@@ -306,7 +274,7 @@ nmap <Leader>di <Plug>VimspectorBalloonEval
 xmap <Leader>di <Plug>VimspectorBalloonEval
 ```
 
-## Windows differences
+### Windows differences
 
 The following features are not implemented for Windows:
 
@@ -2454,6 +2422,17 @@ section `Custom mappings while debugging`.
 NOTE: This is a fairly advanced feature requiring some nontrivial vimscript.
 It's possible that this feature will be incorporated into Vimspector in future
 as it is a common requirement.
+
+## Disabling the WinBar
+
+You can tell vimspector not to draw the WinBar (the toolbars in the code,
+variables, output, etc. windows) by setting:
+
+```viml
+let g:vimspector_enable_winbar=0
+```
+
+The WinBar is in any case not displayed if the mouse is not enabled.
 
 ## Advanced UI customisation
 
