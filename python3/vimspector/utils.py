@@ -30,6 +30,7 @@ from vimspector.core_utils import memoize
 from vimspector.vendor.hexdump import hexdump
 
 LOG_FILE = os.path.expanduser( os.path.join( '~', '.vimspector.log' ) )
+NVIM_NAMESPACE = None
 
 _log_handler = logging.FileHandler( LOG_FILE, mode = 'w', encoding = 'utf-8' )
 
@@ -58,6 +59,7 @@ PRESENTATION_HINT_HL = {
   'class': 'Type',
   'data': 'String',
 }
+
 
 
 class ContextLogFilter( logging.Filter ):
@@ -526,34 +528,15 @@ def AppendToBuffer( buf,
     if not modified:
       buf.options[ 'modified' ] = False
 
-  if hl and Exists( '*prop_add' ):
-    text_property_type = f'vimspector-p-{hl}'
-    if int( vim.eval( f'empty( prop_type_get( "{text_property_type}" ) )' ) ):
-      Call( 'prop_type_add', text_property_type, {
-        'highlight': hl,
-        'start_incl': 0,
-        'end_incl': 0,
-        'priority': 10,
-        'combine': 1
-      } )
-
-    Call( 'prop_add', line, 1, {
-      'bufnr': buf.number,
-      'type': text_property_type,
-      'end_lnum': len( buf ),
-      'end_col': len( buf[ -1 ] ) + 1
-    } )
-
+  HighlightTextSection( buf,
+                        hl = hl,
+                        start_line = line,
+                        start_col = 1,
+                        end_line = len( buf ),
+                        end_col = len( buf[ -1 ] ) )
 
   # Return the first Vim line number (1-based) that we just set.
   return line
-
-
-def ClearTextPropertiesForBuffer( buf ):
-  if not Exists( '*prop_clear' ):
-    return
-
-  Call( 'prop_clear', 1, len( buf ), { 'bufnr': buf.number } )
 
 
 def ClearBuffer( buf, modified = False ):
@@ -1093,3 +1076,57 @@ def BufferNameForSession( name, session_id ):
 
   # return f'{name}[{session_id}]'
   return name
+
+
+def ClearTextPropertiesForBuffer( buf ):
+  if VimIsNeovim() and NVIM_NAMESPACE is not None:
+    Call( 'nvim_buf_clear_namespace', buf.number, NVIM_NAMESPACE, 0, -1 )
+    return
+
+  if Exists( '*prop_clear' ):
+    Call( 'prop_clear', 1, len( buf ), { 'bufnr': buf.number } )
+
+
+def HighlightTextSection( buf,
+                          hl,
+                          start_line,
+                          start_col,
+                          end_line,
+                          end_col ):
+
+  if not hl:
+    return
+
+  if Exists( '*prop_add' ):
+    text_property_type = f'vimspector-p-{hl}'
+    if int( vim.eval( f'empty( prop_type_get( "{text_property_type}" ) )' ) ):
+      Call( 'prop_type_add', text_property_type, {
+        'highlight': hl,
+        'start_incl': 0,
+        'end_incl': 0,
+        'priority': 10,
+        'combine': 1
+      } )
+
+    Call( 'prop_add', start_line, start_col, {
+      'bufnr': buf.number,
+      'type': text_property_type,
+      'end_lnum': end_line,
+      'end_col': end_col + 1
+    } )
+  elif VimIsNeovim():
+    global NVIM_NAMESPACE
+    if NVIM_NAMESPACE is None:
+      NVIM_NAMESPACE = int( Call( 'nvim_create_namespace', 'vimspector' ) )
+
+    Call( 'nvim_buf_set_extmark',
+          buf.number,
+          NVIM_NAMESPACE,
+          start_line - 1,
+          start_col - 1,
+          {
+            'hl_group': hl,
+            'end_row': ( end_line - 1 ),
+            'end_col': ( end_col - 1 ) + 1,
+            'priority': 10,
+          } )
