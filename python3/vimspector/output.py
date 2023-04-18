@@ -199,7 +199,7 @@ class OutputView( object ):
       out = utils.SetUpCommandBuffer(
         self._session_id,
         cmd,
-        utils.BufferNameForSession( category, self._session_id ),
+        category,
         self._api_prefix,
         completion_handler = completion_handler )
 

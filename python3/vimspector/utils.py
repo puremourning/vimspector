@@ -1087,13 +1087,8 @@ def Hex( val: int ):
 
 
 def BufferNameForSession( name, session_id ):
-  # if session_id == 0:
-  #   # Hack for backward compat - don't suffix with the ID for the "first"
-  #   # session
-  #   return name
-
-  # return f'{name}[{session_id}]'
-  return name
+  return f'{name}[{session_id}]'
+  # return name
 
 
 def ClearTextPropertiesForBuffer( buf ):

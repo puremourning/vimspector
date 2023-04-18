@@ -47,9 +47,11 @@ def _JumpToBreakpoint( qfbp ):
 
 
 class BreakpointsView( object ):
-  def __init__( self ):
+  def __init__( self, session_id ):
     self._win = None
     self._buffer = None
+    self._buffer_name = utils.BufferNameForSession( 'vimspector.Breakpoints',
+                                                    session_id )
     self._breakpoint_list = []
 
   def _HasWindow( self ):
@@ -82,8 +84,7 @@ class BreakpointsView( object ):
             vim.command( f'nnoremap <silent> <buffer> { mapping } '
                          ':<C-u>call '
                          f'vimspector#{ func }()<CR>' )
-        utils.SetUpHiddenBuffer( self._buffer,
-                                 "vimspector.Breakpoints" )
+        utils.SetUpHiddenBuffer( self._buffer, self._buffer_name )
 
       self._win = vim.current.window
 
@@ -217,7 +218,7 @@ class ProjectBreakpoints( object ):
     self._pending_send_breakpoints = []
 
 
-    self._breakpoints_view = BreakpointsView()
+    self._breakpoints_view = BreakpointsView( session_id )
 
     if not signs.SignDefined( 'vimspectorBP' ):
       signs.DefineSign( 'vimspectorBP',
@@ -423,11 +424,7 @@ class ProjectBreakpoints( object ):
 
   def ClearBreakpoints( self ):
     # These are the user-entered breakpoints.
-    for file_name, breakpoints in self._line_breakpoints.items():
-      for bp in breakpoints:
-        self._SignToLine( file_name, bp )
-        if 'sign_id' in bp:
-          signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
+    self._HideBreakpoints()
 
     self._line_breakpoints = defaultdict( list )
     self._func_breakpoints = []
@@ -756,6 +753,11 @@ class ProjectBreakpoints( object ):
     } )
 
     self.UpdateUI()
+
+
+  def ClearUI( self ):
+    self._HideBreakpoints()
+    self._breakpoints_view.CloseBreakpoints()
 
 
   def UpdateUI( self, then = None ):
@@ -1108,6 +1110,15 @@ class ProjectBreakpoints( object ):
                            sign,
                            file_name,
                            line )
+
+  def _HideBreakpoints( self ):
+    for file_name, breakpoints in self._line_breakpoints.items():
+      for bp in breakpoints:
+        self._SignToLine( file_name, bp )
+        if 'sign_id' in bp:
+          signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
+          del bp[ 'sign_id' ]
+
 
   def _SignToLine( self, file_name, bp ):
     if bp[ 'is_instruction_breakpoint' ]:

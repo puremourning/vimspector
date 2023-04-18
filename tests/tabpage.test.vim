@@ -175,14 +175,6 @@ endfunction
 
 function! Test_Close_Tab_With_Vimspector()
   call s:StartDebugging()
-  call vimspector#test#setup#WaitForReset()
-  call s:StartDebugging()
-  tabclose!
-  %bwipe!
-endfunction
-
-function! Test_Close_Tab_With_Vimspector()
-  call s:StartDebugging()
   tabedit newfile
   tabclose
 
