@@ -955,7 +955,7 @@ def SetWinBar( *args ):
   for idx, button in enumerate( args ):
     button, action = button
     button = button.replace( ' ', '\\ ' )
-    vim.command( f'nnoremenu <silent> 1.{idx} '
+    vim.command( f'nnoremenu <silent> 1.{idx + 1} '
                  f'WinBar.{ button } '
                  f':call {action}<CR>' )
 
