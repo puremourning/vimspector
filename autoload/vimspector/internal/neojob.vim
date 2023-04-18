@@ -41,7 +41,6 @@ function! s:_OnEvent( session_id, chan_id, data, event ) abort
     py3 _VimspectorSession( vim.eval( 'a:session_id' ) ).OnServerStderr(
           \ '\n'.join( vim.eval( 'a:data' ) ) )
   elseif a:event ==# 'exit'
-    echom 'Channel exit with status ' . a:data
     redraw
     unlet s:jobs[ a:session_id ]
     py3 _VimspectorSession( vim.eval( 'a:session_id' ) ).OnServerExit(
@@ -53,7 +52,7 @@ function! vimspector#internal#neojob#StartDebugSession(
       \ session_id,
       \ config ) abort
   if has_key( s:jobs, a:session_id )
-    echom 'Not starging: Job is already running'
+    echom 'Not starting: Job is already running'
     redraw
     return v:false
   endif
@@ -112,7 +111,6 @@ function! vimspector#internal#neojob#StopDebugSession( session_id ) abort
   endif
 
   if vimspector#internal#neojob#JobIsRunning( s:jobs[ a:session_id ] )
-    echom 'Terminating job'
     redraw
     call jobstop( s:jobs[ a:session_id ] )
   endif
