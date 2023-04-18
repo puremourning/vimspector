@@ -917,19 +917,20 @@ function! Test_ListBreakpoints()
 
   augroup Test_ListBreakpoints
     autocmd!
-    autocmd BufEnter,BufFilePost vimspector.Breakpoints
+    autocmd BufEnter,BufFilePost vimspector.Breakpoints*
           \ let g:Test_ListBreakpoints_Enter += 1
-    autocmd BufLeave vimspector.Breakpoints
+    autocmd BufLeave vimspector.Breakpoints*
           \ let g:Test_ListBreakpoints_Leave += 1
   augroup END
 
+  " vimspector.Breakpoints[0]
   " @show
   call vimspector#ListBreakpoints()
   " buffer is never actually empty
   call s:CheckBreakpointView( [ '' ] )
   " Cursor jumps to the breakpoint window
   call assert_equal( win_getid(), g:vimspector_session_windows.breakpoints )
-  call assert_equal( bufname(), 'vimspector.Breakpoints' )
+  call assert_match( 'vimspector.Breakpoints[\[0-9]\+]',  bufname() )
   call assert_equal( 1, g:Test_ListBreakpoints_Enter )
 
   call win_gotoid( main_win_id )
