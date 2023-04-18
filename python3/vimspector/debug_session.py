@@ -167,10 +167,6 @@ class DebugSession( object ):
     self._ResetServerState()
 
 
-  def __del__( self ):
-    self.manager.DestroySession( self )
-
-
   def _ResetServerState( self ):
     self._connection = None
     self._init_complete = False
@@ -178,6 +174,7 @@ class DebugSession( object ):
     self._on_init_complete_handlers = []
     self._server_capabilities = {}
     self.ClearTemporaryBreakpoints()
+
 
   def GetConfigurations( self, adapters ):
     current_file = utils.GetBufferFilepath( vim.current.buffer )
@@ -210,7 +207,7 @@ class DebugSession( object ):
 
 
   def Name( self ):
-    name = self.name if self.name else "<Unnamed>"
+    name = self.name if self.name else "Unnamed"
     return f'{name} ({self.session_id})'
 
 
@@ -531,6 +528,19 @@ class DebugSession( object ):
   def IsUITab( self, tab_number ):
     return self.HasUI() and self._uiTab.number == tab_number
 
+  @ParentOnly()
+  def SwitchTo( self ):
+    if self.HasUI():
+      vim.current.tabpage = self._uiTab
+
+    self._breakpoints.UpdateUI()
+
+
+  @ParentOnly()
+  def SwitchFrom( self ):
+    self._breakpoints.ClearUI()
+
+
   def OnChannelData( self, data ):
     if self._connection is None:
       # Should _not_ happen, but maybe possible due to races or vim bufs?
@@ -570,6 +580,19 @@ class DebugSession( object ):
     self.StopAllSessions( interactive = False )
 
   @ParentOnly()
+  def Destroy( self ):
+    """Call when the vimspector session will be removed and never used again"""
+    if self._connection is not None:
+      raise RuntimeError( "Can't destroy a session with a live connection" )
+
+    if self.HasUI():
+      raise RuntimeError( "Can't destroy a session with an active UI" )
+
+    self.ClearBreakpoints()
+    self._ResetUI()
+
+
+  @ParentOnly()
   def Reset( self, interactive = False ):
     # We reset all of the child sessions in turn
     self._logger.debug( "Stop debug adapter with callback: _Reset" )
@@ -579,41 +602,42 @@ class DebugSession( object ):
   def _IsPCPresentAt( self, file_path, line ):
     return self._codeView and self._codeView.IsPCPresentAt( file_path, line )
 
-  def _Reset( self ):
-    if self.parent_session:
-      self._stackTraceView = None
-      self._variablesView = None
-      self._outputView = None
-      self._codeView = None
-      self._disassemblyView = None
-      self._remote_term = None
-      self._uiTab = None
-      self._breakpoints.RemoveConnection( self._connection )
-      return
 
-    vim.vars[ 'vimspector_resetting' ] = 1
-    self._logger.info( "Debugging complete." )
-
-    def ResetUI():
+  def _ResetUI( self ):
+    if not self.parent_session:
       if self._stackTraceView:
         self._stackTraceView.Reset()
       if self._variablesView:
         self._variablesView.Reset()
       if self._outputView:
         self._outputView.Reset()
+      if self._logView:
+        self._logView.Reset()
       if self._codeView:
         self._codeView.Reset()
       if self._disassemblyView:
         self._disassemblyView.Reset()
 
-      self._stackTraceView = None
-      self._variablesView = None
-      self._outputView = None
-      self._codeView = None
-      self._disassemblyView = None
-      self._remote_term = None
-      self._uiTab = None
-      self._breakpoints.RemoveConnection( self._connection )
+    self._breakpoints.RemoveConnection( self._connection )
+    self._stackTraceView = None
+    self._variablesView = None
+    self._outputView = None
+    self._codeView = None
+    self._disassemblyView = None
+    self._remote_term = None
+    self._uiTab = None
+
+    if self.parent_session:
+      self.manager.DestroySession( self )
+
+
+  def _Reset( self ):
+    if self.parent_session:
+      self._ResetUI()
+      return
+
+    vim.vars[ 'vimspector_resetting' ] = 1
+    self._logger.info( "Debugging complete." )
 
     if self.HasUI():
       self._logger.debug( "Clearing down UI" )
@@ -621,12 +645,11 @@ class DebugSession( object ):
         vim.current.tabpage = self._uiTab
       self._splash_screen = utils.HideSplash( self._api_prefix,
                                               self._splash_screen )
-      ResetUI()
+      self._ResetUI()
       vim.command( 'tabclose!' )
     else:
-      ResetUI()
+      self._ResetUI()
 
-    self._breakpoints.RemoveConnection( self._connection )
     self._breakpoints.SetDisassemblyManager( None )
     utils.SetSessionWindows( {
       'breakpoints': vim.vars[ 'vimspector_session_windows' ].get(
@@ -1226,7 +1249,7 @@ class DebugSession( object ):
       f'topleft { settings.Int( "topbar_height" ) }new' )
     stack_trace_window = vim.current.window
     one_third = int( vim.eval( 'winwidth( 0 )' ) ) / 3
-    self._stackTraceView = stack_trace.StackTraceView( self,
+    self._stackTraceView = stack_trace.StackTraceView( self.session_id,
                                                        stack_trace_window )
 
 
@@ -1943,7 +1966,6 @@ class DebugSession( object ):
                                 session_name = None ):
 
     session = self.manager.NewSession(
-      self._api_prefix,
       session_name = session_name or launch_arguments.get( 'name' ),
       parent_session = self )
 
