@@ -93,11 +93,12 @@ endfunction
 
 function! vimspector#internal#state#OnTabEnter() abort
   py3 <<EOF
-session = _vimspector_session_man.SessionForTab(
-  int( vim.eval( 'tabpagenr()' ) ) )
+if '_vimspector_session_man' in globals():
+  session = _vimspector_session_man.SessionForTab(
+    int( vim.eval( 'tabpagenr()' ) ) )
 
-if session is not None:
-  _vimspector_session = session
+  if session is not None:
+    _vimspector_session = session
 EOF
 endfunction
 
