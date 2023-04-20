@@ -35,13 +35,19 @@ def _JumpToBreakpoint( qfbp ):
 
   try:
     if not success:
-      vim.command( "leftabove split {}".format( qfbp[ 'filename' ] ) )
+      with utils.TemporaryVimOptions( { 'equalalways': False } ):
+        # Split from whatever the previous window was. This is roughly
+        # consistent with the quickfix window, assuming that everyone in the
+        # world sets 'switchbuf=uselast', which they don't and isn't the
+        # default.
+        vim.command( 'silent! wincmd p' )
+        vim.command( "leftabove split {}".format( qfbp[ 'filename' ] ) )
 
     utils.SetCursorPosInWindow( vim.current.window, qfbp[ 'lnum' ], 1 )
-  except vim.error:
+  except vim.error as e:
     # 'filename' or 'lnum' might be missing,
     # so don't trigger an exception here by referring to them
-    utils.UserMessage( "Unable to jump to file",
+    utils.UserMessage( f"Unable to jump to file: { str( e ) }",
                        persist = True,
                        error = True )
 
