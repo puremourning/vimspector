@@ -479,19 +479,28 @@ class StackTraceView( object ):
 
 
   def UpFrame( self ):
-    thread, frame = self._GetFrameOffset( 1 )
-    if not frame:
-      utils.UserMessage( 'Top of stack' )
-    else:
-      self._JumpToFrame( thread, frame, 'up' )
+    offset = 1
+    while True:
+      thread, frame = self._GetFrameOffset( offset )
+      if not frame:
+        utils.UserMessage( 'Top of stack' )
+        return
+      elif self._JumpToFrame( thread, frame, 'up' ):
+        return
+      offset += 1
 
 
   def DownFrame( self ):
-    thread, frame = self._GetFrameOffset( -1 )
-    if not frame:
-      utils.UserMessage( 'Bottom of stack' )
-    else:
-      self._JumpToFrame( thread, frame, 'down' )
+    offset = -1
+    while True:
+      thread, frame = self._GetFrameOffset( offset )
+      if not frame:
+        utils.UserMessage( 'Bottom of stack' )
+        return
+      elif self._JumpToFrame( thread, frame, 'down' ):
+        return
+      offset -= 1
+
 
 
   def JumpToProgramCounter( self ):
