@@ -12,14 +12,10 @@ function! TearDown()
 endfunction
 
 function! ConsoleBufferName()
-  return 'vimspector.Console'
+  " return 'vimspector.Console'
 
-  " let session_id = py3eval( '_vimspector_session.session_id' )
-  " if session_id == 0
-  "   return 'vimspector.Console'
-  " endif
-
-  " return 'vimspector.Console' .. session_id
+  let session_id = py3eval( '_vimspector_session.session_id' )
+  return 'vimspector.Console[' .. session_id .. ']'
 endfunction
 
 function! s:StartDebugging( ... )

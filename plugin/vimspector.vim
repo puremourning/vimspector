@@ -148,6 +148,20 @@ elseif s:mappings ==# 'HUMAN'
   nmap <F12>        <Plug>VimspectorStepOut
 endif
 
+" Session commands
+command! -bar -nargs=?
+      \ VimspectorNewSession
+      \ call vimspector#NewSession( <f-args> )
+command! -bar -nargs=1 -complete=custom,vimspector#CompleteSessionName
+      \ VimspectorSwitchToSession
+      \ call vimspector#SwitchToSession( <f-args> )
+command! -bar -nargs=1
+      \ VimspectorRenameSession
+      \ call vimspector#RenameSession( <f-args> )
+command! -bar -nargs=1 -complete=custom,vimspector#CompleteSessionName
+      \ VimspectorDestroySession
+      \ call vimspector#DestroySession( <f-args> )
+
 command! -bar -nargs=1 -complete=custom,vimspector#CompleteExpr
       \ VimspectorWatch
       \ call vimspector#AddWatch( <f-args> )

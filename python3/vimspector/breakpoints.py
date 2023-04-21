@@ -53,9 +53,11 @@ def _JumpToBreakpoint( qfbp ):
 
 
 class BreakpointsView( object ):
-  def __init__( self ):
+  def __init__( self, session_id ):
     self._win = None
     self._buffer = None
+    self._buffer_name = utils.BufferNameForSession( 'vimspector.Breakpoints',
+                                                    session_id )
     self._breakpoint_list = []
 
   def _HasWindow( self ):
@@ -88,8 +90,7 @@ class BreakpointsView( object ):
             vim.command( f'nnoremap <silent> <buffer> { mapping } '
                          ':<C-u>call '
                          f'vimspector#{ func }()<CR>' )
-        utils.SetUpHiddenBuffer( self._buffer,
-                                 "vimspector.Breakpoints" )
+        utils.SetUpHiddenBuffer( self._buffer, self._buffer_name )
 
       self._win = vim.current.window
 
@@ -223,7 +224,7 @@ class ProjectBreakpoints( object ):
     self._pending_send_breakpoints = []
 
 
-    self._breakpoints_view = BreakpointsView()
+    self._breakpoints_view = BreakpointsView( session_id )
 
     if not signs.SignDefined( 'vimspectorBP' ):
       signs.DefineSign( 'vimspectorBP',
@@ -429,11 +430,7 @@ class ProjectBreakpoints( object ):
 
   def ClearBreakpoints( self ):
     # These are the user-entered breakpoints.
-    for file_name, breakpoints in self._line_breakpoints.items():
-      for bp in breakpoints:
-        self._SignToLine( file_name, bp )
-        if 'sign_id' in bp:
-          signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
+    self._HideBreakpoints()
 
     self._line_breakpoints = defaultdict( list )
     self._func_breakpoints = []
@@ -443,6 +440,13 @@ class ProjectBreakpoints( object ):
 
 
   def _FindLineBreakpoint( self, file_name, line ):
+    for bp, index in self._AllBreakpointsOnLine( file_name, line ):
+      return bp, index
+
+    return None, None
+
+
+  def _AllBreakpointsOnLine( self, file_name, line ):
     file_name = utils.NormalizePath( file_name )
     for index, bp in enumerate( self._line_breakpoints[ file_name ] ):
       self._SignToLine( file_name, bp )
@@ -452,11 +456,9 @@ class ProjectBreakpoints( object ):
       if 'server_bp' in bp:
         for conn, server_bp in bp[ 'server_bp' ].items():
           if server_bp.get( 'line', bp[ 'line' ] ) == line:
-            return bp, index
+            yield bp, index
       elif bp[ 'line' ] == line:
-        return bp, index
-
-    return None, None
+        yield bp, index
 
 
   def _FindPostedBreakpoint( self,
@@ -673,8 +675,8 @@ class ProjectBreakpoints( object ):
     bp, _ = self._FindLineBreakpoint( file_name, line_num )
     if bp is not None:
       bp[ 'options' ] = options
-      return
-    self._PutLineBreakpoint( file_name, line_num, options )
+    else:
+      self._PutLineBreakpoint( file_name, line_num, options )
     self.UpdateUI( then )
 
 
@@ -686,19 +688,34 @@ class ProjectBreakpoints( object ):
     self.UpdateUI()
 
 
+  def AddTemporaryLineBreakpoint( self,
+                                  file_name,
+                                  line_num,
+                                  options = None,
+                                  then = None ):
+    the_options = {
+      'temporary': True
+    }
+    if options:
+      the_options.update( options )
+    self._PutLineBreakpoint( file_name, line_num, the_options )
+    self.UpdateUI( then )
+
+
   def ClearTemporaryBreakpoint( self, file_name, line_num ):
     # FIXME: We should use the _FindPostedBreakpoint here instead, as that's way
     # more accurate at this point. Some servers can now identifyt he breakpoint
     # ID that actually triggered too. For now, we still have
     # _UpdateServerBreakpoints change the _user_ breakpiont line and we check
     # for that _here_, though we could check ['server_bp']['line']
-    bp, index = self._FindLineBreakpoint( file_name, line_num )
-    if bp is None:
-      return
-    if bp[ 'options' ].get( 'temporary' ):
-      self._DeleteLineBreakpoint( bp, file_name, index )
-      self.UpdateUI()
+    updates = False
+    for bp, index in self._AllBreakpointsOnLine( file_name, line_num ):
+      if bp[ 'options' ].get( 'temporary' ):
+        updates = True
+        self._DeleteLineBreakpoint( bp, file_name, index )
 
+    if updates:
+      self.UpdateUI()
 
   def ClearTemporaryBreakpoints( self ):
     to_delete = []
@@ -762,6 +779,11 @@ class ProjectBreakpoints( object ):
     } )
 
     self.UpdateUI()
+
+
+  def ClearUI( self ):
+    self._HideBreakpoints()
+    self._breakpoints_view.CloseBreakpoints()
 
 
   def UpdateUI( self, then = None ):
@@ -1114,6 +1136,15 @@ class ProjectBreakpoints( object ):
                            sign,
                            file_name,
                            line )
+
+  def _HideBreakpoints( self ):
+    for file_name, breakpoints in self._line_breakpoints.items():
+      for bp in breakpoints:
+        self._SignToLine( file_name, bp )
+        if 'sign_id' in bp:
+          signs.UnplaceSign( bp[ 'sign_id' ], 'VimspectorBP' )
+          del bp[ 'sign_id' ]
+
 
   def _SignToLine( self, file_name, bp ):
     if bp[ 'is_instruction_breakpoint' ]:

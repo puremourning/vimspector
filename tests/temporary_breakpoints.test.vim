@@ -201,5 +201,73 @@ function! Test_StartDebuggingWithRunToCursor()
       \ vimspector#test#signs#AssertSignGroupEmptyAtLine( 'VimspectorBP', 9 )
       \ } )
 
+  call vimspector#test#setup#Reset()
   lcd -
+  %bwipe!
+endfunction
+
+function! Test_Run_To_Cursor_Existing_Line_BP()
+  call SkipNeovim()
+  lcd ../support/test/python/multiple_files
+  edit moo.py
+  call s:Start()
+  call vimspector#SetLineBreakpoint( 'moo.py', 5 )
+  call vimspector#SetLineBreakpoint( 'moo.py', 8 )
+
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorBP',
+          \ 5,
+          \ 'vimspectorBP',
+          \ 9 )
+        \ } )
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorBP',
+          \ 8,
+          \ 'vimspectorBP',
+          \ 9 )
+        \ } )
+
+  call vimspector#Continue()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'moo.py', 5, 1 )
+
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorCode',
+          \ 5,
+          \ 'vimspectorPCBP',
+          \ 200 )
+        \ } )
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorBP',
+          \ 8,
+          \ 'vimspectorBP',
+          \ 9 )
+        \ } )
+
+  " So we don't loop and hit the loop breakpoint first...
+  call vimspector#ClearLineBreakpoint( 'moo.py', 5 )
+
+  call cursor( 8, 1 )
+  call vimspector#RunToCursor()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'moo.py', 8, 1 )
+
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorCode',
+          \ 8,
+          \ 'vimspectorPCBP',
+          \ 200 )
+        \ } )
+
+  call cursor( 1, 1 )
+  " the loop breakpoint is still there and hit again
+  call vimspector#Continue()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'moo.py', 8, 1 )
+
+  call vimspector#test#setup#Reset()
+  lcd -
+  %bwipe!
 endfunction

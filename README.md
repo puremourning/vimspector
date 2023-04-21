@@ -146,6 +146,7 @@ And a couple of brief demos:
 - logging/stdout display
 - simple stable API for custom tooling (e.g. integrate with language server)
 - view hex dump of process memory
+- multiple independent debugging sessions (debug different apps in tabs)
 - multi-process (multi-session) debugging
 
 ## Supported languages
@@ -569,9 +570,15 @@ Vimspector is a vim UI on top of the Debug Adapter Protocol. It's intended to be
 Vimspector is not:
 
 * a debugger! It's just the UI and some glue.
-* fast. It's abstractions all the way down. If you want a fast, native debugger, there are other options.
-* comprehensive. It's limited by DAP, and limited by my time. I implement the features I think most users will need, not every feature possible.
-* for everyone. Vimspector intentionally provides a "one size fits all" UI and aproach. This means that it can only provide essential/basic debugging features for a given language. This makes it convenient for everyday usage, but not ideal for power users or those with very precise or specific requirements. See [motivation](#motivation) for more info. 
+* fast. It's abstractions all the way down. If you want a fast, native debugger,
+  there are other options.
+* comprehensive. It's limited by DAP, and limited by my time. I implement the
+  features I think most users will need, not every feature possible.
+* for everyone. Vimspector intentionally provides a "one size fits all" UI and
+  aproach. This means that it can only provide essential/basic debugging
+  features for a given language. This makes it convenient for everyday usage,
+  but not ideal for power users or those with very precise or specific
+  requirements. See [motivation](#motivation) for more info. 
 
 ## Status
 
@@ -781,12 +788,19 @@ users, the [mappings](#mappings) section contains the most common commands and
 default usage. This section can be used as a reference to create your own
 mappings or custom behaviours.
 
+All the below instructions assume a single debugging session. For deatils on how
+to debug multiple independent apps at the same time, see
+[multiple debugging sessions][#multiple-debugging-sessions].
+
 ## Launch and attach by PID:
 
 * Create `.vimspector.json`. See [below](#supported-languages).
 * `:call vimspector#Launch()` and select a configuration.
 
 ![debug session](https://puremourning.github.io/vimspector-web/img/vimspector-overview.png)
+
+Launching a new session makes it the active
+[debugging session][#multiple-debugging-sessions].
 
 ### Launch with options
 
@@ -872,6 +886,12 @@ For example, to get an array of configurations and fuzzy matching on the result
 
 See the [mappings](#mappings) section for the default mappings for working with
 breakpoints. This section describes the full API in vimscript functions.
+
+Breakpoints are associated with the current
+[debugging session][#multiple-debugging-sessions]. When switching between
+sessions, the breakpont signs for the previous session are removed and the
+breakpoints for the newly activated session are displayed. While it might be
+useful to see breakpoints for all sessions, this can be very confusing.
 
 ### Breakpoints Window
 
@@ -1040,18 +1060,22 @@ pick one.
 Vimspector can save and restore breakpoints (and some other stuff) to a session
 file. The following commands exist for that:
 
-* `VimspectorMkSession [file name]` - save the current set of line breakpoints,
+* `VimspectorMkSession [file/dir name]` - save the current set of line breakpoints,
   logpoints, conditional breakpoints, function breakpoints and exception
-  breakpoint filters to the session file.
-* `VimspectorLoadSession [file name]` - read breakpoints from the session file
-  and replace any currently set breakpoints. Prior to loading, all current
-  breakpoints are cleared (as if `vimspector#ClearLineBreakpoints()` was
-  called).
+  breakpoint filters to the supplied session file or the default file in the
+  supplied directory.
+* `VimspectorLoadSession [file/dir name]` - read breakpoints from the session
+  file supplied or the default file in the supplied directory and replace any
+  currently set breakpoints. Prior to loading, all current breakpoints are
+  cleared (as if `vimspector#ClearLineBreakpoints()` was called).
 
-In both cases, the file name argument is optional. By default, the file is named
-`.vimspector.session`, but this can be changed globally by setting
+In both cases, the file/dir name argument is optional. By default, the file is
+named `.vimspector.session`, but this can be changed globally by setting
 `g:vimspector_session_file_name` to something else, or by manually specifying a
-path when calling the command.
+path when calling the command. If you supply a directory, the default or
+configured session file name is read fron or written to that directory.
+Othewise, the file is read based on the currently open buffer or written to the
+current working directory.
 
 Advanced users may wish to automate the process of loading and saving, for
 example by adding `VimEnter` and `VimLeave` autocommands. It's recommended in
@@ -1253,16 +1277,20 @@ be changed manually to "switch to" that thread.
 
 The stack trace is represented by the buffer `vimspector.StackTrace`.
 
-### Multiple sessions
+### Child sessions
 
-If there are multiple concurrent debug sessions, such as where the debugee
-launches multiple child processes and the debug adapter supports multi-session
+If there are child debug sessions, such as where the debugee
+launches child processes and the debug adapter supports multi-session
 debugging, then each session's threads are shown separately. The currently
 active session is the one that is highlighted as the currently active
 thread/stack frame. To switch control to a different session, focus a thread
 within that session.
 
 ![multiple sessions](https://user-images.githubusercontent.com/10584846/232473234-666d1a77-81f2-40d5-bc65-ebab774888ce.png)
+
+Note: This refers to sessions created as children of an existing session, and is
+not to be confused with
+[multiple (parent) debugging sessions][#multiple-debugging-sessions].
 
 ## Program Output
 
@@ -1348,6 +1376,78 @@ choice as to whether or not to terminate the debuggee, you will be prompted to
 choose. The same applies for `vimspector#Stop()` which can take an argument:
 `vimspector#Stop( { 'interactive': v:true } )`.
 
+# Multiple debugging sessions
+
+**NOTE**: This feature is _experimental_ and any part of it may change in
+response to user feedback.
+
+Vimspector supports starting an arbitrary number of debug sessions. Each session
+is associated with an individual UI tab. Typically, you only debug a single app
+and so don't need to think about this, but this advanced feature can be useful
+if you need to simultaneously debug multiple, independent applications, or
+multiple independent instances of your application.
+
+At any time there is a single "active" root session. Breakpoints are associated
+with the current session, and all UI and API commands are applied to the
+currently active session.
+
+When switching between root sessions, the breakpont signs for the previous
+session are removed and the breakpoints for the newly activated session are
+displayed.  While it might be useful to see breakpoints for all sessions, this
+can be very confusing.
+
+A typical workflow might be:
+
+1. Start debugging a server app (e.g. `:edit server.cc` then `<F5>`). This
+   starts a debug session named after the configuration selected. You could
+   rename it `:VimspectorRenameSession server`.
+2. Open the client code in a new tab (e.g. `:tabedit client.cc`)
+3. Instantiate and make active a new debugging session and name it `client`:
+   `:VimspectorNewSession client` (`client` is now the active session).
+4. Add a breakpoint in the `client` session and start debugging with `<F5>`.
+
+You now have 2 vimspector tabs. Intuitively, wwitching to a particular tab will
+make its session active. You can also manually switch the active session with
+`:VimspectorSwitchToSession <name>`.
+
+So, in summary you have the following facilities:
+
+* `VimspectorNewSession <name>`
+  This creates a new session and makes it active. Optional name is used
+  in place of the generated one when starting a launch.
+* Switching to a specific debug tab makes that session active. This is
+  intuitive and probably the most common way to work with this.
+* Switching manually using `VimspectorSwitchToSession <tab complete>`.
+* Name/Rename session with `VimspectorRenameSession <new name>`
+* Root-level sessions are never 'destroyed' but you can manually destroy
+  them (if you're brave) using `VimspectorDestroySession <name>`. You
+  can't destroy a running/active session.
+* `vimspector#GetSessionName()` useful for putting in a statusline. 
+
+Here's an example of how you can display the current session name in the
+`statusline` (see `:help statusline`, or the documentation for your fancy status
+line plugin).
+
+```viml
+function! StlVimspectorSession()
+  " Only include in buffers containing actual files
+  if !empty( &buftype )
+    return ''
+  endif
+
+  " Abort if vimspector not loaded
+  if !exists( '*vimspector#GetSessionName' )
+    return ''
+  endif
+
+  return vimspector#GetSessionName()
+endfunction
+
+" ... existing statusline stuff
+" set statusline=...
+" Show the vimspector active session name (max 20 chars) if there is onw.
+set statusline+=%(\ %.20{StlVimspectorSession()}\ %)
+```
 
 # Debug profile configuration
 
@@ -1905,7 +2005,8 @@ curl "http://localhost?XDEBUG_SESSION_START=xdebug"
 or use the previously mentioned Xdebug Helper extension (which sets a `XDEBUG_SESSION` cookie)
 
 ### Debug cli application
-```
+
+```sh
 export XDEBUG_CONFIG="idekey=xdebug"
 php <path to script>
 ```
@@ -1919,7 +2020,7 @@ Requires:
 * `install_gadget.py --force-enable-node`
 * Options described here:
   https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md
-* Example: `support/test/node/simple`, `support/test/node/multiprocess'
+* Example: `support/test/node/simple`, `support/test/node/multiprocess`
 
 ```json
 {
@@ -2225,7 +2326,7 @@ define them in your `vimrc`.
 | `vimspectorBPDisabled`    | Disabled breakpoint                     | 9        |
 | `vimspectorPC`            | Program counter (i.e. current line)     | 200      |
 | `vimspectorPCBP`          | Program counter and breakpoint          | 200      |
-| `vimspectorNonActivePC``  | Program counter for non-focused thread  | 9        |
+| `vimspectorNonActivePC`   | Program counter for non-focused thread  | 9        |
 | `vimspectorCurrentThread` | Focussed thread in stack trace view     | 200      |
 | `vimspectorCurrentFrame`  | Current stack frame in stack trace view | 200      |
 
