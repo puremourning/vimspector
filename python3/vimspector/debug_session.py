@@ -712,6 +712,10 @@ class DebugSession( object ):
   def WriteSessionFile( self, session_file: str = None ):
     if session_file is None:
       session_file = self._DetectSessionFile( invent_one_if_not_found = True )
+    elif os.path.isdir( session_file ):
+      session_file = self._DetectSessionFile( invent_one_if_not_found = True,
+                                              in_directory = session_file )
+
 
     try:
       with open( session_file, 'w' ) as f:
@@ -733,20 +737,33 @@ class DebugSession( object ):
       return False
 
 
-  def _DetectSessionFile( self, invent_one_if_not_found: bool ):
+  def _DetectSessionFile( self,
+                          invent_one_if_not_found: bool,
+                          in_directory: str = None ):
     session_file_name = settings.Get( 'session_file_name' )
-    current_file = utils.GetBufferFilepath( vim.current.buffer )
 
-    # Search from the path of the file we're editing. But note that if we invent
-    # a file, we always use CWD as that's more like what would be expected.
-    file_path = utils.PathToConfigFile( session_file_name,
-                                        os.path.dirname( current_file ) )
+    if in_directory:
+      # If a dir was supplied, read from there
+      write_directory = in_directory
+      file_path = os.path.join( in_directory, session_file_name )
+      if not os.path.exists( file_path ):
+        file_path = None
+    else:
+      # Otherwise, search based on the current file, and write based on CWD
+      current_file = utils.GetBufferFilepath( vim.current.buffer )
+      write_directory = os.getcwd()
+      # Search from the path of the file we're editing. But note that if we
+      # invent a file, we always use CWD as that's more like what would be
+      # expected.
+      file_path = utils.PathToConfigFile( session_file_name,
+                                          os.path.dirname( current_file ) )
+
 
     if file_path:
       return file_path
 
     if invent_one_if_not_found:
-      return os.path.join( os.getcwd(), session_file_name )
+      return os.path.join( write_directory, session_file_name )
 
     return None
 

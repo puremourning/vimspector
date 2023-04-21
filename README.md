@@ -1060,18 +1060,22 @@ pick one.
 Vimspector can save and restore breakpoints (and some other stuff) to a session
 file. The following commands exist for that:
 
-* `VimspectorMkSession [file name]` - save the current set of line breakpoints,
+* `VimspectorMkSession [file/dir name]` - save the current set of line breakpoints,
   logpoints, conditional breakpoints, function breakpoints and exception
-  breakpoint filters to the session file.
-* `VimspectorLoadSession [file name]` - read breakpoints from the session file
-  and replace any currently set breakpoints. Prior to loading, all current
-  breakpoints are cleared (as if `vimspector#ClearLineBreakpoints()` was
-  called).
+  breakpoint filters to the supplied session file or the default file in the
+  supplied directory.
+* `VimspectorLoadSession [file/dir name]` - read breakpoints from the session
+  file supplied or the default file in the supplied directory and replace any
+  currently set breakpoints. Prior to loading, all current breakpoints are
+  cleared (as if `vimspector#ClearLineBreakpoints()` was called).
 
-In both cases, the file name argument is optional. By default, the file is named
-`.vimspector.session`, but this can be changed globally by setting
+In both cases, the file/dir name argument is optional. By default, the file is
+named `.vimspector.session`, but this can be changed globally by setting
 `g:vimspector_session_file_name` to something else, or by manually specifying a
-path when calling the command.
+path when calling the command. If you supply a directory, the default or
+configured session file name is read fron or written to that directory.
+Othewise, the file is read based on the currently open buffer or written to the
+current working directory.
 
 Advanced users may wish to automate the process of loading and saving, for
 example by adding `VimEnter` and `VimLeave` autocommands. It's recommended in
