@@ -2,6 +2,7 @@
   "$schema": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json",
   "adapters": {
     "run_with_debugpy": {
+      "extends": "debugpy",
       "command": [ "${workspaceRoot}/run_with_debugpy" ],
       "port": 9876,
       "env": {

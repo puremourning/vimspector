@@ -30,17 +30,35 @@ from vimspector.core_utils import memoize
 from vimspector.vendor.hexdump import hexdump
 
 LOG_FILE = os.path.expanduser( os.path.join( '~', '.vimspector.log' ) )
+NVIM_NAMESPACE = None
 
-_log_handler = logging.FileHandler( LOG_FILE, mode = 'w' )
+_log_handler = logging.FileHandler( LOG_FILE, mode = 'w', encoding = 'utf-8' )
 
 _log_handler.setFormatter(
-    logging.Formatter( '%(asctime)s - %(levelname)s - %(message)s' ) )
+  logging.Formatter( '%(asctime)s - %(levelname)s - %(filename)s:%(lineno)s - '
+                     '%(context)s - %(message)s' ) )
 
 
-def SetUpLogging( logger ):
+class ContextLogFilter( logging.Filter ):
+  context: str
+
+  def __init__( self, context ):
+    self.context = str( context )
+
+  def filter( self, record: logging.LogRecord ):
+    if self.context is None:
+      record.context = 'UNKNOWN'
+    else:
+      record.context = self.context
+
+    return True
+
+
+def SetUpLogging( logger, context = None ):
   logger.setLevel( logging.DEBUG )
   if _log_handler not in logger.handlers:
     logger.addHandler( _log_handler )
+    logger.addFilter( ContextLogFilter( context ) )
 
 
 _logger = logging.getLogger( __name__ )
@@ -79,38 +97,49 @@ def NewEmptyBuffer():
   return vim.buffers[ bufnr ]
 
 
-def WindowForBuffer( buf ):
+def AllWindowsForBuffer( buf ):
   for w in vim.current.tabpage.windows:
     if w.buffer == buf:
-      return w
+      yield w
 
-  return None
+
+def WindowForBuffer( buf ):
+  i = AllWindowsForBuffer( buf )
+  return next( i, None )
 
 
 def OpenFileInCurrentWindow( file_name ):
   buffer_number = BufferNumberForFile( file_name )
+  if vim.current.buffer.number == buffer_number:
+    return False
+
   try:
     vim.current.buffer = vim.buffers[ buffer_number ]
   except vim.error as e:
     if 'E325' not in str( e ):
       raise
 
-  return vim.buffers[ buffer_number ]
+  return True
 
 
 COMMAND_HANDLERS = {}
 
 
-def OnCommandWithLogComplete( name, exit_code ):
-  cb = COMMAND_HANDLERS.get( name )
+def OnCommandWithLogComplete( session_id, name, exit_code ):
+  cb = COMMAND_HANDLERS.get( str( session_id ) + '.' + name )
   if cb:
     cb( exit_code )
 
 
-def SetUpCommandBuffer( cmd, name, api_prefix, completion_handler = None ):
-  COMMAND_HANDLERS[ name ] = completion_handler
+def SetUpCommandBuffer( session_id,
+                        cmd,
+                        name,
+                        api_prefix,
+                        completion_handler = None ):
+  COMMAND_HANDLERS[ str( session_id ) + '.' + name ] = completion_handler
 
   buf = Call( f'vimspector#internal#{api_prefix}job#StartCommandWithLog',
+              session_id,
               cmd,
               name )
 
@@ -124,10 +153,12 @@ def SetUpCommandBuffer( cmd, name, api_prefix, completion_handler = None ):
   return vim.buffers[ int( buf ) ]
 
 
-def CleanUpCommand( name, api_prefix ):
-  return vim.eval( 'vimspector#internal#{}job#CleanUpCommand( "{}" )'.format(
-    api_prefix,
-    name ) )
+def CleanUpCommand( session_id, name, api_prefix ):
+  return vim.eval(
+    'vimspector#internal#{}job#CleanUpCommand( {}, "{}" )'.format(
+      api_prefix,
+      session_id,
+      name ) )
 
 
 def CleanUpHiddenBuffer( buf ):
@@ -432,6 +463,8 @@ def Confirm( api_prefix,
              default_value = 2,
              options: list = None,
              keys: list = None ):
+  # TODO: Implement a queue here? If calling code calls Confirm (async) multiple
+  # times, we... well what happens?!
   if not options:
     options = [ '(Y)es', '(N)o' ]
   if not keys:
@@ -448,7 +481,10 @@ def Confirm( api_prefix,
         keys )
 
 
-def AppendToBuffer( buf, line_or_lines, modified=False ):
+def AppendToBuffer( buf,
+                    line_or_lines,
+                    modified=False,
+                    hl = None ):
   line = 1
   try:
     # After clearing the buffer (using buf[:] = None) there is always a single
@@ -456,6 +492,7 @@ def AppendToBuffer( buf, line_or_lines, modified=False ):
     if len( buf ) > 1 or buf[ 0 ]:
       line = len( buf ) + 1
       buf.append( line_or_lines )
+
     elif isinstance( line_or_lines, str ):
       line = 1
       buf[ -1 ] = line_or_lines
@@ -471,12 +508,20 @@ def AppendToBuffer( buf, line_or_lines, modified=False ):
     if not modified:
       buf.options[ 'modified' ] = False
 
+  if len( buf ) > 0:
+    HighlightTextSection( buf,
+                          hl = hl,
+                          start_line = line,
+                          start_col = 1,
+                          end_line = len( buf ),
+                          end_col = len( buf[ -1 ] ) )
+
   # Return the first Vim line number (1-based) that we just set.
   return line
 
 
-
 def ClearBuffer( buf, modified = False ):
+  ClearTextPropertiesForBuffer( buf )
   buf[ : ] = None
   if not modified:
     buf.options[ 'modified' ] = False
@@ -877,10 +922,47 @@ def GetWindowInfo( window ):
   return Call( 'getwininfo', WindowID( window ) )[ 0 ]
 
 
+NVIM_WINBAR = {}
+
+
+def SetWinBarOption( *args ):
+  window = vim.current.window
+  win_id = WindowID( window )
+
+  NVIM_WINBAR[ win_id ] = []
+  winbar = []
+  for idx, button in enumerate( args ):
+    button, action = button
+    winbar.append( '%#ToolbarButton#'
+                    f'%{idx}@vimspector#internal#neowinbar#Do@ { button } %X'
+                    '%*' )
+    NVIM_WINBAR[ win_id ].append( action )
+
+  window.options[ 'winbar' ] = '  '.join( winbar )
+  return True
+
+
+def DoWinBarAction( win_id, idx ):
+  action = NVIM_WINBAR[ win_id ][ idx ]
+  vim.command( f':call { action }' )
+
+
+def SetWinBar( *args ):
+  if VimIsNeovim():
+    return SetWinBarOption( *args )
+
+  vim.command( 'silent! nunmenu WinBar' )
+  for idx, button in enumerate( args ):
+    button, action = button
+    button = button.replace( ' ', '\\ ' )
+    vim.command( f'nnoremenu <silent> 1.{idx + 1} '
+                 f'WinBar.{ button } '
+                 f':call {action}<CR>' )
+
+
 def UseWinBar():
-  # Buggy neovim doesn't render correctly when the WinBar is defined:
-  # https://github.com/neovim/neovim/issues/12689
-  return not VimIsNeovim() and VimHasMouseSupport()
+  from vimspector import settings
+  return settings.Bool( 'enable_winbar' ) and VimHasMouseSupport()
 
 
 @memoize
@@ -889,19 +971,29 @@ def VimIsNeovim():
 
 
 def VimHasMouseSupport():
-  mouse = vim.options[ 'mouse' ]
-  return b'a' in mouse or b'n' in mouse
+  mouse = ToUnicode( vim.options[ 'mouse' ] )
+  return 'a' in mouse or 'n' in mouse
+
+
+class VisiblePosition:
+  UNCHANGED = None
+  TOP = 'zt'
+  BOTTOM = 'zb'
+  MIDDLE = 'zz'
 
 
 # Jump to a specific 1-based line/column
-def SetCursorPosInWindow( window, line, column = 1, make_visible = False ):
+def SetCursorPosInWindow( window,
+                          line,
+                          column = 1,
+                          make_visible = VisiblePosition.UNCHANGED ):
   # simplify the interface and make column 1 based, same as line
   column = max( 1, column )
   # ofc column is actually 0 based in vim
   window.cursor = ( line, column - 1 )
 
   if make_visible:
-    Call( 'win_execute', WindowID( window ), 'normal zz' )
+    Call( 'win_execute', WindowID( window ), f'normal! { make_visible }' )
 
 
 def NormalizePath( filepath ):
@@ -992,3 +1084,67 @@ def Hex( val: int ):
     return f'0x{val:0>16x}'
   except ValueError:
     return f'0x{0:0>16x}'
+
+
+def BufferNameForSession( name, session_id ):
+  # if session_id == 0:
+  #   # Hack for backward compat - don't suffix with the ID for the "first"
+  #   # session
+  #   return name
+
+  # return f'{name}[{session_id}]'
+  return name
+
+
+def ClearTextPropertiesForBuffer( buf ):
+  if VimIsNeovim() and NVIM_NAMESPACE is not None:
+    Call( 'nvim_buf_clear_namespace', buf.number, NVIM_NAMESPACE, 0, -1 )
+    return
+
+  if Exists( '*prop_clear' ):
+    Call( 'prop_clear', 1, len( buf ), { 'bufnr': buf.number } )
+
+
+def HighlightTextSection( buf,
+                          hl,
+                          start_line,
+                          start_col,
+                          end_line,
+                          end_col ):
+
+  if not hl:
+    return
+
+  if Exists( '*prop_add' ):
+    text_property_type = f'vimspector-p-{hl}'
+    if int( vim.eval( f'empty( prop_type_get( "{text_property_type}" ) )' ) ):
+      Call( 'prop_type_add', text_property_type, {
+        'highlight': hl,
+        'start_incl': 0,
+        'end_incl': 0,
+        'priority': 10,
+        'combine': 1
+      } )
+
+    Call( 'prop_add', start_line, start_col, {
+      'bufnr': buf.number,
+      'type': text_property_type,
+      'end_lnum': end_line,
+      'end_col': end_col + 1
+    } )
+  elif VimIsNeovim():
+    global NVIM_NAMESPACE
+    if NVIM_NAMESPACE is None:
+      NVIM_NAMESPACE = int( Call( 'nvim_create_namespace', 'vimspector' ) )
+
+    Call( 'nvim_buf_set_extmark',
+          buf.number,
+          NVIM_NAMESPACE,
+          start_line - 1,
+          start_col - 1,
+          {
+            'hl_group': hl,
+            'end_row': ( end_line - 1 ),
+            'end_col': ( end_col - 1 ) + 1,
+            'priority': 10,
+          } )

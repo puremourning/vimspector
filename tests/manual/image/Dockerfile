@@ -27,3 +27,6 @@ ENV TEST_NO_RETRY 1
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
 ADD --chown=dev:dev .vim/ /home/dev/.vim/
+RUN mkdir -p /home/dev/.config/nvim && \
+    cd /home/dev/.config/nvim && \
+    ln -s /home/dev/.vim/vimrc init.vim

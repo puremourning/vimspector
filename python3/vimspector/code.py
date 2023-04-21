@@ -19,13 +19,16 @@ import os
 
 from vimspector import utils, terminal, signs
 
+# NEXT_SIGN_ID = 1
+
 
 class CodeView( object ):
   def __init__( self,
-    window,
-    api_prefix,
-    render_event_emitter,
-    IsBreakpointPresentAt ):
+                session_id,
+                window,
+                api_prefix,
+                render_event_emitter,
+                IsBreakpointPresentAt ):
 
     self._window = window
     self._api_prefix = api_prefix
@@ -35,40 +38,33 @@ class CodeView( object ):
     self._terminal = None
     self.current_syntax = None
 
-    self._logger = logging.getLogger( __name__ )
+    self._logger = logging.getLogger( __name__ + '.' + str( session_id ) )
     utils.SetUpLogging( self._logger )
 
-    # FIXME: This ID is by group, so should be module scope
-    self._next_sign_id = 1
+    self._next_sign_id = 1000 * session_id + 1
     self._signs = {
       'vimspectorPC': None,
     }
     self._current_frame = None
     self._scratch_buffers = []
 
-    with utils.LetCurrentWindow( self._window ):
-      if utils.UseWinBar():
-        # Buggy neovim doesn't render correctly when the WinBar is defined:
-        # https://github.com/neovim/neovim/issues/12689
-        vim.command( 'nnoremenu WinBar.■\\ Stop '
-                     ':call vimspector#Stop()<CR>' )
-        vim.command( 'nnoremenu WinBar.▶\\ Cont '
-                     ':call vimspector#Continue()<CR>' )
-        vim.command( 'nnoremenu WinBar.▷\\ Pause '
-                     ':call vimspector#Pause()<CR>' )
-        vim.command( 'nnoremenu WinBar.↷\\ Next '
-                     ':call vimspector#StepSOver()<CR>' )
-        vim.command( 'nnoremenu WinBar.→\\ Step '
-                     ':call vimspector#StepSInto()<CR>' )
-        vim.command( 'nnoremenu WinBar.←\\ Out '
-                     ':call vimspector#StepSOut()<CR>' )
-        vim.command( 'nnoremenu WinBar.↺ '
-                     ':call vimspector#Restart()<CR>' )
-        vim.command( 'nnoremenu WinBar.✕ '
-                     ':call vimspector#Reset()<CR>' )
-
+    self._RenderWinBar()
     signs.DefineProgramCounterSigns()
 
+
+  def _RenderWinBar( self ):
+    with utils.LetCurrentWindow( self._window ):
+      if utils.UseWinBar():
+        utils.SetWinBar(
+          ( '■ Stop', 'vimspector#Stop()', ),
+          ( '▶ Cont', 'vimspector#Continue()', ),
+          ( '▷ Pause', 'vimspector#Pause()', ),
+          ( '↷ Next', 'vimspector#StepSOver()', ),
+          ( '→ Step', 'vimspector#StepSInto()', ),
+          ( '← Out', 'vimspector#StepSOut()', ),
+          ( '↺', 'vimspector#Restart()', ),
+          ( '✕', 'vimspector#Reset()', )
+        )
 
   def _UndisplayPC( self, clear_pc = True ):
     if clear_pc:
@@ -98,6 +94,11 @@ class CodeView( object ):
     # FIXME: Do we really need to keep using up IDs ?
     self._signs[ 'vimspectorPC' ] = self._next_sign_id
     self._next_sign_id += 1
+    # FIXME: Do we relly need to keep using up IDs ?
+    # FIXME: Why did I add this global sign id?
+    # global NEXT_SIGN_ID
+    # self._signs[ 'vimspectorPC' ] = NEXT_SIGN_ID
+    # NEXT_SIGN_ID += 1
 
     # If there's also a breakpoint on this line, use vimspectorPCBP
     sign =  'vimspectorPCBP' if self._IsBreakpointPresentAt(
@@ -131,7 +132,10 @@ class CodeView( object ):
 
     with utils.LetCurrentWindow( self._window ):
       try:
-        utils.OpenFileInCurrentWindow( frame[ 'source' ][ 'path' ] )
+        if utils.OpenFileInCurrentWindow( frame[ 'source' ][ 'path' ] ):
+          if utils.VimIsNeovim():
+            # Sigh: https://github.com/neovim/neovim/issues/23165
+            self._RenderWinBar()
         vim.command( 'doautocmd <nomodeline> User VimspectorJumpedToFrame' )
       except vim.error:
         self._logger.exception( 'Unexpected vim error opening file {}'.format(
@@ -156,13 +160,13 @@ class CodeView( object ):
                               frame[ 'source' ][ 'path' ] )
       return False
 
+    # Open any fold at the cursor position
     vim.command( 'normal! zv' )
 
     self.current_syntax = utils.ToUnicode(
       vim.current.buffer.options[ 'syntax' ] )
 
     self._DisplayPC()
-
     return True
 
   def Clear( self ):
@@ -196,11 +200,13 @@ class CodeView( object ):
     return self._terminal.buffer_number
 
 
-  def ShowMemory( self, memoryReference, length, offset, msg ):
+  def ShowMemory( self, session_id, memoryReference, length, offset, msg ):
     if not self._window.valid:
       return False
 
-    buf_name = os.path.join( '_vimspector_mem', memoryReference )
+    buf_name = os.path.join( '_vimspector_mem',
+                             str( session_id ),
+                             memoryReference )
     buf = utils.BufferForFile( buf_name )
     self._scratch_buffers.append( buf )
     utils.SetUpHiddenBuffer( buf, buf_name )

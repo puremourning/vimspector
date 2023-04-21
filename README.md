@@ -59,6 +59,7 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Disassembly](#disassembly)
     * [Dump memory](#dump-memory)
     * [Stack Traces](#stack-traces)
+       * [Multiple sessions](#multiple-sessions)
     * [Program Output](#program-output)
        * [Console](#console)
        * [Console autocompletion](#console-autocompletion)
@@ -100,7 +101,7 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Example](#example)
  * [FAQ](#faq)
 
-<!-- Added by: ben, at: Fri 21 Oct 2022 22:27:24 BST -->
+<!-- Added by: ben, at: Thu 13 Apr 2023 17:03:26 BST -->
 
 <!--te-->
 
@@ -145,6 +146,7 @@ And a couple of brief demos:
 - logging/stdout display
 - simple stable API for custom tooling (e.g. integrate with language server)
 - view hex dump of process memory
+- multi-process (multi-session) debugging
 
 ## Supported languages
 
@@ -166,7 +168,8 @@ runtime dependencies). They are categorised by their level of support:
 | TCL                     | Supported    | `--all` or `--enable-tcl`           | tclpro                               | TCL 8.5                                      |
 | Bourne Shell            | Supported    | `--all` or `--enable-bash`          | vscode-bash-debug                    | Bash v??                                     |
 | Lua                     | Tested       | `--all` or `--enable-lua`           | local-lua-debugger-vscode            | Node >=12.13.0, Npm, Lua interpreter         |
-| Node.js                 | Supported    | `--force-enable-node`               | vscode-node-debug2                   | 6 < Node < 12, Npm                           |
+| Node.js                 | Supported    | `--force-enable-node`               | vscode-js-debug                      | Node >= 18                                   |
+| Node.js (legacy)        | Supported    | `--force-enable-node_legacy`        | vscode-node-debug2                   | 6 < Node < 12, Npm                           |
 | Javascript              | Supported    | `--force-enable-chrome`             | debugger-for-chrome                  | Chrome                                       |
 | Javascript              | Supported    | `--force-enable-firefox`            | vscode-firefox-debug                 | Firefox                                      |
 | Java                    | Supported    | `--force-enable-java  `             | vscode-java-debug                    | Compatible LSP plugin (see [later](#java))   |
@@ -247,52 +250,20 @@ The following sections expand on the above brief overview.
 Vimspector requires:
 
 * One of:
-  * Vim 8.2 Huge build compiled with Python 3.6 or later
-  * Neovim 0.4.3 with Python 3.6 or later (experimental)
+  * Vim 8.2 Huge build compiled with Python 3.10 or later
+  * Neovim 0.8 with Python 3.10 or later (experimental)
 * One of the following operating systems:
   * Linux
   * macOS Mojave or later
   * Windows (experimental)
 
-Why such a new vim? Well 2 reasons:
+Which Linux versions? I only test on Ubuntu 20.04 and later and RHEL 7.
 
-1. Because vimspector uses a lot of new Vim features
-2. Because there are Vim bugs that vimspector triggers that will frustrate you
-   if you hit them.
+### Neovim limitations
 
-Why is neovim experimental? Because the author doesn't use neovim regularly, and
-there are no regression tests for vimspector in neovim, so it may break
-occasionally. Issue reports are handled on best-efforts basis, and PRs are
-welcome to fix bugs. See also the next section describing differences for neovim
-vs vim.
-
-Why is Windows support experimental? Because it's effort and it's not a priority
-for the author. PRs are welcome to fix bugs. Windows will not be regularly
-tested.
-
-Which Linux versions? I only test on Ubuntu 18.04 and later and RHEL 7.
-
-## Neovim differences
-
-neovim doesn't implement some features Vimspector relies on:
-
-* WinBar - used for the buttons at the top of the code window and for changing
-  the output window's current output.
-* Prompt Buffers - used to send commands in the Console and add Watches.
-  (*Note*: prompt buffers are available in neovim nightly)
-* Balloons - this allows for the variable evaluation popup to be displayed when
-  hovering the mouse. See below for how to create a keyboard mapping instead.
-
-Workarounds are in place as follows:
-
-* WinBar - There are [mappings](#mappings),
-  [`:VimspectorShowOutput`](#program-output) and
-  [`:VimspectorReset`](#closing-debugger)
-* Prompt Buffers - There are [`:VimspectorEval`](#console)
-  and [`:VimspectorWatch`](#watches)
-* Balloons - There is the `<Plug>VimspectorBalloonEval` mapping. There is no
-default mapping for this, so I recommend something like this to get variable
-display in a popup:
+neovim doesn't implement mouse hover balloons. Instead there is the
+`<Plug>VimspectorBalloonEval` mapping. There is no default mapping for this, so
+I recommend something like this to get variable display in a popup:
 
 ```viml
 " mnemonic 'di' = 'debug inspect' (pick your own, if you prefer!)
@@ -303,7 +274,7 @@ nmap <Leader>di <Plug>VimspectorBalloonEval
 xmap <Leader>di <Plug>VimspectorBalloonEval
 ```
 
-## Windows differences
+### Windows differences
 
 The following features are not implemented for Windows:
 
@@ -677,7 +648,7 @@ If you like Vimspector so much that you're wiling to part with your hard-earned
 cash, please consider donating to one of the following charities, which are 
 meaningful to the author of Vimspector (in order of preference):
 
-* [Greyhound Rescue Wales](https://greyhoundrescuewales.co.uk)
+* [Hector's Greyhound Rescue](http://hectorsgreyhoundrescue.org)
 * [Cancer Research UK](https://www.cancerresearchuk.org)
 * [ICCF Holland](https://iccf.nl)
 * Any charity of your choosing.
@@ -1281,6 +1252,17 @@ be changed manually to "switch to" that thread.
 ![stack trace](https://puremourning.github.io/vimspector-web/img/vimspector-callstack-window.png)
 
 The stack trace is represented by the buffer `vimspector.StackTrace`.
+
+### Multiple sessions
+
+If there are multiple concurrent debug sessions, such as where the debugee
+launches multiple child processes and the debug adapter supports multi-session
+debugging, then each session's threads are shown separately. The currently
+active session is the one that is highlighted as the currently active
+thread/stack frame. To switch control to a different session, focus a thread
+within that session.
+
+![multiple sessions](https://user-images.githubusercontent.com/10584846/232473234-666d1a77-81f2-40d5-bc65-ebab774888ce.png)
 
 ## Program Output
 
@@ -1935,6 +1917,49 @@ php <path to script>
 Requires:
 
 * `install_gadget.py --force-enable-node`
+* Options described here:
+  https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md
+* Example: `support/test/node/simple`, `support/test/node/multiprocess'
+
+```json
+{
+  "configurations": {
+    "run": {
+      "adapter": "js-debug",
+      "filetypes": [ "javascript", "typescript" ], // optional
+      "configuration": {
+        "request": "launch",
+        "stopOnEntry": true,
+        "console": "integratedTerminal",
+        "program": "${workspaceRoot}/simple.js",
+        "cwd": "${workspaceRoot}",
+        "type": "pwa-node" // this is the default, but see below
+      }
+    }
+  }
+}
+```
+
+`vscode-js-debug` supports a number of different "types" and can do some stuff
+that may or may not work. The `type` field is sadly not documented, but the
+valid values are [defined here in the DebugType enum](https://github.com/microsoft/vscode-js-debug/blob/main/src/common/contributionUtils.ts#L61).
+
+Vimspector has only been tested with `pwa-node` type.
+
+Note also that for some reason this debug adapter always forces us to start
+multiple debug sessions. For a user, that shouldn't change anything (other than
+perhaps a slightly confusing stack trace). But it does make things more
+complicated and so there may be subtle bugs.
+
+* Node.js (legacy)
+
+**NOTE**: This configuration uses the *deprecated* legacy debug adapter and will
+be removed in future. Please update your configurations to use the `js-debug`
+adapter. You _may_ be able to just change the adapter name.
+
+Requires:
+
+* `install_gadget.py --force-enable-node`
 * For installation, a Node.js environment that is < node 12. I believe this is an
   incompatibility with gulp. Advice, use [nvm](https://github.com/nvm-sh/nvm) with `nvm install --lts 10; nvm
   use --lts 10; ./install_gadget.py --force-enable-node ...`
@@ -2200,6 +2225,7 @@ define them in your `vimrc`.
 | `vimspectorBPDisabled`    | Disabled breakpoint                     | 9        |
 | `vimspectorPC`            | Program counter (i.e. current line)     | 200      |
 | `vimspectorPCBP`          | Program counter and breakpoint          | 200      |
+| `vimspectorNonActivePC``  | Program counter for non-focused thread  | 9        |
 | `vimspectorCurrentThread` | Focussed thread in stack trace view     | 200      |
 | `vimspectorCurrentFrame`  | Current stack frame in stack trace view | 200      |
 
@@ -2212,6 +2238,7 @@ sign define vimspectorBPLog         text=\ ◆ texthl=SpellRare
 sign define vimspectorBPDisabled    text=\ ● texthl=LineNr
 sign define vimspectorPC            text=\ ▶ texthl=MatchParen linehl=CursorLine
 sign define vimspectorPCBP          text=●▶  texthl=MatchParen linehl=CursorLine
+sign define vimspectorNonActivePC   linehl=DiffAdd
 sign define vimspectorCurrentThread text=▶   texthl=MatchParen linehl=CursorLine
 sign define vimspectorCurrentFrame  text=▶   texthl=Special    linehl=CursorLine
 ```
@@ -2250,11 +2277,13 @@ For example:
 
 ```viml
 let g:vimspector_sign_priority = {
-  \    'vimspectorBP':         3,
-  \    'vimspectorBPCond':     2,
-  \    'vimspectorBPLog':      2,
-  \    'vimspectorBPDisabled': 1,
-  \    'vimspectorPC':         999,
+  \    'vimspectorBP':          3,
+  \    'vimspectorBPCond':      3,
+  \    'vimspectorBPLog':       3,
+  \    'vimspectorBPDisabled':  3,
+  \    'vimspectorNonActivePC': 3,
+  \    'vimspectorPC':          999,
+  \    'vimspectorPCBP':        999,
   \ }
 ```
 
@@ -2263,6 +2292,60 @@ All keys are optional. If a sign is not customised, the default priority it used
 
 See `:help sign-priority`. The default priority is 10, larger numbers override
 smaller ones.
+
+***NOTE***: The default `vimspectorNonActivePC` sign does not add any text to
+the sign column, it simply adds a line highlight so that you can see the lines
+where other threads or processes are currently stopped. As a result this sign
+normally should _merge_ with any sign that adds a symbol (such as a breakpoint
+sign).  Vim will only merge the properties of signs with the same priority, so
+if changing the default priorities, it's recommended that:
+
+1. All the breakpoint signs (`vimspectorBP`, `vimspectorBPCond`, etc.) have the
+   same priority.
+2. You also set the `vimspectorNonActivePC` sign that same priority
+3. Active PC ( `vimspectorPC`, `vimspectorPCBP`, etc.) have a higher priority.
+
+## Presentation Hints
+
+***NOTE:*** This customisation point is currently ***unsable*** and may change
+at any time.
+
+Sometimes the Debug Adapter provides hints as to how the UI should display
+certain things. This includes stack frames, variables etc.
+
+Vimspector provides a simple way to customise how these are displayed, by
+setting values in the dictionary `g:vimsepctor_presentation_hint_hl`.
+
+The following keys are supported with the mentioned default highlight group.
+
+
+| Group        | Key           | Usage                                                           | Default      |
+| ------------ | ------------  | -------------------------------------                           | ------------ |
+| *all*        | `normal`      | anything not covered below                                      | `Normal`     |
+| Stack trace  | `emphasize`   | emphasize sources in stack trace                                | `Title`      |
+| Stack trace  | `deemphasize` | deemphasize sources in stack trace                              | `Conceal`    |
+| Stack trace  | `label`       | stack frames which are "labels", not representing actual frames | `NonText`    |
+| Stack trace  | `subtle`      | stack frames which are internal or not interesting              | `Conceal`    |
+| Scopes       | `arguments`   | Function arguments scope                                        | `Title`      |
+| Scopes       | `locals`      | Local variables scope                                           | `Title`      |
+| Scopes       | `registers`   | Registers scope                                                 | `Title`      |
+| Variables    | `property`    | Function arguments scope                                        | `Identifier` |
+| Variables    | `method`      | Local variables scope                                           | `Function`   |
+| Variables    | `class`       | Registers scope                                                 | `Type`       |
+| Variables    | `data`        | Registers scope                                                 | `String`     |
+
+In addition, any value supplied in the DAP `VariablePresentationHint` can be set
+which will be used if supplied by the debug adapter.
+
+A silly example; the defaults should probably be OK for most colour scehemes:
+
+```viml
+let g:vimspector_presentation_hint_hl = {
+  \    'normal': 'Identifier',
+  \    'label':  'Title',
+  \ }
+```
+
 
 ## Changing the default window sizes
 
@@ -2349,6 +2432,17 @@ is out of the scope of this project. However, there are some strategies describe
 [community wiki](https://github.com/puremourning/vimspector/wiki/Pre-launch-building-strategies) 
 to achieve similar functionality.
 
+
+## Disabling the WinBar
+
+You can tell vimspector not to draw the WinBar (the toolbars in the code,
+variables, output, etc. windows) by setting:
+
+```viml
+let g:vimspector_enable_winbar=0
+```
+
+The WinBar is in any case not displayed if the mouse is not enabled.
 
 ## Advanced UI customisation
 

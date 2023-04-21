@@ -1,13 +1,9 @@
 function! SetUp()
-  call vimspector#test#setup#SetUpWithMappings( v:null )
+  call vimspector#test#setup#SetUpWithMappings( 'HUMAN' )
 endfunction
 
 function! TearDown()
   call vimspector#test#setup#TearDown()
-endfunction
-
-function! SetUp_Test_Python_Simple()
-  let g:vimspector_enable_mappings = 'HUMAN'
 endfunction
 
 function! Test_Python_Simple()
@@ -101,10 +97,6 @@ function! Test_Python_Simple_Adhoc_Config()
 
   lcd -
   %bwipeout!
-endfunction
-
-function! SetUp_Test_Python_Remote_Attach()
-  let g:vimspector_enable_mappings = 'HUMAN'
 endfunction
 
 function! Test_Python_Remote_Attach()

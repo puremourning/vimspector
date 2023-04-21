@@ -20,6 +20,19 @@ import typing
 
 from vimspector import utils, signs, settings
 
+# Because flake8 wants this to be defined, but it's a circular import, so we
+# can't do it in proper code;
+# https://adamj.eu/tech/2021/05/13/python-type-hints-how-to-fix-circular-imports
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+  from vimspector.debug_session import DebugSession
+
+
+class ThreadRequestState:
+  NO = 0
+  REQUESTING = 1
+  PENDING = 2
+
 
 class Thread:
   """The state of a single thread."""
@@ -30,10 +43,12 @@ class Thread:
 
   stopped_event: typing.Dict
   thread: typing.Dict
+  session: "Session"
   stacktrace: typing.List[ typing.Dict ]
   id: str
 
-  def __init__( self, thread ):
+  def __init__( self, session: "Session", thread ):
+    self.session = session
     self.id = thread[ 'id' ]
     self.stopped_event = None
     self.Update( thread )
@@ -75,37 +90,48 @@ class Thread:
     return self.state == Thread.PAUSED
 
 
+class Session( object ):
+  threads: typing.List[ Thread ]
+  session: "DebugSession"
+  requesting_threads = ThreadRequestState.NO
+  pending_thread_request = None
+  sources: dict
+
+  def __init__( self, session: "DebugSession" ):
+    self.session = session
+    self.threads = []
+    self.sources = {}
+
+
 class StackTraceView( object ):
-  class ThreadRequestState:
-    NO = 0
-    REQUESTING = 1
-    PENDING = 2
-
   # FIXME: Make into a dict by id ?
-  _threads: typing.List[ Thread ]
-  _line_to_thread = typing.Dict[ int, Thread ]
+  _sessions: typing.List[ Session ]
+  _line_to_thread: typing.Dict[ int, Thread ]
 
-  def __init__( self, session, win ):
-    self._logger = logging.getLogger( __name__ )
-    utils.SetUpLogging( self._logger )
+  def __init__( self, session_id, win ):
+    self._logger = logging.getLogger(
+      __name__ + '.' + str( session_id ) )
+    utils.SetUpLogging( self._logger, session_id )
 
     self._buf = win.buffer
-    self._session = session
-    self._connection = None
 
+    self._sessions = []
+
+    self._current_session = None
     self._current_thread = None
     self._current_frame = None
     self._current_syntax = ""
 
-    self._threads = []
-    self._sources = {}
     self._scratch_buffers = []
 
     # FIXME: This ID is by group, so should be module scope
     self._current_thread_sign_id = 0 # 1 when used
     self._current_frame_sign_id = 0 # 2 when used
+    self._top_of_stack_signs = []
 
-    utils.SetUpHiddenBuffer( self._buf, 'vimspector.StackTrace' )
+    utils.SetUpHiddenBuffer(
+      self._buf,
+      utils.BufferNameForSession( 'vimspector.StackTrace', session_id ) )
     utils.SetUpUIWindow( win )
 
     mappings = settings.Dict( 'mappings' )[ 'stack_trace' ]
@@ -148,9 +174,12 @@ class StackTraceView( object ):
     self._line_to_frame = {}
     self._line_to_thread = {}
 
-    self._requesting_threads = StackTraceView.ThreadRequestState.NO
-    self._pending_thread_request = None
 
+
+  def GetCurrentSession( self ):
+    if not self._current_session:
+      return None
+    return self._current_session.session
 
   def GetCurrentThreadId( self ):
     return self._current_thread
@@ -159,29 +188,29 @@ class StackTraceView( object ):
     return self._current_frame
 
   def Clear( self ):
+    self._sessions.clear()
+
+    self._current_session = None
     self._current_frame = None
     self._current_thread = None
     self._current_syntax = ""
-    self._threads.clear()
-    self._sources = {}
-    self._requesting_threads = StackTraceView.ThreadRequestState.NO
-    self._pending_thread_request = None
     if self._current_thread_sign_id:
       signs.UnplaceSign( self._current_thread_sign_id, 'VimspectorStackTrace' )
     self._current_thread_sign_id = 0
     if self._current_frame_sign_id:
       signs.UnplaceSign( self._current_frame_sign_id, 'VimspectorStackTrace' )
     self._current_frame_sign_id = 0
+    for sign_id in self._top_of_stack_signs:
+      signs.UnplaceSign( sign_id, 'VimspectorStackTrace' )
+    self._top_of_stack_signs = []
 
     with utils.ModifiableScratchBuffer( self._buf ):
       utils.ClearBuffer( self._buf )
 
-  def ConnectionUp( self, connection ):
-    self._connection = connection
 
-  def ConnectionClosed( self ):
-    self.Clear()
-    self._connection = None
+  def ConnectionClosed( self, session ):
+    self._sessions[ : ] = [ s for s in self._sessions if s.session != session ]
+
 
   def Reset( self ):
     self.Clear()
@@ -191,35 +220,57 @@ class StackTraceView( object ):
     self._scratch_buffers = []
     self._buf = None
 
+
+  def AddSession( self, debug_session: "DebugSession" ):
+    self._sessions.append( Session( debug_session ) )
+
+
+  def FindSession( self, debug_session: "DebugSession" ):
+    for s in self._sessions:
+      if s.session == debug_session:
+        return s
+
+    return None
+
+
   def LoadThreads( self,
+                   debug_session,
                    infer_current_frame,
                    reason = '',
                    stopEvent = None ):
-    if self._requesting_threads != StackTraceView.ThreadRequestState.NO:
-      self._requesting_threads = StackTraceView.ThreadRequestState.PENDING
-      self._pending_thread_request = ( infer_current_frame,
-                                       reason,
-                                       stopEvent )
+
+    s = self.FindSession( debug_session )
+
+    if s is None:
+      return
+
+    if s.requesting_threads != ThreadRequestState.NO:
+      s.requesting_threads = ThreadRequestState.PENDING
+      s.pending_thread_request = ( infer_current_frame,
+                                   reason,
+                                   stopEvent )
       return
 
     def consume_threads( message ):
       requesting = False
-      if self._requesting_threads == StackTraceView.ThreadRequestState.PENDING:
+      if s.requesting_threads == ThreadRequestState.PENDING:
         # We may have hit a thread event, so try again.
-        self._requesting_threads = StackTraceView.ThreadRequestState.NO
-        self.LoadThreads( *self._pending_thread_request )
+        # Note that we do have to process this message though to ensure that our
+        # thread states are all correct.
+        s.requesting_threads = ThreadRequestState.NO
+        self.LoadThreads( s.session, *s.pending_thread_request )
         requesting = True
 
-      self._requesting_threads = StackTraceView.ThreadRequestState.NO
-      self._pending_thread_request = None
+      s.requesting_threads = ThreadRequestState.NO
+      s.pending_thread_request = None
 
       if not ( message.get( 'body' ) or {} ).get( 'threads' ):
         # This is a protocol error. It is required to return at least one!
         # But about 100% of servers break the protocol.
         return
 
-      existing_threads = self._threads[ : ]
-      self._threads.clear()
+      existing_threads = s.threads[ : ]
+      s.threads.clear()
 
       if stopEvent is not None:
         stoppedThreadId = stopEvent.get( 'threadId' )
@@ -235,9 +286,9 @@ class StackTraceView( object ):
             break
 
         if not thread:
-          thread = Thread( t )
+          thread = Thread( s, t )
 
-        self._threads.append( thread )
+        s.threads.append( thread )
 
         # If the threads were requested due to a stopped event, update any
         # stopped thread state. Note we have to do this here (rather than in the
@@ -261,6 +312,7 @@ class StackTraceView( object ):
               self._LoadStackTrace( thread, True, reason )
               requesting = True
           elif self._current_thread is None:
+            self._current_session = s
             self._current_thread = thread.id
             if thread.CanExpand():
               self._LoadStackTrace( thread, True, reason )
@@ -271,11 +323,11 @@ class StackTraceView( object ):
 
     def failure_handler( reason, msg ):
       # Make sure we request them again if the request fails
-      self._requesting_threads = StackTraceView.ThreadRequestState.NO
-      self._pending_thread_request = None
+      s.requesting_threads = ThreadRequestState.NO
+      s.pending_thread_request = None
 
-    self._requesting_threads = StackTraceView.ThreadRequestState.REQUESTING
-    self._connection.DoRequest( consume_threads, {
+    s.requesting_threads = ThreadRequestState.REQUESTING
+    debug_session.Connection().DoRequest( consume_threads, {
       'command': 'threads',
     }, failure_handler )
 
@@ -288,28 +340,49 @@ class StackTraceView( object ):
     else:
       self._current_thread_sign_id = 1
 
+    if self._current_frame_sign_id:
+      signs.UnplaceSign( self._current_frame_sign_id, 'VimspectorStackTrace' )
+    else:
+      self._current_frame_sign_id = 2
+
+    for sign_id in self._top_of_stack_signs:
+      signs.UnplaceSign( sign_id, 'VimspectorStackTrace' )
+    self._top_of_stack_signs = []
+
     with utils.ModifiableScratchBuffer( self._buf ):
       with utils.RestoreCursorPosition():
         utils.ClearBuffer( self._buf )
 
-        for thread in self._threads:
-          icon = '+' if not thread.IsExpanded() else '-'
-          line = utils.AppendToBuffer(
-            self._buf,
-            f'{icon} Thread {thread.id}: {thread.thread["name"]} '
-            f'({thread.State()})' )
+        for s in self._sessions:
+          if len( self._sessions ) > 1:
+            line = utils.AppendToBuffer( self._buf,
+                                         [ '---',
+                                           f'Session: { s.session.Name() }' ],
+                                         hl = 'CursorLineNr' )
 
-          if self._current_thread == thread.id:
-            # TODO - Scroll the window such that this line is visible (e.g. at
-            # the top)
-            signs.PlaceSign( self._current_thread_sign_id,
-                             'VimspectorStackTrace',
-                             'vimspectorCurrentThread',
-                             self._buf.name,
-                             line )
+          for thread in s.threads:
+            icon = '+' if not thread.IsExpanded() else '-'
+            line = utils.AppendToBuffer(
+              self._buf,
+              f'{icon} Thread {thread.id}: {thread.thread["name"]} '
+              f'({thread.State()})',
+              hl = 'Title' )
 
-          self._line_to_thread[ line ] = thread
-          self._DrawStackTrace( thread )
+            if self._current_session == s and self._current_thread == thread.id:
+              signs.PlaceSign( self._current_thread_sign_id,
+                               'VimspectorStackTrace',
+                               'vimspectorCurrentThread',
+                               self._buf.name,
+                               line )
+
+              for win in utils.AllWindowsForBuffer( self._buf ):
+                utils.SetCursorPosInWindow(
+                  win,
+                  line,
+                  make_visible = utils.VisiblePosition.TOP )
+
+            self._line_to_thread[ line ] = thread
+            self._DrawStackTrace( thread )
 
   def _LoadStackTrace( self,
                        thread: Thread,
@@ -320,12 +393,12 @@ class StackTraceView( object ):
       thread.Expand( message[ 'body' ][ 'stackFrames' ] )
       if infer_current_frame:
         for frame in thread.stacktrace:
-          if self._JumpToFrame( frame, reason ):
+          if self._JumpToFrame( thread, frame, reason ):
             break
 
       self._DrawThreads()
 
-    self._connection.DoRequest( consume_stacktrace, {
+    thread.session.session.Connection().DoRequest( consume_stacktrace, {
       'command': 'stackTrace',
       'arguments': {
         'threadId': thread.id,
@@ -345,6 +418,7 @@ class StackTraceView( object ):
     return thread.id if thread else thread
 
   def _SetCurrentThread( self, thread: Thread ):
+    self._current_session = thread.session
     self._current_thread = thread.id
     self._DrawThreads()
 
@@ -357,7 +431,7 @@ class StackTraceView( object ):
     elif vim.current.window.cursor[ 0 ] in self._line_to_frame:
       thread, frame = self._line_to_frame[ vim.current.window.cursor[ 0 ] ]
       self._SetCurrentThread( thread )
-      self._JumpToFrame( frame )
+      self._JumpToFrame( thread, frame )
     else:
       utils.UserMessage( "No thread selected" )
 
@@ -376,18 +450,18 @@ class StackTraceView( object ):
       return
     elif vim.current.window.cursor[ 0 ] in self._line_to_frame:
       thread, frame = self._line_to_frame[ vim.current.window.cursor[ 0 ] ]
-      self._JumpToFrame( frame )
+      self._JumpToFrame( thread, frame )
 
 
 
   def _GetFrameOffset( self, delta ):
     thread: Thread
-    for thread in self._threads:
+    for thread in self._current_session.threads:
       if thread.id != self._current_thread:
         continue
 
       if not thread.stacktrace:
-        return
+        return None, None
 
       frame_idx = None
       for index, frame in enumerate( thread.stacktrace ):
@@ -398,51 +472,63 @@ class StackTraceView( object ):
       if frame_idx is not None:
         target_idx = frame_idx + delta
         if target_idx >= 0 and target_idx < len( thread.stacktrace ):
-          return thread.stacktrace[ target_idx ]
+          return thread, thread.stacktrace[ target_idx ]
 
       break
+    return None, None
 
 
   def UpFrame( self ):
-    frame = self._GetFrameOffset( 1 )
-    if not frame:
-      utils.UserMessage( 'Top of stack' )
-    else:
-      self._JumpToFrame( frame, 'up' )
+    offset = 1
+    while True:
+      thread, frame = self._GetFrameOffset( offset )
+      if not frame:
+        utils.UserMessage( 'Top of stack' )
+        return
+      elif self._JumpToFrame( thread, frame, 'up' ):
+        return
+      offset += 1
 
 
   def DownFrame( self ):
-    frame = self._GetFrameOffset( -1 )
-    if not frame:
-      utils.UserMessage( 'Bottom of stack' )
-    else:
-      self._JumpToFrame( frame, 'down' )
+    offset = -1
+    while True:
+      thread, frame = self._GetFrameOffset( offset )
+      if not frame:
+        utils.UserMessage( 'Bottom of stack' )
+        return
+      elif self._JumpToFrame( thread, frame, 'down' ):
+        return
+      offset -= 1
+
 
 
   def JumpToProgramCounter( self ):
-    frame = self._GetFrameOffset( 0 )
+    thread, frame = self._GetFrameOffset( 0 )
     if not frame:
       utils.UserMessage( 'No current stack frame' )
     else:
-      self._JumpToFrame( frame, 'jump' )
+      self._JumpToFrame( thread, frame, 'jump' )
 
 
   def AnyThreadsRunning( self ):
-    for thread in self._threads:
-      if thread.state != Thread.TERMINATED:
-        return True
+    for session in self._sessions:
+      for thread in session.threads:
+        if thread.state != Thread.TERMINATED:
+          return True
 
     return False
 
 
-  def _JumpToFrame( self, frame, reason = '' ):
+  def _JumpToFrame( self, thread: Thread, frame, reason = '' ):
     def do_jump():
       if 'line' in frame and frame[ 'line' ] > 0:
-        # Should this set the current _Thread_ too ? If i jump to a frame in
-        # Thread 2, should that become the focussed thread ?
+        self._current_session = thread.session
+        self._current_thread = thread.id
         self._current_frame = frame
         self._DrawThreads()
-        return self._session.SetCurrentFrame( self._current_frame, reason )
+        return thread.session.session.SetCurrentFrame( self._current_frame,
+                                                       reason )
       return False
 
     source = frame.get( 'source' ) or {}
@@ -450,7 +536,7 @@ class StackTraceView( object ):
       def handle_resolved_source( resolved_source ):
         frame[ 'source' ] = resolved_source
         do_jump()
-      self._ResolveSource( source, handle_resolved_source )
+      self._ResolveSource( thread, source, handle_resolved_source )
       # The assumption here is that we _will_ eventually find something to jump
       # to
       return True
@@ -463,8 +549,8 @@ class StackTraceView( object ):
     if thread is None:
       utils.UserMessage( 'No thread selected' )
     elif thread.state == Thread.PAUSED:
-      self._session._connection.DoRequest(
-        lambda msg: self.OnContinued( {
+      thread.session.session.Connection().DoRequest(
+        lambda msg: self.OnContinued( thread.session.session, {
           'threadId': thread.id,
           'allThreadsContinued': ( msg.get( 'body' ) or {} ).get(
             'allThreadsContinued',
@@ -477,7 +563,7 @@ class StackTraceView( object ):
           },
         } )
     elif thread.state == Thread.RUNNING:
-      self._session._connection.DoRequest( None, {
+      thread.session.session.Connection().DoRequest( None, {
         'command': 'pause',
         'arguments': {
           'threadId': thread.id,
@@ -488,15 +574,19 @@ class StackTraceView( object ):
         f'Thread cannot be modified in state {thread.State()}' )
 
 
-  def OnContinued( self, event = None ):
+  def OnContinued( self, debug_session, event = None ):
     threadId = None
     allThreadsContinued = True
+    session = self.FindSession( debug_session )
+
+    if session is None:
+      return
 
     if event is not None:
       threadId = event[ 'threadId' ]
       allThreadsContinued = event.get( 'allThreadsContinued', False )
 
-    for thread in self._threads:
+    for thread in session.threads:
       if allThreadsContinued:
         thread.Continued()
       elif thread.id == threadId:
@@ -505,45 +595,64 @@ class StackTraceView( object ):
 
     self._DrawThreads()
 
-  def OnStopped( self, event ):
+  def OnStopped( self, debug_session, event ):
     threadId = event.get( 'threadId' )
     allThreadsStopped = event.get( 'allThreadsStopped', False )
+    session = self.FindSession( debug_session )
+
+    if session is None:
+      return
 
     # Work out if we should change the current thread
     if threadId is not None:
+      self._current_session = session
       self._current_thread = threadId
-    elif self._current_thread is None and allThreadsStopped and self._threads:
-      self._current_thread = self._threads[ 0 ].id
+    elif self._current_thread is None and allThreadsStopped and session.threads:
+      self._current_session = session
+      self._current_thread = session.threads[ 0 ].id
 
-    self.LoadThreads( True, 'stopped', event )
+    self.LoadThreads( debug_session, True, 'stopped', event )
 
-  def OnThreadEvent( self, event ):
+  def OnThreadEvent( self, debug_session, event ):
     infer_current_frame = False
-    if event[ 'reason' ] == 'started' and self._current_thread is None:
-      self._current_thread = event[ 'threadId' ]
-      infer_current_frame = True
+    session = self.FindSession( debug_session )
+
+    if session is None:
+      return
 
     if event[ 'reason' ] == 'exited':
-      for thread in self._threads:
+      for thread in session.threads:
         if thread.id == event[ 'threadId' ]:
           thread.Exited()
           break
+      self._DrawThreads()
+      return
 
-    self.LoadThreads( infer_current_frame )
+    if event[ 'reason' ] == 'started' and self._current_thread is None:
+      self._current_session = session
+      self._current_thread = event[ 'threadId' ]
+      infer_current_frame = True
 
-  def OnExited( self, event ):
-    for thread in self._threads:
+    self.LoadThreads( debug_session, infer_current_frame )
+
+
+  def OnExited( self, debug_session, event ):
+    session = self.FindSession( debug_session )
+
+    if session is None:
+      return
+
+    for thread in session.threads:
       thread.Exited()
+
+    self._DrawThreads()
+
 
   def _DrawStackTrace( self, thread: Thread ):
     if not thread.IsExpanded():
       return
 
-    if self._current_frame_sign_id:
-      signs.UnplaceSign( self._current_frame_sign_id, 'VimspectorStackTrace' )
-    else:
-      self._current_frame_sign_id = 2
-
+    set_top_of_stack = False
     for frame in thread.stacktrace:
       if frame.get( 'source' ):
         source = frame[ 'source' ]
@@ -553,57 +662,90 @@ class StackTraceView( object ):
       if 'name' not in source:
         source[ 'name' ] = os.path.basename( source.get( 'path', 'unknown' ) )
 
+      hl = settings.Dict( 'presentation_hint_hl' ).get(
+        frame.get( 'presentationHint',
+                   source.get( 'presentationHint',
+                               'normal' ) ) )
+
       if frame.get( 'presentationHint' ) == 'label':
         # Sigh. FOr some reason, it's OK for debug adapters to completely ignore
         # the protocol; it seems that the chrome adapter sets 'label' and
         # doesn't set 'line'
         line = utils.AppendToBuffer(
           self._buf,
-          '  {0}: {1}'.format( frame[ 'id' ], frame[ 'name' ] ) )
+          '  {0}: {1}'.format( frame[ 'id' ], frame[ 'name' ] ),
+          hl = hl )
       else:
         line = utils.AppendToBuffer(
           self._buf,
           '  {0}: {1}@{2}:{3}'.format( frame[ 'id' ],
                                        frame[ 'name' ],
                                        source[ 'name' ],
-                                       frame[ 'line' ] ) )
+                                       frame[ 'line' ] ),
+          hl = hl )
 
-      if ( self._current_frame is not None and
+      if ( thread.session == self._current_session and
+           self._current_frame is not None and
            self._current_frame[ 'id' ] == frame[ 'id' ] ):
+        set_top_of_stack = True
         signs.PlaceSign( self._current_frame_sign_id,
                          'VimspectorStackTrace',
                          'vimspectorCurrentFrame',
                          self._buf.name,
                          line )
+      elif not set_top_of_stack:
+        if 'source' in frame and 'path' in frame[ 'source' ]:
+          set_top_of_stack = True
+          sign_id = len( self._top_of_stack_signs ) + 100
+          self._top_of_stack_signs.append( sign_id )
+          signs.PlaceSign( sign_id,
+                           'VimspectorStackTrace',
+                           'vimspectorNonActivePC',
+                           self._buf.name,
+                           line )
+
+          if utils.BufferExists( frame[ 'source' ][ 'path' ] ):
+            sign_id = len( self._top_of_stack_signs ) + 100
+            self._top_of_stack_signs.append( sign_id )
+            signs.PlaceSign( sign_id,
+                             'VimspectorStackTrace',
+                             'vimspectorNonActivePC',
+                             frame[ 'source' ][ 'path' ],
+                             frame[ 'line' ] )
+
 
       self._line_to_frame[ line ] = ( thread, frame )
 
-  def _ResolveSource( self, source, and_then ):
+  def _ResolveSource( self, thread: Thread, source, and_then ):
     source_reference = int( source[ 'sourceReference' ] )
     try:
-      and_then( self._sources[ source_reference ] )
+      and_then( thread.session.sources[ source_reference ] )
     except KeyError:
       # We must retrieve the source contents from the server
       self._logger.debug( "Requesting source: %s", source )
 
       def consume_source( msg ):
-        self._sources[ source_reference ] = source
+        thread.session.sources[ source_reference ] = source
 
         buf_name = os.path.join( '_vimspector_tmp',
+                                 str( thread.session.session.session_id ),
                                  source.get( 'path', source[ 'name' ] ) )
 
         self._logger.debug( "Received source %s: %s", buf_name, msg )
 
         buf = utils.BufferForFile( buf_name )
         self._scratch_buffers.append( buf )
-        utils.SetUpHiddenBuffer( buf, buf_name )
+        utils.SetUpHiddenBuffer( buf,
+                                 utils.BufferNameForSession(
+                                   buf_name,
+                                   thread.session.session.session_id ) )
         source[ 'path' ] = buf_name
         with utils.ModifiableScratchBuffer( buf ):
           utils.SetBufferContents( buf, msg[ 'body' ][ 'content' ] )
 
-        and_then( self._sources[ source_reference ] )
+        and_then( thread.session.sources[ source_reference ] )
 
-      self._session._connection.DoRequest( consume_source, {
+      thread.session.session.Connection().DoRequest( consume_source, {
         'command': 'source',
         'arguments': {
           'sourceReference': source[ 'sourceReference' ],

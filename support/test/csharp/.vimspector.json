@@ -31,6 +31,12 @@
         "program": "${workspaceRoot}/bin/Debug/netcoreapp6.0/csharp.dll",
         "args": [],
         "stopAtEntry": false
+      },
+      "breakpoints": {
+        "exception": {
+          "user-unhandled": "",
+          "all": ""
+        }
       }
     },
     "launch - netcoredbg - with debug log": {
@@ -41,6 +47,12 @@
         "program": "${workspaceRoot}/bin/Debug/netcoreapp6.0/csharp.dll",
         "args": [],
         "stopAtEntry": false
+      },
+      "breakpoints": {
+        "exception": {
+          "user-unhandled": "",
+          "all": ""
+        }
       }
     },
     "launch - mono": {
@@ -52,6 +64,12 @@
         "cwd": "${workspaceRoot}",
         "args": [],
         "env": {}
+      },
+      "breakpoints": {
+        "exception": {
+          "user-unhandled": "",
+          "all": ""
+        }
       }
     }
   }

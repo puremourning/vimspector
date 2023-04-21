@@ -59,11 +59,17 @@ class OutputView( object ):
   files or the output of commands."""
   _buffers: typing.Dict[ str, TabBuffer ]
 
-  def __init__( self, window, api_prefix ):
+  def __init__( self, window, api_prefix, session_id = None ):
     self._window = window
     self._buffers = {}
     self._api_prefix = api_prefix
     VIEWS.add( self )
+
+    if session_id is None:
+      # FIXME: hack?
+      self._session_id = hash( self )
+    else:
+      self._session_id = session_id
 
   def Print( self, category, text: typing.Union[ str, list ] ):
     if not isinstance( text, list ):
@@ -108,8 +114,6 @@ class OutputView( object ):
   def Clear( self ):
     for category, tab_buffer in self._buffers.items():
       self._CleanUpBuffer( category, tab_buffer )
-
-    # FIXME: nunmenu the WinBar ?
     self._buffers = {}
 
 
@@ -122,7 +126,7 @@ class OutputView( object ):
 
   def _CleanUpBuffer( self, category: str, tab_buffer: TabBuffer ):
     if tab_buffer.is_job:
-      utils.CleanUpCommand( category, self._api_prefix )
+      utils.CleanUpCommand( self._session_id, category, self._api_prefix )
 
     utils.CleanUpHiddenBuffer( tab_buffer.buf )
 
@@ -133,9 +137,7 @@ class OutputView( object ):
   def UseWindow( self, win ):
     assert not self._window.valid
     self._window = win
-    # TODO: Sorting of the WinBar ?
-    for category, _ in self._buffers.items():
-      self._RenderWinBar( category )
+    self._RenderWinBar()
 
 
   def _ShowOutput( self, category ):
@@ -147,6 +149,10 @@ class OutputView( object ):
       vim.current.buffer = self._buffers[ category ].buf
       vim.command( 'normal! G' )
 
+      if utils.VimIsNeovim():
+        # Sigh: https://github.com/neovim/neovim/issues/23165
+        self._RenderWinBar()
+
   def ShowOutput( self, category ):
     self._ToggleFlag( category, False )
     self._ShowOutput( category )
@@ -157,7 +163,7 @@ class OutputView( object ):
 
       if self._window.valid:
         with utils.LetCurrentWindow( self._window ):
-          self._RenderWinBar( category )
+          self._RenderWinBar()
 
 
   def RunJobWithOutput( self, category, cmd, **kwargs ):
@@ -191,19 +197,21 @@ class OutputView( object ):
 
     if cmd is not None:
       out = utils.SetUpCommandBuffer(
+        self._session_id,
         cmd,
-        category,
+        utils.BufferNameForSession( category, self._session_id ),
         self._api_prefix,
         completion_handler = completion_handler )
 
       self._buffers[ category ] = TabBuffer( out, len( self._buffers ) )
       self._buffers[ category ].is_job = True
-      self._RenderWinBar( category )
     else:
       if category == 'Console':
         name = 'vimspector.Console'
       else:
         name = 'vimspector.Output:{0}'.format( category )
+
+      name = utils.BufferNameForSession( name, self._session_id )
 
       tab_buffer = TabBuffer( utils.NewEmptyBuffer(), len( self._buffers ) )
 
@@ -218,7 +226,7 @@ class OutputView( object ):
       else:
         utils.SetUpHiddenBuffer( tab_buffer.buf, name )
 
-      self._RenderWinBar( category )
+    self._RenderWinBar()
 
     self._buffers[ category ].syntax = utils.SetSyntax(
       self._buffers[ category ].syntax,
@@ -230,7 +238,7 @@ class OutputView( object ):
         self._ShowOutput( category )
       utils.CleanUpHiddenBuffer( buf_to_delete )
 
-  def _RenderWinBar( self, category ):
+  def _RenderWinBar( self ):
     if not utils.UseWinBar():
       return
 
@@ -238,25 +246,18 @@ class OutputView( object ):
       return
 
     with utils.LetCurrentWindow( self._window ):
-      tab_buffer = self._buffers[ category ]
+      tab_buffers = sorted( self._buffers.items(),
+                            key = lambda i: i[ 1 ].index )
 
-      try:
-        if tab_buffer.flag:
-          vim.command( 'nunmenu WinBar.{}'.format( utils.Escape( category ) ) )
-        else:
-          vim.command( 'nunmenu WinBar.{}*'.format( utils.Escape( category ) ) )
-      except vim.error as e:
-        # E329 means the menu doesn't exist; ignore that.
-        if 'E329' not in str( e ):
-          raise
-
-      vim.command(
-        "nnoremenu <silent> 1.{0} WinBar.{1}{2} "
-        ":call vimspector#ShowOutputInWindow( {3}, '{1}' )<CR>".format(
-          tab_buffer.index,
-          utils.Escape( category ),
-          '*' if tab_buffer.flag else '',
-          utils.WindowID( self._window ) ) )
+      buttons = []
+      for category, tab_buffer in tab_buffers:
+        buttons.append(
+          ( category + ( '*' if tab_buffer.flag else '' ),
+            "vimspector#ShowOutputInWindow( {}, '{}' )".format(
+              utils.WindowID( self._window ),
+              utils.Escape( category ) ) )
+        )
+      utils.SetWinBar( *buttons )
 
   def GetCategories( self ):
     return list( self._buffers.keys() )
@@ -267,10 +268,9 @@ class OutputView( object ):
 
 class DAPOutputView( OutputView ):
   """Specialised OutputView which adds the DAP Console (REPL)"""
-  def __init__( self, *args ):
-    super().__init__( *args )
+  def __init__( self, *args, **kwargs ):
+    super().__init__( *args, **kwargs )
 
-    self._connection = None
     for b in set( BUFFER_MAP.values() ):
       if b is not None:
         self._CreateBuffer( b )
@@ -278,14 +278,7 @@ class DAPOutputView( OutputView ):
     self.AddLogFileView()
     self._ShowOutput( 'Console' )
 
-  def ConnectionUp( self, connection ):
-    self._connection = connection
-
-  def ConnectionClosed( self ):
-    # Don't clear because output is probably still useful
-    self._connection = None
-
-  def Evaluate( self, frame, expression, verbose ):
+  def Evaluate( self, connection, frame, expression, verbose ):
     if verbose:
       self._Print( 'Console', f"Evaluating: { expression }" )
 
@@ -309,6 +302,4 @@ class DAPOutputView( OutputView ):
     if frame:
       request[ 'arguments' ][ 'frameId' ] = frame[ 'id' ]
 
-    self._connection.DoRequest( print_result,
-                                request,
-                                print_failure )
+    connection.DoRequest( print_result, request, print_failure )
