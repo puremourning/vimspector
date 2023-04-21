@@ -110,6 +110,14 @@ function! vimspector#GetSessionName() abort
   return py3eval( '_vimspector_session.Name()' )
 endfunction
 
+function! vimspector#GetSessionID() abort
+  if !s:Initialised() || !s:enabled || py3eval( '_vimspector_session is None' )
+    return ''
+  endif
+
+  return py3eval( '_vimspector_session.session_id' )
+endfunction
+
 function! vimspector#RenameSession( name ) abort
   if !s:Enabled()
     return

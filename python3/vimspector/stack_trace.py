@@ -355,10 +355,10 @@ class StackTraceView( object ):
 
         for s in self._sessions:
           if len( self._sessions ) > 1:
-            line = utils.AppendToBuffer( self._buf,
-                                         [ '---',
-                                           f'Session: { s.session.Name() }' ],
-                                         hl = 'CursorLineNr' )
+            line = utils.AppendToBuffer(
+              self._buf,
+              [ '---', f'Session: { s.session.DisplayName() }' ],
+              hl = 'CursorLineNr' )
 
           for thread in s.threads:
             icon = '+' if not thread.IsExpanded() else '-'
