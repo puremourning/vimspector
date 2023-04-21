@@ -173,7 +173,7 @@ class DebugSession( object ):
     self._launch_complete = False
     self._on_init_complete_handlers = []
     self._server_capabilities = {}
-    self.ClearTemporaryBreakpoints()
+    self._breakpoints.ClearTemporaryBreakpoints()
 
 
   def GetConfigurations( self, adapters ):
@@ -2106,11 +2106,11 @@ class DebugSession( object ):
 
 
   def RunTo( self, file_name, line ):
-    self.ClearTemporaryBreakpoints()
-    self.SetLineBreakpoint( file_name,
-                            line,
-                            { 'temporary': True },
-                            lambda: self.Continue() )
+    self._breakpoints.ClearTemporaryBreakpoints()
+    self._breakpoints.AddTemporaryLineBreakpoint( file_name,
+                                                  line,
+                                                  { 'temporary': True },
+                                                  lambda: self.Continue() )
 
   @CurrentSession()
   @IfConnected()
@@ -2156,9 +2156,6 @@ class DebugSession( object ):
       },
     }, failure_handler )
 
-
-  def ClearTemporaryBreakpoints( self ):
-    return self._breakpoints.ClearTemporaryBreakpoints()
 
   def SetLineBreakpoint( self, file_name, line_num, options, then = None ):
     return self._breakpoints.SetLineBreakpoint( file_name,
