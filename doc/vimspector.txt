@@ -93,13 +93,15 @@ Contents ~
  9. Customisation                                    |vimspector-customisation|
   1. Changing the default signs             |vimspector-changing-default-signs|
   2. Sign priority                                   |vimspector-sign-priority|
-  3. Changing the default window sizes |vimspector-changing-default-window-sizes|
-  4. Changing the terminal size             |vimspector-changing-terminal-size|
-  5. Custom mappings while debugging |vimspector-custom-mappings-while-debugging|
-  6. Pre-launch building strategies  |vimspector-pre-launch-building-strategies|
-  7. Advanced UI customisation           |vimspector-advanced-ui-customisation|
-  8. Customising the WinBar                     |vimspector-customising-winbar|
-  9. Example                                               |vimspector-example|
+  3. Presentation Hints                         |vimspector-presentation-hints|
+  4. Changing the default window sizes |vimspector-changing-default-window-sizes|
+  5. Changing the terminal size             |vimspector-changing-terminal-size|
+  6. Custom mappings while debugging |vimspector-custom-mappings-while-debugging|
+  7. Pre-launch building strategies |vimspector-pre-launch-building-strategies|
+  8. Disabling the WinBar                         |vimspector-disabling-winbar|
+  9. Advanced UI customisation           |vimspector-advanced-ui-customisation|
+  10. Customising the WinBar                    |vimspector-customising-winbar|
+  11. Example                                              |vimspector-example|
  10. FAQ                                                       |vimspector-faq|
  11. References                                         |vimspector-references|
 
@@ -2788,16 +2790,16 @@ It's possible that this feature will be incorporated into Vimspector in future
 as it is a common requirement.
 
 -------------------------------------------------------------------------------
-                                   *vimspector-pre-launch-building-strategies*
+                                    *vimspector-pre-launch-building-strategies*
 Pre-launch building strategies ~
 
-In many cases you will want to rebuild your project before starting a new debugging
-session. Vimspector is not a task manager and implementing this functionality
-is out of the scope of this project. However, there are some strategies described in the
-community wiki to achieve similar functionality.
+In many cases you will want to rebuild your project before starting a new
+debugging session. Vimspector is not a task manager and implementing this
+functionality is out of the scope of this project. However, there are some
+strategies described in the community wiki [62] to achieve similar
+functionality.
 
-https://github.com/puremourning/vimspector/wiki/Pre-launch-building-strategies
-
+-------------------------------------------------------------------------------
                                                   *vimspector-disabling-winbar*
 Disabling the WinBar ~
 
@@ -2950,7 +2952,7 @@ FAQ ~
    additional language support
 
 2. How do I stop it starting a new Terminal.app on macOS? See this comment
-   [62]
+   [63]
 
 3. Can I specify answers to the annoying questions about exception
    breakpoints in my '.vimspector.json' ? Yes, see here [25].
@@ -2987,10 +2989,10 @@ FAQ ~
 
 4. Do I _have_ to put a '.vimspector.json' in the root of every project? No,
    you can use 'g:vimspector_adapters' and 'g:vimspector_configurations' or
-   put all of your adapter and debug configs in a single directory [63] if
+   put all of your adapter and debug configs in a single directory [64] if
    you want to, but note the caveat that '${workspaceRoot}' won't be
    calculated correctly in that case. The vimsepctor author uses this a lot
-   [64]
+   [65]
 
 5. I'm confused about remote debugging configuration, can you explain it?
    eh... kind of. Reference: https://puremourning.github.io/vimspector/confi
@@ -2998,7 +3000,7 @@ FAQ ~
    ://github.com/puremourning/vimspector/issues/478#issuecomment-943515093
 
 6. I'm trying to debug a Django (django?) project and it's not working. Can
-   you help? sure, check this link which has a working example [65]. Or
+   you help? sure, check this link which has a working example [66]. Or
    google it.
 
 7. Can vimspector build my code before debugging it? Can I deploy it to a
@@ -3006,7 +3008,7 @@ FAQ ~
    debugger, not a task system or build automation system - there are other
    tools for that. There is however a hack you can use - you can use a
    'shell' variable to execute a command and just discard the output. Other
-   options are discussed in this issue [66]
+   options are discussed in this issue [67]
 
 8. It's annoying to manually type in the PID when attaching. Do you have a
    PID picker? There's no PID picker in vimspector at the moment, but you
@@ -3132,10 +3134,11 @@ References ~
 [59] https://github.com/puremourning/vimspector/issues/3
 [60] https://github.com/tomblind/local-lua-debugger-vscode
 [61] https://github.com/puremourning/vimspector/issues/3#issuecomment-576916076
-[62] https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322
-[63] https://puremourning.github.io/vimspector/configuration.html#debug-configurations
-[64] https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf
-[65] https://www.reddit.com/r/neovim/comments/mz4ari/how_to_set_up_vimspector_for_django_debugging/
-[66] https://github.com/puremourning/vimspector/issues/227
+[62] https://github.com/puremourning/vimspector/wiki/Pre-launch-building-strategies
+[63] https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322
+[64] https://puremourning.github.io/vimspector/configuration.html#debug-configurations
+[65] https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf
+[66] https://www.reddit.com/r/neovim/comments/mz4ari/how_to_set_up_vimspector_for_django_debugging/
+[67] https://github.com/puremourning/vimspector/issues/227
 
 vim: ft=help
