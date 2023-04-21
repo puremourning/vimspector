@@ -93,14 +93,13 @@ Contents ~
  9. Customisation                                    |vimspector-customisation|
   1. Changing the default signs             |vimspector-changing-default-signs|
   2. Sign priority                                   |vimspector-sign-priority|
-  3. Presentation Hints                         |vimspector-presentation-hints|
-  4. Changing the default window sizes |vimspector-changing-default-window-sizes|
-  5. Changing the terminal size             |vimspector-changing-terminal-size|
-  6. Custom mappings while debugging |vimspector-custom-mappings-while-debugging|
-  7. Disabling the WinBar                         |vimspector-disabling-winbar|
-  8. Advanced UI customisation           |vimspector-advanced-ui-customisation|
-  9. Customising the WinBar                     |vimspector-customising-winbar|
-  10. Example                                              |vimspector-example|
+  3. Changing the default window sizes |vimspector-changing-default-window-sizes|
+  4. Changing the terminal size             |vimspector-changing-terminal-size|
+  5. Custom mappings while debugging |vimspector-custom-mappings-while-debugging|
+  6. Pre-launch building strategies  |vimspector-pre-launch-building-strategies|
+  7. Advanced UI customisation           |vimspector-advanced-ui-customisation|
+  8. Customising the WinBar                     |vimspector-customising-winbar|
+  9. Example                                               |vimspector-example|
  10. FAQ                                                       |vimspector-faq|
  11. References                                         |vimspector-references|
 
@@ -2789,6 +2788,16 @@ It's possible that this feature will be incorporated into Vimspector in future
 as it is a common requirement.
 
 -------------------------------------------------------------------------------
+                                   *vimspector-pre-launch-building-strategies*
+Pre-launch building strategies ~
+
+In many cases you will want to rebuild your project before starting a new debugging
+session. Vimspector is not a task manager and implementing this functionality
+is out of the scope of this project. However, there are some strategies described in the
+community wiki to achieve similar functionality.
+
+https://github.com/puremourning/vimspector/wiki/Pre-launch-building-strategies
+
                                                   *vimspector-disabling-winbar*
 Disabling the WinBar ~
 
