@@ -627,7 +627,7 @@ class ProjectBreakpoints( object ):
       bp[ 'session_id' ] = conn.GetSessionId()
 
     if server_bp is not None:
-      self._CopyServerLineBreakpointProperties( bp, conn, server_bp )
+      self._CopyServerLineBreakpointProperties( bp, connection, server_bp )
 
     self._line_breakpoints[ path ].append( bp )
 
