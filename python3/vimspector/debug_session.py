@@ -207,8 +207,10 @@ class DebugSession( object ):
 
 
   def Name( self ):
-    name = self.name if self.name else "Unnamed"
-    return f'{name} ({self.session_id})'
+    return self.name if self.name else "Unnamed-" + str( self.session_id )
+
+  def DisplayName( self ):
+    return self.Name() + ' (' + str( self.session_id ) + ')'
 
 
   @ParentOnly()
@@ -1140,7 +1142,7 @@ class DebugSession( object ):
 
   @ParentOnly()
   def _SetUpUI( self ):
-    vim.command( 'tab split' )
+    vim.command( '$tab split' )
 
     # Switch to this session now that we've made it visible. Note that the
     # TabEnter autocmd does trigger when the above is run, but that's before the
@@ -1369,7 +1371,7 @@ class DebugSession( object ):
     self._splash_screen = utils.DisplaySplash(
       self._api_prefix,
       self._splash_screen,
-      f"Starting debug adapter for session {self.Name()}..." )
+      f"Starting debug adapter for session {self.DisplayName()}..." )
 
     if self._connection:
       utils.UserMessage( 'The connection is already created. Please try again',
@@ -1487,7 +1489,7 @@ class DebugSession( object ):
       self._splash_screen = utils.DisplaySplash(
         self._api_prefix,
         self._splash_screen,
-        f"Shutting down debug adapter for session {self.Name()}..." )
+        f"Shutting down debug adapter for session {self.DisplayName()}..." )
 
       def handler( *args ):
         self._splash_screen = utils.HideSplash( self._api_prefix,
@@ -1703,7 +1705,7 @@ class DebugSession( object ):
     self._splash_screen = utils.DisplaySplash(
       self._api_prefix,
       self._splash_screen,
-      f"Initializing debug session {self.Name()}..." )
+      f"Initializing debug session {self.DisplayName()}..." )
 
     # For a good explanation as to why this sequence is the way it is, see
     # https://github.com/microsoft/vscode/issues/4902#issuecomment-368583522
@@ -1775,14 +1777,14 @@ class DebugSession( object ):
       self._splash_screen = utils.DisplaySplash(
         self._api_prefix,
         self._splash_screen,
-        f"Attaching to debuggee {self.Name()}..." )
+        f"Attaching to debuggee {self.DisplayName()}..." )
 
       self._PrepareAttach( self._adapter, self._launch_config )
     elif request == "launch":
       self._splash_screen = utils.DisplaySplash(
         self._api_prefix,
         self._splash_screen,
-        f"Launching debuggee {self.Name()}..." )
+        f"Launching debuggee {self.DisplayName()}..." )
 
       # FIXME: This cmdLine hack is not fun.
       self._PrepareLaunch( self._configuration.get( 'remote-cmdLine', [] ),
@@ -1798,7 +1800,7 @@ class DebugSession( object ):
   def _Launch( self ):
     def failure_handler( reason, msg ):
       text = [
-        f'Initialize for session {self.Name()} Failed',
+        f'Initialize for session {self.DisplayName()} Failed',
         '' ] + reason.splitlines() + [
         '', 'Use :VimspectorReset to close' ]
       self._logger.info( "Launch failed: %s", '\n'.join( text ) )

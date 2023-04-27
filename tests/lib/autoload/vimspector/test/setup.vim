@@ -71,6 +71,18 @@ function! vimspector#test#setup#WaitForReset() abort
   call vimspector#test#signs#AssertSignGroupEmpty( 'VimspectorCode' )
 endfunction
 
+function! vimspector#test#setup#WaitForSessionReset( session_id ) abort
+  let s = '_VimspectorSession(' .. a:session_id .. ')'
+  call WaitForAssert( {->
+        \ assert_true( pyxeval( s .. ' is None or ' .
+        \                       s .. '._connection is None' ) )
+        \ } )
+  call WaitForAssert( {->
+        \ assert_true( pyxeval( s ..' is None or ' .
+        \                       s .. '._uiTab is None' ) )
+        \ }, 10000 )
+endfunction
+
 function! vimspector#test#setup#Reset() abort
   call vimspector#Reset()
   call vimspector#test#setup#WaitForReset()

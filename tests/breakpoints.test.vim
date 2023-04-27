@@ -1063,6 +1063,29 @@ function! Test_BreakpointMovements_MovedByServer()
   %bwipe!
 endfunction
 
+function! Test_Server_Generated_Breakpoint()
+  lcd testdata/cpp/simple
+  edit simple.cpp
+  call vimspector#SetLineBreakpoint( 'simple.cpp', 15 )
+  call vimspector#LaunchWithSettings( #{ configuration: 'CodeLLDB' } )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( 'simple.cpp',
+                                                         \ 15,
+                                                         \ v:null )
+
+  VimspectorEval b foo
+  call win_gotoid( g:vimspector_session_windows.code )
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+          \ 'VimspectorBP',
+          \ 9,
+          \ 'vimspectorBP',
+          \ 9 )
+        \ } )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
 function! Test_Custom_Breakpoint_Priority()
   call s:PushSetting( 'vimspector_toggle_disables_breakpoint', 1 )
   let g:vimspector_sign_priority = {

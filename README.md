@@ -1422,7 +1422,8 @@ So, in summary you have the following facilities:
 * Root-level sessions are never 'destroyed' but you can manually destroy
   them (if you're brave) using `VimspectorDestroySession <name>`. You
   can't destroy a running/active session.
-* `vimspector#GetSessionName()` useful for putting in a statusline. 
+* `vimspector#GetSessionName()` useful for putting in a statusline. There's also
+  `vimspector#GetSessionID()` for techies.
 
 Here's an example of how you can display the current session name in the
 `statusline` (see `:help statusline`, or the documentation for your fancy status
@@ -1436,11 +1437,15 @@ function! StlVimspectorSession()
   endif
 
   " Abort if vimspector not loaded
-  if !exists( '*vimspector#GetSessionName' )
+  if !exists( '*vimspector#GetSessionName' ) ||
+        \ !exists( '*vimspector#GetSessionID' )
     return ''
   endif
 
   return vimspector#GetSessionName()
+        \ .. ' ('
+        \ .. vimspector#GetSessionID()
+        \ .. ')'
 endfunction
 
 " ... existing statusline stuff
