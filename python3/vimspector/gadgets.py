@@ -172,10 +172,10 @@ GADGETS = {
              '${version}/${file_name}',
     },
     'all': {
-      'version': '0.43.0',
-      'file_name': 'vscjava.vscode-java-debug-0.43.0.vsix',
+      'version': '0.50.0',
+      'file_name': 'vscjava.vscode-java-debug-0.50.0.vsix',
       'checksum':
-        '5df389d248b0b988fefa558d9f0f43a93a3c053b9992a3e13057b2bc465ba7f6',
+        'e5aabb93f8ee49881077aee63898b3ddda1dffc7d982227b1bcafbb86989dace',
     },
     'adapters': {
       "vscode-java": {
