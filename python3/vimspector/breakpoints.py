@@ -524,23 +524,21 @@ class ProjectBreakpoints( object ):
           if not bp[ 'server_bp' ]:
             del bp[ 'server_bp' ]
 
-
       # Clear all instruction breakpoints because they aren't truly portable
       # across sessions.
-      #
-      # TODO: It might be possible to re-resolve the address stored in the
-      # breakpoint, though this would only work in a limited way (as load
-      # addresses will frequently not be the same across runs)
 
-
-      def ShouldKeep( bp ):
+      def ShouldKeepInsBP( bp ):
         if not bp[ 'is_instruction_breakpoint' ]:
           return True
         if 'address' in bp and bp[ 'session_id' ] != conn.GetSessionId():
           return True
         return False
 
-      breakpoints[ : ] = [ bp for bp in breakpoints if ShouldKeep( bp ) ]
+      breakpoints[ : ] = [ bp for bp in breakpoints if ShouldKeepInsBP( bp ) ]
+
+    # Erase any data breakpoints for this connection too
+    self._data_breakponts[ : ] = [ bp for bp in self._data_breakponts
+                                   if bp[ 'conn' ] != conn.GetSessionId() ]
 
 
   def _CopyServerLineBreakpointProperties( self,
@@ -1030,12 +1028,11 @@ class ProjectBreakpoints( object ):
       'supportsDataBreakpoints' ]:
       connection: DebugAdapterConnection
       for connection in self._connections:
-        bp_idxs = []
         breakpoints = []
         for bp in self._data_breakponts:
           if bp[ 'state' ] != 'ENABLED':
             continue
-          if bp[ 'conn' ] == connection.GetSessionId():
+          if bp[ 'conn' ] != connection.GetSessionId():
             continue
           if not bp[ 'info' ].get( 'dataId' ):
             continue
@@ -1044,18 +1041,16 @@ class ProjectBreakpoints( object ):
           data_bp.update( bp[ 'options' ] )
           data_bp[ 'dataId' ] = bp[ 'info' ][ 'dataId' ]
           breakpoints.append( data_bp )
-          bp_idxs.append( [ len( breakpoints ), bp ] )
 
         if breakpoints:
           self._awaiting_bp_responses += 1
           connection.DoRequest(
-            lambda msg, conn=connection, idxs=bp_idxs: response_handler(
-              conn,
-              msg,
-              idxs ),
+            lambda msg, conn=connection: response_handler( conn, msg ),
             {
               'command': 'setDataBreakpoints',
-              'arguments': breakpoints,
+              'arguments': {
+                'breakpoints': breakpoints,
+              },
             },
             failure_handler = response_received
           )
