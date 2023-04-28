@@ -1009,7 +1009,12 @@ class DebugSession( object ):
     # Use the parent session, because the _connection_ comes from the
     # variable/watch result that is actually chosen
 
-    def add_bp( conn, breakpoint_info ):
+    def add_bp( conn, msg ):
+      breakpoint_info = msg.get( 'body' )
+      if not breakpoint_info:
+        utils.UserMessage( "Can't set data breakpoint here" )
+        return
+
       if breakpoint_info[ 'dataId' ] is None:
         utils.UserMessage(
           f"Can't set data breakpoint here: {breakpoint_info[ 'description' ]}"

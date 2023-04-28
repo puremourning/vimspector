@@ -749,7 +749,7 @@ class VariablesView( object ):
         variable.container.VariablesReference() )
 
     variable.connection.DoRequest( lambda msg: then( variable.connection,
-                                                     msg[ 'body' ] ), {
+                                                     msg ), {
       'command': 'dataBreakpointInfo',
       'arguments': arguments,
     } )
