@@ -126,6 +126,17 @@
         }
       }
     },
+    "run - no exception bp override": {
+      "adapter": "debugpy",
+      "configuration": {
+        "request": "launch",
+        "type": "python",
+        "cwd": "${workspaceRoot}",
+        "program": "${file}",
+        "stopOnEntry": false,
+        "console": "integratedTerminal"
+      }
+    },
     "run - debugpy-python2": {
       "adapter": "debugpy-python2",
       "configuration": {

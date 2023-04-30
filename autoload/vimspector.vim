@@ -173,32 +173,17 @@ function! vimspector#ClearBreakpoints() abort
   py3 _vimspector_session.ClearBreakpoints()
 endfunction
 
-let s:extended_breakpoint_properties = [
-      \ { 'prop': 'condition', 'msg': 'Enter condition expression' },
-      \ { 'prop': 'hitCondition', 'msg': 'Enter hit count expression' },
-      \ { 'prop': 'logMessage',
-      \   'msg': 'Enter log expression (to make log point)' },
-    \ ]
-
-function! s:AskForInput( ... ) abort
-  return py3eval( '__import__( "vimspector", fromlist=[ "utils" ] )'
-                \ . '.utils.AskForInput( *vim.eval( "a:000" ) )' )
+function! vimspector#ResetExceptionBreakpoints() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.ResetExceptionBreakpoints()
 endfunction
 
-function! s:GetAdvancedBreakpointOptions() abort
-  let options = {}
-  for spec in s:extended_breakpoint_properties
-    let response = s:AskForInput( spec.msg . ': ' )
-    if response is s:None
-      return s:None
-    elseif response !=# ''
-      let options[ spec.prop ] = response
-    endif
-  endfor
-
-  return options
+function! s:GetAdvancedBreakpointOptions( ... ) abort
+  return py3eval( '__import__( "vimspector", fromlist=[ "breakpoints" ] )'
+                \ . '.breakpoints.GetAdvancedBreakpointOptions()' )
 endfunction
-
 
 function! vimspector#ToggleAdvancedBreakpoint() abort
   let options = s:GetAdvancedBreakpointOptions()
@@ -218,6 +203,11 @@ function! vimspector#ToggleBreakpoint( ... ) abort
     let options = a:1
   endif
   py3 _vimspector_session.ToggleBreakpoint( vim.eval( 'options' ) )
+endfunction
+
+function! s:AskForInput( ... ) abort
+  return py3eval( '__import__( "vimspector", fromlist=[ "utils" ] )'
+                \ . '.utils.AskForInput( *vim.eval( "a:000" ) )' )
 endfunction
 
 function! vimspector#SetAdvancedLineBreakpoint() abort
@@ -590,6 +580,13 @@ function! vimspector#JumpToBreakpointViewBreakpoint() abort
     return
   endif
   py3 _vimspector_session.JumpToBreakpointViewBreakpoint()
+endfunction
+
+function! vimspector#EditBreakpointOptionsViewBreakpoint() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.EditBreakpointOptionsViewBreakpoint()
 endfunction
 
 function! vimspector#JumpToNextBreakpoint() abort

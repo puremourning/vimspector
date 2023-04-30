@@ -81,9 +81,10 @@ class BreakpointsView( object ):
           'toggle': 'ToggleBreakpointViewBreakpoint',
           'toggle_all': 'ToggleAllBreakpointsViewBreakpoint',
           'delete': 'DeleteBreakpointViewBreakpoint',
+          'edit': 'EditBreakpointOptionsViewBreakpoint',
           'jump_to': 'JumpToBreakpointViewBreakpoint',
           'add_line': 'SetAdvancedLineBreakpoint',
-          'add_func': 'AddAdvancedFunctionBreakpoint'
+          'add_func': 'AddAdvancedFunctionBreakpoint',
         }
         for key, func in groups.items():
           for mapping in utils.GetVimList( mappings, key ):
@@ -100,27 +101,7 @@ class BreakpointsView( object ):
 
       utils.SetSyntax( '', 'vimspector-breakpoints', self._buffer )
 
-      if utils.UseWinBar():
-        vim.command( 'nnoremenu <silent> 1.1 WinBar.Delete '
-                     ':call vimspector#DeleteBreakpointViewBreakpoint()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.2 WinBar.Toggle '
-                     ':call vimspector#ToggleBreakpointViewBreakpoint()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.2 WinBar.*Toggle '
-                     ':call'
-                       ' vimspector#ToggleAllBreakpointsViewBreakpoint()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.3 WinBar.Jump\\ To '
-                     ':call vimspector#JumpToBreakpointViewBreakpoint()<CR>' )
-        # TODO: Add tests for this function
-        vim.command( 'nnoremenu <silent> 1.4 WinBar.+Line '
-                     ':call vimspector#SetAdvancedLineBreakpoint()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.4 WinBar.+Function '
-                     ':call vimspector#AddAdvancedFunctionBreakpoint()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.4 WinBar.Clear '
-                     ':call vimspector#ClearBreakpoints()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.4 WinBar.Save '
-                     ':call vimspector#WriteSessionFile()<CR>' )
-        vim.command( 'nnoremenu <silent> 1.4 WinBar.Load '
-                     ':call vimspector#ReadSessionFile()<CR>' )
+      self._RenderWinBar()
 
       # we want to maintain the height of the window
       self._win.options[ "winfixheight" ] = True
@@ -140,6 +121,28 @@ class BreakpointsView( object ):
         with utils.RestoreCursorPosition():
           utils.SetBufferContents( self._buffer,
                                    list( map( FormatEntry, breakpoint_list ) ) )
+
+
+  def _RenderWinBar( self ):
+    if not utils.UseWinBar():
+      return
+
+    if not self._HasWindow():
+      return
+
+    with utils.LetCurrentWindow( self._win ):
+      utils.SetWinBar(
+        ( 'Del', 'vimspector#DeleteBreakpointViewBreakpoint()' ),
+        ( 'On/Off', 'vimspector#ToggleBreakpointViewBreakpoint()' ),
+        ( 'Edit', 'vimspector#EditBreakpointOptionsViewBreakpoint()' ),
+        ( '+Line', 'vimspector#SetAdvancedLineBreakpoint()' ),
+        ( '+Func', 'vimspector#AddAdvancedFunctionBreakpoint()' ),
+        ( 'Clr All', 'vimspector#ClearBreakpoints()' ),
+        ( 'Clr Excp', 'vimspector#ResetExceptionBreakpoints()' ),
+        ( 'Save', 'vimspector#WriteSessionFile()' ),
+        ( 'Load', 'vimspector#ReadSessionFile()' ),
+      )
+
 
   def CloseBreakpoints( self ):
     if not self._HasWindow():
@@ -336,6 +339,26 @@ class ProjectBreakpoints( object ):
 
     _JumpToBreakpoint( bp )
 
+  def EditBreakpointOptionsViewBreakpoint( self ):
+    vbp = self._breakpoints_view.GetBreakpointForLine()
+    if not vbp:
+      return
+
+    # Try to find the actual breakpoint
+    bp, index = self._FindLineBreakpoint( vbp.get( 'filename' ),
+                                          vbp.get( 'lnum' ) )
+
+    if not bp:
+      return
+
+    options = GetAdvancedBreakpointOptions( bp[ 'options' ] )
+    if options is None:
+      return
+
+    self.SetLineBreakpoint( vbp[ 'filename' ], vbp[ 'lnum' ], options )
+    utils.UserMessage( "Breakpoint updated." )
+
+
   def JumpToNextBreakpoint( self, reverse=False ):
     bps = self._breakpoints_view._breakpoint_list
     if not bps:
@@ -437,6 +460,12 @@ class ProjectBreakpoints( object ):
     self._func_breakpoints = []
     self._exception_breakpoints = None
 
+    self.UpdateUI()
+
+
+  def ResetExceptionBreakpoints( self ):
+    # TODO: Should exceptoni breakpoints be per-session!?
+    self._exception_breakpoints = None
     self.UpdateUI()
 
 
@@ -1172,3 +1201,27 @@ class ProjectBreakpoints( object ):
       bp[ 'line' ] = int( signs[ 0 ][ 'signs' ][ 0 ][ 'lnum' ] )
 
     return
+
+
+_extended_breakpoint_properties = [
+  { 'prop': 'condition', 'msg': 'Enter condition expression' },
+  { 'prop': 'hitCondition', 'msg': 'Enter hit count expression' },
+  { 'prop': 'logMessage',
+    'msg': 'Enter log expression (to make log point)' },
+]
+
+
+def GetAdvancedBreakpointOptions( existing_options = None ):
+  options = {}
+  if existing_options:
+    options.update( existing_options )
+
+  for spec in _extended_breakpoint_properties:
+    response = utils.AskForInput( spec[ 'msg' ] + ': ',
+                                  options.get( spec[ 'prop' ] ) )
+    if response is None:
+      return None
+    elif response:
+      options[ spec[ 'prop' ] ] = response
+
+  return options
