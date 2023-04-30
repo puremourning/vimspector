@@ -999,7 +999,6 @@ class DebugSession( object ):
 
 
   @ParentOnly()
-  @IfConnected()
   def AddDataBreakpoint( self, opts, buf = None, line_num = None ):
     # Use the parent session, because the _connection_ comes from the
     # variable/watch result that is actually chosen
