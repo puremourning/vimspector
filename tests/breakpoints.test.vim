@@ -1508,3 +1508,46 @@ function! Test_LineBreakpoint_Moved_By_Server()
   call vimspector#test#setup#Reset()
   %bwipe!
 endfunction
+
+function! Test_ShowBreakpointsAfterStop()
+  let fn = '../support/test/python/simple_python/main.py'
+  exe 'edit' fn
+  call vimspector#SetLineBreakpoint( fn, 23 )
+  call vimspector#test#signs#AssertSignGroupSingletonAtLine(
+        \ 'VimspectorBP',
+        \ 23,
+        \ 'vimspectorBP',
+        \ 9 )
+  call vimspector#LaunchWithSettings( { 'configuration': 'run' } )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 23, 1 )
+  call vimspector#test#signs#AssertSignGroupSingletonAtLine(
+        \ 'VimspectorCode',
+        \ 23,
+        \ 'vimspectorPCBP',
+        \ 200 )
+
+  call vimspector#ListBreakpoints()
+  call s:CheckBreakpointView( [
+        \ 'main.py:23 Line breakpoint - VERIFIED: {}'
+        \ ] )
+  wincmd p
+  call vimspector#ListBreakpoints()
+
+  call vimspector#Stop()
+  call WaitForAssert( { ->
+        \ vimspector#test#signs#AssertSignGroupSingletonAtLine(
+        \   'VimspectorBP',
+        \   23,
+        \   'vimspectorBP',
+        \   9 ) } )
+
+  call vimspector#ListBreakpoints()
+  call s:CheckBreakpointView( [
+        \ 'main.py:23 Line breakpoint - ENABLED: {}'
+        \ ] )
+  wincmd p
+  call vimspector#ListBreakpoints()
+
+  call vimspector#test#setup#Reset()
+  %bwipeout!
+endfunction

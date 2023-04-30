@@ -276,10 +276,11 @@ class ProjectBreakpoints( object ):
       self._awaiting_bp_responses = 0
       self._pending_send_breakpoints = []
 
-    # NOTE: we don't reset self._exception_breakpoints because we don't want to
-    # re-ask the user every time for the sane info.
-
-    # FIXME: If the adapter type changes, we should probably forget this ?
+    # Ensure that we now display verified/etc. breakpoints correctly (we might
+    # have closed the connection that verified a given BP). If this was the last
+    # connection closing, then we need to re-post all the breakpoints as "user"
+    # breakpoints (as opposed to server ones). All this is done by UpdateUI()
+    self.UpdateUI()
 
 
   def ToggleBreakpointsView( self ):

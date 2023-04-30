@@ -2037,7 +2037,6 @@ class DebugSession( object ):
       self._disassemblyView.ConnectionClosed( self._connection )
 
     self.Clear()
-
     self._ResetServerState()
 
     if self._run_on_server_exit:
