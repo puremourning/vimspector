@@ -332,6 +332,7 @@ GADGETS = {
           "type": "bashdb",
           "program": "${file}",
           "args": [],
+          "argsString": "",
           "env": {},
           "pathBash": "bash",
           "pathBashdb": "${BASHDB_HOME}/bashdb",
