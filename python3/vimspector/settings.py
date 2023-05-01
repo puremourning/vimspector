@@ -100,9 +100,10 @@ DEFAULTS = {
       'toggle': [ 't', '<F9>' ],
       'toggle_all': [ 'T' ],
       'delete': [ 'dd', '<Del>' ],
+      'edit': [ 'cc', 'C' ],
       'add_line': [ 'i', 'a', 'o', '<Insert>' ],
       'add_func': [ 'I', 'A', 'O', '<leader><Insert>' ],
-      'jump_to': [ '<2-LeftMouse>', '<Enter>' ]
+      'jump_to': [ '<2-LeftMouse>', '<Enter>' ],
     }
   },
 

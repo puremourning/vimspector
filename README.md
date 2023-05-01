@@ -910,12 +910,14 @@ The following mappings apply by default in the breakpoints window:
 * `t`, `<F9>` - toggle, i.e. enable/disable breakpoint
 * `T` - toggle, i.e. enable/disable ALL breakpoints
 * `dd`, `<Del>` - delete the current breakpoint
+* `cc`, `C` - edit the current breakpoint options
 * `i`, `a`, `o` - add a new line breakpoint
 * `I`, `A`, `O` - add a new function breakpoint
 * `<Enter>` or double-click - jump to the line breakpoint
 
 A WinBar is provided (where supported) too. This adds functions like
-saving/restoring sessions and clearing all breakpoints too.
+saving/restoring sessions, clearing all breakpoints, and resetting the exception
+breakpoints options.
 
 ### Line breakpoints
 

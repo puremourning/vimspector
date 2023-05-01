@@ -2093,6 +2093,9 @@ class DebugSession( object ):
   def JumpToBreakpointViewBreakpoint( self ):
     self._breakpoints.JumpToBreakpointViewBreakpoint()
 
+  def EditBreakpointOptionsViewBreakpoint( self ):
+    self._breakpoints.EditBreakpointOptionsViewBreakpoint()
+
   def JumpToNextBreakpoint( self ):
     self._breakpoints.JumpToNextBreakpoint()
 
@@ -2169,6 +2172,9 @@ class DebugSession( object ):
 
   def ClearBreakpoints( self ):
     return self._breakpoints.ClearBreakpoints()
+
+  def ResetExceptionBreakpoints( self ):
+    return self._breakpoints.ResetExceptionBreakpoints()
 
   def AddFunctionBreakpoint( self, function, options ):
     return self._breakpoints.AddFunctionBreakpoint( function, options )
