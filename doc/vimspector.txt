@@ -1152,12 +1152,14 @@ The following mappings apply by default in the breakpoints window:
 - 't', '<F9>' - toggle, i.e. enable/disable breakpoint
 - 'T' - toggle, i.e. enable/disable ALL breakpoints
 - 'dd', '<Del>' - delete the current breakpoint
+- 'cc', 'C' - edit the current breakpoint options
 - 'i', 'a', 'o' - add a new line breakpoint
 - 'I', 'A', 'O' - add a new function breakpoint
 - '<Enter>' or double-click - jump to the line breakpoint
 
 A WinBar is provided (where supported) too. This adds functions like
-saving/restoring sessions and clearing all breakpoints too.
+saving/restoring sessions, clearing all breakpoints, and resetting the
+exception breakpoints options.
 
 -------------------------------------------------------------------------------
                                                   *vimspector-line-breakpoints*
@@ -1744,7 +1746,8 @@ So, in summary you have the following facilities:
   (if you're brave) using 'VimspectorDestroySession <name>'. You can't
   destroy a running/active session.
 
-- 'vimspector#GetSessionName()' useful for putting in a statusline.
+- 'vimspector#GetSessionName()' useful for putting in a statusline. There's
+  also 'vimspector#GetSessionID()' for techies.
 
 Here's an example of how you can display the current session name in the
 'statusline' (see ':help statusline', or the documentation for your fancy
@@ -1757,11 +1760,15 @@ status line plugin).
     endif
   
     " Abort if vimspector not loaded
-    if !exists( '*vimspector#GetSessionName' )
+    if !exists( '*vimspector#GetSessionName' ) ||
+          \ !exists( '*vimspector#GetSessionID' )
       return ''
     endif
   
     return vimspector#GetSessionName()
+          \ .. ' ('
+          \ .. vimspector#GetSessionID()
+          \ .. ')'
   endfunction
   
   " ... existing statusline stuff
