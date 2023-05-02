@@ -44,7 +44,8 @@ def CategoryToBuffer( category ):
 
 VIEWS = set()
 
-TMP_SESSION_ID=-1
+TMP_SESSION_ID = -1
+
 
 def ShowOutputInWindow( win_id, category ):
   for view in VIEWS:
