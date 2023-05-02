@@ -44,6 +44,7 @@ def CategoryToBuffer( category ):
 
 VIEWS = set()
 
+TMP_SESSION_ID=-1
 
 def ShowOutputInWindow( win_id, category ):
   for view in VIEWS:
@@ -66,8 +67,9 @@ class OutputView( object ):
     VIEWS.add( self )
 
     if session_id is None:
-      # FIXME: hack?
-      self._session_id = hash( self )
+      global TMP_SESSION_ID
+      self._session_id = TMP_SESSION_ID
+      TMP_SESSION_ID -= 1
     else:
       self._session_id = session_id
 
