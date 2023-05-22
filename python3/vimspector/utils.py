@@ -416,7 +416,7 @@ def SelectFromList( prompt, options, ret='label' ):
     # N header lines. In practice, there's usually only one.
     display_options = [ headers.pop() ]
     for header_line in headers:
-      vim.command( 'echo \'' + Escape( header_line ) + '\'')
+      vim.command( 'echo \'' + Escape( header_line ) + '\'' )
 
     display_options.extend( [ '{0}: {1}'.format( i + 1, v )
                               for i, v in enumerate( options ) ] )

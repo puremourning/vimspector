@@ -2225,8 +2225,7 @@ def _SelectProcess( *args ):
       value = utils.Call( custom_picker, *args )
     except vim.error:
       pass
-
-  if not value:
+  else:
     vimspector_process_list: str = None
     try:
       try:
@@ -2243,6 +2242,9 @@ def _SelectProcess( *args ):
     if vimspector_process_list:
       output = subprocess.check_output(
         ( vimspector_process_list, ) + args ).decode( 'utf-8' )
+      # The problem with this is that if you have the PID you have to know to
+      # skip this and just enter it next. We should allow you to enter the PID
+      # directly to the prompt.
       selected_line: str = utils.FilterInputSync( 'Pick Process', output )
       if selected_line:
         value = selected_line.split()[ 0 ]

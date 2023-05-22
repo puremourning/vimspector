@@ -63,7 +63,6 @@ jobs:
       name: 'Print vim version information'
 
     - run: |
-        export GOPATH=$HOME/go
         cd support/vimspector_process_list
         go build
       name: 'Build the process lister'
@@ -135,7 +134,6 @@ jobs:
       name: 'Install Delve for Go'
 
     - run: |
-        export GOPATH=$HOME/go
         cd support/vimspector_process_list
         go build
       name: 'Build the process lister'
