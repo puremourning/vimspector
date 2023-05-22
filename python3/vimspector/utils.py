@@ -26,7 +26,7 @@ import re
 import typing
 import base64
 
-from vimspector.core_utils import memoize
+from vimspector.core_utils import memoize, NormalizePath
 from vimspector.vendor.hexdump import hexdump
 
 LOG_FILE = os.path.expanduser( os.path.join( '~', '.vimspector.log' ) )
@@ -406,12 +406,24 @@ def InputSave():
 
 def SelectFromList( prompt, options, ret='label' ):
   with InputSave():
-    display_options = [ prompt ]
+    headers: list
+    if isinstance( prompt, list ):
+      headers = list( prompt )
+    else:
+      headers = prompt.splitlines()
+
+    # The 0th entry in the list is the _last_ header line; we echo the previous
+    # N header lines. In practice, there's usually only one.
+    display_options = [ headers.pop() ]
+    for header_line in headers:
+      vim.command( 'echo \'' + Escape( header_line ) + '\'')
+
     display_options.extend( [ '{0}: {1}'.format( i + 1, v )
                               for i, v in enumerate( options ) ] )
     try:
       selection = int( vim.eval(
         'inputlist( ' + json.dumps( display_options ) + ' )' ) ) - 1
+
       if selection < 0 or selection >= len( options ):
         return None
       if ret == 'index':
@@ -1027,11 +1039,6 @@ def SetCursorPosInWindow( window,
     Call( 'win_execute', WindowID( window ), f'normal! { make_visible }' )
 
 
-def NormalizePath( filepath ):
-  absolute_path = os.path.abspath( filepath )
-  return absolute_path if os.path.isfile( absolute_path ) else filepath
-
-
 def UpdateSessionWindows( d ):
   # neovim madness need to re-assign the dict to trigger rpc call
   # see https://github.com/neovim/pynvim/issues/261
@@ -1173,3 +1180,12 @@ def HighlightTextSection( buf,
             'end_col': ( end_col - 1 ) + 1,
             'priority': 10,
           } )
+
+
+def FilterInputSync( prompt, input, header_lines=1 ):
+  lines = input.splitlines()
+  options = lines[ header_lines : ]
+  num_leader_chars = len( str( len( options ) ) ) + 2
+  header = [ prompt ]
+  header += [ ' ' * num_leader_chars + hl for hl in lines[ : header_lines ] ]
+  return SelectFromList( header, options )

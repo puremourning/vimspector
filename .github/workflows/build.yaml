@@ -64,6 +64,12 @@ jobs:
 
     - run: |
         export GOPATH=$HOME/go
+        cd support/vimspector_process_list
+        go build
+      name: 'Build the process lister'
+
+    - run: |
+        export GOPATH=$HOME/go
         ./run_tests --exe ${{ matrix.runtime }} --basedir $(pwd) --install --update --report messages --quiet
       name: 'Run the tests'
       id: run_tests
@@ -127,6 +133,12 @@ jobs:
 
     - run: go install github.com/go-delve/delve/cmd/dlv@latest
       name: 'Install Delve for Go'
+
+    - run: |
+        export GOPATH=$HOME/go
+        cd support/vimspector_process_list
+        go build
+      name: 'Build the process lister'
 
     - uses: actions/cache@v2
       with:

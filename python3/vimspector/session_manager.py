@@ -98,7 +98,7 @@ class SessionManager:
 
   def FindSessionByTab( self, tabnr: int ) -> DebugSession:
     for _, session in self.sessions.items():
-      if session.HasUI() and session.IsUITab( tabnr ):
+      if session.IsUITab( tabnr ):
         return session
 
     return None

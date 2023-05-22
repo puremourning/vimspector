@@ -439,6 +439,7 @@ class DebugSession( object ):
       # The following, starting with uppercase letters, are 'functions' taking
       # arguments.
       'SelectProcess': _SelectProcess,
+      'PickProcess': _SelectProcess,
     }
 
     # Pretend that vars passed to the launch command were typed in by the user
@@ -1406,7 +1407,10 @@ class DebugSession( object ):
     self._adapter[ 'env' ] = self._adapter.get( 'env', {} )
 
     if 'cwd' not in self._adapter:
-      self._adapter[ 'cwd' ] = os.getcwd()
+      if 'cwd' in self._configuration:
+        self._adapter[ 'cwd' ] = self._configuration[ 'cwd' ]
+      else:
+        self._adapter[ 'cwd' ] = os.getcwd()
 
     vim.vars[ '_vimspector_adapter_spec' ] = self._adapter
 
@@ -2213,15 +2217,43 @@ def PathsToAllConfigFiles( vimspector_base, current_file, filetypes ):
 
 
 def _SelectProcess( *args ):
+  value = None
+
   custom_picker = settings.Get( 'custom_process_picker_func' )
   if custom_picker:
     try:
-      return int( utils.Call( custom_picker, *args ) )
+      value = utils.Call( custom_picker, *args )
     except vim.error:
       pass
 
-  value = utils.AskForInput( 'Enter Process ID: ' )
-  if value is not None:
-    return int( value )
+  if not value:
+    vimspector_process_list: str = None
+    try:
+      try:
+        vimspector_process_list = installer.FindExecutable(
+          'vimspector_process_list' )
+      except installer.MissingExecutable:
+        vimspector_process_list = installer.FindExecutable(
+          'vimspector_process_list',
+          [ os.path.join( install.GetSupportDir(),
+                          'vimspector_process_list' ) ] )
+    except installer.MissingExecutable:
+      pass
 
-  return value
+    if vimspector_process_list:
+      output = subprocess.check_output(
+        ( vimspector_process_list, ) + args ).decode( 'utf-8' )
+      selected_line: str = utils.FilterInputSync( 'Pick Process', output )
+      if selected_line:
+        value = selected_line.split()[ 0 ]
+
+  if not value:
+    value = utils.AskForInput( 'Enter Process ID: ' )
+
+  if value:
+    try:
+      return int( value )
+    except ValueError:
+      return None
+
+  return None

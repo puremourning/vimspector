@@ -1,0 +1,22 @@
+{
+  "configurations": {
+    "run-delve": {
+      "adapter": "delve",
+      "filetypes": [ "go" ],
+      "default": true,
+      "cwd": "${workspaceRoot}",
+      "configuration": {
+        "request": "launch",
+
+
+        "mode": "debug", // debug|test
+        "program": "${workspaceRoot}/process_list.go"
+
+        // "args": [],
+        // "buildFlags": ...
+        // "stackTraceDepth": ...,
+        // "showGlobalVariables": true,
+      }
+    }
+  }
+}
