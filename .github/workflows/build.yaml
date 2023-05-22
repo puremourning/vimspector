@@ -64,10 +64,9 @@ jobs:
 
     - run: |
         cd support/vimspector_process_list
-        echo "files are..."
+        echo "files in $(pwd) are..."
         ls -al
         echo "I am $(whoami)"
-        git config safe.directory '*'
         go build
       name: 'Build the process lister'
 

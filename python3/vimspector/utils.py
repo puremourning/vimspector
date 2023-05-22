@@ -388,7 +388,6 @@ def UserMessage( msg, persist=False, error=False ):
       vim.command( "{0} '{1}'".format( cmd, Escape( line ) ) )
   finally:
     vim.command( 'echohl None' ) if error else None
-  vim.command( 'redraw' )
 
 
 @contextlib.contextmanager
