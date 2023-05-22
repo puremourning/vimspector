@@ -67,6 +67,7 @@ jobs:
         echo "files in $(pwd) are..."
         ls -al
         echo "I am $(whoami)"
+        git config --global --add safe.directory /__w/vimspector/vimspector
         git status
         go build
       name: 'Build the process lister'
