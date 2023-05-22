@@ -132,7 +132,7 @@ And a couple of brief demos:
 - step in/out/over/up, stop, restart
 - run to cursor
 - go to line (reset program counter to line)
-- launch and attach
+- launch and attach, including PID picker
 - remote launch, remote attach
 - locals and globals display
 - watch expressions with autocompletion
@@ -801,6 +801,108 @@ to debug multiple independent apps at the same time, see
 
 Launching a new session makes it the active
 [debugging session][#multiple-debugging-sessions].
+
+### Picking a PID
+
+If the debug adapter configuration uses `pidProperty`, and you make an `attach`
+request, then you will be asked to enter a PID (process ID) to attach to.
+
+To make this easier, Vimspector supplies a little utility for listing PIDs. It's
+like a very very simple clone of `ps` but works on all the supported platforms.
+See [its README](support/vimspector_process_list/README.md) for instructions on
+setting it up. 
+
+In short:
+ 
+- If you used a tarball installation, you don't need to do anything.
+- Otherwise, run `go build` in the `support/vimspector_process_list` directory
+
+If Vimspector is able to find this app, it will try to list all processes owned
+by the current user by default.
+
+Alternatively (preferably), you can use a special form of variable expansion
+called `${PickProcess(\"binaryName\")}`. The version of this call will list all
+processes for the current user that match this binary name. 
+
+For example:
+
+```jsonc
+"Attach": {
+  "adapter": "CodeLLDB",
+  "configuration": {
+    "request": "attach",
+    "program": "${workspaceRoot}/foo",
+    "pid": "${PickProcess(\"foo\")}"
+  }
+}
+```
+
+This will list the matching processes, their parent proceses, start time and
+working directory. It's looks something like this:
+
+```
+PID   PPID           CWD                                           START
+52218 52217 (Python) /Users/ben/.vim/bundle/lsp-examples/jai/Jails 2023-05-22 16:02:24
+Enter Process ID:
+```
+
+You then enter the PID and hit `<CR>`.
+
+You can even replace the process picker with your own function. If you define
+some function and set `g:vimspector_custom_process_picker_func` to the name of
+that funtion. It will be passed any arguments passed to the `PickProcess`
+expansion function.
+
+For example, to use `fzf` along with the supplied `vimspector_process_list`:
+
+```viml
+function! CustomPickProcess( cmd ) abort
+  let ps = $HOME .. '/.vim/bundle/vimspector/support/vimspector_process_list/vimspector_process_list'
+  if ! empty( a:cmd )
+    let ps .= ' ^' . a:cmd . '$'
+  endif
+
+  let line_selected = fzf#run( {
+      \ 'source': ps,
+      \ 'options': '--header-lines=1  '
+      \          . '--prompt="Select Process: " '
+      \ ,
+      \
+      \ } )[ 0 ]
+  if empty( line_selected)
+    return 0
+  endif
+  let pid = split( line_selected )[ 0 ]
+  return str2nr( pid )
+endfunction
+
+
+let g:vimspector_custom_process_picker_func = 'CustomPickProcess'
+```
+
+Or to use `fzf` with the output of `ps`:
+
+```viml
+function! CustomPickProcess( ... ) abort
+  let ps = 'ps aux'
+
+  let line_selected = fzf#run( {
+      \ 'source': ps,
+      \ 'options': '--header-lines=1  '
+      \          . '--prompt="Select Process: " '
+      \ ,
+      \
+      \ } )[ 0 ]
+  if empty( line_selected)
+    return 0
+  endif
+  let pid = split( line_selected )[ 0 ]
+  return str2nr( pid )
+endfunction
+
+
+let g:vimspector_custom_process_picker_func = 'CustomPickProcess'
+```
 
 ### Launch with options
 
