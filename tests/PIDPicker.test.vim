@@ -7,10 +7,6 @@ function! TearDown()
   call vimspector#test#setup#TearDown()
 endfunction
 
-function! Test_PID_Picker_NotCalled_NoArguments_BuiltInPidSelect()
-  " Mock AskForInput and do same as below to prove the case where it's not set
-endfunction
-
 function! Test_PID_Picker_Called_NoArguments_BuiltInPidSelect_RetInt()
   let fn='test_c.cpp'
   lcd ../support/test/cpp/simple_c_program
@@ -91,10 +87,4 @@ function! Test_PID_Picker_Called_NoArguments_BuiltInPidSelect_RetStrArgs()
 
   lcd -
   %bwipeout!
-endfunction
-
-function! Test_PID_Picker_Called_NoArguments_FromCalculus()
-endfunction
-
-function! Test_PID_Picker_Called_WithArguments_FromCalculus()
 endfunction
