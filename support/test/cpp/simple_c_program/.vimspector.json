@@ -19,10 +19,18 @@
     }
   },
   "configurations": {
-    "CodeLLDB": {
+    "CodeLLDB-custom": {
       "adapter": "custom-codelldb",
       "configuration": {
         "request": "launch",
+        "program": "${workspaceRoot}/test"
+      }
+    },
+    "CodeLLDB": {
+      "adapter": "CodeLLDB",
+      "configuration": {
+        "request": "launch",
+        "expressions": "native",
         "program": "${workspaceRoot}/test"
       }
     },
@@ -89,9 +97,16 @@
       }
     },
     "cpptools-attach": {
-      "extends": "cpptools",
+      "extends": "cpptools (lldb)",
       "configuration": {
         "request": "attach"
+      }
+    },
+    "CodeLLDB-attach": {
+      "extends": "CodeLLDB",
+      "configuration": {
+        "request": "attach",
+        "pid": "${PickProcess(\"test\")}"
       }
     }
   }
