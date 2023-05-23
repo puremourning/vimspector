@@ -374,17 +374,15 @@ def Escape( msg ):
 
 
 def UserMessage( msg, persist=False, error=False ):
-  if persist:
-    _logger.warning( 'User Msg: ' + msg )
-  else:
-    _logger.info( 'User Msg: ' + msg )
+  if not isinstance( msg, list ):
+    msg = msg.split( '\n' )
 
   cmd = 'echom' if persist else 'echo'
   vim.command( 'redraw' )
   try:
     if error:
       vim.command( "echohl WarningMsg" )
-    for line in msg.split( '\n' ):
+    for line in msg:
       vim.command( "{0} '{1}'".format( cmd, Escape( line ) ) )
   finally:
     vim.command( 'echohl None' ) if error else None
@@ -405,18 +403,7 @@ def InputSave():
 
 def SelectFromList( prompt, options, ret='label' ):
   with InputSave():
-    headers: list
-    if isinstance( prompt, list ):
-      headers = list( prompt )
-    else:
-      headers = prompt.splitlines()
-
-    # The 0th entry in the list is the _last_ header line; we echo the previous
-    # N header lines. In practice, there's usually only one.
-    display_options = [ headers.pop() ]
-    for header_line in headers:
-      vim.command( 'echo \'' + Escape( header_line ) + '\'' )
-
+    display_options = [ prompt ]
     display_options.extend( [ '{0}: {1}'.format( i + 1, v )
                               for i, v in enumerate( options ) ] )
     try:
@@ -620,6 +607,7 @@ def _Substitute( template, mapping ):
   def convert( mo ):
     # Check the most common path first.
     args: str = mo.group( 'args' )
+    named = mo.group( 'named' ) or mo.group( 'braced' )
     if args is None:
       args = ()
       arg_hash = ''
@@ -631,9 +619,11 @@ def _Substitute( template, mapping ):
       # multiple "calls" to the same calculus function with the same arguments
       # only trigger one actual call.. shrug?
       arg_hash = str( hash( args ) )
-      args = ( arg for arg in json.loads( "[" + args + "]" ) )
+      try:
+        args = ( arg for arg in json.loads( "[" + args + "]" ) )
+      except json.JSONDecodeError as e:
+        raise ValueError( f"Unable to parse arguments to macro '{named}': {e}" )
 
-    named = mo.group( 'named' ) or mo.group( 'braced' )
     if named is not None:
       if named + arg_hash not in mapping:
         raise MissingSubstitution( named,
@@ -689,7 +679,7 @@ def ExpandReferencesInString( orig_s,
                        e.args )
       elif e.args:
         raise ValueError( f"Invalid arguments '{ e.args }' supplied for named "
-                          f"variable '{ e.name }'. This varibale does not take "
+                          f"variable '{ e.name }'. This variable does not take "
                           "formal arguments" )
       else:
         assert key == e.name
@@ -1179,12 +1169,3 @@ def HighlightTextSection( buf,
             'end_col': ( end_col - 1 ) + 1,
             'priority': 10,
           } )
-
-
-def FilterInputSync( prompt, input, header_lines=1 ):
-  lines = input.splitlines()
-  options = lines[ header_lines : ]
-  num_leader_chars = len( str( len( options ) ) ) + 2
-  header = [ prompt ]
-  header += [ ' ' * num_leader_chars + hl for hl in lines[ : header_lines ] ]
-  return SelectFromList( header, options )

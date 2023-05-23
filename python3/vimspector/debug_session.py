@@ -2225,8 +2225,8 @@ def _SelectProcess( *args ):
       value = utils.Call( custom_picker, *args )
     except vim.error:
       pass
-
-  if not value:
+  else:
+    # Use the built-in one
     vimspector_process_list: str = None
     try:
       try:
@@ -2240,12 +2240,18 @@ def _SelectProcess( *args ):
     except installer.MissingExecutable:
       pass
 
+    default_pid = None
     if vimspector_process_list:
       output = subprocess.check_output(
         ( vimspector_process_list, ) + args ).decode( 'utf-8' )
-      utils.UserMessage( output, persist = True )
+      # if there's only one entry, use it as the default value for input.
+      lines = output.splitlines()
+      if len( lines ) == 2:
+        default_pid = lines[ -1 ].split()[ 0 ]
+      utils.UserMessage( lines )
 
-    value = utils.AskForInput( 'Enter Process ID: ' )
+    value = utils.AskForInput( 'Enter Process ID: ',
+                               default_value = default_pid )
 
   if value:
     try:

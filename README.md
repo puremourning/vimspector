@@ -831,13 +831,13 @@ For example:
   "adapter": "CodeLLDB",
   "configuration": {
     "request": "attach",
-    "program": "${workspaceRoot}/foo",
-    "pid": "${PickProcess(\"foo\")}"
+    "program": "${workspaceRoot}/Jails",
+    "pid": "${PickProcess(\"jails\")}"
   }
 }
 ```
 
-This will list the matching processes, their parent proceses, start time and
+This will list each matching processes, its parent process, start time and
 working directory. It's looks something like this:
 
 ```
@@ -850,16 +850,20 @@ You then enter the PID and hit `<CR>`.
 
 You can even replace the process picker with your own function. If you define
 some function and set `g:vimspector_custom_process_picker_func` to the name of
-that funtion. It will be passed any arguments passed to the `PickProcess`
-expansion function.
+that function. It will be passed any arguments passed to the `PickProcess`
+expansion function. It will also be used whenever a `pidProperty` is specified,
+so it must also handle no arguments (use `...` as the formal arguments
+for the function, see `:help ...`).
 
 For example, to use `fzf` along with the supplied `vimspector_process_list`:
 
 ```viml
-function! CustomPickProcess( cmd ) abort
+function! CustomPickProcess( ... ) abort
   let ps = $HOME .. '/.vim/bundle/vimspector/support/vimspector_process_list/vimspector_process_list'
-  if ! empty( a:cmd )
-    let ps .= ' ^' . a:cmd . '$'
+  " a:0 is number of args
+  " a:1 is the optional binary name
+  if a:0 > 0
+    let ps .= ' ^' . a:1 . '$'
   endif
 
   let line_selected = fzf#run( {
