@@ -76,8 +76,6 @@ func main() {
 		pname, _ := parent.Name()
 
 		if username == cur_user.Username && is_running && status[0] != "zombie" {
-			// TODO: Truncate (to the right or left depending)
-			// the long columns like cwd
 			if pattern_supplied {
 				fmt.Fprintf(w, "%v\t%v (%v)\t%v\t%v\n", pid, ppid, pname, cwd, dtime)
 			} else {

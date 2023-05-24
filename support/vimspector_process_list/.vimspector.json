@@ -10,7 +10,7 @@
 
 
         "mode": "debug", // debug|test
-        "program": "${workspaceRoot}/process_list.go"
+        "program": "${workspaceRoot}/vimspector_process_list.go"
 
         // "args": [],
         // "buildFlags": ...

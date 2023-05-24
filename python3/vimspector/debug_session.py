@@ -1406,11 +1406,10 @@ class DebugSession( object ):
 
     self._adapter[ 'env' ] = self._adapter.get( 'env', {} )
 
-    if 'cwd' not in self._adapter:
-      if 'cwd' in self._configuration:
-        self._adapter[ 'cwd' ] = self._configuration[ 'cwd' ]
-      else:
-        self._adapter[ 'cwd' ] = os.getcwd()
+    if 'cwd' in self._configuration:
+      self._adapter[ 'cwd' ] = self._configuration[ 'cwd' ]
+    elif 'cwd' not in self._adapter:
+      self._adapter[ 'cwd' ] = os.getcwd()
 
     vim.vars[ '_vimspector_adapter_spec' ] = self._adapter
 
