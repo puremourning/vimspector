@@ -9,9 +9,10 @@ Contents ~
   1. Debug adapter configuration   |vimspector-ref-debug-adapter-configuration|
   2. Debug profile configuration   |vimspector-ref-debug-profile-configuration|
   3. Replacements and variables         |vimspector-ref-replacements-variables|
-   1. The splat operator                        |vimspector-ref-splat-operator|
-   2. Default values                            |vimspector-ref-default-values|
-   3. Coercing Types                            |vimspector-ref-coercing-types|
+   1. Macro functions                          |vimspector-ref-macro-functions|
+   2. The splat operator                        |vimspector-ref-splat-operator|
+   3. Default values                            |vimspector-ref-default-values|
+   4. Coercing Types                            |vimspector-ref-coercing-types|
  4. Configuration Format                  |vimspector-ref-configuration-format|
  5. Files and locations                        |vimspector-ref-files-locations|
  6. Adapter configurations              |vimspector-ref-adapter-configurations|
@@ -232,6 +233,42 @@ the following variable substitutions:
   and adapter configurations and can be either static strings or shell
   commands.
 
+-------------------------------------------------------------------------------
+                                               *vimspector-ref-macro-functions*
+Macro functions ~
+
+Vimspector also provides the following syntax for calling specific "macro"
+functions: '${Name(arg0,arg1,...)}'.
+
+The following macro functions are provided:
+
+- '${PickProcess(...)}': Ask the user to select a process and return its PID.
+  If a custom PID picker is installed, the arguments are passed to it.
+  Otherwise, a single (optional) argument is allowed, the name of the binary
+  to find processes for. See the main Vimspector README for examples of how
+  this is used.
+
+It's not possible to define your own macros or call any other functions.
+
+In detail: Syntax is same as a braced variable, but with trailing parentheses.
+The contents between the parentheses must result in the inner contents of a
+valid JSON list, that is it must be valid to take the inner contents of the
+parentheses and wrap them in '[' and ']', and the result must be a valid JSON
+list. This list is then used as arguments to the macro. Don't forget that as
+your expansion is actually part of some existing JSON string, you must escape
+any double quotes within the arguments!
+
+For example:
+>
+  "configurations": {
+    "Test": {
+      "configuration": {
+        // Just an example, there is no FooBar macro
+        "FooBar": "${FooBar(\"foo\", 10, {\"bar\": \"baz\"})}"
+      }
+    }
+  }
+<
 -------------------------------------------------------------------------------
                                                 *vimspector-ref-splat-operator*
 The splat operator ~
