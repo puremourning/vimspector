@@ -17,3 +17,12 @@ $(document).ready(function () {
   alert("test: " + obj.test);
   alert("toast: " + obj.toast());
 });
+
+function calculate(a, b) {
+  var i = 0;
+  while ( a > b ) {
+    a -= b;
+    i++;
+  }
+  return i;
+}

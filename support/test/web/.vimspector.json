@@ -16,6 +16,24 @@
         "webRoot": "${workspaceRoot}/www",
         "reAttach": true
       }
+    },
+    "firefox-attach": {
+      "adapter": "firefox",
+      "configuration": {
+        "request": "attach",
+        "port": "${DebugPort}",
+        "webRoot": "${workspaceRoot}/www",
+        "reAttach": true
+      }
+    },
+    "jsdebug-attach": {
+      "adapter": "js-debug",
+      "configuration": {
+        "request": "attach",
+        "port": "${DebugPort}",
+        "type": "pwa-chrome",
+        "webRoot": "${workspaceRoot}/www"
+      }
     }
   }
 }
