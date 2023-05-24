@@ -15,6 +15,7 @@
 
 import functools
 import typing
+import os
 from collections.abc import Mapping
 
 MEMO = {}
@@ -94,3 +95,8 @@ def override( target_dict: typing.MutableMapping,
       target_dict[ key ] = value
 
   return target_dict
+
+
+def NormalizePath( filepath ):
+  absolute_path = os.path.abspath( filepath )
+  return absolute_path if os.path.isfile( absolute_path ) else filepath

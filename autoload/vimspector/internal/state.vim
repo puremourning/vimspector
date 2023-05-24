@@ -104,6 +104,10 @@ if '_vimspector_session_man' in globals():
     # https://github.com/neovim/neovim/issues/16327), so we can't use the same
     # code for both. And as usual, when raising bugs against neovim, they are
     # simply closed and never fixed. sigh.
+    # What's worse is that at this point, the tab numbers have already been
+    # updated (the tab has already been closed), so if we close the tab
+    # immediately prior to a vimspector tab, we incorrectly identify the
+    # vimspector tab as the closed one! We need a TabClosedPre!
     s = _vimspector_session_man.FindSessionByTab( int( vim.eval( 'a:afile' ) ) )
     if s:
       s.Reset( interactive = False )

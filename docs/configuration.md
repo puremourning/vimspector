@@ -11,6 +11,7 @@ for Vimspector.
      * [Debug adapter configuration](#debug-adapter-configuration)
      * [Debug profile configuration](#debug-profile-configuration)
      * [Replacements and variables](#replacements-and-variables)
+        * [Macro functions](#macro-functions)
         * [The splat operator](#the-splat-operator)
         * [Default values](#default-values)
         * [Coercing Types](#coercing-types)
@@ -36,7 +37,7 @@ for Vimspector.
   * [Appendix: Configuration file format](#appendix-configuration-file-format)
   * [Appendix: Editor configuration](#appendix-editor-configuration)
 
-<!-- Added by: ben, at: Mon 22 Nov 2021 20:18:32 GMT -->
+<!-- Added by: ben, at: Wed 24 May 2023 09:07:25 BST -->
 
 <!--te-->
 
@@ -170,6 +171,42 @@ the following variable substitutions:
   `variables` block. Its value is taken from the `strip`'d result of running
   the shell command. Note these variables can be supplied by both the debug and
   adapter configurations and can be either static strings or shell commands.
+
+#### Macro functions
+
+Vimspector also provides the following syntax for calling specific "macro"
+functions: `${Name(arg0,arg1,...)}`. 
+
+The following macro functions are provided:
+
+* `${PickProcess(...)}`: Ask the user to select a process and return its PID.
+  If a custom PID picker is installed, the arguments are
+  passed to it. Otherwise, a single (optional) argument is allowed, the name of
+  the binary to find processes for. See the main Vimspector README for examples
+  of how this is used.
+
+It's not possible to define your own macros or call any other functions.
+
+In detail: Syntax is same as a braced variable, but with trailing parentheses.
+The contents between the parentheses must result in the inner contents of a
+valid JSON list, that is it must be valid to take the inner contents of the
+parentheses and wrap them in `[` and `]`, and the result must be a valid JSON
+list. This list is then used as arguments to the macro. Don't forget that as
+your expansion is actually part of some existing JSON string, you must escape
+any double quotes within the arguments!
+
+For example:
+
+```json
+"configurations": {
+  "Test": {
+    "configuration": {
+      // Just an example, there is no FooBar macro
+      "FooBar": "${FooBar(\"foo\", 10, {\"bar\": \"baz\"})}"
+    }
+  }
+}
+```
 
 #### The splat operator
 

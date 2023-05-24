@@ -4,6 +4,7 @@ execute 'source' expand( '<sfile>:p:h' ) . '/minimal_vimrc'
 set noequalalways
 let mapleader = ','
 let maplocalleader = "\<Space>"
+let s:custom_process_picker = expand( '<sfile>:p:h' ) . '/vimspector_process_list/vimspector_process_list'
 " }}}
 
 " Custom Layout {{{
@@ -168,6 +169,31 @@ let g:vimspector_mappings = {
       \    'set_value': [ '<Tab>', '<C-CR>', 'C' ],
       \   }
       \ }
+
+" }}}
+
+" Custom process picker {{{
+
+function! CustomPickProcess( ... ) abort
+  let ps = s:custom_process_picker
+  " a:0 is number of args
+  " a:1 is the optional binary name
+  if a:0 > 0
+    let ps .= ' ^' . a:1 . '$'
+  endif
+
+  " You should probably do something better than this...
+  echo system( ps )
+  let pid = input( 'Enter PID: ' )
+
+  if empty( pid )
+    return 0
+  endif
+  return str2nr( pid )
+endfunction
+
+
+let g:vimspector_custom_process_picker_func = 'CustomPickProcess'
 
 " }}}
 

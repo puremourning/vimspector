@@ -239,6 +239,10 @@
             "async_timeout": {
               "type": "number",
               "description": "Timeout for asynchronous requests to the adapter (in ms). Default is 15000"
+            },
+            "cwd": {
+              "type": "string",
+              "description": "Directory in which to start the adapter"
             }
           }
         }
@@ -299,6 +303,10 @@
               "filetypes": {
                 "type": "array",
                 "description": "List of Vim filetypes that this configuration applies to. The configuration is only used if one of the current filetypes appears in this list, or if this list is not supplied,"
+              },
+              "cwd": {
+                "type": "string",
+                "description": "Directory in which to start the adapter; overrides any set on the adapter. Does not necessarily affect the cwd of the debuggee, only the debug adapter."
               },
               "configuration": {
                 "type": "object",

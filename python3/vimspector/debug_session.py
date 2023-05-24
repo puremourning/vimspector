@@ -435,6 +435,11 @@ class DebugSession( object ):
       # working directory.
       'cwd': os.getcwd,
       'unusedLocalPort': utils.GetUnusedLocalPort,
+
+      # The following, starting with uppercase letters, are 'functions' taking
+      # arguments.
+      'SelectProcess': _SelectProcess,
+      'PickProcess': _SelectProcess,
     }
 
     # Pretend that vars passed to the launch command were typed in by the user
@@ -1401,7 +1406,9 @@ class DebugSession( object ):
 
     self._adapter[ 'env' ] = self._adapter.get( 'env', {} )
 
-    if 'cwd' not in self._adapter:
+    if 'cwd' in self._configuration:
+      self._adapter[ 'cwd' ] = self._configuration[ 'cwd' ]
+    elif 'cwd' not in self._adapter:
       self._adapter[ 'cwd' ] = os.getcwd()
 
     vim.vars[ '_vimspector_adapter_spec' ] = self._adapter
@@ -1596,7 +1603,9 @@ class DebugSession( object ):
       if attach_config[ 'pidSelect' ] == 'ask':
         prop = attach_config[ 'pidProperty' ]
         if prop not in launch_config:
-          pid = utils.AskForInput( 'Enter PID to attach to: ' )
+          # NOTE: We require that any custom picker process handles no-arguments
+          # as well as any arguments supplied in the config.
+          pid = _SelectProcess()
           if pid is None:
             return
           launch_config[ prop ] = pid
@@ -2204,3 +2213,49 @@ def PathsToAllConfigFiles( vimspector_base, current_file, filetypes ):
 
   yield utils.PathToConfigFile( '.vimspector.json',
                                 os.path.dirname( current_file ) )
+
+
+def _SelectProcess( *args ):
+  value = None
+
+  custom_picker = settings.Get( 'custom_process_picker_func' )
+  if custom_picker:
+    try:
+      value = utils.Call( custom_picker, *args )
+    except vim.error:
+      pass
+  else:
+    # Use the built-in one
+    vimspector_process_list: str = None
+    try:
+      try:
+        vimspector_process_list = installer.FindExecutable(
+          'vimspector_process_list' )
+      except installer.MissingExecutable:
+        vimspector_process_list = installer.FindExecutable(
+          'vimspector_process_list',
+          [ os.path.join( install.GetSupportDir(),
+                          'vimspector_process_list' ) ] )
+    except installer.MissingExecutable:
+      pass
+
+    default_pid = None
+    if vimspector_process_list:
+      output = subprocess.check_output(
+        ( vimspector_process_list, ) + args ).decode( 'utf-8' )
+      # if there's only one entry, use it as the default value for input.
+      lines = output.splitlines()
+      if len( lines ) == 2:
+        default_pid = lines[ -1 ].split()[ 0 ]
+      utils.UserMessage( lines )
+
+    value = utils.AskForInput( 'Enter Process ID: ',
+                               default_value = default_pid )
+
+  if value:
+    try:
+      return int( value )
+    except ValueError:
+      return None
+
+  return None

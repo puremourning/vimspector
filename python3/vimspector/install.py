@@ -15,7 +15,7 @@
 
 import platform
 import os
-from vimspector.core_utils import memoize
+from vimspector.core_utils import memoize, NormalizePath
 
 
 @memoize
@@ -95,3 +95,11 @@ def GetConfigDirForFiletype( vimspector_base, filetype ):
                        'configurations',
                        GetOS(),
                        filetype )
+
+
+def GetSupportDir():
+  return NormalizePath(
+    os.path.join( os.path.dirname( __file__ ),
+                  '..',
+                  '..',
+                  'support' ) )
