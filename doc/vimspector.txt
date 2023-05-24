@@ -127,12 +127,18 @@ Image: Build [3] Image: Matrix [5] Image: Gitter [7]
 - Installation
 
   - Quick Start
+  - Method 1: Using a release tarball and Vim packages
+  - Method 2: Using a repo clone, Vim packages and select gadgets to be
+    installed
+  - Method 3: Using a plugin manager
   - Dependencies
-  - Neovim differences
+  - Neovim limitations
   - Windows differences
   - Trying it out
   - Cloning the plugin
   - Install some gadgets
+  - VimspectorInstall and VimspectorUpdate commands
+  - install_gadget.py
   - Manual gadget installation
   - The gadget directory
   - Upgrade
@@ -157,6 +163,7 @@ Image: Build [3] Image: Matrix [5] Image: Gitter [7]
 - Usage and API
 
   - Launch and attach by PID:
+  - Picking a PID
   - Launch with options
   - Debug configuration selection
   - Get configurations
@@ -179,7 +186,7 @@ Image: Build [3] Image: Matrix [5] Image: Gitter [7]
   - Disassembly
   - Dump memory
   - Stack Traces
-  - Multiple sessions
+  - Child sessions
   - Program Output
   - Console
   - Console autocompletion
@@ -187,6 +194,7 @@ Image: Build [3] Image: Matrix [5] Image: Gitter [7]
   - Closing debugger
   - Terminate debuggee
 
+- Multiple debugging sessions
 - Debug profile configuration
 
   - C, C , Rust, etc.
@@ -217,9 +225,12 @@ Image: Build [3] Image: Matrix [5] Image: Gitter [7]
 
   - Changing the default signs
   - Sign priority
+  - Presentation Hints
   - Changing the default window sizes
   - Changing the terminal size
   - Custom mappings while debugging
+  - Pre-launch building strategies
+  - Disabling the WinBar
   - Advanced UI customisation
   - Customising the WinBar
   - Example

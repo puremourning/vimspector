@@ -53,6 +53,7 @@ configuration for Vimspector.
   - Debug profile configuration
   - Replacements and variables
 
+    - Macro functions
     - The splat operator
     - Default values
     - Coercing Types
