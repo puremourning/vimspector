@@ -11,6 +11,7 @@ for Vimspector.
      * [Debug adapter configuration](#debug-adapter-configuration)
      * [Debug profile configuration](#debug-profile-configuration)
      * [Replacements and variables](#replacements-and-variables)
+        * [Macro functions](#macro-functions)
         * [The splat operator](#the-splat-operator)
         * [Default values](#default-values)
         * [Coercing Types](#coercing-types)
@@ -36,7 +37,7 @@ for Vimspector.
   * [Appendix: Configuration file format](#appendix-configuration-file-format)
   * [Appendix: Editor configuration](#appendix-editor-configuration)
 
-<!-- Added by: ben, at: Mon 22 Nov 2021 20:18:32 GMT -->
+<!-- Added by: ben, at: Wed 24 May 2023 09:07:25 BST -->
 
 <!--te-->
 
