@@ -2216,7 +2216,7 @@ def PathsToAllConfigFiles( vimspector_base, current_file, filetypes ):
 
 
 def _SelectProcess( *args ):
-  value = None
+  value = 0
 
   custom_picker = settings.Get( 'custom_process_picker_func' )
   if custom_picker:
@@ -2256,6 +2256,6 @@ def _SelectProcess( *args ):
     try:
       return int( value )
     except ValueError:
-      return None
+      return 0
 
-  return None
+  return 0
