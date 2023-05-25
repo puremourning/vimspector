@@ -1124,6 +1124,13 @@ class ProjectBreakpoints( object ):
     self._func_breakpoints = save_data.get( 'function' , [] )
     self._exception_breakpoints = save_data.get( 'exception', None )
 
+    # Migrate any props that are now mandatory thae weren't before and might not
+    # be present
+    for file_name, bps in self._line_breakpoints.items():
+      for bp in bps:
+        bp[ 'is_instruction_breakpoint' ] = bp.get( 'is_instruction_breakpoint',
+                                                    False )
+
     self.UpdateUI()
 
 

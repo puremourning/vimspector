@@ -699,7 +699,8 @@ class DebugSession( object ):
       else:
         self._saved_variables_data = variables_data
 
-      utils.UserMessage( f"Loaded { session_file }" )
+      utils.UserMessage( f"Loaded session file { session_file }",
+                         persist=True )
       return True
     except OSError:
       self._logger.exception( f"Invalid session file { session_file }" )
