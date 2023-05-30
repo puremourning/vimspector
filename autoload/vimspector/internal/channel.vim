@@ -19,7 +19,12 @@ let s:save_cpo = &cpoptions
 set cpoptions&vim
 " }}}
 
+" Key: session_id
+" Value: channel id
 let s:channels = {}
+
+" Key: session_id
+" Value: job id
 let s:jobs = {}
 
 function! s:_OnServerData( session_id, channel, data ) abort
@@ -44,6 +49,17 @@ function! s:_OnClose( session_id, channel ) abort
   py3 _VimspectorSession( vim.eval( 'a:session_id' ) ).OnServerExit( 0 )
 endfunction
 
+function! s:_OnJobStdErr( session_id, channel, data ) abort
+  if !has_key( s:jobs, a:session_id ) ||
+        \ ch_getjob( a:channel ) isnot s:jobs[ a:session_id ]
+    call ch_log( 'Get data after process exit' )
+    return
+  endif
+
+  py3 _VimspectorSession( vim.eval( 'a:session_id' ) ).OnServerStderr(
+        \ vim.eval( 'a:data' ) )
+endfunction
+
 function! vimspector#internal#channel#StartDebugSession(
       \ session_id,
       \ config ) abort
@@ -62,6 +78,10 @@ function! vimspector#internal#channel#StartDebugSession(
           \                    'out_mode': 'raw',
           \                    'err_mode': 'raw',
           \                    'stoponexit': 'term',
+          \                    'out_cb': funcref( 's:_OnJobStdErr',
+          \                                       [ a:session_id ] ),
+          \                    'err_cb': funcref( 's:_OnJobStdErr',
+          \                                        [ a:session_id ] ),
           \                    'env': a:config[ 'env' ],
           \                    'cwd': a:config[ 'cwd' ],
           \                }
