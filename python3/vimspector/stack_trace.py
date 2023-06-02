@@ -731,14 +731,16 @@ class StackTraceView( object ):
                                  str( thread.session.session.session_id ),
                                  source.get( 'path', source[ 'name' ] ) )
 
+        buf_name = utils.BufferNameForSession(
+          buf_name,
+          thread.session.session.session_id )
+
         self._logger.debug( "Received source %s: %s", buf_name, msg )
 
         buf = utils.BufferForFile( buf_name )
         self._scratch_buffers.append( buf )
-        utils.SetUpHiddenBuffer( buf,
-                                 utils.BufferNameForSession(
-                                   buf_name,
-                                   thread.session.session.session_id ) )
+        utils.SetUpHiddenBuffer( buf, buf_name )
+
         source[ 'path' ] = buf_name
         with utils.ModifiableScratchBuffer( buf ):
           utils.SetBufferContents( buf, msg[ 'body' ][ 'content' ] )
