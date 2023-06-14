@@ -1,6 +1,6 @@
 module github.com/puremourning/vimspector/support/vimspector_process_list
 
-go 1.20
+go 1.19
 
 require github.com/shirou/gopsutil/v3 v3.23.4
 

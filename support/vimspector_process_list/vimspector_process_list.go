@@ -26,6 +26,10 @@ import (
 	"github.com/shirou/gopsutil/v3/process"
 )
 
+const (
+	DateTime = "2006-01-02 15:04:05"
+)
+
 func main() {
 	pattern := ".*"
 	pattern_supplied := false
@@ -68,7 +72,7 @@ func main() {
 		}
 		is_running, _ := p.IsRunning()
 		utime, _ := p.CreateTime()
-		dtime := time.UnixMilli(utime).Format(time.DateTime)
+		dtime := time.UnixMilli(utime).Format(DateTime)
 
 		username, _ := p.Username()
 
