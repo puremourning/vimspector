@@ -672,7 +672,15 @@ def ExpandReferencesInString( orig_s,
       key = e.name + e.arg_hash
 
       if e.name in calculus:
-        mapping[ key ] = calculus[ e.name ]( *e.args )
+        # Expand any recursive mappings in the args.... eeeek
+        new_args = []
+        for arg in e.args:
+          new_args.append( ExpandReferencesInObject( arg,
+                                                     mapping,
+                                                     calculus,
+                                                     user_choices ) )
+
+        mapping[ key ] = calculus[ e.name ]( *new_args )
         _logger.debug( "Put %s into mapping for %s with args %s",
                        key,
                        e.name,

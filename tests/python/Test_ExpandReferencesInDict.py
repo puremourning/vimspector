@@ -134,11 +134,15 @@ class TestExpandReferencesInDict( unittest.TestCase ):
         'in': {
           'variables_list': {
             'not_in_list': '${is_in_list( "x", [ "y", "z" ] )}',
-            'in_list': '${is_in_list( "x", [ "y", "x", "z" ] )}',
+            'in_list': '${is_in_list( "x", [ "${why}", "x", "z" ] )}',
             'not_in_listj#json': '${is_in_list( "x", [ "y", "z" ] )}',
-            'in_listj#json': '${is_in_list( "x", [ "y", "x", "z" ] )}',
+            'in_listj#json':
+              '${is_in_list( "x", [ "${why}", "x", "${zed}" ] )}',
           },
-          'mapping': {},
+          'mapping': {
+            'why': 'y',
+            'zed': 'z'
+          },
           'calculus': {
             'is_in_list':
               lambda needle, haystack: 'true' if needle in haystack else 'false'
