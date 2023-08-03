@@ -115,7 +115,7 @@ GADGETS = {
       'version': '1.6.7',
       'file_name': 'v1.6.7.zip',
       'checksum':
-        '59b441c3ddac3de9d47fd75a1766cf5636f09b281f907717c769149f86aa106e'
+        '9b99b2e33aa7331e254ac2fd3a71de85ca1d33da53b162f69275da92b6755836'
     },
     'do': lambda name, root, gadget: installer.InstallDebugpy( name,
                                                                root,
