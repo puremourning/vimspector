@@ -5,7 +5,8 @@
       "adapter": "CodeLLDB",
       "configuration": {
         "request": "launch",
-        "program": "${workspaceRoot}/target/debug/vimspector_test"
+        "program": "${workspaceRoot}/target/debug/vimspector_test",
+        "expressions": "native"
       }
     }
   }
