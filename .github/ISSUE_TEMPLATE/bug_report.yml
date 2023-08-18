@@ -23,10 +23,10 @@ body:
   - type: dropdown
     id: issue-works-in-vim
     attributes:
-      label: Works in vim?
+      label: Is it reproducible in vim?
       description: If you are using Neovim, does the issue reproduce in Vim?
       options:
-        - Reproducable in Vim
+        - Reproducible in Vim
         - Only broken in Neovim
     validations:
       required: true
@@ -49,8 +49,8 @@ body:
       label: Sample project works?
       description: Try one of the sample projects in `support/test` for your file type. Does that work? If not, use the sample project for crating your reproduction case.
       options:
-        - Not reproducable with sample project
-        - Reproducable with sample project
+        - Not reproducible with sample project
+        - Reproducible with sample project
         - No sample project for this filetype
     validations:
       required: true
