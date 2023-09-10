@@ -30,7 +30,7 @@ GADGETS = {
                                                                 root,
                                                                 gadget ),
     'all': {
-      'version': '1.14.5',
+      'version': '1.17.5',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",
@@ -53,32 +53,32 @@ GADGETS = {
     'linux': {
       'file_name': 'cpptools-linux.vsix',
       'checksum':
-        '68348700fa21cad910c9a7fdee21a7fbf1121fb9f8eb491c0359ca45e09ccae4',
+        '09716d076215eaebcef4ccae10bd0566fb5c68bfdfc6e1b4bbc529eded11b21f',
     },
     'linux_arm64': {
       'file_name': 'cpptools-linux-aarch64.vsix',
       'checksum':
-        'bea5b38d34eedcfc8072af8febc8ba2fc0426b80a9849971d2af9214bf70c69b',
+        'c9a0b23ae4898e3c291fd2bffb41a14bc06fd3af2e07b8a17ffe9aef4c80574e',
     },
     'linux_armv7': {
       'file_name': 'cpptools-linux-armhf.vsix',
       'checksum':
-        '8ee834bead728dfe64f344bd8e30e61bd29778286c5acc9406b6c4d6281b4ab6',
+        'c644bbdd56abb37ecf455ca64cb70f07d17399bda2f2a4e20c9b57e40a11ef0f',
     },
     'macos': {
       'file_name': 'cpptools-osx.vsix',
       'checksum':
-        '02435e6ea60b0257b238291fb759572da3b943cb4af93711ba6af3a32735a474',
+        'bda9204b6d75996a84a2cd9829736f99c8b4747b41544a4bd569b888fa635249',
     },
     'macos_arm64': {
       'file_name': 'cpptools-osx-arm64.vsix',
       'checksum':
-        '5a6fecd27bbedfefeabf77ab4638159da60478f77e306b73887b82e98fabd037',
+        'fa836b1ff3311e8303af612b6597c5c81e3a8573dfbf28d0576e811de97e5427',
     },
     'windows': {
       'file_name': 'cpptools-win32.vsix',
       'checksum':
-        'e8f9fdd47026c21fc2e7ad6df6c3fca9a524a0bb8cf7b5f4329959469800dc8c',
+        '2c0004c3c828030df1d4c53f4e421d2e03d86b47f96fa1efe0691e88f4d56dd6',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",
@@ -103,7 +103,7 @@ GADGETS = {
     'windows_arm64': {
       'file_name': 'cpptools-win-arm64.vsix',
       'checksum':
-        '8822922d671fb0a35c186f6868b57862914c1605452e0a0146077a69cf8c9d79',
+        '2ba1f66bdb53935db10898477150ffdfab1c5d73bc0f0649e52377b95fafacc1',
     },
   },
   'debugpy': {
@@ -112,10 +112,10 @@ GADGETS = {
       'url': 'https://github.com/microsoft/debugpy/archive/${file_name}'
     },
     'all': {
-      'version': '1.6.7',
-      'file_name': 'v1.6.7.zip',
+      'version': '1.7.0',
+      'file_name': 'v1.7.0.zip',
       'checksum':
-        '59b441c3ddac3de9d47fd75a1766cf5636f09b281f907717c769149f86aa106e'
+        '142f93644cfd7d9effa83e3e2dad4077d4164553df56540c6465d5a22c258c7d'
     },
     'do': lambda name, root, gadget: installer.InstallDebugpy( name,
                                                                root,
@@ -172,10 +172,10 @@ GADGETS = {
              '${version}/${file_name}',
     },
     'all': {
-      'version': '0.50.0',
-      'file_name': 'vscjava.vscode-java-debug-0.50.0.vsix',
+      'version': '0.52.0',
+      'file_name': 'vscjava.vscode-java-debug-0.52.0.vsix',
       'checksum':
-        'e5aabb93f8ee49881077aee63898b3ddda1dffc7d982227b1bcafbb86989dace',
+        '5a3273dfafb96712822e3ebc4b7d018b30c816cb8888a5c291d12bc6aedd19c5',
     },
     'adapters': {
       "vscode-java": {
@@ -259,27 +259,27 @@ GADGETS = {
       'format': 'tar',
     },
     'all': {
-      'version': '2.2.0-974'
+      'version': '2.2.3-992'
     },
     'macos': {
       'file_name': 'netcoredbg-osx-amd64.tar.gz',
       'checksum':
-        '6991d00da35c55b31775eb4fe4bae3b931e2b3b2d326208ba2fefdba59114441',
+        '1e32d77e77978b6886b6c56251ca9fc730af4fda72d819e676e6591bd978b37f',
     },
     'linux': {
       'file_name': 'netcoredbg-linux-amd64.tar.gz',
       'checksum':
-        '439b92e4f6c39b5cde520e449c8062b67405dbe46db8e04c134ea2937bfa338e',
+        '1d168670a0ce299622c89f94908d8f79fbe0f2c81294785eec16fe64c448e466',
     },
     'linux_arm64': {
       'file_name': 'netcoredbg-linux-arm64.tar.gz',
       'checksum':
-        '37aee82240d8bbbbc12971e44c8e762b783a92223f00521835ce6cb0512e64c3',
+        'f9909bff95311e95fa4dae145683663d9b76fe8b0140ad700fdd7e149043810b',
     },
     'windows': {
       'file_name': 'netcoredbg-win64.zip',
       'checksum':
-        '11796043a7f6b0f1d47d26f46ed424606acf32bbf8aedae4a66a8073c9308deb',
+        '6eeaff24a72e96ceb694e8897ff4f0f2327e7ed76ca33eff5360807d93adb8ce',
     },
     'do': lambda name, root, gadget: installer.MakeSymlink(
       name,
@@ -412,10 +412,10 @@ GADGETS = {
         '${version}/${file_name}',
     },
     'all': {
-      'version': 'v1.27.0',
-      'file_name': 'php-debug-1.27.0.vsix',
+      'version': 'v1.33.0',
+      'file_name': 'php-debug-1.33.0.vsix',
       'checksum':
-        'ac3997b91017e560336fa98da17a1a3578fb47d5121f93e0b286c2dffb5ff981',
+        'e31252c1bf5d648cea7c6a28a3c7b51a0b886a66f044b5e17118402f14095b76',
     },
     'adapters': {
       'vscode-php-debug': {
@@ -436,10 +436,10 @@ GADGETS = {
       'format': 'tar',
     },
     'all': {
-      'file_name': 'js-debug-dap-v1.77.0.tar.gz',
-      'version': 'v1.77.0',
+      'file_name': 'js-debug-dap-v1.82.0.tar.gz',
+      'version': 'v1.82.0',
       'checksum':
-        '162460aa4086cef37573af7a97e6693bd309716e02ac6fbdff424cdd416f7a41',
+        '7295e743c718e3b24b7a6cd838d1bdd448c159d8baaf821693b9f265fc477118',
     },
     'model': 'simple',
     'adapters': {
@@ -546,12 +546,12 @@ GADGETS = {
              '${version}/${file_name}',
     },
     'all': {
-      'version': 'v1.9.0',
+      'version': 'v1.9.2',
     },
     'macos': {
       'file_name': 'codelldb-x86_64-darwin.vsix',
       'checksum':
-        '72e3a0a26dc43975723bc25ff2489aeb4bf3ca65a7112734b1ff6a76969e5bfe',
+        '0b36e91930bca3344cf9b78984ee85ccacc6dc97ab9be5da935d4596f0dba05c',
       'make_executable': [
         'adapter/codelldb',
         'lldb/bin/debugserver',
@@ -562,12 +562,12 @@ GADGETS = {
     'macos_arm64': {
       'file_name': 'codelldb-aarch64-darwin.vsix',
       'checksum':
-        'cbfd547761ecfb6ea643f7dfbea080afddefccb003623a0e954969f569efb9cf',
+        '5db25c0b1277795e2196a9118a38e6984b4787ac2c1e3e3adfeefe537296fc51',
     },
     'linux': {
       'file_name': 'codelldb-x86_64-linux.vsix',
       'checksum':
-        '27af4b0821fd1843b04d3fa0ea1ecfb202cda6b869b67205685a29079caa22b7',
+        '898bd22b2505b12671fee7d2fe1abb384dc60d13f5fec2b4b650d0dac3f83d75',
       'make_executable': [
         'adapter/codelldb',
         'lldb/bin/lldb',
@@ -578,17 +578,17 @@ GADGETS = {
     'linux_arm64': {
       'file_name': 'codelldb-aarch64-linux.vsix',
       'checksum':
-        '879ac7cf1c6a7944f82c42ee8b8d3da79abf084d8539abba6551ac6b6bb5ce54',
+        '90c23169d5c32b6c3c6c040622f5f181af3e8a0a7d47e01219ce0af4a70aadb4',
     },
     'linux_armv7': {
       'file_name': 'codelldb-arm-linux.vsix',
       'checksum':
-        '211a68f25a1e28323e2f3101cd89438888b1e4bc182988c40f6a7a4162f390b1',
+        '971a9def71f8093ee63c1944dd69e3fbada97fc2804d312ab22e75f6d7e4e207',
     },
     'windows': {
       'file_name': 'codelldb-x86_64-windows.vsix',
       'checksum':
-        'f961cdee239e78c789ea4e1e0929d055e1c7257ecad5f1fb1cc6f72ca3814791',
+        '1c23239941165d051b904a95c0bbf0853d3ff9b9149cdf36c6763fd4937c95f1',
       'make_executable': []
     },
     'adapters': {
