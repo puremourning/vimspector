@@ -7,6 +7,7 @@ import vim
 class Terminal:
   window = None
   buffer_number: int = None
+  buffer = None
 
 
 def LaunchTerminal( api_prefix,
@@ -122,6 +123,7 @@ def LaunchTerminal( api_prefix,
 
   term.window = terminal_window
   term.buffer_number = buffer_number
+  term.buffer = vim.buffers[ term.buffer_number ]
 
   utils.UpdateSessionWindows( {
     'terminal': utils.WindowID( term.window, vim.current.tabpage )
@@ -132,3 +134,25 @@ def LaunchTerminal( api_prefix,
         vim.command( 'doautocmd User VimspectorTerminalOpened' )
 
   return term
+
+
+def CleanUpTerminal( api_prefix: str, term: Terminal ):
+  if not term:
+    return
+
+  if not utils.Call( 'vimspector#internal#{}term#IsFinished'.format(
+    api_prefix ),
+    term.buffer_number ):
+    return
+
+  if not term.buffer.valid:
+    return
+
+  # Check for any window displaying the buffer on any other tabpage. If so,
+  # don't wipe it out.
+  for tabpage in vim.tabpages:
+    for window in tabpage.windows:
+      if window != term.window and window.buffer == term.buffer:
+        return
+
+  vim.command( '{}bwipeout!'.format( term.buffer_number ) )
