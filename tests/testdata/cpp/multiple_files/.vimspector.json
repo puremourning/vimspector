@@ -1,0 +1,21 @@
+{
+  "$schema": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json",
+  "configurations": {
+    "gdb": {
+      "adapter": {
+          "command": [
+              "$HOME/apps/binutils-gdb/root/bin/gdb",
+              "-i", "dap"
+          ]
+      },
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/foo",
+        "cwd": "${workspaceRoot}",
+        "args": [ "A", "eh", "B", "bee", "C", "Sea", "D", "Ceedy" ],
+        "env": {},
+        "stopAtBeginningOfMainSubprogram": true
+      }
+    }
+  }
+}

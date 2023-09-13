@@ -698,7 +698,7 @@ class ProjectBreakpoints( object ):
 
   def ToggleBreakpoint( self, options ):
     line, _ = vim.current.window.cursor
-    file_name = vim.current.buffer.name
+    file_name = utils.FileNameForBuffer( vim.current.buffer )
     self._ToggleBreakpoint( options, file_name, line )
 
   def SetLineBreakpoint( self, file_name, line_num, options, then = None ):

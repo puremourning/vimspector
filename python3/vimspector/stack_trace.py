@@ -727,20 +727,33 @@ class StackTraceView( object ):
       def consume_source( msg ):
         thread.session.sources[ source_reference ] = source
 
+        if 'path' in source:
+          if utils.BufferExists( source[ 'path' ] ):
+            # A buffer exists for this source but the server is trying to claim
+            # ownership of its contents (I'm looking at you, gdb -i dap). In
+            # this case it's not clear what we should do, but faffing around
+            # creating another copy of the buffer with arbitrary contents seems
+            # bad.. right? Better to just ignore the server, even though the
+            # spec says we _have_ to use its contents.
+            # FIXME
+
+            # Problem is that this is still borken in the GDB base because we'd
+            # still end up with wierd files in the _vimspector_tmp directory for
+            # any file which isn't open. What GDB does is _always_ supply
+            # sourceReference for some unknowable reason.
+            return and_then( source )
+
         buf_name = os.path.join( '_vimspector_tmp',
                                  str( thread.session.session.session_id ),
                                  source.get( 'path', source[ 'name' ] ) )
-
-        buf_name = utils.BufferNameForSession(
-          buf_name,
-          thread.session.session.session_id )
-
-        self._logger.debug( "Received source %s: %s", buf_name, msg )
+        self._logger.debug( "Generated source %s: %s", buf_name, msg )
 
         buf = utils.BufferForFile( buf_name )
         self._scratch_buffers.append( buf )
         utils.SetUpHiddenBuffer( buf, buf_name )
 
+        if 'path' in source:
+            buf.vars[ 'vimspector_source_path' ] = source[ 'path' ]
         source[ 'path' ] = buf_name
         with utils.ModifiableScratchBuffer( buf ):
           utils.SetBufferContents( buf, msg[ 'body' ][ 'content' ] )

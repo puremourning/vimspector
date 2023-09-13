@@ -349,7 +349,8 @@ def TemporaryVimOption( opt, value ):
 
 
 def DirectoryOfCurrentFile():
-  return os.path.dirname( NormalizePath( vim.current.buffer.name ) )
+  return os.path.dirname(
+      NormalizePath( FileNameForBuffer( vim.current.buffer ) ) )
 
 
 def PathToConfigFile( file_name, from_directory = None ):
@@ -815,10 +816,10 @@ def CreateTooltip( display: list, is_hover = False ):
 
 
 def GetBufferFilepath( buf ):
-  if not buf.name:
+  name = FileNameForBuffer( buf )
+  if not name:
     return ''
-
-  return os.path.normpath( buf.name )
+  return os.path.normpath( name )
 
 
 def ToUnicode( b ):
@@ -1123,6 +1124,10 @@ def Hex( val: int ):
 
 def BufferNameForSession( name, session_id ):
   return f'{name}[{session_id}]'
+
+
+def FileNameForBuffer( buf ):
+  return GetVimValue( buf.vars, 'vimspector_source_path', None ) or buf.name
 
 
 def ClearTextPropertiesForBuffer( buf ):

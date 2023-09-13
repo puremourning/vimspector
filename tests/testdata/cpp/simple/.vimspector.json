@@ -104,6 +104,17 @@
           "cpp_catch": ""
         }
       }
+    },
+    "gdb": {
+      "adapter": "gdb",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/${fileBasenameNoExtension}",
+        "cwd": "${workspaceRoot}",
+        "args": [ "A", "eh", "B", "bee", "C", "Sea", "D", "Ceedy" ],
+        "env": {},
+        "stopAtBeginningOfMainSubprogram": true
+      }
     }
   },
   "adapters": {
@@ -124,6 +135,9 @@
         "LLDB_LAUNCH_FLAG_LAUNCH_IN_TTY": "YES"
       },
       "name": "lldb"
+    },
+    "gdb": {
+      "command": [ "$HOME/apps/binutils-gdb/root/bin/gdb", "-i", "dap" ]
     }
   }
 }

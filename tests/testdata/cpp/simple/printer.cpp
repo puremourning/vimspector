@@ -5,7 +5,7 @@ int main( int argc, char** argv )
 {
   if ( ( argc - 1 ) % 2 )
   {
-    std::cerr << "Unbalanced arguments\n";
+    std::cerr << "Unbalanced arguments" << std::endl;
     return 1;
   }
 
@@ -14,7 +14,7 @@ int main( int argc, char** argv )
     std::cout << argv[ i ]
               << ": "
               << argv[ i + 1 ]
-              << '\n';
+              << std::endl;
   }
 
   return 0;
