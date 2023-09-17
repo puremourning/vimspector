@@ -19,6 +19,7 @@ VIM_EXE='vim'
 SCREENCOLS=160
 SCREENROWS=48
 ASCIINEMA="python3 -m asciinema"
+TEST_UNTIL_FAILURE=0
 
 
 # 1 is stdout
@@ -30,6 +31,10 @@ while [ -n "$1" ]; do
       shift
       BASEDIR=$(AbsDirOf "$1")
       shift
+      ;;
+    "--until-failure")
+      shift
+      TEST_UNTIL_FAILURE=1
       ;;
     "--install")
       INSTALL=1
@@ -249,72 +254,80 @@ if [ -z "$TESTS" ]; then
   TESTS=${TESTDIR}/*.test.vim
 fi
 
-for t in ${TESTS}; do
-  # split on : into fileName and testName
-  IFS=: read -s tt T <<< "$t"
+while true; do
+  for t in ${TESTS}; do
+    # split on : into fileName and testName
+    IFS=: read -s tt T <<< "$t"
 
-  # Resolve into absolute path ($tt) and test file name ($t)
-  if [ -f "$tt" ]; then
-    tt=$(readlink -f "$tt")
-    t=$(basename "$tt")
-  elif [ -f "$TESTDIR/$tt" ]; then
-    t=$tt
-    tt=$TESTDIR/$t
-  else
-    echo "%ERROR: Unable to find a test named $tt ($t) in $TESTDIR"
-    RESULT=1
-    break
-  fi
-
-  echo ""
-  echo "%RUN: $t ($tt)"
-
-  TESTLOGDIR=${BASEDIR}/tests/logs/$t
-
-  pushd ${TESTDIR} > /dev/null
-    RUN="${RUN_TEST} --cmd \"${BASEDIR_CMD}\" \
-                     --cmd 'au SwapExists * let v:swapchoice = \"e\"'\
-                     $tt $T"
-
-    if ${ASCIINEMA} rec -q --cols $SCREENCOLS --rows $SCREENROWS --overwrite --command "${RUN}" $t.cast >&3 && [ -f $t.res ];  then
-      echo "%PASS: $t PASSED"
+    # Resolve into absolute path ($tt) and test file name ($t)
+    if [ -f "$tt" ]; then
+      tt=$(readlink -f "$tt")
+      t=$(basename "$tt")
+    elif [ -f "$TESTDIR/$tt" ]; then
+      t=$tt
+      tt=$TESTDIR/$t
     else
-      echo "%FAIL: $t FAILED - see $TESTLOGDIR"
+      echo "%ERROR: Unable to find a test named $tt ($t) in $TESTDIR"
       RESULT=1
+      break
     fi
 
-    rm -rf $TESTLOGDIR
-    mkdir -p $TESTLOGDIR
-    ${RUN_VIM} --version > ${TESTLOGDIR}/vimversion
-    if [ "$VIMSPECTOR_TEST_STDOUT" = "messages" ]; then
-      if [ -f messages ]; then
-        echo "%MESSAGES"
-        cat messages
-        echo "%END"
+    echo ""
+    echo "%RUN: $t ($tt)"
+
+    TESTLOGDIR=${BASEDIR}/tests/logs/$t
+
+    pushd ${TESTDIR} > /dev/null
+      RUN="${RUN_TEST} --cmd \"${BASEDIR_CMD}\" \
+                       --cmd 'au SwapExists * let v:swapchoice = \"e\"'\
+                       $tt $T"
+
+      if ${ASCIINEMA} rec -q --cols $SCREENCOLS --rows $SCREENROWS --overwrite --command "${RUN}" $t.cast >&3 && [ -f $t.res ];  then
+        echo "%PASS: $t PASSED"
       else
-        echo "%MESSAGES"
-        echo "No messages found"
-        echo "%END"
+        echo "%FAIL: $t FAILED - see $TESTLOGDIR"
+        RESULT=1
       fi
-    fi
 
-    mv $t.cast $TESTLOGDIR
-    for l in messages debuglog test.log *.testlog; do
-      # In CI we can't view the output files, so we just have to cat them
-      if [ -f $l ]; then
-        if [ "$VIMSPECTOR_TEST_STDOUT" = "all" ]; then
-          echo ""
-          echo ""
-          echo "*** START: $l ***"
-          cat $l
-          echo "*** END: $l ***"
+      rm -rf $TESTLOGDIR
+      mkdir -p $TESTLOGDIR
+      ${RUN_VIM} --version > ${TESTLOGDIR}/vimversion
+      if [ "$VIMSPECTOR_TEST_STDOUT" = "messages" ]; then
+        if [ -f messages ]; then
+          echo "%MESSAGES"
+          cat messages
+          echo "%END"
+        else
+          echo "%MESSAGES"
+          echo "No messages found"
+          echo "%END"
         fi
-        mv $l $TESTLOGDIR
       fi
-    done
 
-    rm -f $t.res
-  popd > /dev/null
+      mv $t.cast $TESTLOGDIR
+      for l in messages debuglog test.log *.testlog; do
+        # In CI we can't view the output files, so we just have to cat them
+        if [ -f $l ]; then
+          if [ "$VIMSPECTOR_TEST_STDOUT" = "all" ]; then
+            echo ""
+            echo ""
+            echo "*** START: $l ***"
+            cat $l
+            echo "*** END: $l ***"
+          fi
+          mv $l $TESTLOGDIR
+        fi
+      done
+
+      rm -f $t.res
+    popd > /dev/null
+  done
+
+  if [ $TEST_UNTIL_FAILURE -eq 1 ] && [ $RESULT -eq 0 ]; then
+    echo "All tests passed. Running again."
+    continue
+  fi
+  break
 done
 
 # close out_fd if it's not stdout/stderr/
