@@ -200,6 +200,14 @@ def RunUpdate( api_prefix, leave_open, *args ):
   if insatller_args:
     insatller_args.append( '--upgrade' )
     RunInstaller( api_prefix, leave_open, *insatller_args )
+  else:
+    utils.UserMessage(
+      "Can't update: No gadgets are currently installed, "
+      "and none configured to be installed.",
+      persist=True,
+      error=True )
+    import vim
+    vim.command( 'silent doautocmd User VimspectorInstallFailed' )
 
 
 def _ResetInstaller():
