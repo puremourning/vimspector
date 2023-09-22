@@ -1068,7 +1068,7 @@ gdbserver and have to tell cpptools a few more options.
               "gdbserver",
               "--once",
               "--no-startup-with-shell",
-              "--disable-randomisation",
+              "--disable-randomization",
               "0.0.0.0:${port}",
               "%CMD%"
             ]
