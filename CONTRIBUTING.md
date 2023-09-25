@@ -40,6 +40,23 @@ information when something goes wrong that's not a clear Vim traceback.
 If you just want to see the Vimspector log file, use `:VimspectorToggleLog`,
 which will tail it in a little window (doesn't work on Windows).
 
+## Discussions
+
+GitHub discussions are not for *bug reports* or *feature requests* - please
+use GitHub Issues for that.
+
+If you're not sure if your issue is a bug, feature, or just configuration
+error, then feel free to use the Q&A Discussion and/or the Matrix channel
+to check. Don't be offended if the response is that it's a bug or feature
+requests requiring raising a full Issue. 
+
+This is mainly for project management purposes, as:
+
+* the Issues template contains a lot of data that maintainers require to
+  diagnose them, and
+* feature requests can be put in Projects and tracked; requests in
+  Discussions are easily forgotten.
+
 ## Issues
 
 The GitHub issue tracker is for *bug reports* and *features requests* for the
