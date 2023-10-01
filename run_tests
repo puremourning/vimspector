@@ -20,6 +20,7 @@ SCREENCOLS=160
 SCREENROWS=48
 ASCIINEMA="python3 -m asciinema"
 TEST_UNTIL_FAILURE=0
+NO_QUIT_ON_FAIL=0
 
 
 # 1 is stdout
@@ -47,6 +48,10 @@ while [ -n "$1" ]; do
       ;;
     "--update"|"--upgrade")
       UPDATE=1
+      shift
+      ;;
+    "--no-quit-on-fail")
+      NO_QUIT_ON_FAIL=1
       shift
       ;;
     "--report")
@@ -203,11 +208,17 @@ if [ "$INSTALL" = "1" ] || [ "$INSTALL" = "script" ]; then
   fi
 fi
 
+QUIT_ON_FAIL=(-c 'autocmd User VimspectorInstallFailed cquit!')
+
+if [ "$NO_QUIT_ON_FAIL" -eq 1 ]; then
+  QUIT_ON_FAIL=()
+fi
+
 if [ "$INSTALL" = "1" ] || [ "$INSTALL" = "vim" ]; then
   if ! $RUN_VIM -u ${HOMEDIR}/tests/vimrc \
                --cmd "${BASEDIR_CMD}" \
                -c 'autocmd User VimspectorInstallSuccess qa!' \
-               -c 'autocmd User VimspectorInstallFailed cquit!' \
+               "${QUIT_ON_FAIL[@]}" \
                -c "VimspectorInstall --all netcoredbg vscode-js-debug"; then
     echo "Vim installation reported errors" >&2
     exit 1
@@ -218,7 +229,7 @@ if [ "$UPDATE" = "1" ]; then
   if ! $RUN_VIM -u ${HOMEDIR}/tests/vimrc \
                --cmd "${BASEDIR_CMD}" \
                -c 'autocmd User VimspectorInstallSuccess qa!' \
-               -c 'autocmd User VimspectorInstallFailed cquit!' \
+               "${QUIT_ON_FAIL[@]}" \
                -c "VimspectorUpdate"; then
     echo "Vim update reported errors" >&2
     exit 1
