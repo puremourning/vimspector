@@ -32,7 +32,7 @@ function! Test_Get_Configurations_FilteredFiletypes()
 endfunction
 
 function! Test_PickConfiguration_FilteredFiletypes()
-  call ThisTestIsFlaky()
+  " This test shows that the auto-pick only uses the correct filetypes
   let fn = '../support/test/multiple_filetypes/test.js'
   exe 'edit ' . fn
   normal! G
@@ -41,7 +41,9 @@ function! Test_PickConfiguration_FilteredFiletypes()
   call WaitForAssert( { ->
         \ vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 1, 1  )
         \ } )
-  call vimspector#test#setup#Reset()
+
+  call vimspector#Reset()
+  call vimspector#test#setup#WaitForReset()
 
   let fn = '../support/test/multiple_filetypes/test.py'
   exe 'edit ' . fn

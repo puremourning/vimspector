@@ -140,8 +140,12 @@ function! vimspector#internal#job#Send( session_id, msg ) abort
     return 0
   endif
 
-  call ch_sendraw( ch, a:msg )
-  return 1
+  try
+    call ch_sendraw( ch, a:msg )
+    return 1
+  catch /E631/
+    return 0
+  endtry
 endfunction
 
 function! vimspector#internal#job#StopDebugSession( session_id ) abort

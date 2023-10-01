@@ -115,8 +115,13 @@ function! vimspector#internal#channel#StartDebugSession(
 endfunction
 
 function! vimspector#internal#channel#Send( session_id, msg ) abort
-  call ch_sendraw( s:channels[ a:session_id ], a:msg )
-  return 1
+  try
+    call ch_sendraw( s:channels[ a:session_id ], a:msg )
+    return 1
+  catch /E631/
+    " Channel is closed
+    return 0
+  endtry
 endfunction
 
 function! vimspector#internal#channel#Timeout( session_id, id ) abort
