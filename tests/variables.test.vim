@@ -804,6 +804,7 @@ function! Test_VariableEval_Hover()
 endfunction
 
 function! SetUp_Test_VariableEval_HoverDisabled()
+  call SkipNeovim()
   call vimspector#test#setup#PushOption( 'balloondelay', 10 )
   call vimspector#test#setup#PushGlobal( 'vimspector_enable_auto_hover', 0 )
 endfunction
@@ -814,8 +815,6 @@ function! TearDown_Test_VariableEval_HoverDisabled()
 endfunction
 
 function! Test_VariableEval_HoverDisabled()
-  call SkipNeovim()
-
   let fn =  'testdata/cpp/simple/struct.cpp'
   call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
         \   configuration: 'run-to-breakpoint'
