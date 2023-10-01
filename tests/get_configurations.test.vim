@@ -42,6 +42,9 @@ function! Test_PickConfiguration_FilteredFiletypes()
         \ vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 1, 1  )
         \ } )
 
+  call vimspector#Reset()
+  call vimspector#test#setup#WaitForReset()
+
   let fn = '../support/test/multiple_filetypes/test.py'
   exe 'edit ' . fn
   normal! G
