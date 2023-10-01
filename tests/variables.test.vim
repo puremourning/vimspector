@@ -759,6 +759,132 @@ function! Test_VariableEval()
   %bwipe!
 endfunction
 
+function! Test_VariableEval_Hover()
+  call SkipNeovim()
+  let fn =  'testdata/cpp/simple/struct.cpp'
+  call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
+        \   configuration: 'run-to-breakpoint'
+        \ } } )
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 26, 1 )
+
+  "evaluate the prev line
+  call MoveMouseToPositionInWindow( g:vimspector_session_windows.code, 24, 8 )
+
+  call WaitForAssert( {->
+        \   AssertNotNull( g:vimspector_session_windows.eval )
+        \ } )
+
+  call WaitForAssert( {->
+        \   AssertMatchList(
+        \     [
+        \       '{...}',
+        \       ' - i: 0',
+        \       ' - c: 0 ''\\0\{1,3}''',
+        \       ' - fffff: 0',
+        \       ' + another_test: ',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.eval ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  "Close
+  call MoveMouseToPositionInWindow( g:vimspector_session_windows.code, 1, 1 )
+  call WaitForAssert( {->
+        \ AssertNull( g:vimspector_session_windows.eval )
+        \ } )
+  call WaitForAssert( {->
+        \ assert_equal( len( popup_list() ), 0 ) } )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+function! SetUp_Test_VariableEval_HoverDisabled()
+  call vimspector#test#setup#PushOption( 'balloondelay', 10 )
+  call vimspector#test#setup#PushGlobal( 'vimspector_enable_auto_hover', 0 )
+endfunction
+
+function! TearDown_Test_VariableEval_HoverDisabled()
+  call vimspector#test#setup#PopOption( 'balloondelay' )
+  call vimspector#test#setup#PopGlobal( 'vimspector_enable_auto_hover' )
+endfunction
+
+function! Test_VariableEval_HoverDisabled()
+  call SkipNeovim()
+
+  let fn =  'testdata/cpp/simple/struct.cpp'
+  call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
+        \   configuration: 'run-to-breakpoint'
+        \ } } )
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 26, 1 )
+
+  "evaluate the prev line
+  call MoveMouseToPositionInWindow( g:vimspector_session_windows.code, 24, 8 )
+
+  " balloondelay is 10ms + need some time for the popup to appear. And CI can be
+  " very slow, so let's be super conservative and wait a whole 5s to be super
+  " sure that we actually don't show a popup.
+  sleep 5000m
+
+  call WaitForAssert( {->
+        \   AssertNull( g:vimspector_session_windows.eval )
+        \ } )
+  call WaitForAssert( {->
+        \ assert_equal( len( popup_list() ), 0 ) } )
+
+  " leader is ,
+  xmap <buffer> <Leader>d <Plug>VimspectorBalloonEval
+  nmap <buffer> <Leader>d <Plug>VimspectorBalloonEval
+
+  "evaluate the prev line
+  call setpos( '.', [ 0, 24, 8 ] )
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 24, 8 )
+  call feedkeys( ',d', 'xt' )
+
+  call WaitForAssert( {->
+        \   AssertNotNull( g:vimspector_session_windows.eval )
+        \ } )
+  call WaitForAssert( {->
+        \ assert_equal( len( popup_list() ), 1 ) } )
+
+  call WaitForAssert( {->
+        \   AssertMatchList(
+        \     [
+        \       '{...}',
+        \       ' - i: 0',
+        \       ' - c: 0 ''\\0\{1,3}''',
+        \       ' - fffff: 0',
+        \       ' + another_test: ',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.eval ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  "Close
+  call MoveMouseToPositionInWindow( g:vimspector_session_windows.code, 1, 1 )
+  sleep 20m
+  call WaitForAssert( {->
+        \   AssertNotNull( g:vimspector_session_windows.eval )
+        \ } )
+
+  call feedkeys( "\<Esc>", 'xt' )
+  call WaitForAssert( {->
+        \ AssertNull( g:vimspector_session_windows.eval )
+        \ } )
+  call WaitForAssert( {->
+        \ assert_equal( len( popup_list() ), 0 ) } )
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
 function! Test_VariableEvalExpand()
   call SkipNeovim()
   let fn =  'testdata/cpp/simple/struct.cpp'

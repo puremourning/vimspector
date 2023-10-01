@@ -112,12 +112,12 @@ endfunction
 " In neovim, py3eval( 'None' ) returns v:null, and v:none does not exist
 function! AssertNull( actual ) abort
   return assert_equal( type( v:null ), type( a:actual ),
-      \ 'actual: ' .. a:actual  )
+      \ 'Expected null, but actually: ' .. a:actual  )
 endfunction
 
 function! AssertNotNull( actual ) abort
   return assert_notequal( type( v:null ), type( a:actual ),
-      \ 'actual: ' .. a:actual  )
+      \ 'Expected not null, but actually: ' .. a:actual  )
 endfunction
 
 function! AssertMatchList( expected, actual ) abort
@@ -174,4 +174,14 @@ function! FunctionBreakOnBrace() abort
   " between x86 and arm
   return trim( system( 'uname -m' ) ) ==# 'x86_64'
         \ && trim( system( 'uname -s' ) ) ==# 'Linux'
+endfunction
+
+function MoveMouseToPositionInWindow( win_id, line, colum ) abort
+  let pos = screenpos( a:win_id, a:line, a:colum )
+  return MoveMouseTo( pos.row, pos.col )
+endfunction
+
+function! MoveMouseTo( screen_line, screen_column ) abort
+  call test_setmouse( a:screen_line, a:screen_column )
+  call feedkeys("\<MouseMove>", 'xt')
 endfunction
