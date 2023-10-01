@@ -5,6 +5,8 @@ ENV LC_ALL C.UTF-8
 ARG GOARCH=amd64
 ARG GOVERSION=1.20.1
 ARG NODE_MAJOR=18
+ARG VIM_VERSION=v8.2.4797
+
 
 RUN apt-get update && \
   apt-get install -y curl \
@@ -80,8 +82,6 @@ RUN apt-get -y autoremove
 
 ## cleanup of files from setup
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-ARG VIM_VERSION=v8.2.4797
 
 ENV CONF_ARGS "--with-features=huge \
                --enable-python3interp \

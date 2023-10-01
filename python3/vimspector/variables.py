@@ -282,28 +282,29 @@ class VariablesView( object ):
         )
 
     # Set the (global!) balloon expr if supported
-    has_balloon      = int( vim.eval( "has( 'balloon_eval' )" ) )
-    has_balloon_term = int( vim.eval( "has( 'balloon_eval_term' )" ) )
-
     self._oldoptions = {}
-    if has_balloon or has_balloon_term:
-      self._oldoptions = {
-        'balloonexpr': vim.options[ 'balloonexpr' ],
-        'balloondelay': vim.options[ 'balloondelay' ],
-      }
-      vim.options[ 'balloonexpr' ] = (
-        "vimspector#internal#balloon#HoverEvalTooltip()"
-      )
+    if settings.Bool( 'enable_auto_hover' ):
+      has_balloon      = int( vim.eval( "has( 'balloon_eval' )" ) )
+      has_balloon_term = int( vim.eval( "has( 'balloon_eval_term' )" ) )
 
-      vim.options[ 'balloondelay' ] = 250
+      if has_balloon or has_balloon_term:
+        self._oldoptions = {
+          'balloonexpr': vim.options[ 'balloonexpr' ],
+          'balloondelay': vim.options[ 'balloondelay' ],
+        }
+        vim.options[ 'balloonexpr' ] = (
+          "vimspector#internal#balloon#HoverEvalTooltip()"
+        )
 
-    if has_balloon:
-      self._oldoptions[ 'ballooneval' ] = vim.options[ 'ballooneval' ]
-      vim.options[ 'ballooneval' ] = True
+        vim.options[ 'balloondelay' ] = 250
 
-    if has_balloon_term:
-      self._oldoptions[ 'balloonevalterm' ] = vim.options[ 'balloonevalterm' ]
-      vim.options[ 'balloonevalterm' ] = True
+      if has_balloon:
+        self._oldoptions[ 'ballooneval' ] = vim.options[ 'ballooneval' ]
+        vim.options[ 'ballooneval' ] = True
+
+      if has_balloon_term:
+        self._oldoptions[ 'balloonevalterm' ] = vim.options[ 'balloonevalterm' ]
+        vim.options[ 'balloonevalterm' ] = True
 
 
   def Clear( self ):
