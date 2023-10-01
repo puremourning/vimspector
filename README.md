@@ -1103,6 +1103,8 @@ deletes a breakpoint. If you wish to 'disable' breakpoints, use the
 * Use `vimspector#ClearLineBreakpoint( file_name, line_num )` to
   remove a breakpoint at a specific file/line
 * Use `vimspector#ClearBreakpoints()` to clear all breakpoints
+* Use `vimspector#ResetExceptionBreakpoints()` to clear the exception breakpoints
+  configuration and re-anser the various questions like "Break on C++ Throw"
 * Use `:VimspectorMkSession` and `:VimspectorLoadSession` to save and restore
   breakpoints
 * `call vimspector#ListBreakpoints()` - toggle breakpoints window
