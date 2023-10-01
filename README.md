@@ -1264,6 +1264,10 @@ All rules for `Variables and scopes` apply plus the following:
 
 ![variable eval hover](https://puremourning.github.io/vimspector-web/img/vimspector-variable-eval-hover.png)
 
+You can disable automatic hovering popup by settings
+`g:vimspector_enable_auto_hover=0` before starting the debug session. You can
+then map something to `<Plug>VimspectorBalloonEval` and trigger it manually.
+
 ## Watches
 
 The watch window is used to inspect variables and expressions. Expressions are
@@ -1291,6 +1295,10 @@ If you prefer a more verbose display for variables and watches, then you can
 value are displayed, with other data available from hovering the mouse or
 triggering `<Plug>VimspectorBalloonEval` on the line containing the value in the
 variables (or watches) window.
+
+You can disable automatic hovering popup by settings
+`g:vimspector_enable_auto_hover=0` before starting the debug session. You can
+then map something to `<Plug>VimspectorBalloonEval` and trigger it manually.
 
 ### Watch autocompletion
 

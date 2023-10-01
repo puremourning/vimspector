@@ -37,8 +37,9 @@ DEFAULTS = {
   'terminal_maxheight': 15,
   'terminal_minheight': 5,
 
-  # WinBar
+  # Features
   'enable_winbar':      True,
+  'enable_auto_hover':  True,
 
   # Session files
   'session_file_name': '.vimspector.session',
