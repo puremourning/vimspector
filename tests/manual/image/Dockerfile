@@ -3,11 +3,8 @@ ARG ARCH=x86_64
 FROM puremourning/vimspector:test-${ARCH}
 
 RUN apt-get update && \
-  apt-get -y dist-upgrade && \
-  apt-get -y install sudo
-
-## cleanup of files from setup
-RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+  apt-get -y install sudo && \
+  rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN useradd -ms /bin/bash -d /home/dev -G sudo dev && \
     echo "dev:dev" | chpasswd && \
