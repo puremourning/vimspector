@@ -121,9 +121,21 @@ func RunTheTest(test)
   " directory after executing the test.
   let s:save_cwd = getcwd()
 
+  " Used to record when a test is skipped by throwing within the SetUp handlers.
+  " This mostly allows us to skip running the test itself (at all) and to skip
+  " any teardown function too.
+  let skip_this_test=0
+
   if exists('*SetUp_' . a:test)
     try
       exe 'call SetUp_' . a:test
+    catch /^\cskipped/
+      call add(s:messages, '    Skipped')
+      call add(s:skipped,
+            \ 'SKIPPED ' . a:test
+            \ . ': '
+            \ . substitute(v:exception, '^\S*\s\+', '',  ''))
+      let skip_this_test=1
     catch
       call add(v:errors,
             \ 'Caught exception in SetUp_' . a:test . ' before '
@@ -140,6 +152,13 @@ func RunTheTest(test)
   if exists('*SetUp')
     try
       call SetUp()
+    catch /^\cskipped/
+      call add(s:messages, '    Skipped')
+      call add(s:skipped,
+            \ 'SKIPPED ' . a:test
+            \ . ': '
+            \ . substitute(v:exception, '^\S*\s\+', '',  ''))
+      let skip_this_test=1
     catch
       call add(v:errors,
             \ 'Caught exception in SetUp() before '
@@ -153,23 +172,26 @@ func RunTheTest(test)
     endtry
   endif
 
-  call add(s:messages, 'Executing ' . a:test)
-  let s:done += 1
   let timer = timer_start( s:single_test_timeout, funcref( 'Abort' ) )
 
   try
-    let s:test = a:test
-    let s:testid = g:testpath . ':' . a:test
+    if !skip_this_test
+      call add(s:messages, 'Executing ' . a:test)
+      let s:done += 1
 
-    let test_filesafe = substitute( a:test, '[)(,:]', '_', 'g' )
-    let s:testid_filesafe = g:testpath . '_' . test_filesafe
+      let s:test = a:test
+      let s:testid = g:testpath . ':' . a:test
 
-    augroup EarlyExit
-      au!
-      au VimLeavePre * call EarlyExit(s:test)
-    augroup END
+      let test_filesafe = substitute( a:test, '[)(,:]', '_', 'g' )
+      let s:testid_filesafe = g:testpath . '_' . test_filesafe
 
-    exe 'call ' . a:test
+      augroup EarlyExit
+        au!
+        au VimLeavePre * call EarlyExit(s:test)
+      augroup END
+
+      exe 'call ' . a:test
+    endif
   catch /^\cskipped/
     call add(s:messages, '    Skipped')
     call add(s:skipped,
@@ -217,7 +239,8 @@ func RunTheTest(test)
   " reset to avoid trouble with anything else.
   set noinsertmode
 
-  if exists('*TearDown')
+  " only perform teardown if the test was not skipped
+  if !skip_this_test && exists('*TearDown')
     try
       call TearDown()
     catch
@@ -232,7 +255,7 @@ func RunTheTest(test)
     endtry
   endif
 
-  if exists('*TearDown_' . a:test)
+  if !skip_this_test && exists('*TearDown_' . a:test)
     try
       exe 'call TearDown_' . a:test
     catch
