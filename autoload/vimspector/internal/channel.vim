@@ -121,6 +121,9 @@ function! vimspector#internal#channel#Send( session_id, msg ) abort
   catch /E631/
     " Channel is closed
     return 0
+  catch /E906/
+    " Channel is closed
+    return 0
   endtry
 endfunction
 
