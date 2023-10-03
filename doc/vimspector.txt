@@ -1357,6 +1357,10 @@ and 'toggle' ('t') from there.
 
 - Use 'vimspector#ClearBreakpoints()' to clear all breakpoints
 
+- Use 'vimspector#ResetExceptionBreakpoints()' to clear the exception
+  breakpoints configuration and re-anser the various questions like "Break on
+  C++ Throw"
+
 - Use ':VimspectorMkSession' and ':VimspectorLoadSession' to save and restore
   breakpoints
 

@@ -883,9 +883,12 @@ Vimspector has in-built support for executing remote debuggers (such as
 where the development is done on one host and the runtime is some other host,
 account, container, etc.
 
-In order for it to work, you have to set up paswordless SSH between the local
-and remote machines/accounts. Then just tell Vimspector how to remotely launch
-and/or attach to the app.
+In order for it to work, it is preferred to have set up paswordless SSH between
+the local and remote machines/accounts. Then just tell Vimspector how to
+remotely launch and/or attach to the app. By default, 'ssh' command is being
+used. Optionally, the custom ssh command can be specified with cmd property
+which gives opportunity to use, e.g. sshpass, for non-interactive password
+passing to actual ssh client (see the Python (debugpy) Example below).
 
 This is presented as examples with commentary, as it's a fairly advanced/niche
 case. If you're not already familiar with remote debugging tools (such as
@@ -922,8 +925,9 @@ Vimspector then orchestrates the various tools to set you up.
                                // If omitted, runCommand(s) is run locally
             "account": "${account}", // User to connect as (optional)
   
-            // Optional.... Manual additional arguments for ssh
+            // Optional.... Manual ssh client and additional arguments
             // "ssh": {
+            //   "cmd": [ "sshpass", "-p", "pa$$w0rd", "ssh" ],
             //   "args": [ "-o", "StrictHostKeyChecking=no" ]
             // },
   
@@ -985,8 +989,9 @@ Vimspector then orchestrates the various tools to set you up.
             //   /* optional command to run after initialized */
             // ]
   
-            // Optional.... Manual additional arguments for ssh
+            // Optional.... Manual ssh client and additional arguments
             // "ssh": {
+            //   "cmd": [ "sshpass", "-p", "pa$$w0rd", "ssh" ],
             //   "args": [ "-o", "StrictHostKeyChecking=no" ]
             // },
           }
