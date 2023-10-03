@@ -107,11 +107,27 @@
                 },
                 "host": {
                   "type": "string",
-                  "description": "Name of the remote host to connect to (via passwordless SSH)."
+                  "description": "Name of the remote host to connect to (via passwordless SSH or with e.g. sshpass if ssh['cmd'] specified)."
                 },
                 "container": {
                   "type": "string",
                   "description": "Name or container id of the docker run container to connect to (via docker exec). Note the container must already be running (Vimspector will not start it) and it must have the port forwarded to the host if subsequently connecting via a port (for example <tt>docker run -p 8765:8765 -it simple_python</tt>)."
+                },
+                "ssh": {
+                  "type": "object",
+                  "description": "Optional to customize the ssh client and its arguments to execute for remote-launch or remote-attach.",
+                  "properties": {
+                    "cmd": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "description": "Command to execute SSH client."
+                    },
+                    "args": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "description": "SSH client command arguments."
+                    }
+                  }
                 }
               }
             },
