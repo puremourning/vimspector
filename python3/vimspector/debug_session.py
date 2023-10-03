@@ -1659,7 +1659,9 @@ class DebugSession( object ):
 
 
   def _GetSSHCommand( self, remote ):
-    ssh = remote.get( 'ssh', {} ).get( 'cmd', [ 'ssh' ]) + remote.get( 'ssh', {} ).get( 'args', [] )
+    ssh_config = remote.get( 'ssh', {} )
+    ssh = ssh_config.get( 'cmd', [ 'ssh' ] ) + ssh_config.get( 'args', [] )
+
     if 'account' in remote:
       ssh.append( remote[ 'account' ] + '@' + remote[ 'host' ] )
     else:
