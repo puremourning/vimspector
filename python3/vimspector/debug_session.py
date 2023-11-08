@@ -576,7 +576,7 @@ class DebugSession( object ):
         c.StopAllSessions( interactive = interactive, then = Next )
       elif self._connection:
         self._StopDebugAdapter( interactive = interactive, callback = then )
-      else:
+      elif then:
         then()
     Next()
 

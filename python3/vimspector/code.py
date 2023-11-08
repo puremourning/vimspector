@@ -183,6 +183,11 @@ class CodeView( object ):
 
     for b in self._scratch_buffers:
       utils.CleanUpHiddenBuffer( b )
+
+    if self._terminal:
+      terminal.CleanUpTerminal( self._api_prefix, self._terminal )
+      self._terminal = None
+
     self._scratch_buffers = []
 
   def Refresh( self ):

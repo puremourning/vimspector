@@ -91,6 +91,48 @@ function! Test_All_Buffers_Deleted_NoHidden()
   %bwipe!
 endfunction
 
+function! Test_All_Buffers_Deleted_NoHidden_RunInTerminal()
+  " Use python which launches app in a terminal window...
+  call SkipNeovim()
+  call ThisTestIsFlaky()
+
+  let opts = #{ buflisted: v:true }
+  let buffers_before = getbufinfo( opts )
+
+  set nohidden
+  call s:StartDebugging()
+  call vimspector#Reset()
+  call vimspector#test#setup#WaitForReset()
+
+  call WaitForAssert( {->
+        \ assert_equal( len( buffers_before ), len( getbufinfo( opts ) ) ) } )
+
+  set hidden&
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+
+function! Test_All_Buffers_Deleted_Hidden_RunInTerminal()
+  " Use python which launches app in a terminal window...
+  call SkipNeovim()
+  call ThisTestIsFlaky()
+
+  let opts = #{ buflisted: v:true }
+  let buffers_before = getbufinfo( opts )
+
+  set hidden
+  call s:StartDebugging()
+  call vimspector#Reset()
+  call vimspector#test#setup#WaitForReset()
+
+  call WaitForAssert( {->
+        \ assert_equal( len( buffers_before ), len( getbufinfo( opts ) ) ) } )
+
+  set hidden&
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
 function! Test_All_Buffers_Deleted_Hidden()
   call SkipNeovim()
   call ThisTestIsFlaky()
