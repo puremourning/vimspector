@@ -1303,8 +1303,8 @@ This configuration can be adapted to any other LSP-based editor configuration
 and is provided just as an example.
 
 [dap]: https://microsoft.github.io/debug-adapter-protocol/
-[schema]: http://puremourning.github.io/vimspector/schema/vimspector.schema.json
-[gadget-schema]: http://puremourning.github.io/vimspector/schema/gadgets.schema.json
+[schema]: https://puremourning.github.io/vimspector/schema/vimspector.schema.json
+[gadget-schema]: https://puremourning.github.io/vimspector/schema/gadgets.schema.json
 [website-getting-started]: https://puremourning.github.io/vimspector-web/#getting-started
 [YouCompleteMe]: https://github.com/ycm-core/YouCompleteMe
 [lsp-examples]: https://github.com/ycm-core/lsp-examples
