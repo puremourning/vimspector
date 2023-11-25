@@ -899,7 +899,7 @@ function! Test_SetVariableValue_Local()
   py3 <<EOF
 from unittest import mock
 with mock.patch( 'vimspector.utils.InputSave' ):
-  vim.eval( 'feedkeys( "\<C-CR>\<C-u>100\<CR>", "xt" )' )
+  vim.eval( r'feedkeys( "\<C-CR>\<C-u>100\<CR>", "xt" )' )
 EOF
 
   call WaitForAssert( {->
@@ -1024,7 +1024,7 @@ function! Test_SetVariableValue_Watch()
   py3 <<EOF
 from unittest import mock
 with mock.patch( 'vimspector.utils.InputSave' ):
-  vim.eval( 'feedkeys( ",\<CR>\<C-u>100\<CR>", "xt" )' )
+  vim.eval( r'feedkeys( ",\<CR>\<C-u>100\<CR>", "xt" )' )
 EOF
 
 
@@ -1116,7 +1116,7 @@ function! Test_SetVariableValue_Balloon()
   py3 <<EOF
 from unittest import mock
 with mock.patch( 'vimspector.utils.InputSave' ):
-  vim.eval( 'feedkeys( "\<C-CR>\<C-u>100\<CR>", "xt" )' )
+  vim.eval( r'feedkeys( "\<C-CR>\<C-u>100\<CR>", "xt" )' )
 EOF
 
   call WaitForAssert( {->

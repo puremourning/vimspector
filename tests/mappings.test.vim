@@ -354,7 +354,7 @@ function! Test_Partial_Mappings_Dict_Override()
   py3 <<EOF
 from unittest import mock
 with mock.patch( 'vimspector.utils.InputSave' ):
-  vim.eval( 'feedkeys( "\<Tab>\<C-u>100\<CR>", "xt" )' )
+  vim.eval( r'feedkeys( "\<Tab>\<C-u>100\<CR>", "xt" )' )
 EOF
 
   call WaitForAssert( {->
