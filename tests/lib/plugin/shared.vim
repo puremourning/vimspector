@@ -17,7 +17,7 @@ endif
 " When running into the timeout an exception is thrown, thus the function does
 " not return.
 func WaitFor(expr, ...)
-  let timeout = get(a:000, 0, 10000)
+  let timeout = get(a:000, 0, g:test_long_timeout)
   let slept = s:WaitForCommon(a:expr, v:null, timeout)
   if slept < 0
     throw 'WaitFor() timed out after ' . timeout . ' msec'
@@ -34,7 +34,7 @@ endfunc
 "
 " Return zero for success, one for failure (like the assert function).
 func WaitForAssert(assert, ...)
-  let timeout = get(a:000, 0, 5000)
+  let timeout = get(a:000, 0, g:test_timeout)
   if s:WaitForCommon(v:null, a:assert, timeout) < 0
     return 1
   endif

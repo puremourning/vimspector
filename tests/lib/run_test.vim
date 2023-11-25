@@ -39,6 +39,11 @@ let g:vimspector_batch_mode = 1
 " Let a test take up to 1 minute, unless debugging
 let s:single_test_timeout = 60000
 
+" Timeouts in milliseconds
+let g:test_long_timeout = 15000
+let g:test_timeout = 5000
+let g:test_short_timeout = 1000
+
 " Restrict the runtimepath to the exact minimum needed for testing
 let &runtimepath = getcwd() . '/lib'
 set runtimepath+=$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after

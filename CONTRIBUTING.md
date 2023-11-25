@@ -173,6 +173,19 @@ When contributing pull requests, I ask that:
 
 ### Running the tests locally
 
+Requirements for running the tests:
+
+* Linux or macOS
+* Supported Vim or Neovim version (ideally both)
+* acsiinema instaled (`pip3 install --user asciinema`)
+* `timeout` installed (on macOS: `brew install coreutils`)
+* various other dependencies for the individual debuggers.
+
+The simplest way to run the tests is using the container image, as all
+dependencies are there for you. If you decide not to, then the best way to work
+out what's required is to look at either the `Dockerfile` (for Linux) or the
+`.github/workflows/build.yaml` (for macOS).
+
 There are 2 ways:
 
 1. In the docker container. The CI tests for linux run in a container, so as to

@@ -122,7 +122,7 @@ jobs:
         brew update-reset
         brew doctor || true
         brew cleanup || true
-        for p in vim go tcl-tk llvm lua luajit love neovim; do
+        for p in vim go tcl-tk llvm lua luajit love neovim coreutils; do
           brew install $p || brew outdated $p || brew upgrade $p
         done
         brew reinstall icu4c

@@ -66,7 +66,7 @@ function! vimspector#test#setup#WaitForReset() abort
   call WaitForAssert( {->
         \ assert_true( pyxeval( '_vimspector_session is None or ' .
         \                       '_vimspector_session._uiTab is None' ) )
-        \ }, 10000 )
+        \ }, g:test_long_timeout )
 
   call vimspector#test#signs#AssertSignGroupEmpty( 'VimspectorCode' )
 endfunction
@@ -80,7 +80,7 @@ function! vimspector#test#setup#WaitForSessionReset( session_id ) abort
   call WaitForAssert( {->
         \ assert_true( pyxeval( s ..' is None or ' .
         \                       s .. '._uiTab is None' ) )
-        \ }, 10000 )
+        \ }, g:test_long_timeout )
 endfunction
 
 function! vimspector#test#setup#Reset() abort
