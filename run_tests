@@ -136,6 +136,14 @@ else
   echo "WARNING: No timeout found, not using timeout"
 fi
 
+# Check that vim's python support actual works, else we can't run tests
+if ! ${TIMEOUT_SCRIPT} ${RUN_VIM} --cmd "py3 import vim; vim.command( 'qa!' )" --cmd "cquit!"; then
+  echo "Vim's python support doesn't work. Cannot run tests" >&2
+  exit 1
+else
+  echo "Vim's python support works. Let's go..."
+fi
+
 # There seems to be a race condition with the way asciinema sets the pty size.
 # It does fork() then if is_child: execvpe(...) else: set_pty_size(). This means
 # the child might read the pty size before it's set. So we use a 1s sleepy.
