@@ -17,7 +17,7 @@ endif
 " When running into the timeout an exception is thrown, thus the function does
 " not return.
 func WaitFor(expr, ...)
-  let timeout = get(a:000, 0, 10000)
+  let timeout = get(a:000, 0, g:test_long_timeout)
   let slept = s:WaitForCommon(a:expr, v:null, timeout)
   if slept < 0
     throw 'WaitFor() timed out after ' . timeout . ' msec'
@@ -34,7 +34,7 @@ endfunc
 "
 " Return zero for success, one for failure (like the assert function).
 func WaitForAssert(assert, ...)
-  let timeout = get(a:000, 0, 5000)
+  let timeout = get(a:000, 0, g:test_timeout)
   if s:WaitForCommon(v:null, a:assert, timeout) < 0
     return 1
   endif
@@ -112,12 +112,12 @@ endfunction
 " In neovim, py3eval( 'None' ) returns v:null, and v:none does not exist
 function! AssertNull( actual ) abort
   return assert_equal( type( v:null ), type( a:actual ),
-      \ 'actual: ' .. a:actual  )
+      \ 'Expected null, but actually: ' .. a:actual  )
 endfunction
 
 function! AssertNotNull( actual ) abort
   return assert_notequal( type( v:null ), type( a:actual ),
-      \ 'actual: ' .. a:actual  )
+      \ 'Expected not null, but actually: ' .. a:actual  )
 endfunction
 
 function! AssertMatchList( expected, actual ) abort
@@ -174,4 +174,14 @@ function! FunctionBreakOnBrace() abort
   " between x86 and arm
   return trim( system( 'uname -m' ) ) ==# 'x86_64'
         \ && trim( system( 'uname -s' ) ) ==# 'Linux'
+endfunction
+
+function MoveMouseToPositionInWindow( win_id, line, colum ) abort
+  let pos = screenpos( a:win_id, a:line, a:colum )
+  return MoveMouseTo( pos.row, pos.col )
+endfunction
+
+function! MoveMouseTo( screen_line, screen_column ) abort
+  call test_setmouse( a:screen_line, a:screen_column )
+  call feedkeys("\<MouseMove>", 'xt')
 endfunction

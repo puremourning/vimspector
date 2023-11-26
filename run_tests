@@ -129,10 +129,25 @@ VERSION_OPTIONS=$([ "$IS_NVIM" -ne 0 ] && echo '--headless' || echo '--not-a-ter
 
 RUN_VIM="${VIM_EXE} -N --clean ${VERSION_OPTIONS}"
 
+if which timeout >/dev/null 2>&1; then
+  TIMEOUT_SCRIPT="timeout --verbose --foreground --kill-after 7m 5m"
+else
+  TIMEOUT_SCRIPT=""
+  echo "WARNING: No timeout found, not using timeout"
+fi
+
+# Check that vim's python support actual works, else we can't run tests
+if ! ${TIMEOUT_SCRIPT} ${RUN_VIM} --cmd "py3 import vim; vim.command( 'qa!' )" --cmd "cquit!"; then
+  echo "Vim's python support doesn't work. Cannot run tests" >&2
+  exit 1
+else
+  echo "Vim's python support works. Let's go..."
+fi
+
 # There seems to be a race condition with the way asciinema sets the pty size.
 # It does fork() then if is_child: execvpe(...) else: set_pty_size(). This means
 # the child might read the pty size before it's set. So we use a 1s sleepy.
-RUN_TEST="sleep 1 && ${RUN_VIM} -S lib/run_test.vim"
+RUN_TEST="sleep 1 && ${TIMEOUT_SCRIPT} ${RUN_VIM} -S lib/run_test.vim"
 
 # We use fd 3 for vim's output. Send it to stdout if not already redirected
 # Note: can't use ${out_fd} in a redirect because redirects happen before
@@ -143,7 +158,7 @@ fi
 
 # Basic pre-flight check that vim and python work
 # ffs neovim https://github.com/neovim/neovim/issues/14438
-if ${RUN_VIM} -u support/test_python3.vim .fail; then
+if ${TIMEOUT_SCRIPT} ${RUN_VIM} -u support/test_python3.vim .fail; then
   rm -f .fail
   echo "$VIM_EXE appears to have working python3 support. Let's go..."
 else

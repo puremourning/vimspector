@@ -111,7 +111,7 @@ function! Test_DumpMemory_VariableWindow()
   py3 <<EOF
 from unittest import mock
 with mock.patch( 'vimspector.utils.InputSave' ):
-  vim.eval( 'feedkeys( ",m\<C-u>5\<CR>\<CR>", "xt" )' )
+  vim.eval( r'feedkeys( ",m\<C-u>5\<CR>\<CR>", "xt" )' )
 EOF
   call WaitForAssert( {->
         \   AssertMatchList(
@@ -238,7 +238,7 @@ function! Test_DumpMemory_WatchWindow()
   py3 <<EOF
 from unittest import mock
 with mock.patch( 'vimspector.utils.InputSave' ):
-  vim.eval( 'feedkeys( ",m\<C-u>1\<CR>\<CR>", "xt" )' )
+  vim.eval( r'feedkeys( ",m\<C-u>1\<CR>\<CR>", "xt" )' )
 EOF
   call WaitForAssert( {->
         \   AssertMatchList(

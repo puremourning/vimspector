@@ -10,10 +10,10 @@ function! vimspector#test#signs#AssertCursorIsAtLineInBuffer( buffer,
         \ assert_equal( fnamemodify( a:buffer, ':p' ),
         \               fnamemodify( bufname( '%' ), ':p' ),
         \               'Current buffer' )
-        \ }, 15000 )
+        \ }, g:test_long_timeout )
   call WaitForAssert( {->
         \ assert_equal( a:line, line( '.' ), 'Current line' )
-        \ }, 15000 )
+        \ }, g:test_long_timeout )
   if a:column isnot v:null
     call assert_equal( a:column, col( '.' ), 'Current column' )
   endif

@@ -122,14 +122,16 @@ jobs:
         brew update-reset
         brew doctor || true
         brew cleanup || true
-        for p in vim go tcl-tk llvm lua luajit love neovim; do
+        for p in vim go tcl-tk llvm lua luajit love neovim coreutils; do
           brew install $p || brew outdated $p || brew upgrade $p
         done
         brew reinstall icu4c
         brew link --overwrite python
         brew link --overwrite vim
         brew link --overwrite go
-        pip3 install --user neovim
+        # latest neovim doesn't work on python 3.12
+        # https://github.com/neovim/pynvim/issues/538
+        pip3 install --user 'pynvim @ git+https://github.com/neovim/pynvim'
       name: 'Install vim and deps'
 
     - name: 'Install requirements'
