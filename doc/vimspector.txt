@@ -419,8 +419,8 @@ Dependencies ~
 Vimspector requires:
 
 - One of:
-- Vim 8.2 Huge build compiled with Python 3.10 or later
-- Neovim 0.8 with Python 3.10 or later (experimental)
+- Vim 8.2.4797 or later "huge" build compiled with Python 3.10 or later
+- Neovim 0.8 with Python 3.10 or later
 - One of the following operating systems:
 - Linux
 - macOS Mojave or later
@@ -1553,6 +1553,10 @@ All rules for 'Variables and scopes' apply plus the following:
 
   Image: variable eval hover (see reference [29])
 
+You can disable automatic hovering popup by settings
+'g:vimspector_enable_auto_hover=0' before starting the debug session. You can
+then map something to '<Plug>VimspectorBalloonEval' and trigger it manually.
+
 -------------------------------------------------------------------------------
                                                            *vimspector-watches*
 Watches ~
@@ -1582,6 +1586,10 @@ If you prefer a more verbose display for variables and watches, then you can
 and value are displayed, with other data available from hovering the mouse or
 triggering '<Plug>VimspectorBalloonEval' on the line containing the value in
 the variables (or watches) window.
+
+You can disable automatic hovering popup by settings
+'g:vimspector_enable_auto_hover=0' before starting the debug session. You can
+then map something to '<Plug>VimspectorBalloonEval' and trigger it manually.
 
 -------------------------------------------------------------------------------
                                               *vimspector-watch-autocompletion*
