@@ -569,16 +569,29 @@ class DebugSession( object ):
     self._connection = None
 
 
+  def _StopNextSession( self, terminateDebuggee, then ):
+    if self.child_sessions:
+      c = self.child_sessions.pop()
+      c._StopNextSession( terminateDebuggee,
+                          then = lambda: self._StopNextSession(
+                            terminateDebuggee,
+                            then ) )
+    elif self._connection:
+      self._StopDebugAdapter( terminateDebuggee, callback = then )
+    elif then:
+      then()
+
   def StopAllSessions( self, interactive = False, then = None ):
-    def Next():
-      if self.child_sessions:
-        c = self.child_sessions.pop()
-        c.StopAllSessions( interactive = interactive, then = Next )
-      elif self._connection:
-        self._StopDebugAdapter( interactive = interactive, callback = then )
-      else:
-        then()
-    Next()
+    if not interactive:
+      self._StopNextSession( None, then )
+    elif not self._server_capabilities.get( 'supportTerminateDebuggee' ):
+      self._StopNextSession( None, then )
+    elif not self._stackTraceView.AnyThreadsRunning():
+      self._StopNextSession( None, then )
+    else:
+      self._ConfirmTerminateDebugee(
+        lambda terminateDebuggee: self._StopNextSession( terminateDebuggee,
+                                                         then ) )
 
   @ParentOnly()
   @IfConnected()
@@ -1490,65 +1503,62 @@ class DebugSession( object ):
     self._logger.info( 'Debug Adapter Started' )
     return True
 
-  def _StopDebugAdapter( self, interactive = False, callback = None ):
+  def _StopDebugAdapter( self, terminateDebuggee, callback ):
     arguments = {}
 
-    def disconnect():
-      self._splash_screen = utils.DisplaySplash(
-        self._api_prefix,
-        self._splash_screen,
-        f"Shutting down debug adapter for session {self.DisplayName()}..." )
+    if terminateDebuggee is not None:
+      arguments[ 'terminateDebuggee' ] = terminateDebuggee
 
-      def handler( *args ):
-        self._splash_screen = utils.HideSplash( self._api_prefix,
-                                                self._splash_screen )
+    self._splash_screen = utils.DisplaySplash(
+      self._api_prefix,
+      self._splash_screen,
+      f"Shutting down debug adapter for session {self.DisplayName()}..." )
 
-        if callback:
-          self._logger.debug( "Setting server exit handler before disconnect" )
-          assert not self._run_on_server_exit
-          self._run_on_server_exit = callback
+    def handler( *args ):
+      self._splash_screen = utils.HideSplash( self._api_prefix,
+                                              self._splash_screen )
 
-        vim.eval( 'vimspector#internal#{}#StopDebugSession( {} )'.format(
-          self._connection_type,
-          self.session_id ) )
+      if callback:
+        self._logger.debug( "Setting server exit handler before disconnect" )
+        assert not self._run_on_server_exit
+        self._run_on_server_exit = callback
 
-      self._connection.DoRequest(
-        handler,
-        {
-          'command': 'disconnect',
-          'arguments': arguments,
-        },
-        failure_handler = handler,
-        timeout = self._connection.sync_timeout )
+      vim.eval( 'vimspector#internal#{}#StopDebugSession( {} )'.format(
+        self._connection_type,
+        self.session_id ) )
 
-    if not interactive:
-      disconnect()
-    elif not self._server_capabilities.get( 'supportTerminateDebuggee' ):
-      disconnect()
-    elif not self._stackTraceView.AnyThreadsRunning():
-      disconnect()
-    else:
-      def handle_choice( choice ):
-        if choice == 1:
-          # yes
-          arguments[ 'terminateDebuggee' ] = True
-        elif choice == 2:
-          # no
-          arguments[ 'terminateDebuggee' ] = False
-        elif choice <= 0:
-          # Abort
-          return
-        # Else, use server default
+    self._connection.DoRequest(
+      handler,
+      {
+        'command': 'disconnect',
+        'arguments': arguments,
+      },
+      failure_handler = handler,
+      timeout = self._connection.sync_timeout )
 
-        disconnect()
 
-      utils.Confirm( self._api_prefix,
-                     "Terminate debuggee?",
-                     handle_choice,
-                     default_value = 3,
-                     options = [ '(Y)es', '(N)o', '(D)efault' ],
-                     keys = [ 'y', 'n', 'd' ] )
+  def _ConfirmTerminateDebugee( self, then ):
+    def handle_choice( choice ):
+      terminateDebuggee = None
+      if choice == 1:
+        # yes
+        terminateDebuggee = True
+      elif choice == 2:
+        # no
+        terminateDebuggee = False
+      elif choice <= 0:
+        # Abort
+        return
+      # Else, use server default
 
+      then( terminateDebuggee )
+
+    utils.Confirm( self._api_prefix,
+                   "Terminate debuggee?",
+                   handle_choice,
+                   default_value = 3,
+                   options = [ '(Y)es', '(N)o', '(D)efault' ],
+                   keys = [ 'y', 'n', 'd' ] )
 
   def _PrepareAttach( self, adapter_config, launch_config ):
     attach_config = adapter_config.get( 'attach' )

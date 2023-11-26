@@ -33,7 +33,7 @@ function! Test_Step_With_Different_Tabpage()
   let vimspector_tabnr = tabpagenr()
   call WaitForAssert( {->
         \ assert_equal( 'simple.cpp', bufname( '%' ), 'Current buffer' )
-        \ }, 10000 )
+        \ }, g:test_long_timeout )
   call assert_equal( 15, line( '.' ), 'Current line' )
   call assert_equal( 1, col( '.' ), 'Current column' )
 

@@ -145,6 +145,8 @@ function! vimspector#internal#job#Send( session_id, msg ) abort
     return 1
   catch /E631/
     return 0
+  catch /E906/
+    return 0
   endtry
 endfunction
 
