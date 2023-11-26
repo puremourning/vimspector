@@ -126,10 +126,12 @@ jobs:
           brew install $p || brew outdated $p || brew upgrade $p
         done
         brew reinstall icu4c
-        brew link --overwrite python
+        # neovim doesn't work on python 3.12
+        brew link --overwrite python@3.11
         brew link --overwrite vim
         brew link --overwrite go
-        pip3 install --user neovim
+        # https://github.com/neovim/pynvim/issues/538
+        pip install --user 'pynvim @ git+https://github.com/neovim/pynvim'
       name: 'Install vim and deps'
 
     - name: 'Install requirements'
