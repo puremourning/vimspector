@@ -353,7 +353,7 @@ GADGETS = {
                                                              gadget ),
     'all': {
       'path': 'github.com/go-delve/delve/cmd/dlv',
-      'version': '1.21.0',
+      'version': '1.21.2',
     },
     'adapters': {
       "delve": {
@@ -436,10 +436,10 @@ GADGETS = {
       'format': 'tar',
     },
     'all': {
-      'file_name': 'js-debug-dap-v1.82.0.tar.gz',
-      'version': 'v1.82.0',
+      'file_name': 'js-debug-dap-v1.85.0.tar.gz',
+      'version': 'v1.85.0',
       'checksum':
-        '7295e743c718e3b24b7a6cd838d1bdd448c159d8baaf821693b9f265fc477118',
+        '5bd35a5d2925bd0b26a3ce4bff15787131d5b2a305354f2962ebadfc20adb4f4',
     },
     'model': 'simple',
     'adapters': {
