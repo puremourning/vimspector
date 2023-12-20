@@ -1,0 +1,18 @@
+{
+  "name": "vimspector-typescript",
+  "author": "Pierre Dahmani <hi@pierre-dev.com>",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "tsc",
+    "start": "node ./dist/index.js",
+    "debug-brk": "node --inspect-brk ./dist/index.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@tsconfig/node18": "2.0.0",
+    "typescript": "5.3.3",
+    "@types/node": "18.16.8"
+  }
+}
