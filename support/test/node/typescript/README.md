@@ -11,7 +11,7 @@ see [here](https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md#nod
 ## Prerequisites
 
 - Ensure you are using nodejs version 18 or 20 (was tested with these and these are
-  LTS (dezember 2023).
+  LTS (december 2023).
 - Ensure you have vscode-js-debug installed, check installation guides for
   nodejs of the vimspector repo on how to do so.
 - Install dependencies `yarn` (can install yarn if you don't have it yet, `npm i -g yarn`)
