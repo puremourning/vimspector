@@ -104,6 +104,10 @@
           "cpp_catch": ""
         }
       }
+    },
+    "CodeLLDB-localbuild": {
+      "extends": "CodeLLDB",
+      "adapter": "CodeLLDB-localbuild"
     }
   },
   "adapters": {
@@ -124,6 +128,14 @@
         "LLDB_LAUNCH_FLAG_LAUNCH_IN_TTY": "YES"
       },
       "name": "lldb"
+    },
+    "CodeLLDB-localbuild": {
+      "extends": "CodeLLDB",
+      "command": [
+        "$HOME/Development/vimspector/CodeLLDB/build/adapter/codelldb",
+        "--port",
+        "${unusedLocalPort}"
+      ]
     }
   }
 }

@@ -1,4 +1,4 @@
-TARGETS=simple variables struct printer threads tiny
+TARGETS=simple variables struct printer threads tiny buffer
 
 CXXFLAGS=-g -O0 -std=c++17
 CFLAGS=-g -O0
