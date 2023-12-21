@@ -90,7 +90,7 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [PHP](#php)
        * [Debug web application](#debug-web-application)
        * [Debug cli application](#debug-cli-application)
-    * [JavaScript, TypeScript, etc.](#javascript-typescript-etc)
+    * [JavaScript and TypeScript](#javascript-and-typescript)
     * [Java](#java)
        * [Hot code replace](#hot-code-replace)
        * [Usage with YouCompleteMe](#usage-with-youcompleteme)
