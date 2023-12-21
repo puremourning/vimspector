@@ -243,7 +243,7 @@ pre-packaged. To use a release tarball:
 ### Method 3: Using a plugin manager
 
 1. [Check the dependencies](#dependencies)
-1. See the plugin manager's docs and install the plugin  
+1. See the plugin manager's docs and install the plugin
    For Vundle, use:
 
    ```vim
@@ -588,7 +588,7 @@ Vimspector is not:
   aproach. This means that it can only provide essential/basic debugging
   features for a given language. This makes it convenient for everyday usage,
   but not ideal for power users or those with very precise or specific
-  requirements. See [motivation](#motivation) for more info. 
+  requirements. See [motivation](#motivation) for more info.
 
 ## Status
 
@@ -662,7 +662,7 @@ Copyright © 2018 Ben Jackson
 ## Sponsorship
 
 If you like Vimspector so much that you're wiling to part with your hard-earned
-cash, please consider donating to one of the following charities, which are 
+cash, please consider donating to one of the following charities, which are
 meaningful to the author of Vimspector (in order of preference):
 
 * [Hector's Greyhound Rescue](http://hectorsgreyhoundrescue.org)
@@ -820,10 +820,10 @@ request, then you will be asked to enter a PID (process ID) to attach to.
 To make this easier, Vimspector supplies a little utility for listing PIDs. It's
 like a very very simple clone of `ps` but works on all the supported platforms.
 See [its README](support/vimspector_process_list/README.md) for instructions on
-setting it up. 
+setting it up.
 
 In short:
- 
+
 - If you used a tarball installation, you don't need to do anything.
 - Otherwise, run `go build` in the `support/vimspector_process_list` directory
 
@@ -832,7 +832,7 @@ by the current user by default.
 
 Alternatively (preferably), you can use a special form of variable expansion
 called `${PickProcess(\"binaryName\")}`. The version of this call will list all
-processes for the current user that match this binary name. 
+processes for the current user that match this binary name.
 
 For example:
 
@@ -1150,7 +1150,7 @@ the [breakpoints window](#breakpoints-window).
 
 Currently, instruction breakpoints are automatically cleared when the debug
 session ends. The reason for this is that the addresses can't be guaranteed to
-be valid for any other debug session. However, this may also change in future. 
+be valid for any other debug session. However, this may also change in future.
 
 ### Clear breakpoints
 
@@ -1323,7 +1323,7 @@ let g:ycm_semantic_triggers =  {
 * Dispplay disassembly around current PC
 * Step over/into/out by instruction (contextually, or using the WinBar)
 * `:VimspectorDisassemble`, `vimspector#ShowDisassembly()` or
-  `<Plug>VimspectorDisassemble` 
+  `<Plug>VimspectorDisassemble`
 
 [![Demo](https://asciinema.org/a/esEncAxP45CJmo8Em1sQtxRYe.svg)](https://asciinema.org/a/esEncAxP45CJmo8Em1sQtxRYe)
 
@@ -2144,30 +2144,38 @@ export XDEBUG_CONFIG="idekey=xdebug"
 php <path to script>
 ```
 
-## JavaScript, TypeScript, etc.
+## JavaScript and TypeScript
 
 * Node.js
 
-Requires:
+This uses [vscode-js-debug](https://github.com/microsoft/vscode-js-debug), the
+debugger that is used in vscode as well. For additional configurations, check
+the documentation [here](https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md).
 
-* `install_gadget.py --force-enable-node`
-* Options described here:
-  https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md
-* Example: `support/test/node/simple`, `support/test/node/multiprocess`
+To install vscode-js-debug, run `install_gadget.py --force-enable-node`. There
+are multiple examples which you can check out. Find them under
+`support/test/node/simple`, `support/test/node/multiprocess` and
+`support/test/node/typescript`. A typical configuration for debugging typescript
+looks like this:
 
 ```json
 {
   "configurations": {
-    "run": {
+    "run - js-debug": {
       "adapter": "js-debug",
-      "filetypes": [ "javascript", "typescript" ], // optional
+      "filetypes": [ "javascript", "typescript" ],
       "configuration": {
         "request": "launch",
-        "stopOnEntry": true,
-        "console": "integratedTerminal",
-        "program": "${workspaceRoot}/simple.js",
+        "program": "${workspaceRoot}/src/index.ts",
         "cwd": "${workspaceRoot}",
-        "type": "pwa-node" // this is the default, but see below
+        "stopOnEntry": false,
+        "type": "pwa-node"
+      },
+      "breakpoints": {
+        "exception": {
+          "all": "",
+          "uncaught": ""
+        }
       }
     }
   }
@@ -2663,7 +2671,7 @@ as it is a common requirement.
 In many cases you will want to rebuild your project before starting a new debugging
 session. Vimspector is not a task manager and implementing this functionality
 is out of the scope of this project. However, there are some strategies described in the
-[community wiki](https://github.com/puremourning/vimspector/wiki/Pre-launch-building-strategies) 
+[community wiki](https://github.com/puremourning/vimspector/wiki/Pre-launch-building-strategies)
 to achieve similar functionality.
 
 
