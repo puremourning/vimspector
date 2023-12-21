@@ -7,7 +7,7 @@ available options see
 
 ## Prerequisites
 
-- Have nodejs installed (was tested with 18 and 20 but should work with any).
+- Have nodejs installed (was tested with 18 and 20).
 - Ensure you have vscode-js-debug installed, check installation guides for
   nodejs of the vimspector repo on how to do so.
 - Install dependencies `npm i`.
