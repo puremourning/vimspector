@@ -3,7 +3,7 @@
 This example shows you how to use vimspector with
 [vscode-js-debug](https://github.com/microsoft/vscode-js-debug). For all
 available options see
-[here](https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md#node-attach).
+[here](https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md#node-launch).
 
 ## Prerequisites
 
