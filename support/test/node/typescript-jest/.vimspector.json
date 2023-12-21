@@ -1,0 +1,20 @@
+{
+  "configurations": {
+    "run - js-debug": {
+      "adapter": "js-debug",
+      "configuration": {
+        "request": "attach",
+        "outDir": "${workspaceRoot}/dist/**.js",
+        "program": "${workspaceRoot}/index.ts",
+        "cwd": "${workspaceRoot}",
+        "stopOnEntry": false
+      },
+      "breakpoints": {
+        "exception": {
+          "all": "",
+          "uncaught": ""
+        }
+      }
+    }
+  }
+}

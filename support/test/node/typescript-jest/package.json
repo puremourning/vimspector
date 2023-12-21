@@ -1,0 +1,21 @@
+{
+  "name": "vimspector-typescript",
+  "author": "Pierre Dahmani <hi@pierre-dev.com>",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@babel/core": "^7.23.6",
+    "@babel/preset-env": "^7.23.6",
+    "@babel/preset-typescript": "^7.23.3",
+    "@jest/globals": "^29.7.0",
+    "@tsconfig/node18": "2.0.0",
+    "@types/node": "18.16.8",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0"
+  }
+}
