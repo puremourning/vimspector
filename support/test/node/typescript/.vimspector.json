@@ -2,12 +2,13 @@
   "configurations": {
     "run - js-debug": {
       "adapter": "js-debug",
+      "filetypes": [ "javascript", "typescript" ],
       "configuration": {
-        "request": "attach",
-        "outDir": "${workspaceRoot}/dist/**.js",
-        "program": "${workspaceRoot}/index.ts",
+        "request": "launch",
+        "program": "${workspaceRoot}/src/index.ts",
         "cwd": "${workspaceRoot}",
-        "stopOnEntry": false
+        "stopOnEntry": false,
+        "type": "pwa-node"
       },
       "breakpoints": {
         "exception": {
