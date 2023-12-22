@@ -1696,7 +1696,6 @@ class DebugSession( object ):
 
     def _GetDockerCommand( self, remote ):
         docker = [ 'docker', 'exec', '-t' ]
-        self._logger.info(f"remote is: {remote}")
         if 'workdir' in remote:
             docker.extend(["-w", remote['workdir']])
         docker.append( remote[ 'container' ] )
