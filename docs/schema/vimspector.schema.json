@@ -186,10 +186,6 @@
                           "type": "array",
                           "items": { "type": "string" },
                           "description": "A single command to execute for remote-launch. Like runCommands but for a single command."
-                        },
-                        "workdir": {
-                          "type": "string",
-                          "description": "For containers. The value passed to docker exec for the working directory."
                         }
                       }
                     }
