@@ -1685,7 +1685,7 @@ class DebugSession( object ):
   def _GetDockerCommand( self, remote ):
     docker = [ 'docker', 'exec', '-t' ]
     if 'docker_args' in remote:
-        docker += remote['docker_args']
+       docker += remote[ 'docker_args' ]
     docker.append( remote[ 'container' ] )
     return docker
 
