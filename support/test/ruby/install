@@ -1,0 +1,4 @@
+# First, make sure that ruby 3 is in your path
+
+bundle install
+bundle binstubs --force debug
