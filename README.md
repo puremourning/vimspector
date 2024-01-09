@@ -738,9 +738,15 @@ let g:vimspector_enable_mappings = 'VISUAL_STUDIO'
 | `F9`            | `<Plug>VimspectorToggleBreakpoint`      | Toggle line breakpoint on the current line.
 | `Shift F9`      | `<Plug>VimspectorAddFunctionBreakpoint` | Add a function breakpoint for the expression under cursor
 | `F10`           | `<Plug>VimspectorStepOver`              | Step Over
+| `Ctrl F10`      | `<Plug>VimspectorRunToCursor`           | Run to cursor*
 | `F11`           | `<Plug>VimspectorStepInto`              | Step Into
 | `Shift F11`     | `<Plug>VimspectorStepOut`               | Step out of current function scope
 | `Alt 8`         | `<Plug>VimspectorDisassemble`           | Show disassembly
+
+***NOTE: Some mappings, such as ctrl and F-keys may not work depending on your
+terminal, keyboard, windowing system and all sorts of other things.
+See `:help modifyOtherKeys` and other sources. If you are unable to make this
+work, just use the "human mode" mappings.***
 
 ## Human Mode
 
