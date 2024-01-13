@@ -10,12 +10,15 @@
         "stopOnEntry": false,
         "type": "pwa-node"
       },
+      // 'breakpoints' is an optional part. This is a way to configure exception
+      // breakpoints. You can leave this out or set as you prefer.
       "breakpoints": {
         "exception": {
-          "all": "",
-          "uncaught": ""
+          "all": "N",
+          "uncaught": "N"
         }
       }
     }
   }
 }
+
