@@ -2152,13 +2152,15 @@ This uses [vscode-js-debug](https://github.com/microsoft/vscode-js-debug), the
 debugger that is used in vscode as well. For additional configurations, check
 the documentation [here](https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md).
 
-To install vscode-js-debug, run `install_gadget.py --force-enable-node`. There
-are multiple examples which you can check out. Find them under
+To install vscode-js-debug, run `VimspectorInstall vscode-js-debug` from vim or
+run the install script `install_gadget.py --force-enable-node`. There are
+multiple examples which you can check out. Find them under
 `support/test/node/simple`, `support/test/node/multiprocess` and
 `support/test/node/typescript`. A typical configuration for debugging typescript
 looks like this:
 
 ```json
+
 {
   "configurations": {
     "run - js-debug": {
@@ -2171,15 +2173,18 @@ looks like this:
         "stopOnEntry": false,
         "type": "pwa-node"
       },
+      // 'breakpoints' is an optional part. This is a way to configure exception
+      // breakpoints. You can leave this out or set as you prefer.
       "breakpoints": {
         "exception": {
-          "all": "",
-          "uncaught": ""
+          "all": "N",
+          "uncaught": "N"
         }
       }
     }
   }
 }
+
 ```
 
 `vscode-js-debug` supports a number of different "types" and can do some stuff
