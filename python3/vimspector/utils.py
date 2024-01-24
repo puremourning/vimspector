@@ -83,7 +83,13 @@ def BufferExists( file_name ):
 def BufferLineValue( file_name: str, line_num: int ) -> str:
   if not BufferExists( file_name ):
     return ''
-  Call( 'bufload', file_name )
+
+  try:
+    Call( 'bufload', file_name )
+  except vim.error as e:
+    if 'E325' not in str( e ):
+      raise e
+
   buf = BufferForFile( file_name )
   try:
     return buf[ line_num - 1 ]
