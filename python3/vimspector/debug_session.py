@@ -1075,6 +1075,14 @@ class DebugSession( object ):
   def DownFrame( self ):
     self._stackTraceView.DownFrame()
 
+  @IfConnected()
+  def ExpandAllThreads( self ):
+    self._stackTraceView.ExpandAllThreads()
+
+  @IfConnected()
+  def CollapseAllThreads( self ):
+    self._stackTraceView.CollapseAllThreads()
+
   def ToggleLog( self ):
     if self.HasUI():
       return self.ShowOutput( 'Vimspector' )

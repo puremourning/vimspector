@@ -96,6 +96,8 @@ DEFAULTS = {
     'stack_trace': {
       'expand_or_jump': [ '<CR>', '<2-LeftMouse>' ],
       'focus_thread': [ '<leader><CR>' ],
+      'expand_all': [ 'zR' ],
+      'collapse_all': [ 'zM' ],
     },
     'breakpoints': {
       'toggle': [ 't', '<F9>' ],

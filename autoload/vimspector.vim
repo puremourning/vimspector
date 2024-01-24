@@ -453,6 +453,20 @@ function! vimspector#GoToFrame() abort
   py3 _vimspector_session.ExpandFrameOrThread()
 endfunction
 
+function! vimspector#ExpandAllThreads() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.ExpandAllThreads()
+endfunction
+
+function! vimspector#CollapseAllThreads() abort
+  if !s:Enabled()
+    return
+  endif
+  py3 _vimspector_session.CollapseAllThreads()
+endfunction
+
 function! vimspector#UpFrame() abort
   if !s:Enabled()
     return
