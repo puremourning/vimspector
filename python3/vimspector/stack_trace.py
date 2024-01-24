@@ -140,6 +140,14 @@ class StackTraceView( object ):
         vim.command( f'nnoremap <silent> <buffer> { mapping } '
                      ':<C-U>call vimspector#GoToFrame()<CR>' )
 
+      for mapping in utils.GetVimList( mappings, 'expand_all' ):
+        vim.command( f'nnoremap <silent> <buffer> { mapping } '
+                     ':<C-U>call vimspector#ExpandAllThreads()<CR>' )
+
+      for mapping in utils.GetVimList( mappings, 'collapse_all' ):
+        vim.command( f'nnoremap <silent> <buffer> { mapping } '
+                     ':<C-U>call vimspector#CollapseAllThreads()<CR>' )
+
       for mapping in utils.GetVimList( mappings, 'focus_thread' ):
         vim.command( f'nnoremap <silent> <buffer> { mapping } '
                      ':<C-U>call vimspector#SetCurrentThread()<CR>' )
@@ -454,6 +462,24 @@ class StackTraceView( object ):
       thread, frame = self._line_to_frame[ vim.current.window.cursor[ 0 ] ]
       self._JumpToFrame( thread, frame )
 
+
+  def ExpandAllThreads( self ):
+    for session in self._sessions:
+      for thread in session.threads:
+        if not thread.IsExpanded() and thread.CanExpand():
+          self._LoadStackTrace( thread, False )
+
+
+  def CollapseAllThreads( self ):
+    changed = False
+    for session in self._sessions:
+      for thread in session.threads:
+        if thread.IsExpanded():
+          changed = True
+          thread.Collapse()
+
+    if changed:
+      self._DrawThreads()
 
 
   def _GetFrameOffset( self, delta ):
