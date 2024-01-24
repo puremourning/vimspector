@@ -355,6 +355,8 @@ class VariablesView( object ):
         found = False
         for index, s in enumerate( self._scopes ):
           if ( s.connection == connection and
+               # FIXME: If scopes have same name, this doesn't work.
+               # FIXME: We shoudl check variablesReference too (or... instead?)
                s.scope[ 'name' ] == scope_body[ 'name' ] ):
             found = True
             scope = s

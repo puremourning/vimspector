@@ -710,8 +710,7 @@ def ExpandReferencesInString( orig_s,
               default_value = e.default_value
 
         mapping[ key ] = AskForInput( 'Enter value for {}: '.format( key ),
-                                      default_value,
-                                      'file' )
+                                      default_value )
 
         if mapping[ key ] is None:
           raise KeyboardInterrupt
