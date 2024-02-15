@@ -176,6 +176,10 @@ class Watch:
     elif self.connection != connection:
       return
 
+    if frame is None:
+      # Evaluation in a context where there is no current frame.
+      return
+
     self.expression[ 'frameId' ] = frame[ 'id' ]
 
   @staticmethod
