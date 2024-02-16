@@ -1792,6 +1792,7 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
 1. To use the ["custom" launch](https://github.com/vadimcn/vscode-lldb/blob/master/MANUAL.md#custom-launch), you can't use `"request": "custom"` - this is invalid. Instead use `"request": "launch", "custom": true`. Because [reasons](https://github.com/vadimcn/vscode-lldb/blob/master/extension/main.ts#L397-L401)
 2. All the integration with `cargo` is done in the vscode javascript madness, so is not supported.
 3. The stuff about [remote agents](https://github.com/vadimcn/vscode-lldb/blob/master/MANUAL.md#connecting-to-a-gdbserver-style-agent) uses `"request": custom`; see the point about "custom" launch above
+4. Source Mapping (i.e., enabling `step-into` for standard library functions) can be done by adding `"sourceMap": { "from_path" : "to_path" }`. `"from_path"` can be found in disassembly window by going up in the stack trace; `"to_path"` is just your locally installed standard library path for current toolchain.
 
 ## Jai
 
