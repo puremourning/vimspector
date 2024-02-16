@@ -130,6 +130,7 @@ if s:mappings ==# 'VISUAL_STUDIO'
   nmap <F9>         <Plug>VimspectorToggleBreakpoint
   nmap <S-F9>       <Plug>VimspectorAddFunctionBreakpoint
   nmap <F10>        <Plug>VimspectorStepOver
+  nmap <C-F10>      <Plug>VimspectorRunToCursor
   nmap <F11>        <Plug>VimspectorStepInto
   nmap <S-F11>      <Plug>VimspectorStepOut
   nmap <M-8>        <Plug>VimspectorDisassemble
