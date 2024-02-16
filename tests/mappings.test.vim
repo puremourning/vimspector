@@ -45,6 +45,7 @@ function! Test_Mappings_Are_Added_VISUAL_STUDIO()
   call assert_true( hasmapto( 'vimspector#StepOver()' ) )
   call assert_true( hasmapto( 'vimspector#StepInto()' ) )
   call assert_true( hasmapto( 'vimspector#StepOut()' ) )
+  call assert_true( hasmapto( 'vimspector#RunToCursor()' ) )
 endfunction
 
 function! SetUp_Test_Use_Mappings_HUMAN()
