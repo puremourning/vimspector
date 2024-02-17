@@ -113,6 +113,11 @@
                   "type": "string",
                   "description": "Name or container id of the docker run container to connect to (via docker exec). Note the container must already be running (Vimspector will not start it) and it must have the port forwarded to the host if subsequently connecting via a port (for example <tt>docker run -p 8765:8765 -it simple_python</tt>)."
                 },
+                "docker_args": {
+                  "type": "array",
+                  "items": {"type": "string"},
+                  "description": "Extra command line args to pass to docker exec."
+                },
                 "ssh": {
                   "type": "object",
                   "description": "Optional to customize the ssh client and its arguments to execute for remote-launch or remote-attach.",
