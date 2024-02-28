@@ -176,6 +176,10 @@ class Watch:
     elif self.connection != connection:
       return
 
+    if frame is None:
+      # Evaluation in a context where there is no current frame.
+      return
+
     self.expression[ 'frameId' ] = frame[ 'id' ]
 
   @staticmethod
@@ -671,7 +675,7 @@ class VariablesView( object ):
     # Get a memoryReference for use in a ReadMemory request
     variable, _ = self._GetVariable( None, None )
     if variable is None:
-      return None
+      return None, None
 
     # TODO: Return the connection too!
     return variable.connection, variable.MemoryReference()

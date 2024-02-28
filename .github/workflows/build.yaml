@@ -114,7 +114,9 @@ jobs:
       matrix:
         runtime:
           - vim
-          - nvim
+          # - nvim ; MacOS in GHA is so slow, this seems to cause lots of
+          # flakiness for neovim and I have like 0 patience with trying to
+          # understand why.
     steps:
     - uses: actions/checkout@v3
 

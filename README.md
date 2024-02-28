@@ -738,9 +738,15 @@ let g:vimspector_enable_mappings = 'VISUAL_STUDIO'
 | `F9`            | `<Plug>VimspectorToggleBreakpoint`      | Toggle line breakpoint on the current line.
 | `Shift F9`      | `<Plug>VimspectorAddFunctionBreakpoint` | Add a function breakpoint for the expression under cursor
 | `F10`           | `<Plug>VimspectorStepOver`              | Step Over
+| `Ctrl F10`      | `<Plug>VimspectorRunToCursor`           | Run to cursor*
 | `F11`           | `<Plug>VimspectorStepInto`              | Step Into
 | `Shift F11`     | `<Plug>VimspectorStepOut`               | Step out of current function scope
 | `Alt 8`         | `<Plug>VimspectorDisassemble`           | Show disassembly
+
+***NOTE: Some mappings, such as ctrl and F-keys may not work depending on your
+terminal, keyboard, windowing system and all sorts of other things.
+See `:help modifyOtherKeys` and other sources. If you are unable to make this
+work, just use the "human mode" mappings.***
 
 ## Human Mode
 
@@ -1786,6 +1792,7 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
 1. To use the ["custom" launch](https://github.com/vadimcn/vscode-lldb/blob/master/MANUAL.md#custom-launch), you can't use `"request": "custom"` - this is invalid. Instead use `"request": "launch", "custom": true`. Because [reasons](https://github.com/vadimcn/vscode-lldb/blob/master/extension/main.ts#L397-L401)
 2. All the integration with `cargo` is done in the vscode javascript madness, so is not supported.
 3. The stuff about [remote agents](https://github.com/vadimcn/vscode-lldb/blob/master/MANUAL.md#connecting-to-a-gdbserver-style-agent) uses `"request": custom`; see the point about "custom" launch above
+4. Source Mapping (i.e., enabling `step-into` for standard library functions) can be done by adding `"sourceMap": { "from_path" : "to_path" }`. `"from_path"` can be found in disassembly window by going up in the stack trace; `"to_path"` is just your locally installed standard library path for current toolchain.
 
 ## Jai
 

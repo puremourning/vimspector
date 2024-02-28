@@ -329,7 +329,8 @@ class DebugSession( object ):
               self._api_prefix,
               False, # Don't leave open
               *shlex.split( response ),
-              then = lambda: self.Start( new_launch_variables ) )
+              then = lambda: self.Start(
+                launch_variables = new_launch_variables ) )
             return
           elif response is None:
             return
@@ -371,7 +372,8 @@ class DebugSession( object ):
               self._api_prefix,
               False, # Don't leave open
               *shlex.split( response ),
-              then = lambda: self.Start( new_launch_variables ) )
+              then = lambda: self.Start(
+                launch_variables = new_launch_variables ) )
             return
           elif response is None:
             return
