@@ -962,6 +962,8 @@ loading vimspector**:
 ----------------------------------------------------------------------------------------------------------------------------
 | 'F10'           | '<Plug>VimspectorStepOver'                 | Step Over                                                 |
 ----------------------------------------------------------------------------------------------------------------------------
+| 'Ctrl F10'      | '<Plug>VimspectorRunToCursor'              | Run to cursor*                                            |
+----------------------------------------------------------------------------------------------------------------------------
 | 'F11'           | '<Plug>VimspectorStepInto'                 | Step Into                                                 |
 ----------------------------------------------------------------------------------------------------------------------------
 | 'Shift F11'     | '<Plug>VimspectorStepOut'                  | Step out of current function scope                        |
@@ -969,6 +971,11 @@ loading vimspector**:
 | 'Alt 8'         | '<Plug>VimspectorDisassemble'              | Show disassembly                                          |
 ----------------------------------------------------------------------------------------------------------------------------
 
+
+**_NOTE: Some mappings, such as ctrl and F-keys may not work depending on your
+terminal, keyboard, windowing system and all sorts of other things. See ':help
+modifyOtherKeys' and other sources. If you are unable to make this work, just
+use the "human mode" mappings._**
 
 -------------------------------------------------------------------------------
                                                         *vimspector-human-mode*
@@ -2116,6 +2123,12 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
 
 - The stuff about remote agents [42] uses '"request": custom'; see the point
   about "custom" launch above
+
+- Source Mapping (i.e., enabling 'step-into' for standard library functions)
+  can be done by adding '"sourceMap": { "from_path" : "to_path" }'.
+  '"from_path"' can be found in disassembly window by going up in the stack
+  trace; '"to_path"' is just your locally installed standard library path for
+  current toolchain.
 
 -------------------------------------------------------------------------------
                                                                *vimspector-jai*

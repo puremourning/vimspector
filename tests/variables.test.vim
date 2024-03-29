@@ -19,15 +19,15 @@ function! ConsoleBufferName()
 endfunction
 
 function! s:StartDebugging( ... )
-  if a:0 == 0
-    let config = #{
-          \   fn: s:fn,
-          \   line: 23,
-          \   col: 1,
-          \   launch: #{ configuration: 'run' }
-          \ }
-  else
-    let config = a:1
+  let config = #{
+        \   fn: s:fn,
+        \   line: 23,
+        \   col: 1,
+        \   launch: #{ configuration: 'run' }
+        \ }
+
+  if a:0 > 0
+    call extend( config, a:1 )
   endif
 
   execute 'edit' config.fn
@@ -1257,6 +1257,46 @@ EOF
         \       ' + another_test: ',
         \     ],
         \     getbufline( winbufnr( g:vimspector_session_windows.eval ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+function! Test_WatchAfterExit()
+  call s:StartDebugging( #{
+        \ col: v:null,
+        \ line: 3,
+        \ fn: 'testdata/cpp/simple/tiny.c',
+        \ launch: #{ configuration: 'CodeLLDB' }
+        \ } )
+
+  call vimspector#Continue()
+  call WaitForAssert( {->
+        \   AssertMatchList(
+        \     [
+        \         '+ Thread [0-9]\+: .* (terminated)',
+        \     ],
+        \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
+        \                 1,
+        \                 '$' )
+        \   )
+        \ } )
+
+  " Add a wtch
+  call vimspector#AddWatch( 'res' )
+
+  call WaitForAssert( {->
+        \   AssertMatchList(
+        \     [
+        \       'Watches: ----',
+        \       'Expression: res',
+        \       ' \*- Result: .*',
+        \     ],
+        \     getbufline( winbufnr( g:vimspector_session_windows.watches ),
         \                 1,
         \                 '$' )
         \   )
