@@ -15,9 +15,8 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Other languages](#other-languages)
  * [Installation](#installation)
     * [Quick Start](#quick-start)
-       * [Method 1: Using a release tarball and Vim packages](#method-1-using-a-release-tarball-and-vim-packages)
-       * [Method 2: Using a repo clone, Vim packages and select gadgets to be installed](#method-2-using-a-repo-clone-vim-packages-and-select-gadgets-to-be-installed)
-       * [Method 3: Using a plugin manager](#method-3-using-a-plugin-manager)
+       * [Method 1: Using a repo clone, Vim packages and select gadgets to be installed](#method-2-using-a-repo-clone-vim-packages-and-select-gadgets-to-be-installed)
+       * [Method 2: Using a plugin manager](#method-3-using-a-plugin-manager)
     * [Dependencies](#dependencies)
        * [Neovim limitations](#neovim-limitations)
        * [Windows differences](#windows-differences)
@@ -201,37 +200,12 @@ To use Vimspector with a language that's not "built-in", see this
 
 ## Quick Start
 
-There are 3 installation methods:
+There are 2 installation methods:
 
-* Using a release tarball and Vim packages
 * Using a repo clone and Vim packages
 * Using a plugin manager
 
-### Method 1: Using a release tarball and Vim packages
-
-Release tarballs come with debug adapters for the default languages
-pre-packaged. To use a release tarball:
-
-1. [Check the dependencies](#dependencies)
-2. Untar the release tarball for your OS into `$HOME/.vim/pack`:
-
-   ```bash
-   $ mkdir -p $HOME/.vim/pack
-   $ curl -L <url> | tar -C $HOME/.vim/pack zxvf -
-   ```
-
-3. Add `packadd! vimspector` to your `.vimrc`
-
-4. (optionally) Enable the default set of mappings:
-
-   ```vim
-   let g:vimspector_enable_mappings = 'HUMAN'
-   ```
-
-5. Configure your project's debug profiles (create `.vimspector.json`, or set
-   `g:vimspector_configurations`) - see the [reference guide][vimspector-ref]
-
-### Method 2: Using a repo clone, Vim packages and select gadgets to be installed
+### Method 1: Using a repo clone, Vim packages and select gadgets to be installed
 
 1. [Check the dependencies](#dependencies)
 1. Install the plugin as a Vim package. See `:help packages`.
@@ -240,7 +214,7 @@ pre-packaged. To use a release tarball:
 3. Configure your project's debug profiles (create `.vimspector.json`, or set
    `g:vimspector_configurations`) - see the [reference guide][vimspector-ref]
 
-### Method 3: Using a plugin manager
+### Method 2: Using a plugin manager
 
 1. [Check the dependencies](#dependencies)
 1. See the plugin manager's docs and install the plugin
@@ -315,10 +289,7 @@ which can be used to check everything is working. This is used by the regression
 tests in CI so should always work, and is a good way to check if the problem is
 your configuration rather than a bug.
 
-## Cloning the plugin
-
-If you're not using a release tarball, you'll need to clone this repo to the
-appropriate place.
+## Installing the plugin
 
 1. Clone the plugin
 
@@ -363,8 +334,6 @@ In order for Vimspector to be useful, you need to have some adapters installed.
 
 There are a few ways to do this:
 
-* If you downloaded a tarball, gadgets for main supported languages are already
-  installed for you.
 * Using `:VimspectorInstall <adapter> <args...>` (use TAB `wildmenu` to see the
   options, also accepts any `install_gadget.py` option)
 * Using `python3 install_gadget.py <args>` (use `--help` to see all options)
@@ -828,10 +797,8 @@ like a very very simple clone of `ps` but works on all the supported platforms.
 See [its README](support/vimspector_process_list/README.md) for instructions on
 setting it up.
 
-In short:
-
-- If you used a tarball installation, you don't need to do anything.
-- Otherwise, run `go build` in the `support/vimspector_process_list` directory
+Run `go build` in the `support/vimspector_process_list` directory to set it
+up.
 
 If Vimspector is able to find this app, it will try to list all processes owned
 by the current user by default.
