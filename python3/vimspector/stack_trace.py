@@ -31,7 +31,6 @@ if TYPE_CHECKING:
 class ThreadRequestState:
   NO = 0
   REQUESTING = 1
-  PENDING = 2
 
 
 class Thread:
@@ -94,7 +93,7 @@ class Session( object ):
   threads: typing.List[ Thread ]
   session: "DebugSession"
   requesting_threads = ThreadRequestState.NO
-  pending_thread_request = None
+  pending_thread_requests = []
   sources: dict
 
   def __init__( self, session: "DebugSession" ):
@@ -245,24 +244,22 @@ class StackTraceView( object ):
       return
 
     if s.requesting_threads != ThreadRequestState.NO:
-      s.requesting_threads = ThreadRequestState.PENDING
-      s.pending_thread_request = ( infer_current_frame,
-                                   reason,
-                                   stopEvent )
+      s.pending_thread_requests.append(
+        ( infer_current_frame, reason, stopEvent )
+      )
       return
 
     def consume_threads( message ):
+      s.requesting_threads = ThreadRequestState.NO
+
       requesting = False
-      if s.requesting_threads == ThreadRequestState.PENDING:
+      if s.pending_thread_requests:
         # We may have hit a thread event, so try again.
         # Note that we do have to process this message though to ensure that our
         # thread states are all correct.
-        s.requesting_threads = ThreadRequestState.NO
-        self.LoadThreads( s.session, *s.pending_thread_request )
+        next_request = s.pending_thread_requests.pop( 0 )
+        self.LoadThreads( s.session, *next_request )
         requesting = True
-
-      s.requesting_threads = ThreadRequestState.NO
-      s.pending_thread_request = None
 
       if not ( message.get( 'body' ) or {} ).get( 'threads' ):
         # This is a protocol error. It is required to return at least one!
@@ -324,7 +321,12 @@ class StackTraceView( object ):
     def failure_handler( reason, msg ):
       # Make sure we request them again if the request fails
       s.requesting_threads = ThreadRequestState.NO
-      s.pending_thread_request = None
+      if s.pending_thread_requests:
+        # We may have hit a thread event, so try again.
+        # Note that we do have to process this message though to ensure that our
+        # thread states are all correct.
+        next_request = s.pending_thread_requests.pop( 0 )
+        self.LoadThreads( s.session, *next_request )
 
     s.requesting_threads = ThreadRequestState.REQUESTING
     debug_session.Connection().DoRequest( consume_threads, {

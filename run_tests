@@ -306,7 +306,7 @@ while true; do
     pushd ${TESTDIR} > /dev/null
       RUN="${RUN_TEST} --cmd \"${BASEDIR_CMD}\" \
                        --cmd 'au SwapExists * let v:swapchoice = \"e\"'\
-                       $tt $T"
+                       '$tt' '$T'"
 
       if ${ASCIINEMA} rec -q --cols $SCREENCOLS --rows $SCREENROWS --overwrite --command "${RUN}" $t.cast >&3 && [ -f $t.res ];  then
         echo "%PASS: $t PASSED"
