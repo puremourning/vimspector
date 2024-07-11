@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import functools
-from platform import system
 import typing
 import os
 from collections.abc import Mapping
@@ -96,8 +95,6 @@ def override( target_dict: typing.MutableMapping,
       target_dict[ key ] = value
 
   return target_dict
-
-
 
 
 # NOTE:for windows "D:\src\main.c", "d:\src\main.c"
