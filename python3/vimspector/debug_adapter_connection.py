@@ -1,3 +1,4 @@
+
 # vimspector - A multi-language debugging system for Vim
 # Copyright 2018 Ben Jackson
 #
@@ -272,57 +273,61 @@ class DebugAdapterConnection( object ):
     if not self._handlers:
       return
 
-    if message[ 'type' ] == 'response':
-      try:
-        request = self._outstanding_requests.pop( message[ 'request_seq' ] )
-      except KeyError:
-        # Sigh. It looks like the ms python debug adapter sends duplicate
-        # initialize responses.
-        utils.UserMessage(
-          "Protocol error: duplicate response for request {}".format(
-            message[ 'request_seq' ] ) )
-        self._logger.exception( 'Duplicate response: {}'.format( message ) )
-        return
 
-      _KillTimer( request )
-
-      if message[ 'success' ]:
-        if request.handler:
-          request.handler( message )
-      else:
-        reason = message.get( 'message' )
-        error = message.get( 'body', {} ).get( 'error', {} )
-        if error:
+    if message.__contains__('type'):
+        if message[ 'type' ] == 'response':
           try:
-            fmt = error[ 'format' ]
-            variables = error.get( 'variables', {} )
-            reason = fmt.format( **variables )
-          except Exception:
-            self._logger.exception( "Failed to parse error, using default: %s",
-                                    error )
+            request = self._outstanding_requests.pop( message[ 'request_seq' ] )
+          except KeyError:
+            # Sigh. It looks like the ms python debug adapter sends duplicate
+            # initialize responses.
+            utils.UserMessage(
+              "Protocol error: duplicate response for request {}".format(
+                message[ 'request_seq' ] ) )
+            self._logger.exception( 'Duplicate response: {}'.format( message ) )
+            return
 
-        if request.failure_handler:
-          self._logger.info( 'Request failed (handled): %s', reason )
-          request.failure_handler( reason, message )
-        else:
-          self._logger.error( 'Request failed (unhandled): %s', reason )
+          _KillTimer( request )
+
+          if message[ 'success' ]:
+            if request.handler:
+              request.handler( message )
+          else:
+            reason = message.get( 'message' )
+            error = message.get( 'body', {} ).get( 'error', {} )
+            if error:
+              try:
+                fmt = error[ 'format' ]
+                variables = error.get( 'variables', {} )
+                reason = fmt.format( **variables )
+              except Exception:
+                self._logger.exception( "Failed to parse error, using default: %s",
+                                        error )
+
+            if request.failure_handler:
+              self._logger.info( 'Request failed (handled): %s', reason )
+              request.failure_handler( reason, message )
+            else:
+              self._logger.error( 'Request failed (unhandled): %s', reason )
+              for h in self._handlers:
+                if 'OnFailure' in dir( h ):
+                  if h.OnFailure( reason, request.msg, message ):
+                    break
+
+        elif message[ 'type' ] == 'event':
+          method = 'OnEvent_' + message[ 'event' ]
           for h in self._handlers:
-            if 'OnFailure' in dir( h ):
-              if h.OnFailure( reason, request.msg, message ):
+            if method in dir( h ):
+              if getattr( h, method )( message ):
                 break
-
-    elif message[ 'type' ] == 'event':
-      method = 'OnEvent_' + message[ 'event' ]
-      for h in self._handlers:
-        if method in dir( h ):
-          if getattr( h, method )( message ):
-            break
-    elif message[ 'type' ] == 'request':
-      method = 'OnRequest_' + message[ 'command' ]
-      for h in self._handlers:
-        if method in dir( h ):
-          if getattr( h, method )( message ):
-            break
+        elif message[ 'type' ] == 'request':
+          method = 'OnRequest_' + message[ 'command' ]
+          for h in self._handlers:
+            if method in dir( h ):
+              if getattr( h, method )( message ):
+                break
+    else:
+        self._logger.warn("expect 'type' in message:",message)
 
 
 def _KillTimer( request ):
