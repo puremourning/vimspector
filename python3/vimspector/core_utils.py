@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import functools
+from platform import system
 import typing
 import os
 from collections.abc import Mapping
@@ -97,6 +98,14 @@ def override( target_dict: typing.MutableMapping,
   return target_dict
 
 
+
+
+# NOTE:for windows "D:\src\main.c", "d:\src\main.c"
+# are the same path and all of them are valid
 def NormalizePath( filepath ):
   absolute_path = os.path.abspath( filepath )
+  if os.name == "nt":
+    driver = absolute_path[0]
+    if driver.islower() and absolute_path[1] == ':' :
+      absolute_path = driver.upper() + absolute_path[1:]  #.replace(driver,,1)
   return absolute_path if os.path.isfile( absolute_path ) else filepath
