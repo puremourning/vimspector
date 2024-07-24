@@ -270,7 +270,7 @@ The following features are not implemented for Windows:
 If you just want to try out vimspector without changing your vim config, there
 are example projects for a number of languages in `support/test`, including:
 
-* Python ([support/test/python/simple_python](support/test/python/simple_python))
+* Python `([support/test/python/simple_python](support/test/python/simple_python))`
 * Go ([support/test/go/hello_world](support/test/go/hello_world) and [support/test/go/name-starts-with-vowel](support/test/go/name-starts-with-vowel))
 * Nodejs ([support/test/node/simple](support/test/node/simple))
 * Chrome/Firefox ([support/test/web](support/test/web))
