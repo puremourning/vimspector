@@ -433,11 +433,10 @@ Trying it out ~
 If you just want to try out vimspector without changing your vim config, there
 are example projects for a number of languages in 'support/test', including:
 
-- Python ('support/test/python/simple_python')
-- Go ('support/test/go/hello_world' and
-  'support/test/go/name-starts-with-vowel')
-- Nodejs ('support/test/node/simple')
-- Chrome/Firefox ('support/test/web/')
+- Python (support/test/python/simple_python)
+- Go (support/test/go/hello_world and support/test/go/name-starts-with-vowel)
+- Nodejs (support/test/node/simple)
+- Chrome/Firefox (support/test/web)
 - etc.
 
 To test one of these out, cd to the directory and run:
