@@ -87,18 +87,7 @@ jobs:
         name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
         path: 'tests/logs/**/*'
 
-    - name: 'Package'
-      if: matrix.runtime == 'vim'
-      run: ./make_package linux ${{ github.run_id }}
-
     # TODO: test the tarball
-
-    - name: "Upload package"
-      if: matrix.runtime == 'vim'
-      uses: actions/upload-artifact@v2
-      with:
-        name: 'package-linux'
-        path: 'package/linux-${{ github.run_id }}.tar.gz'
 
     # - name: Start SSH session if failed
     #   uses: luchihoratiu/debug-via-ssh@main
@@ -180,18 +169,7 @@ jobs:
         name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
         path: 'tests/logs/**/*'
 
-    - name: 'Package'
-      if: matrix.runtime == 'vim'
-      run: ./make_package macos ${{ github.run_id }}
-
     # TODO: test the tarball
-
-    - name: "Upload package"
-      if: matrix.runtime == 'vim'
-      uses: actions/upload-artifact@v2
-      with:
-        name: 'package-macos'
-        path: 'package/macos-${{ github.run_id }}.tar.gz'
 
     # - name: Start SSH session if failed
     #  uses: luchihoratiu/debug-via-ssh@main
@@ -199,47 +177,3 @@ jobs:
     #  with:
     #    NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
     #    SSH_PASS: ${{ secrets.SSH_PASS }}
-
-  PublishRelease:
-    runs-on: 'ubuntu-20.04'
-    needs:
-      - Linux
-      - MacOS
-    if: github.ref == 'refs/heads/master'
-    steps:
-    - name: 'Download artifacts'
-      id: download_artifacts
-      uses: actions/download-artifact@v2
-
-    - name: 'Create Release'
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.run_id }}
-        release_name: Build ${{ github.run_id }}
-        draft: false
-        prerelease: true
-
-    - name: 'Upload Linux Package'
-      id: upload-release-asset-linux
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ steps.download_artifacts.outputs.download-path }}/package-linux/linux-${{ github.run_id }}.tar.gz
-        asset_name: vimspector-linux-${{ github.run_id }}.tar.gz
-        asset_content_type: application/gzip
-
-    - name: 'Upload MacOS Package'
-      id: upload-release-asset-macos
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ steps.download_artifacts.outputs.download-path }}/package-macos/macos-${{ github.run_id }}.tar.gz
-        asset_name: vimspector-macos-${{ github.run_id }}.tar.gz
-        asset_content_type: application/gzip

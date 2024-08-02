@@ -1,0 +1,24 @@
+{
+  "configurations": {
+    "run - js-debug": {
+      "adapter": "js-debug",
+      "filetypes": [ "javascript", "typescript" ],
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/src/index.ts",
+        "cwd": "${workspaceRoot}",
+        "stopOnEntry": false,
+        "type": "pwa-node"
+      },
+      // 'breakpoints' is an optional part. This is a way to configure exception
+      // breakpoints. You can leave this out or set as you prefer.
+      "breakpoints": {
+        "exception": {
+          "all": "N",
+          "uncaught": "N"
+        }
+      }
+    }
+  }
+}
+

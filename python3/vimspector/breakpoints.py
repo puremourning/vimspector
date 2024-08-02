@@ -959,7 +959,8 @@ class ProjectBreakpoints( object ):
           failure_handler = response_received
         )
 
-    if self._disassembly_manager:
+    if self._disassembly_manager and self._server_capabilities.get(
+      'supportsInstructionBreakpoints' ):
       for connection in self._connections:
         breakpoints = []
         bp_idxs = []

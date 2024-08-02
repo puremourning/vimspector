@@ -794,26 +794,23 @@ class DebugSession( object ):
   @CurrentSession()
   @IfConnected()
   def StepOver( self, **kwargs ):
-    if self._stackTraceView.GetCurrentThreadId() is None:
+    threadId = self._stackTraceView.GetCurrentThreadId()
+    if threadId is None:
       return
 
+    def handler( *_ ):
+      self._stackTraceView.OnContinued( self, { 'threadId': threadId } )
+      self.ClearCurrentPC()
+
     arguments = {
-      'threadId': self._stackTraceView.GetCurrentThreadId(),
+      'threadId': threadId,
       'granularity': self._CurrentSteppingGranularity(),
     }
     arguments.update( kwargs )
-
-    if not self._server_capabilities.get( 'supportsSteppingGranularity' ):
-      arguments.pop( 'granularity' )
-
-    self._connection.DoRequest( None, {
+    self._connection.DoRequest( handler, {
       'command': 'next',
       'arguments': arguments,
     } )
-
-    # TODO: WHy is this different from StepInto and StepOut
-    self._stackTraceView.OnContinued( self )
-    self.ClearCurrentPC()
 
   @CurrentSession()
   @IfConnected()
