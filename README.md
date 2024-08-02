@@ -15,9 +15,8 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Other languages](#other-languages)
  * [Installation](#installation)
     * [Quick Start](#quick-start)
-       * [Method 1: Using a release tarball and Vim packages](#method-1-using-a-release-tarball-and-vim-packages)
-       * [Method 2: Using a repo clone, Vim packages and select gadgets to be installed](#method-2-using-a-repo-clone-vim-packages-and-select-gadgets-to-be-installed)
-       * [Method 3: Using a plugin manager](#method-3-using-a-plugin-manager)
+       * [Method 1: Using a repo clone, Vim packages and select gadgets to be installed](#method-2-using-a-repo-clone-vim-packages-and-select-gadgets-to-be-installed)
+       * [Method 2: Using a plugin manager](#method-3-using-a-plugin-manager)
     * [Dependencies](#dependencies)
        * [Neovim limitations](#neovim-limitations)
        * [Windows differences](#windows-differences)
@@ -90,7 +89,7 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [PHP](#php)
        * [Debug web application](#debug-web-application)
        * [Debug cli application](#debug-cli-application)
-    * [JavaScript, TypeScript, etc.](#javascript-typescript-etc)
+    * [JavaScript and TypeScript](#javascript-and-typescript)
     * [Java](#java)
        * [Hot code replace](#hot-code-replace)
        * [Usage with YouCompleteMe](#usage-with-youcompleteme)
@@ -201,37 +200,12 @@ To use Vimspector with a language that's not "built-in", see this
 
 ## Quick Start
 
-There are 3 installation methods:
+There are 2 installation methods:
 
-* Using a release tarball and Vim packages
 * Using a repo clone and Vim packages
 * Using a plugin manager
 
-### Method 1: Using a release tarball and Vim packages
-
-Release tarballs come with debug adapters for the default languages
-pre-packaged. To use a release tarball:
-
-1. [Check the dependencies](#dependencies)
-2. Untar the release tarball for your OS into `$HOME/.vim/pack`:
-
-   ```bash
-   $ mkdir -p $HOME/.vim/pack
-   $ curl -L <url> | tar -C $HOME/.vim/pack zxvf -
-   ```
-
-3. Add `packadd! vimspector` to your `.vimrc`
-
-4. (optionally) Enable the default set of mappings:
-
-   ```vim
-   let g:vimspector_enable_mappings = 'HUMAN'
-   ```
-
-5. Configure your project's debug profiles (create `.vimspector.json`, or set
-   `g:vimspector_configurations`) - see the [reference guide][vimspector-ref]
-
-### Method 2: Using a repo clone, Vim packages and select gadgets to be installed
+### Method 1: Using a repo clone, Vim packages and select gadgets to be installed
 
 1. [Check the dependencies](#dependencies)
 1. Install the plugin as a Vim package. See `:help packages`.
@@ -240,10 +214,10 @@ pre-packaged. To use a release tarball:
 3. Configure your project's debug profiles (create `.vimspector.json`, or set
    `g:vimspector_configurations`) - see the [reference guide][vimspector-ref]
 
-### Method 3: Using a plugin manager
+### Method 2: Using a plugin manager
 
 1. [Check the dependencies](#dependencies)
-1. See the plugin manager's docs and install the plugin  
+1. See the plugin manager's docs and install the plugin
    For Vundle, use:
 
    ```vim
@@ -296,10 +270,10 @@ The following features are not implemented for Windows:
 If you just want to try out vimspector without changing your vim config, there
 are example projects for a number of languages in `support/test`, including:
 
-* Python (`support/test/python/simple_python`)
-* Go (`support/test/go/hello_world` and `support/test/go/name-starts-with-vowel`)
-* Nodejs (`support/test/node/simple`)
-* Chrome/Firefox (`support/test/web/`)
+* Python ([support/test/python/simple_python](support/test/python/simple_python))
+* Go ([support/test/go/hello_world](support/test/go/hello_world) and [support/test/go/name-starts-with-vowel](support/test/go/name-starts-with-vowel))
+* Nodejs ([support/test/node/simple](support/test/node/simple))
+* Chrome/Firefox ([support/test/web](support/test/web))
 * etc.
 
 To test one of these out, cd to the directory and run:
@@ -315,10 +289,7 @@ which can be used to check everything is working. This is used by the regression
 tests in CI so should always work, and is a good way to check if the problem is
 your configuration rather than a bug.
 
-## Cloning the plugin
-
-If you're not using a release tarball, you'll need to clone this repo to the
-appropriate place.
+## Installing the plugin
 
 1. Clone the plugin
 
@@ -363,8 +334,6 @@ In order for Vimspector to be useful, you need to have some adapters installed.
 
 There are a few ways to do this:
 
-* If you downloaded a tarball, gadgets for main supported languages are already
-  installed for you.
 * Using `:VimspectorInstall <adapter> <args...>` (use TAB `wildmenu` to see the
   options, also accepts any `install_gadget.py` option)
 * Using `python3 install_gadget.py <args>` (use `--help` to see all options)
@@ -588,7 +557,7 @@ Vimspector is not:
   aproach. This means that it can only provide essential/basic debugging
   features for a given language. This makes it convenient for everyday usage,
   but not ideal for power users or those with very precise or specific
-  requirements. See [motivation](#motivation) for more info. 
+  requirements. See [motivation](#motivation) for more info.
 
 ## Status
 
@@ -662,7 +631,7 @@ Copyright © 2018 Ben Jackson
 ## Sponsorship
 
 If you like Vimspector so much that you're wiling to part with your hard-earned
-cash, please consider donating to one of the following charities, which are 
+cash, please consider donating to one of the following charities, which are
 meaningful to the author of Vimspector (in order of preference):
 
 * [Hector's Greyhound Rescue](http://hectorsgreyhoundrescue.org)
@@ -826,19 +795,17 @@ request, then you will be asked to enter a PID (process ID) to attach to.
 To make this easier, Vimspector supplies a little utility for listing PIDs. It's
 like a very very simple clone of `ps` but works on all the supported platforms.
 See [its README](support/vimspector_process_list/README.md) for instructions on
-setting it up. 
+setting it up.
 
-In short:
- 
-- If you used a tarball installation, you don't need to do anything.
-- Otherwise, run `go build` in the `support/vimspector_process_list` directory
+Run `go build` in the `support/vimspector_process_list` directory to set it
+up.
 
 If Vimspector is able to find this app, it will try to list all processes owned
 by the current user by default.
 
 Alternatively (preferably), you can use a special form of variable expansion
 called `${PickProcess(\"binaryName\")}`. The version of this call will list all
-processes for the current user that match this binary name. 
+processes for the current user that match this binary name.
 
 For example:
 
@@ -1156,7 +1123,7 @@ the [breakpoints window](#breakpoints-window).
 
 Currently, instruction breakpoints are automatically cleared when the debug
 session ends. The reason for this is that the addresses can't be guaranteed to
-be valid for any other debug session. However, this may also change in future. 
+be valid for any other debug session. However, this may also change in future.
 
 ### Clear breakpoints
 
@@ -1329,7 +1296,7 @@ let g:ycm_semantic_triggers =  {
 * Dispplay disassembly around current PC
 * Step over/into/out by instruction (contextually, or using the WinBar)
 * `:VimspectorDisassemble`, `vimspector#ShowDisassembly()` or
-  `<Plug>VimspectorDisassemble` 
+  `<Plug>VimspectorDisassemble`
 
 [![Demo](https://asciinema.org/a/esEncAxP45CJmo8Em1sQtxRYe.svg)](https://asciinema.org/a/esEncAxP45CJmo8Em1sQtxRYe)
 
@@ -2151,34 +2118,47 @@ export XDEBUG_CONFIG="idekey=xdebug"
 php <path to script>
 ```
 
-## JavaScript, TypeScript, etc.
+## JavaScript and TypeScript
 
 * Node.js
 
-Requires:
+This uses [vscode-js-debug](https://github.com/microsoft/vscode-js-debug), the
+debugger that is used in vscode as well. For additional configurations, check
+the documentation [here](https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md).
 
-* `install_gadget.py --force-enable-node`
-* Options described here:
-  https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md
-* Example: `support/test/node/simple`, `support/test/node/multiprocess`
+To install vscode-js-debug, run `VimspectorInstall vscode-js-debug` from vim or
+run the install script `install_gadget.py --force-enable-node`. There are
+multiple examples which you can check out. Find them under
+`support/test/node/simple`, `support/test/node/multiprocess` and
+`support/test/node/typescript`. A typical configuration for debugging typescript
+looks like this:
 
 ```json
+
 {
   "configurations": {
-    "run": {
+    "run - js-debug": {
       "adapter": "js-debug",
-      "filetypes": [ "javascript", "typescript" ], // optional
+      "filetypes": [ "javascript", "typescript" ],
       "configuration": {
         "request": "launch",
-        "stopOnEntry": true,
-        "console": "integratedTerminal",
-        "program": "${workspaceRoot}/simple.js",
+        "program": "${workspaceRoot}/src/index.ts",
         "cwd": "${workspaceRoot}",
-        "type": "pwa-node" // this is the default, but see below
+        "stopOnEntry": false,
+        "type": "pwa-node"
+      },
+      // 'breakpoints' is an optional part. This is a way to configure exception
+      // breakpoints. You can leave this out or set as you prefer.
+      "breakpoints": {
+        "exception": {
+          "all": "N",
+          "uncaught": "N"
+        }
       }
     }
   }
 }
+
 ```
 
 `vscode-js-debug` supports a number of different "types" and can do some stuff
@@ -2670,7 +2650,7 @@ as it is a common requirement.
 In many cases you will want to rebuild your project before starting a new debugging
 session. Vimspector is not a task manager and implementing this functionality
 is out of the scope of this project. However, there are some strategies described in the
-[community wiki](https://github.com/puremourning/vimspector/wiki/Pre-launch-building-strategies) 
+[community wiki](https://github.com/puremourning/vimspector/wiki/Pre-launch-building-strategies)
 to achieve similar functionality.
 
 

@@ -302,6 +302,7 @@ function! Test_Disassembly_StepInGranularity_API_Direct()
   "
   " Step over instruction
   call win_gotoid( g:vimspector_session_windows.code )
+  call cursor(1,1)
   call vimspector#StepIOver()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 3, 1 )
   call WaitForAssert( {->
@@ -312,7 +313,6 @@ function! Test_Disassembly_StepInGranularity_API_Direct()
   " steps from code window are line steps
   call win_gotoid( winid )
   call vimspector#StepSOver()
-  call cursor(1,1)
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:buf, s:dpc, 1 )
   call WaitForAssert( {->
         \ vimspector#test#signs#AssertPCIsAtLineInBuffer( s:fn, 4 )
@@ -338,6 +338,7 @@ function! Test_Disassembly_StepInGranularity_API_Direct_CodeLLDB()
   "
   " Step over instruction
   call win_gotoid( g:vimspector_session_windows.code )
+  call cursor(1,1)
   call vimspector#StepIOver()
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, 3, v:null )
   call WaitForAssert( {->
@@ -348,7 +349,6 @@ function! Test_Disassembly_StepInGranularity_API_Direct_CodeLLDB()
   " steps from code window are line steps
   call win_gotoid( winid )
   call vimspector#StepSOver()
-  call cursor(1,1)
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:buf, s:dpc, 1 )
   call WaitForAssert( {->
         \ vimspector#test#signs#AssertPCIsAtLineInBuffer( s:fn, 4 )
