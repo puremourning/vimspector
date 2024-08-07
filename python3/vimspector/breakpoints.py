@@ -869,6 +869,44 @@ class ProjectBreakpoints( object ):
       self._SetUpExceptionBreakpoints( self._configured_breakpoints )
 
 
+    # TODO: Add the _configured_breakpoints to function breakpoints
+
+    # arm-arm-none-eabi-gdb will clear all line_breakpoints if we set func_breakpoints with []
+    # so here is a work-around: set func_breakpoints before setting line_breakpoints
+    if self._server_capabilities.get( 'supportsFunctionBreakpoints' ):
+      breakpoints = []
+      for bp in self._func_breakpoints:
+        bp.pop( 'server_bp', None )
+        if bp[ 'state' ] != 'ENABLED':
+          continue
+        dap_bp = {}
+        dap_bp.update( bp[ 'options' ] )
+        dap_bp.update( { 'name': bp[ 'function' ] } )
+        breakpoints.append( dap_bp )
+
+      # FIXME(Ben): The function breakpoints response actually returns
+      # 'Breakpoint' objects. The point is that there is a server_bp for each
+      # function breakpoint as well as every line breakpoint. We need to
+      # implement that:
+      #  - pass the indices in here
+      #  - make _FindPostedBreakpoint also search function breakpionts
+      #  - make sure that ConnectionClosed also cleares the server_bp data for
+      #    function breakpionts
+      #  - make sure that we have tests for this, because i'm sure we don't!
+      for connection in self._connections:
+        self._awaiting_bp_responses += 1
+        connection.DoRequest(
+          lambda msg, conn=connection: response_handler( conn, msg ),
+          {
+            'command': 'setFunctionBreakpoints',
+            'arguments': {
+              'breakpoints': breakpoints,
+            }
+          },
+          failure_handler = response_received
+        )
+
+
     # TODO: add the _configured_breakpoints to line_breakpoints
 
     for file_name, line_breakpoints in self._line_breakpoints.items():
@@ -920,41 +958,6 @@ class ProjectBreakpoints( object ):
               'breakpoints': breakpoints,
               'sourceModified': False, # TODO: We can actually check this
             },
-          },
-          failure_handler = response_received
-        )
-
-    # TODO: Add the _configured_breakpoints to function breakpoints
-
-    if self._server_capabilities.get( 'supportsFunctionBreakpoints' ):
-      breakpoints = []
-      for bp in self._func_breakpoints:
-        bp.pop( 'server_bp', None )
-        if bp[ 'state' ] != 'ENABLED':
-          continue
-        dap_bp = {}
-        dap_bp.update( bp[ 'options' ] )
-        dap_bp.update( { 'name': bp[ 'function' ] } )
-        breakpoints.append( dap_bp )
-
-      # FIXME(Ben): The function breakpoints response actually returns
-      # 'Breakpoint' objects. The point is that there is a server_bp for each
-      # function breakpoint as well as every line breakpoint. We need to
-      # implement that:
-      #  - pass the indices in here
-      #  - make _FindPostedBreakpoint also search function breakpionts
-      #  - make sure that ConnectionClosed also cleares the server_bp data for
-      #    function breakpionts
-      #  - make sure that we have tests for this, because i'm sure we don't!
-      for connection in self._connections:
-        self._awaiting_bp_responses += 1
-        connection.DoRequest(
-          lambda msg, conn=connection: response_handler( conn, msg ),
-          {
-            'command': 'setFunctionBreakpoints',
-            'arguments': {
-              'breakpoints': breakpoints,
-            }
           },
           failure_handler = response_received
         )
