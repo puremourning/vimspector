@@ -640,17 +640,19 @@ GADGETS = {
     },
   },
   'puppet-editor-services': {
-    'language': ['puppet'],
+    'language': [ 'puppet' ],
     'enabled': False,
     'download': {
-      'url': 'https://github.com/puppetlabs/puppet-editor-services/releases/download/v${version}/${file_name}',
+      'url': 'https://github.com/puppetlabs/puppet-editor-services/releases/'
+             'download/v${version}/${file_name}',
       'target': 'puppet_editor_services_v${version}.tar.gz',
       'format': 'tar',
     },
     'all': {
       'version': '2.0.4',
       'file_name': 'puppet_editor_services_v2.0.4.tar.gz',
-      'checksum': '1457c89560f041220f63ebb16f6969d901617e20c9662c5126a6bf9ffe3706d0',
+      'checksum':
+        '1457c89560f041220f63ebb16f6969d901617e20c9662c5126a6bf9ffe3706d0',
     },
     'model': 'simple',
     'adapters': {
