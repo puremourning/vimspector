@@ -188,6 +188,7 @@ runtime dependencies). They are categorised by their level of support:
 | F#, VB, etc.            | Supported    | `--force-enable-[fsharp,vbnet]`     | netcoredbg                           | DotNet core                                  |
 | Go (legacy)             | Legacy       | `--enable-go`                       | vscode-go                            | Node, Go, [Delve][]                          |
 | Python 2                | Legacy       | `--force-enable-python2`            | debugpy-python2                      | Python 2.7                                   |
+| Puppet DSL              | Experimental | `--force-enable-puppet`             | puppet-editor-services               | Ruby 3.x                                     |
 
 ## Other languages
 
