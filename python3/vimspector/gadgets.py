@@ -662,6 +662,8 @@ GADGETS = {
           "${gadgetDir}/puppet-editor-services/puppet-debugserver",
           "--port",
           "${unusedLocalPort}",
+          "--ip",
+          "127.0.0.1"
         ],
         'name': 'puppet-debugserver',
         'configuration': {
