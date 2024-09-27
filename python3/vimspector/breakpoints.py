@@ -449,6 +449,17 @@ class ProjectBreakpoints( object ):
           bp[ 'function' ],
           json.dumps( bp[ 'options' ] ) )
       } )
+    for bp in self._data_breakponts:
+      qf.append( {
+        'filename': bp[ 'info' ][ 'description' ],
+        'lnum': 1,
+        'col': 1,
+        'type': 'D',
+        'valid': 0,
+        'text': f"{ bp['name'] }: Data breakpoint - "
+                f"{ bp['info' ][ 'description' ] }: " +
+                json.dumps( bp[ 'options' ] )
+      } )
 
     return qf
 
@@ -811,11 +822,13 @@ class ProjectBreakpoints( object ):
 
   def AddDataBreakpoint( self,
                          conn: DebugAdapterConnection,
+                         name,
                          info,
                          options ):
     self._data_breakponts.append( {
       'state': 'ENABLED',
       'conn': conn.GetSessionId(),
+      'name': name,
       'info': info,
       'options': options
     } )
