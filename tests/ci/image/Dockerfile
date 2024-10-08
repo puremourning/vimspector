@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LC_ALL C.UTF-8
@@ -24,8 +24,7 @@ RUN apt-get update && \
         > /etc/apt/sources.list.d/nodesource.list && \
   apt-get update && \
   apt-get -y dist-upgrade && \
-  apt-get -y install gcc-8 \
-                     g++-8 \
+  apt-get -y install build-essential \
                      python3-dev \
                      python3-pip \
                      python3-venv \
@@ -63,9 +62,6 @@ RUN apt-get update && \
 
 RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
   dpkg-reconfigure --frontend noninteractive tzdata
-
-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 1 \
-                        --slave   /usr/bin/g++ g++ /usr/bin/g++-8
 
 RUN curl -LO https://golang.org/dl/go${GOVERSION}.linux-${GOARCH}.tar.gz && \
     tar -C /usr/local -xzvf go${GOVERSION}.linux-${GOARCH}.tar.gz && \
