@@ -597,9 +597,7 @@ GADGETS = {
         'type': 'CodeLLDB',
         "command": [
           "${gadgetDir}/CodeLLDB/adapter/codelldb",
-          "--port", "${unusedLocalPort}"
         ],
-        "port": "${unusedLocalPort}",
         "configuration": {
           "type": "lldb",
           "name": "lldb",
