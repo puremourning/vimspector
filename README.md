@@ -82,7 +82,6 @@ For detailed explanation of the `.vimspector.json` format, see the
     * [Python](#python)
        * [Python Remote Debugging](#python-remote-debugging)
        * [Python Remote launch and attach](#python-remote-launch-and-attach)
-       * [Python 2](#python-2)
     * [TCL](#tcl)
     * [C♯](#c)
     * [Go](#go)
@@ -186,7 +185,6 @@ runtime dependencies). They are categorised by their level of support:
 | C# (dotnet core)        | Tested       | `--force-enable-csharp`             | netcoredbg                           | DotNet core                                  |
 | F#, VB, etc.            | Supported    | `--force-enable-[fsharp,vbnet]`     | netcoredbg                           | DotNet core                                  |
 | Go (legacy)             | Legacy       | `--enable-go`                       | vscode-go                            | Node, Go, [Delve][]                          |
-| Python 2                | Legacy       | `--force-enable-python2`            | debugpy-python2                      | Python 2.7                                   |
 
 ## Other languages
 
@@ -1834,9 +1832,7 @@ Example:
 * Install with `install_gadget.py --enable-python` or `:VimspectorInstall
   debugpy`, ideally requires a working compiler and the python development
   headers/libs to build a C python extension for performance.
-* ***NOTE***: Debugpy no longer supports python 2. In order to continue to debug
-  python 2 applications, use the `debugpy-python2` adapter after installing the
-  `debugpy-python2` gadget.
+* ***NOTE***: Debugpy no longer supports python 2.
 
 * Full options: https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
 
@@ -1907,27 +1903,6 @@ debugpy](https://github.com/microsoft/debugpy/wiki/Debugging-over-SSH).
 
 If you're feeling fancy, checkout the [reference guide][remote-debugging] for
 an example of getting Vimspector to remotely launch and attach.
-
-### Python 2
-
-In order to continue to debug python 2 applications, ensure that you install the
-`debugpy-python2` gadget (e.g. `--force-enable-python2` or
-`:VimspectorInstall debugpy-python2`), and then change your configuration to
-use:
-
-```json
-{
-  "configurations": {
-    "Python Attach": {
-      "adapter": "debugpy-python2",
-      // ...
-    }
-  }
-}
-
-```
-
-for examk
 
 ## TCL
 
