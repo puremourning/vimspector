@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LC_ALL C.UTF-8
@@ -28,7 +28,6 @@ RUN apt-get update && \
                      python3-dev \
                      python3-pip \
                      python3-venv \
-                     ca-cacert \
                      locales \
                      language-pack-en \
                      libncurses5-dev libncursesw5-dev \
@@ -57,8 +56,8 @@ RUN apt-get update && \
                      curl && \
   apt-get -y autoremove && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
-  pip3 install neovim && \
-  pip install "git+https://github.com/puremourning/asciinema@exit_code#egg=asciinema"
+  pip3 install --break-system-packages neovim && \
+  pip3 install --break-system-packages "git+https://github.com/puremourning/asciinema@exit_code#egg=asciinema"
 
 RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
   dpkg-reconfigure --frontend noninteractive tzdata
