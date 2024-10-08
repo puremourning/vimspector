@@ -179,7 +179,6 @@ runtime dependencies). They are categorised by their level of support:
 | Bourne Shell            | Supported    | `--all` or `--enable-bash`          | vscode-bash-debug                    | Bash v??                                     |
 | Lua                     | Tested       | `--all` or `--enable-lua`           | local-lua-debugger-vscode            | Node >=12.13.0, Npm, Lua interpreter         |
 | Node.js                 | Supported    | `--force-enable-node`               | vscode-js-debug                      | Node >= 18                                   |
-| Node.js (legacy)        | Supported    | `--force-enable-node_legacy`        | vscode-node-debug2                   | 6 < Node < 12, Npm                           |
 | Javascript              | Supported    | `--force-enable-chrome`             | debugger-for-chrome                  | Chrome                                       |
 | Javascript              | Supported    | `--force-enable-firefox`            | vscode-firefox-debug                 | Firefox                                      |
 | Java                    | Supported    | `--force-enable-java  `             | vscode-java-debug                    | Compatible LSP plugin (see [later](#java))   |
@@ -2171,41 +2170,6 @@ Note also that for some reason this debug adapter always forces us to start
 multiple debug sessions. For a user, that shouldn't change anything (other than
 perhaps a slightly confusing stack trace). But it does make things more
 complicated and so there may be subtle bugs.
-
-* Node.js (legacy)
-
-**NOTE**: This configuration uses the *deprecated* legacy debug adapter and will
-be removed in future. Please update your configurations to use the `js-debug`
-adapter. You _may_ be able to just change the adapter name.
-
-Requires:
-
-* `install_gadget.py --force-enable-node`
-* For installation, a Node.js environment that is < node 12. I believe this is an
-  incompatibility with gulp. Advice, use [nvm](https://github.com/nvm-sh/nvm) with `nvm install --lts 10; nvm
-  use --lts 10; ./install_gadget.py --force-enable-node ...`
-* Options described here:
-  https://code.visualstudio.com/docs/nodejs/nodejs-debugging
-* Example: `support/test/node/simple`
-
-```json
-{
-  "configurations": {
-    "run": {
-      "adapter": "vscode-node",
-      "filetypes": [ "javascript", "typescript" ], // optional
-      "configuration": {
-        "request": "launch",
-        "protocol": "auto",
-        "stopOnEntry": true,
-        "console": "integratedTerminal",
-        "program": "${workspaceRoot}/simple.js",
-        "cwd": "${workspaceRoot}"
-      }
-    }
-  }
-}
-```
 
 * Chrome/Firefox
 

@@ -463,27 +463,6 @@ GADGETS = {
       },
     },
   },
-  'vscode-node-debug2': {
-    'language': 'node_legacy',
-    'enabled': False,
-    'repo': {
-      'url': 'https://github.com/microsoft/vscode-node-debug2',
-      'ref': 'v1.43.0'
-    },
-    'do': lambda name, root, gadget: installer.InstallNodeDebug( name,
-                                                                 root,
-                                                                 gadget ),
-    'adapters': {
-      'vscode-node': {
-        'name': 'node2',
-        'type': 'node2',
-        'command': [
-          'node',
-          '${gadgetDir}/vscode-node-debug2/out/src/nodeDebug.js'
-        ]
-      },
-    },
-  },
   'vscode-firefox-debug': {
     'language': 'firefox',
     'enabled': False,
