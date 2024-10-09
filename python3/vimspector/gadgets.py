@@ -134,36 +134,6 @@ GADGETS = {
       }
     },
   },
-  'debugpy-python2': {
-    'language': 'python2',
-    'enabled': False,
-    'download': {
-      'url': 'https://github.com/microsoft/debugpy/archive/${file_name}'
-    },
-    'all': {
-      # Don't update - this is the last version that supports python2
-      'version': '1.5.1',
-      'file_name': 'v1.5.1.zip',
-      'checksum':
-        '00cf8235b88880bc2d8f59e8f6585208a43e6f14017cdf11d3a0bb2aeb4fff79'
-    },
-    'do': lambda name, root, gadget: installer.InstallDebugpy( name,
-                                                               root,
-                                                               gadget ),
-    'adapters': {
-      'debugpy-python2': {
-        "command": [
-          sys.executable,
-          "${gadgetDir}/debugpy-python2/build/lib/debugpy/adapter"
-        ],
-        "name": "debugpy",
-        "configuration": {
-          "python": sys.executable
-        },
-        'custom_handler': 'vimspector.custom.python.Debugpy'
-      }
-    },
-  },
   'vscode-java-debug': {
     'language': 'java',
     'enabled': False,

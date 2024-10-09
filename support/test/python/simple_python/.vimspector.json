@@ -137,25 +137,6 @@
         "console": "integratedTerminal"
       }
     },
-    "run - debugpy-python2": {
-      "adapter": "debugpy-python2",
-      "configuration": {
-        "request": "launch",
-        "python": "${pathToPython:python}",
-        "type": "python",
-        "cwd": "${workspaceRoot}",
-        "program": "${file}",
-        "stopOnEntry": false,
-        "console": "integratedTerminal"
-      },
-      "breakpoints": {
-        "exception": {
-          "raised": "N",
-          "uncaught": "",
-          "userUnhandled": ""
-        }
-      }
-    },
     "run - debugpy-custom-python": {
       "adapter": "debugpy",
       "configuration": {
