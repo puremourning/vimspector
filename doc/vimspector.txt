@@ -316,8 +316,6 @@ runtime dependencies). They are categorised by their level of support:
 --------------------------------------------------------------------------------------------------------------------------------------------------------------
 | Node.js                 | Supported    | '--force-enable-node'               | vscode-js-debug                      | Node >= 18                           |
 --------------------------------------------------------------------------------------------------------------------------------------------------------------
-| Node.js (legacy)        | Supported    | '--force-enable-node_legacy'        | vscode-node-debug2                   | 6 < Node < 12, Npm                   |
---------------------------------------------------------------------------------------------------------------------------------------------------------------
 | Javascript              | Supported    | '--force-enable-chrome'             | debugger-for-chrome                  | Chrome                               |
 --------------------------------------------------------------------------------------------------------------------------------------------------------------
 | Javascript              | Supported    | '--force-enable-firefox'            | vscode-firefox-debug                 | Firefox                              |
@@ -2509,42 +2507,6 @@ multiple debug sessions. For a user, that shouldn't change anything (other than
 perhaps a slightly confusing stack trace). But it does make things more
 complicated and so there may be subtle bugs.
 
-- Node.js (legacy)
-
-**NOTE**: This configuration uses the _deprecated_ legacy debug adapter and
-will be removed in future. Please update your configurations to use the
-'js-debug' adapter. You _may_ be able to just change the adapter name.
-
-Requires:
-
-- 'install_gadget.py --force-enable-node'
-
-- For installation, a Node.js environment that is < node 12. I believe this
-  is an incompatibility with gulp. Advice, use nvm [57] with 'nvm install
-  --lts 10; nvm use --lts 10; ./install_gadget.py --force-enable-node ...'
-
-- Options described here:
-  https://code.visualstudio.com/docs/nodejs/nodejs-debugging
-
-- Example: 'support/test/node/simple'
->
-  {
-    "configurations": {
-      "run": {
-        "adapter": "vscode-node",
-        "filetypes": [ "javascript", "typescript" ], // optional
-        "configuration": {
-          "request": "launch",
-          "protocol": "auto",
-          "stopOnEntry": true,
-          "console": "integratedTerminal",
-          "program": "${workspaceRoot}/simple.js",
-          "cwd": "${workspaceRoot}"
-        }
-      }
-    }
-  }
-<
 - Chrome/Firefox
 
 This uses the chrome/firefox debugger (they are very similar), see https://mark
@@ -2588,12 +2550,12 @@ It allows you to debug scripts running inside chrome from within Vim.
                                                               *vimspector-java*
 Java ~
 
-Vimspector works well with the java debug server [58], which runs as a jdt.ls
+Vimspector works well with the java debug server [57], which runs as a jdt.ls
 (Java Language Server) plugin, rather than a standalone debug adapter.
 
 Vimspector is not in the business of running language servers, only debug
 adapters, so this means that you need a compatible Language Server Protocol
-editor plugin to use Java. I recommend YouCompleteMe [59], which has full
+editor plugin to use Java. I recommend YouCompleteMe [58], which has full
 support for jdt.ls, and most importantly a trivial way to load the debug
 adapter and to use it with Vimspector.
 
@@ -2601,7 +2563,7 @@ adapter and to use it with Vimspector.
                                                   *vimspector-hot-code-replace*
 Hot code replace ~
 
-When using the java debug server [58], Vimspector supports the hot code replace
+When using the java debug server [57], Vimspector supports the hot code replace
 custom feature. By default, when the underlying class files change, vimspector
 asks the user if they wish to reload these classes at runtime.
 
@@ -2620,7 +2582,7 @@ This behaviour can be customised:
                                           *vimspector-usage-with-youcompleteme*
 Usage with YouCompleteMe ~
 
-- Set up YCM for java [59].
+- Set up YCM for java [58].
 
 - Get Vimspector to download the java debug plugin: 'install_gadget.py
   --force-enable-java <other options...>' or ':VimspectorInstall
@@ -2685,24 +2647,24 @@ If you see "Unable to get DAP port - is JDT.LS initialized?", try running
 ':YcmCompleter ExecuteCommand vscode.java.startDebugSession' and note the
 output. If you see an error like 'ResponseFailedException: Request failed:
 -32601: No delegateCommandHandler for vscode.java.startDebugSession', make sure
-that: _Your YCM jdt.ls is actually working, see the YCM docs [60] for
+that: _Your YCM jdt.ls is actually working, see the YCM docs [59] for
 troubleshooting_ The YCM jdt.ls has had time to initialize before you start the
 debugger * That 'g:ycm_java_jdtls_extension_path' is set in '.vimrc' or prior
 to YCM starting
 
-For the launch arguments, see the vscode document [61].
+For the launch arguments, see the vscode document [60].
 
 -------------------------------------------------------------------------------
                                                  *vimspector-other-lsp-clients*
 Other LSP clients ~
 
-See this issue [62] for more background.
+See this issue [61] for more background.
 
 -------------------------------------------------------------------------------
                                                                *vimspector-lua*
 Lua ~
 
-Lua is supported through local-lua-debugger-vscode [63]. This debugger uses
+Lua is supported through local-lua-debugger-vscode [62]. This debugger uses
 stdio to communicate with the running process, so calls to 'io.read' will cause
 problems.
 
@@ -2760,7 +2722,7 @@ problems.
 Other servers ~
 
 - Java - vscode-javac. This works, but is not as functional as Java Debug
-  Server. Take a look at this comment [64] for instructions.
+  Server. Take a look at this comment [63] for instructions.
 
 - See also the wiki [15] which has community-contributed plugin files for
   some languages.
@@ -3017,7 +2979,7 @@ Pre-launch building strategies ~
 In many cases you will want to rebuild your project before starting a new
 debugging session. Vimspector is not a task manager and implementing this
 functionality is out of the scope of this project. However, there are some
-strategies described in the community wiki [65] to achieve similar
+strategies described in the community wiki [64] to achieve similar
 functionality.
 
 -------------------------------------------------------------------------------
@@ -3173,7 +3135,7 @@ FAQ ~
    additional language support
 
 2. How do I stop it starting a new Terminal.app on macOS? See this comment
-   [66]
+   [65]
 
 3. Can I specify answers to the annoying questions about exception
    breakpoints in my '.vimspector.json' ? Yes, see here [26].
@@ -3210,10 +3172,10 @@ FAQ ~
 
 4. Do I _have_ to put a '.vimspector.json' in the root of every project? No,
    you can use 'g:vimspector_adapters' and 'g:vimspector_configurations' or
-   put all of your adapter and debug configs in a single directory [67] if
+   put all of your adapter and debug configs in a single directory [66] if
    you want to, but note the caveat that '${workspaceRoot}' won't be
    calculated correctly in that case. The vimsepctor author uses this a lot
-   [68]
+   [67]
 
 5. I'm confused about remote debugging configuration, can you explain it?
    eh... kind of. Reference: https://puremourning.github.io/vimspector/confi
@@ -3221,7 +3183,7 @@ FAQ ~
    ://github.com/puremourning/vimspector/issues/478#issuecomment-943515093
 
 6. I'm trying to debug a Django (django?) project and it's not working. Can
-   you help? sure, check this link which has a working example [69]. Or
+   you help? sure, check this link which has a working example [68]. Or
    google it.
 
 7. Can vimspector build my code before debugging it? Can I deploy it to a
@@ -3229,7 +3191,7 @@ FAQ ~
    debugger, not a task system or build automation system - there are other
    tools for that. There is however a hack you can use - you can use a
    'shell' variable to execute a command and just discard the output. Other
-   options are discussed in this issue [70]
+   options are discussed in this issue [69]
 
 8. It's annoying to manually type in the PID when attaching. Do you have a
    PID picker? There's no PID picker in vimspector at the moment, but you
@@ -3350,19 +3312,18 @@ References ~
 [54] https://github.com/microsoft/vscode-js-debug
 [55] https://github.com/microsoft/vscode-js-debug/blob/main/OPTIONS.md
 [56] https://github.com/microsoft/vscode-js-debug/blob/main/src/common/contributionUtils.ts#L61
-[57] https://github.com/nvm-sh/nvm
-[58] https://github.com/Microsoft/java-debug
-[59] https://github.com/ycm-core/YouCompleteMe#java-semantic-completion
-[60] https://github.com/ycm-core/YouCompleteMe#troubleshooting
-[61] https://code.visualstudio.com/docs/java/java-debugging
-[62] https://github.com/puremourning/vimspector/issues/3
-[63] https://github.com/tomblind/local-lua-debugger-vscode
-[64] https://github.com/puremourning/vimspector/issues/3#issuecomment-576916076
-[65] https://github.com/puremourning/vimspector/wiki/Pre-launch-building-strategies
-[66] https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322
-[67] https://puremourning.github.io/vimspector/configuration.html#debug-configurations
-[68] https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf
-[69] https://www.reddit.com/r/neovim/comments/mz4ari/how_to_set_up_vimspector_for_django_debugging/
-[70] https://github.com/puremourning/vimspector/issues/227
+[57] https://github.com/Microsoft/java-debug
+[58] https://github.com/ycm-core/YouCompleteMe#java-semantic-completion
+[59] https://github.com/ycm-core/YouCompleteMe#troubleshooting
+[60] https://code.visualstudio.com/docs/java/java-debugging
+[61] https://github.com/puremourning/vimspector/issues/3
+[62] https://github.com/tomblind/local-lua-debugger-vscode
+[63] https://github.com/puremourning/vimspector/issues/3#issuecomment-576916076
+[64] https://github.com/puremourning/vimspector/wiki/Pre-launch-building-strategies
+[65] https://github.com/puremourning/vimspector/issues/90#issuecomment-577857322
+[66] https://puremourning.github.io/vimspector/configuration.html#debug-configurations
+[67] https://github.com/puremourning/.vim-mac/tree/master/vimspector-conf
+[68] https://www.reddit.com/r/neovim/comments/mz4ari/how_to_set_up_vimspector_for_django_debugging/
+[69] https://github.com/puremourning/vimspector/issues/227
 
 vim: ft=help
