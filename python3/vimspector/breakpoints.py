@@ -181,6 +181,9 @@ class BreakpointsView( object ):
     else:
       self._UpdateView( breakpoint_list )
 
+  def ShowBreakpointsView( self, breakpoint_list ):
+    self._UpdateView( breakpoint_list )
+
   def RefreshBreakpoints( self, breakpoint_list ):
     self._UpdateView( breakpoint_list, show=False )
 
@@ -289,6 +292,9 @@ class ProjectBreakpoints( object ):
 
   def ToggleBreakpointsView( self ):
     self._breakpoints_view.ToggleBreakpointView( self.BreakpointsAsQuickFix() )
+
+  def ShowBreakpointsView( self ):
+    self._breakpoints_view.ShowBreakpointsView( self.BreakpointsAsQuickFix() )
 
   def ToggleBreakpointViewBreakpoint( self ):
     bp = self._breakpoints_view.GetBreakpointForLine()
@@ -832,6 +838,10 @@ class ProjectBreakpoints( object ):
       'info': info,
       'options': options
     } )
+    # We don't have a way to render breakpoints in the variables view right now,
+    # so instead when you add a data breakpoint, we force-show the breakpoints
+    # window
+    self.ShowBreakpointsView()
     self.UpdateUI()
 
 
@@ -1172,6 +1182,8 @@ class ProjectBreakpoints( object ):
     #
     # That said, the spec now seems to support data bps on expressions, though i
     # can't see any servers which support that.
+    #
+    # There's now even a 'canPersist' field on the DataBreakpointInfoResponse
     return {
       'line': line,
       'function': self._func_breakpoints,

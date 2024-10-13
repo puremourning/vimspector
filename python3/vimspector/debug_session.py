@@ -62,6 +62,17 @@ class DebugSession( object ):
       return wrapper
     return decorator
 
+  def ParentSession():
+    def decorator( fct ):
+      @functools.wraps( fct )
+      def wrapper( self: "DebugSession", *args, **kwargs ):
+        current = self
+        while current.parent_session:
+          current = current.parent_session
+        return fct( current, *args, **kwargs )
+      return wrapper
+    return decorator
+
   def ParentOnly( otherwise=None ):
     def decorator( fct ):
       @functools.wraps( fct )
@@ -1016,10 +1027,18 @@ class DebugSession( object ):
       self._disassemblyView.OnWindowScrolled( win_id )
 
 
-  @ParentOnly()
+  # Use the parent session, because the _connection_ comes from the
+  # variable/watch result that is actually chosen
+  @ParentSession()
   def AddDataBreakpoint( self, opts, buf = None, line_num = None ):
-    # Use the parent session, because the _connection_ comes from the
-    # variable/watch result that is actually chosen
+
+    # TODO:
+      #  - if supportsDataBreakpointBytes is true, allow users to (somehow?) set
+      #  a breakpoint on an arbirary address
+      #
+      #  - allow for breakpoints to be set on arbitrary expressions, i.e. via
+      #  the command line (rather than the variables window), using the current
+      #  frame?
 
     def add_bp( conn, name, msg ):
       breakpoint_info = msg.get( 'body' )
@@ -1047,6 +1066,7 @@ class DebugSession( object ):
 
     self._variablesView.GetDataBreakpointInfo( add_bp, buf, line_num )
 
+  @CurrentSession()
   @IfConnected()
   def AddWatch( self, expression ):
     self._variablesView.AddWatch( self._connection,

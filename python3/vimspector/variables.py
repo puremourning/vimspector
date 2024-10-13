@@ -906,6 +906,11 @@ class VariablesView( object ):
     variable: Expandable
     view: View
 
+    # TODO: line_num = None could mean that we want a breakpoint for an
+    # arbitrary expression. How to get the expression? Ask for it?
+    # Also, the bytes length, and asAddress when supportsDataBreakpointBytes is
+    # true; how to surface that?
+
     variable, view = self._GetVariable( buf, line_num )
     if variable is None:
       return None
