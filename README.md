@@ -1572,7 +1572,7 @@ Currently tested with the following debug adapters.
 ## C, C++, Rust, etc.
 
 * [vscode-cpptools](https://github.com/Microsoft/vscode-cpptools)
-* On macOS, I *strongly* recommend using [CodeLLDB](#rust) instead for C and C++
+* I *strongly* recommend using [CodeLLDB](#rust) over cpptools for almost all
 projects. It's really excellent, has fewer dependencies and doesn't open console
 apps in another Terminal window.
 
