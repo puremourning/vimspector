@@ -899,10 +899,8 @@ class VariablesView( object ):
                                             self._vars.buf,
                                             self._watch.buf )
 
-  def GetDataBreakpointInfo( self,
-                             then,
-                             buf = None,
-                             line_num = None ):
+
+  def GetDataBreakpointInfoRequest( self, buf, line_num ):
     variable: Expandable
     view: View
 
@@ -913,12 +911,7 @@ class VariablesView( object ):
 
     variable, view = self._GetVariable( buf, line_num )
     if variable is None:
-      return None
-
-    if not session_manager.Get().GetSession(
-      variable.connection.GetSessionId() )._server_capabilities.get(
-        'supportsDataBreakpoints' ):
-      return None
+      return None, None
 
     arguments = {
       'name': variable.Name()
@@ -931,12 +924,7 @@ class VariablesView( object ):
       arguments[ 'variablesReference' ] = (
         variable.container.VariablesReference() )
 
-    variable.connection.DoRequest( lambda msg: then( variable.connection,
-                                                     variable.Name(),
-                                                     msg ), {
-      'command': 'dataBreakpointInfo',
-      'arguments': arguments,
-    } )
+    return variable.connection, arguments
 
 
 # vim: sw=2

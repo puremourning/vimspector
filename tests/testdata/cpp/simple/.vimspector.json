@@ -159,9 +159,7 @@
     "CodeLLDB-localbuild": {
       "extends": "CodeLLDB",
       "command": [
-        "$HOME/Development/vimspector/CodeLLDB/build/adapter/codelldb",
-        "--port",
-        "${unusedLocalPort}"
+        "$HOME/Development/vimspector/CodeLLDB/build/adapter/codelldb"
       ]
     }
   }

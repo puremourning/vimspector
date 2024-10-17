@@ -32,6 +32,7 @@ from vimspector import ( breakpoints,
                          install,
                          output,
                          stack_trace,
+                         session_manager,
                          utils,
                          variables,
                          settings,
@@ -1064,7 +1065,83 @@ class DebugSession( object ):
                                            breakpoint_info,
                                            opts )
 
-    self._variablesView.GetDataBreakpointInfo( add_bp, buf, line_num )
+    con: debug_adapter_connection.DebugAdapterConnection = None
+    arguments: dict = None
+
+    if buf and line_num:
+      con, arguments = self._variablesView.GetDataBreakpointInfoRequest(
+        buf,
+        line_num )
+
+    # only if stopped?
+
+    if not con:
+      arguments = {}
+      con = self._stackTraceView.GetCurrentSession().Connection()
+
+      if not con:
+        return
+
+      address_allowed = bool( session_manager.Get().GetSession(
+        con.GetSessionId() )._server_capabilities.get(
+          'supportsDataBreakpointBytes' ) )
+
+      if address_allowed:
+        expr = utils.AskForInput(
+          'Expression to watch (or empty for address): ' )
+
+        if expr is None:
+         return
+
+        if not expr:
+          expr = utils.AskForInput( 'Address to watch: ' )
+          arguments[ 'asAddress' ] = True
+
+        if not expr:
+          return
+
+        size = utils.AskForInput( 'Bytes to watch (empty for default): ' )
+        if size is None:
+          return
+
+        if size != '':
+          try:
+            arguments[ 'bytes' ] = int( size )
+          except ValueError:
+            utils.UserMessage( "Invalid size", error=True )
+            return
+      else:
+        expr = utils.AskForInput( 'Expression to watch: ' )
+
+      if not expr:
+        return
+
+      arguments = arguments | {
+        'name': expr,
+        'frameId': self._stackTraceView.GetCurrentFrame()[ 'id' ]
+      }
+
+    if not con or not arguments:
+      utils.UserMessage( "Nothing set" )
+      return
+
+    if not session_manager.Get().GetSession(
+      con.GetSessionId() )._server_capabilities.get(
+        'supportsDataBreakpoints' ):
+      utils.UserMessage( "Server does not support data breakpoints" )
+      return
+
+    con.DoRequest(
+      lambda msg: add_bp( con, arguments[ 'name' ], msg ), {
+        'command': 'dataBreakpointInfo',
+        'arguments': arguments,
+      },
+      failure_handler = lambda reason, msg: utils.UserMessage(
+        reason,
+        error=True
+      )
+    )
+
 
   @CurrentSession()
   @IfConnected()

@@ -301,8 +301,15 @@ class ProjectBreakpoints( object ):
     if not bp:
       return
 
+
     if bp.get( 'type' ) == 'F':
+      # FIXME: We don't really handle 'DISABLED' state for function breakpoints,
+      # so they are just deleted
       self.ClearFunctionBreakpoint( bp.get( 'filename' ) )
+
+      # FIXME: what about data breakpoints
+      # FIXME: what about exception breakpoints
+      # FIXME: what about instruction breakpoints
     else:
       # This should find the breakpoint by the "current" line in lnum. If not,
       # pass an empty options just in case we end up in "ADD" codepath.
@@ -334,6 +341,9 @@ class ProjectBreakpoints( object ):
 
     # FIXME: We don't really handle 'DISABLED' state for function breakpoints,
     # so they are not touched
+    # FIXME: Same for data breakpoints
+    # FIXME: Same for exception breakpoints
+    # FIXME: Same for instruction breakpoints
     self.UpdateUI()
 
   def JumpToBreakpointViewBreakpoint( self ):
