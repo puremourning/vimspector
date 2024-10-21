@@ -1033,14 +1033,6 @@ class DebugSession( object ):
   @ParentSession()
   def AddDataBreakpoint( self, opts, buf = None, line_num = None ):
 
-    # TODO:
-      #  - if supportsDataBreakpointBytes is true, allow users to (somehow?) set
-      #  a breakpoint on an arbirary address
-      #
-      #  - allow for breakpoints to be set on arbitrary expressions, i.e. via
-      #  the command line (rather than the variables window), using the current
-      #  frame?
-
     def add_bp( conn, name, msg ):
       breakpoint_info = msg.get( 'body' )
       if not breakpoint_info:
@@ -1055,10 +1047,11 @@ class DebugSession( object ):
 
       access_types = breakpoint_info.get( 'accessTypes' )
       if access_types and 'accessType' not in opts:
-        access_type = utils.SelectFromList( 'What type of access?',
+        access_type = utils.SelectFromList( f'What type of access for {name}?',
                                             access_types )
-        if access_type is not None:
-          opts[ 'accessType' ] = access_type
+        if not access_type:
+          return
+        opts[ 'accessType' ] = access_type
 
       self._breakpoints.AddDataBreakpoint( conn,
                                            name,
@@ -1068,14 +1061,17 @@ class DebugSession( object ):
     con: debug_adapter_connection.DebugAdapterConnection = None
     arguments: dict = None
 
-    if buf and line_num:
-      con, arguments = self._variablesView.GetDataBreakpointInfoRequest(
-        buf,
-        line_num )
-
-    # only if stopped?
+    # Check if we were requesting on a specific child variable in the
+    # watch/locals window. If so, use variablesReference.
+    con, arguments = self._variablesView.GetDataBreakpointInfoRequest(
+      buf,
+      line_num )
+    # TODO: in theory, we could specify a bytes (size) option here, but I sort
+    # of doubt that anyone actually implements that.
 
     if not con:
+      # No watch variable was found, so enter an expression and pass it in
+      # 'name', with optional 'bytes' and 'asAddress' arguments.
       arguments = {}
       con = self._stackTraceView.GetCurrentSession().Connection()
 
@@ -1116,10 +1112,10 @@ class DebugSession( object ):
       if not expr:
         return
 
-      arguments = arguments | {
+      arguments = {
         'name': expr,
         'frameId': self._stackTraceView.GetCurrentFrame()[ 'id' ]
-      }
+      } | arguments
 
     if not con or not arguments:
       utils.UserMessage( "Nothing set" )
