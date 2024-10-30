@@ -75,7 +75,7 @@ GADGETS = {
       'checksum':
         'fa836b1ff3311e8303af612b6597c5c81e3a8573dfbf28d0576e811de97e5427',
     },
-    'windows': {
+    'windows_XX': {
       'file_name': 'cpptools-win32.vsix',
       'checksum':
         '2c0004c3c828030df1d4c53f4e421d2e03d86b47f96fa1efe0691e88f4d56dd6',
@@ -105,7 +105,7 @@ GADGETS = {
       'checksum':
         '2ba1f66bdb53935db10898477150ffdfab1c5d73bc0f0649e52377b95fafacc1',
     },
-    "windows_x64": {
+    "windows": {
         "file_name": "cpptools-windows-x64.vsix",
         "checksum": "8cfeab3a2693b736fefc17e5ce6ec63cf0e955352c2d1f57c2dea4b9d38cec9b",
     },
