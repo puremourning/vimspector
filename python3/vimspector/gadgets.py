@@ -30,7 +30,7 @@ GADGETS = {
                                                                 root,
                                                                 gadget ),
     'all': {
-      'version': '1.17.5',
+      'version': '1.22.9',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",
@@ -51,9 +51,9 @@ GADGETS = {
       },
     },
     'linux': {
-      'file_name': 'cpptools-linux.vsix',
+      'file_name': 'cpptools-linux-x64.vsix',
       'checksum':
-        '09716d076215eaebcef4ccae10bd0566fb5c68bfdfc6e1b4bbc529eded11b21f',
+        '44c01555dc398149e174a31569aeae0ef2d182437bf175c7c25ad5f6a76fe6c1',
     },
     'linux_arm64': {
       'file_name': 'cpptools-linux-aarch64.vsix',
@@ -104,6 +104,10 @@ GADGETS = {
       'file_name': 'cpptools-win-arm64.vsix',
       'checksum':
         '2ba1f66bdb53935db10898477150ffdfab1c5d73bc0f0649e52377b95fafacc1',
+    },
+    "windows_x64": {
+        "file_name": "cpptools-windows-x64.vsix",
+        "checksum": "8cfeab3a2693b736fefc17e5ce6ec63cf0e955352c2d1f57c2dea4b9d38cec9b",
     },
   },
   'debugpy': {
