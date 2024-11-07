@@ -100,6 +100,12 @@
       "extends": "cpptools (lldb)",
       "configuration": {
         "request": "attach"
+      },
+      "breakpoints": {
+        "exception": {
+          "cpp_throw": "",
+          "cpp_catch": ""
+        }
       }
     },
     "CodeLLDB-attach": {
@@ -107,6 +113,12 @@
       "configuration": {
         "request": "attach",
         "pid": "${PickProcess(\"test\")}"
+      },
+      "breakpoints": {
+        "exception": {
+          "cpp_throw": "",
+          "cpp_catch": ""
+        }
       }
     }
   }
