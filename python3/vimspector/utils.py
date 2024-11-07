@@ -166,10 +166,9 @@ def CleanUpHiddenBuffer( buf ):
     return
 
   try:
-    vim.command( 'bdelete! {}'.format( buf.number ) )
+    vim.command( 'bwipeout! {}'.format( buf.number ) )
   except vim.error as e:
-    # FIXME: For now just ignore the "no buffers were deleted" error
-    if 'E516' not in str( e ):
+    if 'E517' not in str( e ):
       raise
 
 
