@@ -24,6 +24,7 @@ DEFAULTS = {
   'bottombar_height':   10,
   'disassembly_height': 20,
   'variables_display_mode': 'compact', # compact/full
+  'max_variable_children': 200,
 
   # For ui_mode = 'horizontal':
   'sidebar_width':      50,

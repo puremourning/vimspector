@@ -683,7 +683,16 @@ class VariablesView( object ):
 
   def _DrawVariables( self, view, variables, indent_len, is_short = False ):
     assert indent_len > 0
-    for variable in variables:
+    max_variable_children = settings.Int( 'max_variable_children' )
+    for idx, variable in enumerate(variables):
+      if idx >= max_variable_children:
+        utils.AppendToBuffer(
+          view.buf,
+          f"{indent}... {len(variables) - max_variable_children} more",
+          hl = 'WarningMsg'
+        )
+        break
+
       text = ''
       # We borrow 1 space of indent to draw the change marker
       indent = ' ' * ( indent_len - 1 )
