@@ -1,5 +1,5 @@
-flake8                  == 3.8.3
-flake8-comprehensions   == 3.2.3
+flake8                  == 7.1.1
+flake8-comprehensions   == 3.16.0
 flake8-ycm              >= 0.1.0
 
 # asciinema is used to record the output in case of failure
