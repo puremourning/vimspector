@@ -439,6 +439,14 @@ function! vimspector#ShowDisassembly( ... ) abort
   py3 _vimspector_session.ShowDisassembly()
 endfunction
 
+function! vimspector#AddDataBreakpoint( ... ) abort
+  if !s:Enabled()
+    return
+  endif
+  " TODO: how to set options?
+  py3 _vimspector_session.AddDataBreakpoint( {} )
+endfunction
+
 function! vimspector#DeleteWatch() abort
   if !s:Enabled()
     return
