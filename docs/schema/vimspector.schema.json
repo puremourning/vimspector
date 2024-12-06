@@ -239,7 +239,7 @@
           "properties": {
             "host": {
               "type": "string",
-              "default": "127.0.0.1",
+              "default": "localhost",
               "description": "Connect to this host in multi-session mode"
             },
             "port": {

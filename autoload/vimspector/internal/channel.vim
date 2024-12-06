@@ -88,7 +88,7 @@ function! vimspector#internal#channel#StartDebugSession(
           \              )
   endif
 
-  let l:addr = get( a:config, 'host', '127.0.0.1' ) . ':' . a:config[ 'port' ]
+  let l:addr = get( a:config, 'host', 'localhost' ) . ':' . a:config[ 'port' ]
 
   echo 'Connecting to ' . l:addr . '... (waiting for up to 10 seconds)'
   " FIXME: This _always_ waits 10s; the neochannel version is quicker
