@@ -173,7 +173,18 @@ class DisassemblyView( object ):
 
     self._buf = None
     for b in self._scratch_buffers:
-      utils.CleanUpHiddenBuffer( b )
+      # FIXME/TODO: Unknown hack :(
+      # For some reason I can't work out if the buffer is wiped out here, we
+      # get a test failure in Test_Disassembly_Open_Close.
+      # Initially I thought it was because _scratch_buffers might contain
+      # duplicates, but changing it to a set() doesn't help, so it's not that.
+      # What seems to happen is we get data on the socket/channel and the
+      # callback tries to do something with the wiped-out buffer.
+      #
+      # Unfortunately I can't fathom what's happening, so hacking this
+      # wipeout=False for now to make the tests pass. Yes, I'll suffer in
+      # purgatory for that.
+      utils.CleanUpHiddenBuffer( b, wipeout=False )
 
     self._scratch_buffers = []
 
