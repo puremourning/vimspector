@@ -175,7 +175,7 @@ runtime dependencies). They are categorised by their level of support:
 | C, C++, Rust, Jai, etc. | Tested       | `--enable-rust`, `--enable-c`, etc. | CodeLLDB                             | none                                         |
 | Python                  | Tested       | `--all` or `--enable-python`        | debugpy                              | Python 3                                     |
 | Go                      | Tested       | `--enable-go`                       | delve                                | Go 1.16+                                     |
-| TCL                     | Supported    | `--all` or `--enable-tcl`           | tclpro                               | TCL 8.5                                      |
+| TCL                     | Supported    | `--all` or `--enable-tcl`           | tclpro                               | TCL >= 8.5 < 9.0                                     |
 | Bourne Shell            | Supported    | `--all` or `--enable-bash`          | vscode-bash-debug                    | Bash v??                                     |
 | Lua                     | Tested       | `--all` or `--enable-lua`           | local-lua-debugger-vscode            | Node >=12.13.0, Npm, Lua interpreter         |
 | Node.js                 | Supported    | `--force-enable-node`               | vscode-js-debug                      | Node >= 18                                   |
@@ -1961,6 +1961,8 @@ for examk
 ## TCL
 
 * TCL (TclProDebug)
+
+Requires TCL 8.x. Does not work with TCL 9.
 
 See [my fork of TclProDebug](https://github.com/puremourning/TclProDebug) for instructions.
 
