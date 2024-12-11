@@ -64,7 +64,7 @@
       "adapter": "vscode-cpptools",
       "variables": {
         "BUILDME": {
-          "shell": "g++ -o ${workspaceRoot}/test -g -std=c++17 ${workspaceRoot}/test_c.cpp"
+          "shell": "g++ -o ${workspaceRoot}/test -g -std=c++17 ${file}"
         },
         "arch": {
           "shell": "uname -m"
@@ -86,7 +86,7 @@
       "adapter": "vscode-cpptools",
       "variables": {
         "BUILDME": {
-          "shell": "g++ -o ${workspaceRoot}/test -g -std=c++17 ${workspaceRoot}/test_c.cpp"
+          "shell": "g++ -o ${workspaceRoot}/test -g -std=c++17 ${file}"
         }
       },
       "configuration": {
