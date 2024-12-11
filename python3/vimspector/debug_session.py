@@ -1028,10 +1028,10 @@ class DebugSession( object ):
       self._disassemblyView.OnWindowScrolled( win_id )
 
 
-  # Use the parent session, because the _connection_ comes from the
-  # variable/watch result that is actually chosen
   @ParentSession()
   def AddDataBreakpoint( self, opts, buf = None, line_num = None ):
+    # Use the parent session, because the _connection_ comes from the
+    # variable/watch result that is actually chosen
 
     def add_bp( conn, name, msg ):
       breakpoint_info = msg.get( 'body' )
@@ -1087,7 +1087,7 @@ class DebugSession( object ):
           'Expression to watch (or empty for address): ' )
 
         if expr is None:
-         return
+          return
 
         if not expr:
           expr = utils.AskForInput( 'Address to watch: ' )

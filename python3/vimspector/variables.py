@@ -19,7 +19,7 @@ import logging
 from functools import partial
 import typing
 
-from vimspector import utils, settings, session_manager
+from vimspector import utils, settings
 from vimspector.debug_adapter_connection import DebugAdapterConnection
 
 
