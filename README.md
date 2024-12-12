@@ -9,108 +9,110 @@ For detailed explanation of the `.vimspector.json` format, see the
 [![Build](https://github.com/puremourning/vimspector/actions/workflows/build.yaml/badge.svg?branch=master)](https://github.com/puremourning/vimspector/actions/workflows/build.yaml) [![Matrix](https://img.shields.io/matrix/vimspector:matrix.org?label=matrix)](https://matrix.to/#/#vimspector_Lobby:gitter.im) [![Gitter](https://badges.gitter.im/vimspector/Lobby.svg)](https://gitter.im/vimspector/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 <!--ts-->
- * [Features and Usage](#features-and-usage)
-    * [Supported debugging features](#supported-debugging-features)
-    * [Supported languages](#supported-languages)
-    * [Other languages](#other-languages)
- * [Installation](#installation)
-    * [Quick Start](#quick-start)
-       * [Method 1: Using a repo clone, Vim packages and select gadgets to be installed](#method-2-using-a-repo-clone-vim-packages-and-select-gadgets-to-be-installed)
-       * [Method 2: Using a plugin manager](#method-3-using-a-plugin-manager)
-    * [Dependencies](#dependencies)
-       * [Neovim limitations](#neovim-limitations)
-       * [Windows differences](#windows-differences)
-    * [Trying it out](#trying-it-out)
-    * [Cloning the plugin](#cloning-the-plugin)
-    * [Install some gadgets](#install-some-gadgets)
-       * [VimspectorInstall and VimspectorUpdate commands](#vimspectorinstall-and-vimspectorupdate-commands)
-       * [install_gadget.py](#install_gadgetpy)
-    * [Manual gadget installation](#manual-gadget-installation)
-       * [The gadget directory](#the-gadget-directory)
-    * [Upgrade](#upgrade)
- * [About](#about)
-    * [Background](#background)
- * [What Vimspector is not](#what-vimspector-is-not)
-    * [Status](#status)
-       * [Experimental](#experimental)
-    * [Motivation](#motivation)
-    * [License](#license)
-    * [Sponsorship](#sponsorship)
- * [Mappings](#mappings)
-    * [Visual Studio / VSCode](#visual-studio--vscode)
-    * [Human Mode](#human-mode)
- * [Usage and API](#usage-and-api)
-    * [Launch and attach by PID:](#launch-and-attach-by-pid)
-       * [Picking a PID](#picking-a-pid)
-       * [Launch with options](#launch-with-options)
-       * [Debug configuration selection](#debug-configuration-selection)
-       * [Get configurations](#get-configurations)
-    * [Breakpoints](#breakpoints)
-       * [Breakpoints Window](#breakpoints-window)
-       * [Line breakpoints](#line-breakpoints)
-       * [Conditional breakpoints and logpoints](#conditional-breakpoints-and-logpoints)
-       * [Exception breakpoints](#exception-breakpoints)
-       * [API Summary](#api-summary)
-       * [Instruction breakpoints](#instruction-breakpoints)
-       * [Clear breakpoints](#clear-breakpoints)
-       * [Run to Cursor](#run-to-cursor)
-       * [Go to current line](#go-to-current-line)
-       * [Save and restore](#save-and-restore)
-    * [Stepping](#stepping)
-    * [Variables and scopes](#variables-and-scopes)
-    * [Variable or selection hover evaluation](#variable-or-selection-hover-evaluation)
-    * [Watches](#watches)
-       * [Watch autocompletion](#watch-autocompletion)
-    * [Disassembly](#disassembly)
-    * [Dump memory](#dump-memory)
-    * [Stack Traces](#stack-traces)
-       * [Child sessions](#child-sessions)
-    * [Program Output](#program-output)
-       * [Console](#console)
-       * [Console autocompletion](#console-autocompletion)
-       * [Log View](#log-view)
-    * [Closing debugger](#closing-debugger)
-    * [Terminate debuggee](#terminate-debuggee)
- * [Multiple debugging sessions](#multiple-debugging-sessions)
- * [Debug profile configuration](#debug-profile-configuration)
-    * [C, C  , Rust, etc.](#c-c-rust-etc)
-       * [Data visualization / pretty printing](#data-visualization--pretty-printing)
-       * [C   Remote debugging](#c-remote-debugging)
-       * [C   Remote launch and attach](#c-remote-launch-and-attach)
-    * [Rust](#rust)
-    * [Jai](#jai)
-    * [Python](#python)
-       * [Python Remote Debugging](#python-remote-debugging)
-       * [Python Remote launch and attach](#python-remote-launch-and-attach)
-       * [Python 2](#python-2)
-    * [TCL](#tcl)
-    * [C♯](#c)
-    * [Go](#go)
-    * [PHP](#php)
-       * [Debug web application](#debug-web-application)
-       * [Debug cli application](#debug-cli-application)
-    * [JavaScript and TypeScript](#javascript-and-typescript)
-    * [Java](#java)
-       * [Hot code replace](#hot-code-replace)
-       * [Usage with YouCompleteMe](#usage-with-youcompleteme)
-       * [Other LSP clients](#other-lsp-clients)
-    * [Lua](#lua)
-    * [Other servers](#other-servers)
- * [Customisation](#customisation)
-    * [Changing the default signs](#changing-the-default-signs)
-    * [Sign priority](#sign-priority)
-    * [Presentation Hints](#presentation-hints)
-    * [Changing the default window sizes](#changing-the-default-window-sizes)
-    * [Changing the terminal size](#changing-the-terminal-size)
-    * [Custom mappings while debugging](#custom-mappings-while-debugging)
-    * [Pre-launch building strategies](#pre-launch-building-strategies)
-    * [Disabling the WinBar](#disabling-the-winbar)
-    * [Advanced UI customisation](#advanced-ui-customisation)
-    * [Customising the WinBar](#customising-the-winbar)
-    * [Example](#example)
- * [FAQ](#faq)
+* [Features and Usage](#features-and-usage)
+   * [Supported debugging features](#supported-debugging-features)
+   * [Supported languages](#supported-languages)
+   * [Other languages](#other-languages)
+* [Installation](#installation)
+   * [Quick Start](#quick-start)
+      * [Method 1: Using a repo clone, Vim packages and select gadgets to be installed](#method-1-using-a-repo-clone-vim-packages-and-select-gadgets-to-be-installed)
+      * [Method 2: Using a plugin manager](#method-2-using-a-plugin-manager)
+   * [Dependencies](#dependencies)
+      * [Neovim limitations](#neovim-limitations)
+      * [Windows differences](#windows-differences)
+   * [Trying it out](#trying-it-out)
+   * [Installing the plugin](#installing-the-plugin)
+   * [Install some gadgets](#install-some-gadgets)
+      * [VimspectorInstall and VimspectorUpdate commands](#vimspectorinstall-and-vimspectorupdate-commands)
+      * [install_gadget.py](#install_gadgetpy)
+   * [Manual gadget installation](#manual-gadget-installation)
+      * [The gadget directory](#the-gadget-directory)
+   * [Upgrade](#upgrade)
+* [About](#about)
+   * [Background](#background)
+* [What Vimspector is not](#what-vimspector-is-not)
+   * [Status](#status)
+      * [Experimental](#experimental)
+   * [Motivation](#motivation)
+   * [License](#license)
+   * [Sponsorship](#sponsorship)
+* [Mappings](#mappings)
+   * [Visual Studio / VSCode](#visual-studio--vscode)
+   * [Human Mode](#human-mode)
+* [Usage and API](#usage-and-api)
+   * [Launch and attach by PID:](#launch-and-attach-by-pid)
+      * [Picking a PID](#picking-a-pid)
+      * [Launch with options](#launch-with-options)
+      * [Debug configuration selection](#debug-configuration-selection)
+      * [Get configurations](#get-configurations)
+   * [Breakpoints](#breakpoints)
+      * [Breakpoints Window](#breakpoints-window)
+      * [Line breakpoints](#line-breakpoints)
+      * [Conditional breakpoints and logpoints](#conditional-breakpoints-and-logpoints)
+      * [Exception breakpoints](#exception-breakpoints)
+      * [Data breakpoints](#data-breakpoints)
+      * [API Summary](#api-summary)
+      * [Instruction breakpoints](#instruction-breakpoints)
+      * [Clear breakpoints](#clear-breakpoints)
+      * [Run to Cursor](#run-to-cursor)
+      * [Go to current line](#go-to-current-line)
+      * [Save and restore](#save-and-restore)
+   * [Stepping](#stepping)
+   * [Variables and scopes](#variables-and-scopes)
+   * [Variable or selection hover evaluation](#variable-or-selection-hover-evaluation)
+   * [Watches](#watches)
+      * [Watch autocompletion](#watch-autocompletion)
+   * [Disassembly](#disassembly)
+   * [Dump memory](#dump-memory)
+   * [Stack Traces](#stack-traces)
+      * [Child sessions](#child-sessions)
+   * [Program Output](#program-output)
+      * [Console](#console)
+      * [Console autocompletion](#console-autocompletion)
+      * [Log View](#log-view)
+   * [Closing debugger](#closing-debugger)
+   * [Terminate debuggee](#terminate-debuggee)
+* [Multiple debugging sessions](#multiple-debugging-sessions)
+* [Debug profile configuration](#debug-profile-configuration)
+   * [C, C++, Rust, etc.](#c-c-rust-etc)
+      * [Data visualization / pretty printing](#data-visualization--pretty-printing)
+      * [C++ Remote debugging](#c-remote-debugging)
+      * [C++ Remote launch and attach](#c-remote-launch-and-attach)
+   * [Rust](#rust)
+   * [Jai](#jai)
+   * [Python](#python)
+      * [Python Remote Debugging](#python-remote-debugging)
+      * [Python Remote launch and attach](#python-remote-launch-and-attach)
+      * [Python 2](#python-2)
+   * [TCL](#tcl)
+   * [C♯](#c)
+   * [Go](#go)
+   * [PHP](#php)
+      * [Debug web application](#debug-web-application)
+      * [Debug cli application](#debug-cli-application)
+   * [JavaScript and TypeScript](#javascript-and-typescript)
+   * [Java](#java)
+      * [Hot code replace](#hot-code-replace)
+      * [Usage with YouCompleteMe](#usage-with-youcompleteme)
+      * [Other LSP clients](#other-lsp-clients)
+   * [Lua](#lua)
+   * [Other servers](#other-servers)
+* [Customisation](#customisation)
+   * [Changing the default signs](#changing-the-default-signs)
+   * [Sign priority](#sign-priority)
+   * [Presentation Hints](#presentation-hints)
+   * [Changing the default window sizes](#changing-the-default-window-sizes)
+   * [Changing the terminal size](#changing-the-terminal-size)
+   * [Custom mappings while debugging](#custom-mappings-while-debugging)
+   * [Pre-launch building strategies](#pre-launch-building-strategies)
+   * [Disabling the WinBar](#disabling-the-winbar)
+   * [Advanced UI customisation](#advanced-ui-customisation)
+   * [Customising the WinBar](#customising-the-winbar)
+   * [Example](#example)
+* [FAQ](#faq)
 
-<!-- Added by: ben, at: Wed 24 May 2023 09:06:01 BST -->
+<!-- Created by https://github.com/ekalinin/github-markdown-toc -->
+<!-- Added by: ben, at: Thu 12 Dec 2024 15:40:32 GMT -->
 
 <!--te-->
 
@@ -137,6 +139,8 @@ And a couple of brief demos:
 
 - flexible configuration syntax that can be checked in to source control
 - breakpoints (function, line and exception breakpoints)
+- instruction breakpoints
+- data breakpoints
 - conditional breakpoints (function, line)
 - step in/out/over/up, stop, restart
 - run to cursor
@@ -175,11 +179,10 @@ runtime dependencies). They are categorised by their level of support:
 | C, C++, Rust, Jai, etc. | Tested       | `--enable-rust`, `--enable-c`, etc. | CodeLLDB                             | none                                         |
 | Python                  | Tested       | `--all` or `--enable-python`        | debugpy                              | Python 3                                     |
 | Go                      | Tested       | `--enable-go`                       | delve                                | Go 1.16+                                     |
-| TCL                     | Supported    | `--all` or `--enable-tcl`           | tclpro                               | TCL 8.5                                      |
+| TCL                     | Supported    | `--all` or `--enable-tcl`           | tclpro                               | TCL >= 8.5 < 9.0                                     |
 | Bourne Shell            | Supported    | `--all` or `--enable-bash`          | vscode-bash-debug                    | Bash v??                                     |
 | Lua                     | Tested       | `--all` or `--enable-lua`           | local-lua-debugger-vscode            | Node >=12.13.0, Npm, Lua interpreter         |
 | Node.js                 | Supported    | `--force-enable-node`               | vscode-js-debug                      | Node >= 18                                   |
-| Node.js (legacy)        | Supported    | `--force-enable-node_legacy`        | vscode-node-debug2                   | 6 < Node < 12, Npm                           |
 | Javascript              | Supported    | `--force-enable-chrome`             | debugger-for-chrome                  | Chrome                                       |
 | Javascript              | Supported    | `--force-enable-firefox`            | vscode-firefox-debug                 | Firefox                                      |
 | Java                    | Supported    | `--force-enable-java  `             | vscode-java-debug                    | Compatible LSP plugin (see [later](#java))   |
@@ -476,7 +479,7 @@ Example:
 ```json
 {
   "adapters": {
-    "lldb-vscode": {
+    "lldb-dap": {
       "variables": {
         "LLVM": {
           "shell": "brew --prefix llvm"
@@ -487,7 +490,7 @@ Example:
         "pidSelect": "ask"
       },
       "command": [
-        "${LLVM}/bin/lldb-vscode"
+        "lldb-dap"
       ],
       "env": {
         "LLDB_LAUNCH_FLAG_LAUNCH_IN_TTY": "YES"
@@ -1059,6 +1062,28 @@ then answer `Y` to that (for example).
 You can configure your choices in the `.vimspector.json`. See
 [the configuration guide][vimspector-ref-exception] for details on that.
 
+### Data breakpoints
+
+Data breakpoints are not supported by all debug adapters. They are breakpoints
+which trigger when some memory is read or written. They can be created:
+
+- For a given variable in the variables window (`<F9>` on variable)
+- For a given child variable in the watches or variables windows 
+  (`<F9>` on child variable)
+- For an arbitrary expression which evaluates to an address (`<F9>` in watch
+  window, not on any variable)
+
+When specifying an expression, you can also specify a size.
+
+In general, if you hit `<F9>` (or whatever mapping you have) in the Variables or
+Watch window, you'll be adding a Data Breakpoint. If the context looks like a
+variable, then Vimspector will ask the debug adapter to create a data breakpoint
+on that variable expression. Otherwise, you'll be asked to enter an expression,
+or an address and a size, depending on the capabilities of the debugger.
+
+NOTE: Not all debug adapters support data breakpoints, and the ability to
+actually create them often depends on the hardware of the target.
+
 ### API Summary
 
 ***NOTE:*** Previously, ToggleBreakpoint would cycle between 3 states:
@@ -1084,6 +1109,7 @@ deletes a breakpoint. If you wish to 'disable' breakpoints, use the
 * `call vimspector#ListBreakpoints()` - toggle breakpoints window
 * `call vimspector#BreakpointsAsQuickFix()` - return the current set of
   breakpoints in vim quickfix format
+* `call vimspector#AddDataBreakpoint()` - add a data breakpoint
 
 Examples:
 
@@ -1211,6 +1237,7 @@ autocmd SessionLoadPost * silent! VimspectorLoadSession
 * View the type of the variable via mouse hover.
 * When changing the stack frame the locals window updates.
 * While paused, hover to see values.
+* Create a data breakpoint with `<F9>`.
 
 ![locals window](https://puremourning.github.io/vimspector-web/img/vimspector-locals-window.png)
 
@@ -1261,6 +1288,7 @@ to add a new watch expression.
 * Set the value of the variable with `<C-CR>` (control + `<CR>`) or
   `<leader><CR>` (if `modifyOtherKeys` doesn't work for you)
 * Delete with `<DEL>`.
+* Create a data breakpoint with `<F9>`.
 
 ![watch window](https://puremourning.github.io/vimspector-web/img/vimspector-watch-window.png)
 
@@ -1573,14 +1601,16 @@ Currently tested with the following debug adapters.
 
 ## C, C++, Rust, etc.
 
+* Recommended: [CodeLLDB](#rust)
 * [vscode-cpptools](https://github.com/Microsoft/vscode-cpptools)
-* On macOS, I *strongly* recommend using [CodeLLDB](#rust) instead for C and C++
+* [lldb-dap](https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.lldb-dap)
+* I *strongly* recommend using [CodeLLDB](#rust) over cpptools for almost all
 projects. It's really excellent, has fewer dependencies and doesn't open console
 apps in another Terminal window.
 
 
-Example `.vimspector.json` (works with both `vscode-cpptools` and `lldb-vscode`.
-For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
+Example `.vimspector.json` (works with both `vscode-cpptools` and `lldb-dap`.
+For `lldb-dap` replace the name of the adapter with `lldb-dap`:
 
 * vscode-cpptools Linux/MacOS:
 
@@ -1636,6 +1666,31 @@ licensing.
 }
 ```
 
+* `lldb-dap`
+
+```json
+
+    "lldb-dap": {
+      "adapter": {
+          "command": [
+            // TODO: Replace this with the path to your installation of lldb
+            "/opt/homebrew/Cellar/llvm/bin/lldb-dap"
+          ],
+          "name": "lldb"
+      },
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/${fileBasenameNoExtension}",
+        "args": [
+            "*${args}"
+        ],
+        "stopOnEntry": true,
+        "runInTerminal": true,
+        "cwd": "${workspaceRoot}"
+      }
+    }
+```
+
 ### Data visualization / pretty printing
 
 Depending on the backend you need to enable pretty printing of complex types
@@ -1683,22 +1738,22 @@ an example of getting Vimspector to remotely launch and attach.
 
 * CodeLLDB (MacOS)
 
-CodeLLDB is superior to vscode-cpptools in a number of ways on macOS at least.
+CodeLLDB is superior to vscode-cpptools in a number of ways.
 
 See [Rust](#rust).
 
-* lldb-vscode (MacOS)
+* lldb-dap (MacOS)
 
-An alternative is to to use `lldb-vscode`, which comes with llvm.  Here's how:
+An alternative is to to use `lldb-dap`, which comes with llvm.  Here's how:
 
 * Install llvm (e.g. with HomeBrew: `brew install llvm`)
 * Create a file named
-  `/path/to/vimspector/gadgets/macos/.gadgets.d/lldb-vscode.json`:
+  `/path/to/vimspector/gadgets/macos/.gadgets.d/lldb-dap.json`:
 
 ```json
 {
   "adapters": {
-    "lldb-vscode": {
+    "lldb-dap": {
       "variables": {
         "LLVM": {
           "shell": "brew --prefix llvm"
@@ -1709,7 +1764,7 @@ An alternative is to to use `lldb-vscode`, which comes with llvm.  Here's how:
         "pidSelect": "ask"
       },
       "command": [
-        "${LLVM}/bin/lldb-vscode"
+        "${LLVM}/bin/lldb-dap"
       ],
       "env": {
         "LLDB_LAUNCH_FLAG_LAUNCH_IN_TTY": "YES"
@@ -1723,7 +1778,7 @@ An alternative is to to use `lldb-vscode`, which comes with llvm.  Here's how:
 ## Rust
 
 Rust is supported with any gdb/lldb-based debugger. So it works fine with
-`vscode-cpptools` and `lldb-vscode` above. However, support for rust is best in
+`vscode-cpptools` and `lldb-dap` above. However, support for rust is best in
 [`CodeLLDB`](https://github.com/vadimcn/vscode-lldb#features).
 
 * `./install_gadget.py --enable-rust` or `:VimspectorInstall CodeLLDB`
@@ -1737,7 +1792,8 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
       "filetypes": [ "rust" ],
       "configuration": {
         "request": "launch",
-        "program": "${workspaceRoot}/target/debug/vimspector_test"
+        "program": "${workspaceRoot}/target/debug/vimspector_test",
+        "sourceLanguages": [ "rust" ]
       }
     },
     "attach": {
@@ -1746,7 +1802,8 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
       "configuration": {
         "request": "attach",
         "program": "${workspaceRoot}/${fileBasenameNoExtension}",
-        "PID": "${PID}"
+        "PID": "${PID}",
+        "sourceLanguages": [ "rust" ]
       }
     }
   }
@@ -1934,6 +1991,8 @@ for examk
 ## TCL
 
 * TCL (TclProDebug)
+
+Requires TCL 8.x. Does not work with TCL 9.
 
 See [my fork of TclProDebug](https://github.com/puremourning/TclProDebug) for instructions.
 
@@ -2172,41 +2231,6 @@ Note also that for some reason this debug adapter always forces us to start
 multiple debug sessions. For a user, that shouldn't change anything (other than
 perhaps a slightly confusing stack trace). But it does make things more
 complicated and so there may be subtle bugs.
-
-* Node.js (legacy)
-
-**NOTE**: This configuration uses the *deprecated* legacy debug adapter and will
-be removed in future. Please update your configurations to use the `js-debug`
-adapter. You _may_ be able to just change the adapter name.
-
-Requires:
-
-* `install_gadget.py --force-enable-node`
-* For installation, a Node.js environment that is < node 12. I believe this is an
-  incompatibility with gulp. Advice, use [nvm](https://github.com/nvm-sh/nvm) with `nvm install --lts 10; nvm
-  use --lts 10; ./install_gadget.py --force-enable-node ...`
-* Options described here:
-  https://code.visualstudio.com/docs/nodejs/nodejs-debugging
-* Example: `support/test/node/simple`
-
-```json
-{
-  "configurations": {
-    "run": {
-      "adapter": "vscode-node",
-      "filetypes": [ "javascript", "typescript" ], // optional
-      "configuration": {
-        "request": "launch",
-        "protocol": "auto",
-        "stopOnEntry": true,
-        "console": "integratedTerminal",
-        "program": "${workspaceRoot}/simple.js",
-        "cwd": "${workspaceRoot}"
-      }
-    }
-  }
-}
-```
 
 * Chrome/Firefox
 

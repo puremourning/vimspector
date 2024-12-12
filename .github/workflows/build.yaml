@@ -18,7 +18,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: 'Insatll requirements'
-      run: pip3 install --user -r dev_requirements.txt
+      run: pip3 install  --user -r dev_requirements.txt
     - name: 'Run flake8'
       run: '$HOME/.local/bin/flake8 python3/ *.py'
   VimscriptLint:
@@ -27,7 +27,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: 'Install requirements'
-      run: pip3 install --user -r dev_requirements.txt
+      run: pip3 install  --user -r dev_requirements.txt
     - name: 'Run vint'
       run: $HOME/.local/bin/vint autoload/ compiler/ plugin/ tests/ syntax/
 
@@ -81,7 +81,7 @@ jobs:
         VIMSPECTOR_MIMODE: gdb
 
     - name: "Upload test logs"
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
@@ -97,7 +97,7 @@ jobs:
     #     SSH_PASS: ${{ secrets.SSH_PASS }}
 
   MacOS:
-    runs-on: 'macos-12'
+    runs-on: 'macos-13'
     strategy:
       fail-fast: false
       matrix:
@@ -113,7 +113,7 @@ jobs:
         brew update-reset
         brew doctor || true
         brew cleanup || true
-        for p in vim go tcl-tk llvm lua luajit love neovim coreutils; do
+        for p in vim go tcl-tk@8 llvm lua luajit love neovim coreutils; do
           brew install $p || brew outdated $p || brew upgrade $p
         done
         brew reinstall icu4c
@@ -122,11 +122,11 @@ jobs:
         brew link --overwrite go
         # latest neovim doesn't work on python 3.12
         # https://github.com/neovim/pynvim/issues/538
-        pip3 install --user 'pynvim @ git+https://github.com/neovim/pynvim'
+        pip3 install --break-system-packages --user 'pynvim @ git+https://github.com/neovim/pynvim'
       name: 'Install vim and deps'
 
     - name: 'Install requirements'
-      run: pip3 install --user -r dev_requirements.txt
+      run: pip3 install --break-system-packages --user -r dev_requirements.txt
 
     - run: go install github.com/go-delve/delve/cmd/dlv@latest
       name: 'Install Delve for Go'
@@ -163,7 +163,7 @@ jobs:
         VIMSPECTOR_MIMODE: lldb
 
     - name: "Upload test logs"
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
