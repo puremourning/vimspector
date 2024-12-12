@@ -353,7 +353,7 @@ GADGETS = {
                                                              gadget ),
     'all': {
       'path': 'github.com/go-delve/delve/cmd/dlv',
-      'version': '1.22.1',
+      'version': '1.23.1',
     },
     'adapters': {
       "delve": {
@@ -463,27 +463,6 @@ GADGETS = {
       },
     },
   },
-  'vscode-node-debug2': {
-    'language': 'node_legacy',
-    'enabled': False,
-    'repo': {
-      'url': 'https://github.com/microsoft/vscode-node-debug2',
-      'ref': 'v1.43.0'
-    },
-    'do': lambda name, root, gadget: installer.InstallNodeDebug( name,
-                                                                 root,
-                                                                 gadget ),
-    'adapters': {
-      'vscode-node': {
-        'name': 'node2',
-        'type': 'node2',
-        'command': [
-          'node',
-          '${gadgetDir}/vscode-node-debug2/out/src/nodeDebug.js'
-        ]
-      },
-    },
-  },
   'vscode-firefox-debug': {
     'language': 'firefox',
     'enabled': False,
@@ -546,12 +525,12 @@ GADGETS = {
              '${version}/${file_name}',
     },
     'all': {
-      'version': 'v1.10.0',
+      'version': 'v1.11.0',
     },
     'macos': {
-      'file_name': 'codelldb-x86_64-darwin.vsix',
+      'file_name': 'codelldb-darwin-x64.vsix',
       'checksum':
-        '91b10d5670a40434c308c09cb511a5b3e096c82b446a0bbbe4224af33204f5cf',
+        '5be44ccc6d1e44a0cad5c67458a6968c0c6baf091093005221d467f10dd68dc6',
       'make_executable': [
         'adapter/codelldb',
         'lldb/bin/debugserver',
@@ -560,14 +539,14 @@ GADGETS = {
       ],
     },
     'macos_arm64': {
-      'file_name': 'codelldb-aarch64-darwin.vsix',
+      'file_name': 'codelldb-darwin-arm64.vsix',
       'checksum':
-        '4ab0795a726bc52d6e2fa8ebc610baa3f262ebea89adac478cf4a34c72167a41',
+        '6634c094def2463d38b7b220bcebb49bac81391ef2e9988c4d41e88a996d726c',
     },
     'linux': {
-      'file_name': 'codelldb-x86_64-linux.vsix',
+      'file_name': 'codelldb-linux-x64.vsix',
       'checksum':
-        'd12bff19811974e14688e9754d8d7b9a2430868c3bac883d695032a4acd012ca',
+        'b857287f70a18a4fc2d7563aa9fdbcfa9cb2b37d5666fc78394fc8131ee335e2',
       'make_executable': [
         'adapter/codelldb',
         'lldb/bin/lldb',
@@ -576,19 +555,19 @@ GADGETS = {
       ],
     },
     'linux_arm64': {
-      'file_name': 'codelldb-aarch64-linux.vsix',
+      'file_name': 'codelldb-linux-arm64.vsix',
       'checksum':
-        '0a81f6617834754537520b7bae2ea9ad50d26b372f8c8bd967dae099e4b27d06',
+        'ebbd358dddc1538384cdfb94823da85d13a7a3a4c3eac466de8bb5394f81386a',
     },
     'linux_armv7': {
-      'file_name': 'codelldb-arm-linux.vsix',
+      'file_name': 'codelldb-linux-armhf.vsix',
       'checksum':
-        '4bfc5ee753d4359c9ba3cf8fc726f4245a62fd283b718b5120ef1b404baf68c9',
+        'a22f1b38a94a94cb2cb814399de9da153cd2ddb2539b97353f05b60668fe0e9f',
     },
     'windows': {
-      'file_name': 'codelldb-x86_64-windows.vsix',
+      'file_name': 'codelldb-win32-x64.vsix',
       'checksum':
-        '2f251384e4356edcffe168439714d00de5ca434b263719cbdaf63c9d2f0ffe64',
+        '375807832e2e9e41dd66f000200d4a55978977f3f10ad9799286f1f9fbe017e6',
       'make_executable': []
     },
     'adapters': {
@@ -597,9 +576,7 @@ GADGETS = {
         'type': 'CodeLLDB',
         "command": [
           "${gadgetDir}/CodeLLDB/adapter/codelldb",
-          "--port", "${unusedLocalPort}"
         ],
-        "port": "${unusedLocalPort}",
         "configuration": {
           "type": "lldb",
           "name": "lldb",

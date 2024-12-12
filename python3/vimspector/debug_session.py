@@ -32,6 +32,7 @@ from vimspector import ( breakpoints,
                          install,
                          output,
                          stack_trace,
+                         session_manager,
                          utils,
                          variables,
                          settings,
@@ -59,6 +60,17 @@ class DebugSession( object ):
         if active_session is not None:
           return fct( active_session, *args, **kwargs )
         return fct( self, *args, **kwargs )
+      return wrapper
+    return decorator
+
+  def ParentSession():
+    def decorator( fct ):
+      @functools.wraps( fct )
+      def wrapper( self: "DebugSession", *args, **kwargs ):
+        current = self
+        while current.parent_session:
+          current = current.parent_session
+        return fct( current, *args, **kwargs )
       return wrapper
     return decorator
 
@@ -1016,6 +1028,115 @@ class DebugSession( object ):
       self._disassemblyView.OnWindowScrolled( win_id )
 
 
+  @ParentSession()
+  def AddDataBreakpoint( self, opts, buf = None, line_num = None ):
+    # Use the parent session, because the _connection_ comes from the
+    # variable/watch result that is actually chosen
+
+    def add_bp( conn, name, msg ):
+      breakpoint_info = msg.get( 'body' )
+      if not breakpoint_info:
+        utils.UserMessage( "Can't set data breakpoint here" )
+        return
+
+      if breakpoint_info[ 'dataId' ] is None:
+        utils.UserMessage(
+          f"Can't set data breakpoint here: {breakpoint_info[ 'description' ]}"
+        )
+        return
+
+      access_types = breakpoint_info.get( 'accessTypes' )
+      if access_types and 'accessType' not in opts:
+        access_type = utils.SelectFromList( f'What type of access for {name}?',
+                                            access_types )
+        if not access_type:
+          return
+        opts[ 'accessType' ] = access_type
+
+      self._breakpoints.AddDataBreakpoint( conn,
+                                           name,
+                                           breakpoint_info,
+                                           opts )
+
+    con: debug_adapter_connection.DebugAdapterConnection = None
+    arguments: dict = None
+
+    # Check if we were requesting on a specific child variable in the
+    # watch/locals window. If so, use variablesReference.
+    con, arguments = self._variablesView.GetDataBreakpointInfoRequest(
+      buf,
+      line_num )
+
+    if not con:
+      # No watch variable was found, so enter an expression and pass it in
+      # 'name', with optional 'bytes' and 'asAddress' arguments.
+      arguments = {}
+      con = self._stackTraceView.GetCurrentSession().Connection()
+
+      if not con:
+        return
+
+      address_allowed = bool( session_manager.Get().GetSession(
+        con.GetSessionId() )._server_capabilities.get(
+          'supportsDataBreakpointBytes' ) )
+
+      if address_allowed:
+        expr = utils.AskForInput(
+          'Expression to watch (or empty for address): ' )
+
+        if expr is None:
+          return
+
+        if not expr:
+          expr = utils.AskForInput( 'Address to watch: ' )
+          arguments[ 'asAddress' ] = True
+
+        if not expr:
+          return
+
+        size = utils.AskForInput( 'Bytes to watch (empty for default): ' )
+        if size is None:
+          return
+
+        if size != '':
+          try:
+            arguments[ 'bytes' ] = int( size )
+          except ValueError:
+            utils.UserMessage( "Invalid size", error=True )
+            return
+      else:
+        expr = utils.AskForInput( 'Expression to watch: ' )
+
+      if not expr:
+        return
+
+      arguments = {
+        'name': expr,
+        'frameId': self._stackTraceView.GetCurrentFrame()[ 'id' ]
+      } | arguments
+
+    if not con or not arguments:
+      utils.UserMessage( "Nothing set" )
+      return
+
+    if not session_manager.Get().GetSession(
+      con.GetSessionId() )._server_capabilities.get(
+        'supportsDataBreakpoints' ):
+      utils.UserMessage( "Server does not support data breakpoints" )
+      return
+
+    con.DoRequest(
+      lambda msg: add_bp( con, arguments[ 'name' ], msg ), {
+        'command': 'dataBreakpointInfo',
+        'arguments': arguments,
+      },
+      failure_handler = lambda reason, msg: utils.UserMessage(
+        reason,
+        error=True
+      )
+    )
+
+
   @CurrentSession()
   @IfConnected()
   def AddWatch( self, expression ):
@@ -1683,6 +1804,8 @@ class DebugSession( object ):
 
   def _GetDockerCommand( self, remote ):
     docker = [ 'docker', 'exec', '-t' ]
+    if 'docker_args' in remote:
+      docker += remote[ 'docker_args' ]
     docker.append( remote[ 'container' ] )
     return docker
 

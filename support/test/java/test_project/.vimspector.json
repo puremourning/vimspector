@@ -7,6 +7,7 @@
         "mainClass": "com.vimspector.test.TestApplication",
         "sourcePaths": [ "${workspaceRoot}/src/main/java" ],
         "classPaths": [ "${workspaceRoot}/target/classes" ],
+        "project": "TestApplication",
         "args": "hello world!",
         "stopOnEntry": true,
         "console": "integratedTerminal",
@@ -20,6 +21,7 @@
       "configuration": {
         "request": "attach",
         "sourcePaths": [ "${workspaceRoot}/src/main/java" ],
+        "project": "TestApplication",
         "stopOnEntry": true,
         "hostName": "localhost",
         "port": "${JVMDebugPort}",
@@ -32,6 +34,7 @@
       "adapter": "vscode-javac",
       "configuration": {
         "request": "attach",
+        "project": "TestApplication",
         "port": "${debugPort}",
         "sourceRoots": [
           "${workspaceRoot}/src/main/java"
