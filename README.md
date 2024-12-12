@@ -139,6 +139,8 @@ And a couple of brief demos:
 
 - flexible configuration syntax that can be checked in to source control
 - breakpoints (function, line and exception breakpoints)
+- instruction breakpoints
+- data breakpoints
 - conditional breakpoints (function, line)
 - step in/out/over/up, stop, restart
 - run to cursor
