@@ -1066,8 +1066,6 @@ class DebugSession( object ):
     con, arguments = self._variablesView.GetDataBreakpointInfoRequest(
       buf,
       line_num )
-    # TODO: in theory, we could specify a bytes (size) option here, but I sort
-    # of doubt that anyone actually implements that.
 
     if not con:
       # No watch variable was found, so enter an expression and pass it in

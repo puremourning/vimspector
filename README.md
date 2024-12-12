@@ -1057,6 +1057,28 @@ then answer `Y` to that (for example).
 You can configure your choices in the `.vimspector.json`. See
 [the configuration guide][vimspector-ref-exception] for details on that.
 
+### Data breakpoints
+
+Data breakpoints are not supported by all debug adapters. They are breakpoints
+which trigger when some memory is read or written. They can be created:
+
+- For a given variable in the variables window (`<F9>` on variable)
+- For a given child variable in the watches or variables windows 
+  (`<F9>` on child variable)
+- For an arbitrary expression which evaluates to an address (`<F9>` in watch
+  window, not on any variable)
+
+When specifying an expression, you can also specify a size.
+
+In general, if you hit `<F9>` (or whatever mapping you have) in the Variables or
+Watch window, you'll be adding a Data Breakpoint. If the context looks like a
+variable, then Vimspector will ask the debug adapter to create a data breakpoint
+on that variable expression. Otherwise, you'll be asked to enter an expression,
+or an address and a size, depending on the capabilities of the debugger.
+
+NOTE: Not all debug adapters support data breakpoints, and the ability to
+actually create them often depends on the hardware of the target.
+
 ### API Summary
 
 ***NOTE:*** Previously, ToggleBreakpoint would cycle between 3 states:
@@ -1082,6 +1104,7 @@ deletes a breakpoint. If you wish to 'disable' breakpoints, use the
 * `call vimspector#ListBreakpoints()` - toggle breakpoints window
 * `call vimspector#BreakpointsAsQuickFix()` - return the current set of
   breakpoints in vim quickfix format
+* `call vimspector#AddDataBreakpoint()` - add a data breakpoint
 
 Examples:
 
@@ -1209,6 +1232,7 @@ autocmd SessionLoadPost * silent! VimspectorLoadSession
 * View the type of the variable via mouse hover.
 * When changing the stack frame the locals window updates.
 * While paused, hover to see values.
+* Create a data breakpoint with `<F9>`.
 
 ![locals window](https://puremourning.github.io/vimspector-web/img/vimspector-locals-window.png)
 
@@ -1259,6 +1283,7 @@ to add a new watch expression.
 * Set the value of the variable with `<C-CR>` (control + `<CR>`) or
   `<leader><CR>` (if `modifyOtherKeys` doesn't work for you)
 * Delete with `<DEL>`.
+* Create a data breakpoint with `<F9>`.
 
 ![watch window](https://puremourning.github.io/vimspector-web/img/vimspector-watch-window.png)
 
