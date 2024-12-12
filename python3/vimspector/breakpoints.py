@@ -302,14 +302,13 @@ class ProjectBreakpoints( object ):
       return
 
 
+    # FIXME: what about instruction breakpoints
     if bp.get( 'type' ) == 'F':
       # FIXME: We don't really handle 'DISABLED' state for function breakpoints,
       # so they are just deleted
       self.ClearFunctionBreakpoint( bp.get( 'filename' ) )
-
-      # FIXME: what about data breakpoints
-      # FIXME: what about exception breakpoints
-      # FIXME: what about instruction breakpoints
+    elif bp.get( 'type' ) == 'D':
+      self.ToggleDataBreakpoint( bp[ 'session_id' ], bp[ 'data_id' ] )
     else:
       # This should find the breakpoint by the "current" line in lnum. If not,
       # pass an empty options just in case we end up in "ADD" codepath.
@@ -361,6 +360,9 @@ class ProjectBreakpoints( object ):
     if not vbp:
       return
 
+    if vbp.get( 'type' ) != 'L':
+      return
+
     # Try to find the actual breakpoint
     bp, index = self._FindLineBreakpoint( vbp.get( 'filename' ),
                                           vbp.get( 'lnum' ) )
@@ -402,8 +404,11 @@ class ProjectBreakpoints( object ):
     if not bp:
       return
 
+    # FIXME: what about instruction breakpoints
     if bp.get( 'type' ) == 'F':
       self.ClearFunctionBreakpoint( bp.get( 'filename' ) )
+    elif bp.get( 'type' ) == 'D':
+      self.ClearDataBreakpoint( bp[ 'session_id' ], bp[ 'data_id' ] )
     else:
       self.ClearLineBreakpoint( bp.get( 'filename' ), bp.get( 'lnum' ) )
 
@@ -498,6 +503,8 @@ class ProjectBreakpoints( object ):
 
       qf.append( {
         'filename': bp[ 'info' ][ 'description' ],
+        'data_id': bp[ 'info' ][ 'dataId' ],
+        'session_id': bp[ 'conn' ],
         'lnum': 1,
         'col': 1,
         'type': 'D',
@@ -886,6 +893,29 @@ class ProjectBreakpoints( object ):
     self.UpdateUI()
 
 
+  def ToggleDataBreakpoint( self, session_id, data_id ):
+    for dbp in self._data_breakponts:
+      if dbp[ 'conn' ] != session_id:
+        continue
+      if dbp[ 'info' ][ 'dataId' ] != data_id:
+        continue
+
+      if dbp[ 'state' ] == 'ENABLED':
+        dbp[ 'state' ] = 'DISABLED'
+      else:
+        dbp[ 'state' ] = 'ENABLED'
+      self.UpdateUI()
+      return
+
+
+  def ClearDataBreakpoint( self, session_id, data_id ):
+    self._data_breakponts = [
+      item for item in self._data_breakponts
+      if item[ 'conn' ] != session_id or item[ 'info' ][ 'dataId' ] != data_id
+    ]
+    self.UpdateUI()
+
+
   def ClearUI( self ):
     self._HideBreakpoints()
     self._breakpoints_view.CloseBreakpoints()
@@ -1096,11 +1126,14 @@ class ProjectBreakpoints( object ):
         breakpoints = []
         bp_idxs = []
         for bp in self._data_breakponts:
-          if bp[ 'state' ] != 'ENABLED':
-            continue
           if bp[ 'conn' ] != connection.GetSessionId():
             continue
           if not bp[ 'info' ].get( 'dataId' ):
+            continue
+
+          bp.pop( 'server_bp', None )
+
+          if bp[ 'state' ] != 'ENABLED':
             continue
 
           data_bp = {}
@@ -1109,20 +1142,19 @@ class ProjectBreakpoints( object ):
           bp_idxs.append( ( len( breakpoints ), bp ) )
           breakpoints.append( data_bp )
 
-        if breakpoints:
-          self._awaiting_bp_responses += 1
-          connection.DoRequest(
-            lambda msg, conn=connection: response_handler( conn,
-                                                           msg,
-                                                           bp_idxs ),
-            {
-              'command': 'setDataBreakpoints',
-              'arguments': {
-                'breakpoints': breakpoints,
-              },
+        self._awaiting_bp_responses += 1
+        connection.DoRequest(
+          lambda msg, conn=connection: response_handler( conn,
+                                                         msg,
+                                                         bp_idxs ),
+          {
+            'command': 'setDataBreakpoints',
+            'arguments': {
+              'breakpoints': breakpoints,
             },
-            failure_handler = response_received
-          )
+          },
+          failure_handler = response_received
+        )
 
     if self._exception_breakpoints:
       for connection in self._connections:
