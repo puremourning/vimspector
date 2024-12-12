@@ -436,10 +436,15 @@ def InstallTclProDebug( name, root, gadget ):
     #    '/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System'
     #    '/Library/Frameworks/Tcl.framework/Versions'
     #    '/Current',
-    for p in [ '/usr/local/opt/tcl-tk/lib', '/opt/homebrew/opt/tcl-tk/lib' ]:
-      if os.path.exists( os.path.join( p, 'tclConfig.sh' ) ):
-        configure.append( '--with-tcl=' + p )
-        break
+    for tcl in [ "tcl-tk@8", "tcl-tk" ]:
+      for p in [ f'/usr/local/opt/{tcl}/lib', f'/opt/homebrew/opt/{tcl}/lib' ]:
+        if os.path.exists( os.path.join( p, 'tclConfig.sh' ) ):
+          Print( f"Found tclConfig.sh in {p}" )
+          configure.append( '--with-tcl=' + p )
+          break
+      else:
+        continue
+      break
 
 
   with CurrentWorkingDir( os.path.join( root, 'lib', 'tclparser' ) ):

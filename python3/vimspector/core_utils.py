@@ -99,4 +99,8 @@ def override( target_dict: typing.MutableMapping,
 
 def NormalizePath( filepath ):
   absolute_path = os.path.abspath( filepath )
+  # Normalise windows drive letters to uppercase
+  drive, tail = os.path.splitdrive( absolute_path )
+  if drive:
+    absolute_path = drive.upper() + tail
   return absolute_path if os.path.isfile( absolute_path ) else filepath
