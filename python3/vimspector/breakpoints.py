@@ -412,6 +412,7 @@ class ProjectBreakpoints( object ):
     qf = []
     for file_name, breakpoints in self._line_breakpoints.items():
       for bp in breakpoints:
+        msg = []
         self._SignToLine( file_name, bp )
         line = bp[ 'line' ]
 
@@ -422,8 +423,11 @@ class ProjectBreakpoints( object ):
             if server_bp[ 'verified' ]:
               line = server_bp.get( 'line', line )
               state = 'VERIFIED'
+              msg = [ server_bp.get( 'message' ) ]
               valid = 1
               break
+            elif 'message' in server_bp:
+              msg.append( server_bp[ 'message' ] )
         else:
           state = bp[ 'state' ]
           valid = 1
@@ -440,14 +444,22 @@ class ProjectBreakpoints( object ):
           desc = "Instruction"
           sfx = f" at { utils.Hex( bp.get( 'address', '<unknown>' ) ) }"
 
+        if msg:
+          msg = list( filter( lambda x: x, msg ) )
+
+        if msg:
+          msg = f"{ ', '.join( msg ) } - "
+        else:
+          msg = ''
+
         qf.append( {
           'filename': file_name,
           'lnum': line,
           'col': 1,
           'type': 'L',
           'valid': valid,
-          'text': ( f"{desc} breakpoint{sfx} - "
-                    f"{state}: {json.dumps( bp['options'] )}"
+          'text': ( f"{desc} breakpoint{sfx} - {state}: {msg}"
+                    f"{json.dumps( bp['options'] )}"
                     f"\t{ line_value }" )
         } )
     for bp in self._func_breakpoints:
@@ -466,13 +478,31 @@ class ProjectBreakpoints( object ):
           json.dumps( bp[ 'options' ] ) )
       } )
     for bp in self._data_breakponts:
+      msg = ''
+      if 'server_bp' in bp:
+        state = 'PENDING'
+        for conn, server_bp in bp[ 'server_bp' ].items():
+          if conn != bp[ 'conn' ]:
+            continue
+          msg = server_bp.get( 'message' )
+          if server_bp[ 'verified' ]:
+            state = 'VERIFIED'
+            break
+      else:
+        state = bp[ 'state' ]
+
+      if msg:
+        msg = f"{ msg } - "
+      else:
+        msg = ''
+
       qf.append( {
         'filename': bp[ 'info' ][ 'description' ],
         'lnum': 1,
         'col': 1,
         'type': 'D',
         'valid': 0,
-        'text': f"{ bp['name'] }: Data breakpoint - "
+        'text': f"{ bp['name'] }: Data breakpoint - {state}: {msg}"
                 f"{ bp['info' ][ 'description' ] }: " +
                 json.dumps( bp[ 'options' ] )
       } )
@@ -846,7 +876,8 @@ class ProjectBreakpoints( object ):
       'conn': conn.GetSessionId(),
       'name': name,
       'info': info,
-      'options': options
+      'options': options,
+      'is_instruction_breakpoint': False
     } )
     # We don't have a way to render breakpoints in the variables view right now,
     # so instead when you add a data breakpoint, we force-show the breakpoints
@@ -1063,6 +1094,7 @@ class ProjectBreakpoints( object ):
       connection: DebugAdapterConnection
       for connection in self._connections:
         breakpoints = []
+        bp_idxs = []
         for bp in self._data_breakponts:
           if bp[ 'state' ] != 'ENABLED':
             continue
@@ -1074,12 +1106,15 @@ class ProjectBreakpoints( object ):
           data_bp = {}
           data_bp.update( bp[ 'options' ] )
           data_bp[ 'dataId' ] = bp[ 'info' ][ 'dataId' ]
+          bp_idxs.append( ( len( breakpoints ), bp ) )
           breakpoints.append( data_bp )
 
         if breakpoints:
           self._awaiting_bp_responses += 1
           connection.DoRequest(
-            lambda msg, conn=connection: response_handler( conn, msg ),
+            lambda msg, conn=connection: response_handler( conn,
+                                                           msg,
+                                                           bp_idxs ),
             {
               'command': 'setDataBreakpoints',
               'arguments': {
