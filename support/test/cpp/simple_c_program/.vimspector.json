@@ -1,10 +1,32 @@
 {
   "adapters": {
+    "lldb-dap": {
+      "attach": {
+        "pidProperty": "pid",
+        "pidSelect": "ask"
+      },
+      "command": [
+        "/opt/homebrew/opt/llvm/bin/lldb-dap"
+      ],
+      "env": {
+        "LLDB_LAUNCH_FLAG_LAUNCH_IN_TTY": "YES"
+      },
+      "name": "lldb",
+      "configuration": {
+        "runInTerminal": true
+      }
+    },
+    "custom-lldb-dap": {
+      "extends": "lldb-dap",
+      "command": [
+        "$HOME/Development/llvm-project/build/bin/lldb-dap"
+      ]
+    },
     "custom-codelldb": {
       "extends": "CodeLLDB",
       "command": [
         "$HOME/Development/vimspector/CodeLLDB/build/adapter/codelldb",
-        "--port", "${unusedLocalPort}"
+        "--liblldb", "$HOME/Development/llvm-project/build/lib/liblldb.dylib"
       ]
     },
     "CodeLLDB - StopOnEntry": {
@@ -23,6 +45,7 @@
       "adapter": "custom-codelldb",
       "configuration": {
         "request": "launch",
+        "expressions": "native",
         "program": "${workspaceRoot}/test"
       }
     },
@@ -47,6 +70,17 @@
         "stopOnEntry": true
       }
     },
+    "lldb-dap": {
+      "adapter": "lldb-dap",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/test"
+      }
+    },
+    "lldb-dap-custom": {
+      "extends": "lldb-dap",
+      "adapter": "custom-lldb-dap"
+    },
     "lldb-vscode": {
       "adapter": "lldb-vscode",
       "variables": {
@@ -64,7 +98,7 @@
       "adapter": "vscode-cpptools",
       "variables": {
         "BUILDME": {
-          "shell": "g++ -o ${workspaceRoot}/test -g -std=c++17 ${workspaceRoot}/test_c.cpp"
+          "shell": "g++ -o ${workspaceRoot}/test -g -std=c++17 ${file}"
         },
         "arch": {
           "shell": "uname -m"
@@ -86,7 +120,7 @@
       "adapter": "vscode-cpptools",
       "variables": {
         "BUILDME": {
-          "shell": "g++ -o ${workspaceRoot}/test -g -std=c++17 ${workspaceRoot}/test_c.cpp"
+          "shell": "g++ -o ${workspaceRoot}/test -g -std=c++17 ${file}"
         }
       },
       "configuration": {
