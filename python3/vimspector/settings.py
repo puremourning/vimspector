@@ -93,6 +93,7 @@ DEFAULTS = {
       'delete': [ '<Del>' ],
       'set_value': [ '<C-CR>', '<leader><CR>' ],
       'read_memory': [ '<leader>m' ],
+      'add_data_breakpoint': [ '<F9>' ],
     },
     'stack_trace': {
       'expand_or_jump': [ '<CR>', '<2-LeftMouse>' ],
