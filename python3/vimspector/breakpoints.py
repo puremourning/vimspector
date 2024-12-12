@@ -328,6 +328,11 @@ class ProjectBreakpoints( object ):
           enabled += 1
         else:
           disabled += 1
+    for dbp in self._line_breakpoints:
+      if bp[ 'state' ] == 'ENABLED':
+        enabled += 1
+      else:
+        disabled += 1
 
     if enabled > disabled:
       new_state = 'DISABLED'
@@ -337,10 +342,11 @@ class ProjectBreakpoints( object ):
     for filename, bps in self._line_breakpoints.items():
       for bp in bps:
         bp[ 'state' ] = new_state
+    for dbp in self._data_breakponts:
+      dbp[ 'state' ] = new_state
 
     # FIXME: We don't really handle 'DISABLED' state for function breakpoints,
     # so they are not touched
-    # FIXME: Same for data breakpoints
     # FIXME: Same for exception breakpoints
     # FIXME: Same for instruction breakpoints
     self.UpdateUI()
@@ -622,7 +628,7 @@ class ProjectBreakpoints( object ):
     bp = self._FindPostedBreakpoint( conn, server_bp.get( 'id' ) )
     if bp is None:
       self._logger.warn( "Unexpected update to breakpoint with id %s:"
-                         "breakpiont not found. %s",
+                         "breakpoint not found. %s",
                          server_bp.get( 'id' ),
                          server_bp )
       # FIXME ? self.AddPostedBreakpoint( server_bp )
@@ -799,7 +805,7 @@ class ProjectBreakpoints( object ):
     # FIXME: We should use the _FindPostedBreakpoint here instead, as that's way
     # more accurate at this point. Some servers can now identifyt he breakpoint
     # ID that actually triggered too. For now, we still have
-    # _UpdateServerBreakpoints change the _user_ breakpiont line and we check
+    # _UpdateServerBreakpoints change the _user_ breakpoint line and we check
     # for that _here_, though we could check ['server_bp']['line']
     updates = False
     for bp, index in self._AllBreakpointsOnLine( file_name, line_num ):
@@ -839,7 +845,7 @@ class ProjectBreakpoints( object ):
       is_temporary = bool( user_bp[ 'options' ].get( 'temporary' ) )
 
       if not is_temporary:
-        # We don't modify the 'user" breakpiont
+        # We don't modify the 'user" breakpoint
         continue
 
       # FIXME: Tempoarary instruction breakpoints would not have a line; we
@@ -1047,9 +1053,9 @@ class ProjectBreakpoints( object ):
       # function breakpoint as well as every line breakpoint. We need to
       # implement that:
       #  - pass the indices in here
-      #  - make _FindPostedBreakpoint also search function breakpionts
+      #  - make _FindPostedBreakpoint also search function breakpoints
       #  - make sure that ConnectionClosed also cleares the server_bp data for
-      #    function breakpionts
+      #    function breakpoints
       #  - make sure that we have tests for this, because i'm sure we don't!
       for connection in self._connections:
         self._awaiting_bp_responses += 1
@@ -1119,8 +1125,7 @@ class ProjectBreakpoints( object ):
           failure_handler = response_received
         )
 
-    if self._data_breakponts and self._server_capabilities[
-      'supportsDataBreakpoints' ]:
+    if self._server_capabilities.get( 'supportsDataBreakpoints' ):
       connection: DebugAdapterConnection
       for connection in self._connections:
         breakpoints = []
