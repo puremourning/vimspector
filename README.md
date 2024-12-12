@@ -474,7 +474,7 @@ Example:
 ```json
 {
   "adapters": {
-    "lldb-vscode": {
+    "lldb-dap": {
       "variables": {
         "LLVM": {
           "shell": "brew --prefix llvm"
@@ -485,7 +485,7 @@ Example:
         "pidSelect": "ask"
       },
       "command": [
-        "${LLVM}/bin/lldb-vscode"
+        "lldb-dap"
       ],
       "env": {
         "LLDB_LAUNCH_FLAG_LAUNCH_IN_TTY": "YES"
@@ -1057,6 +1057,28 @@ then answer `Y` to that (for example).
 You can configure your choices in the `.vimspector.json`. See
 [the configuration guide][vimspector-ref-exception] for details on that.
 
+### Data breakpoints
+
+Data breakpoints are not supported by all debug adapters. They are breakpoints
+which trigger when some memory is read or written. They can be created:
+
+- For a given variable in the variables window (`<F9>` on variable)
+- For a given child variable in the watches or variables windows 
+  (`<F9>` on child variable)
+- For an arbitrary expression which evaluates to an address (`<F9>` in watch
+  window, not on any variable)
+
+When specifying an expression, you can also specify a size.
+
+In general, if you hit `<F9>` (or whatever mapping you have) in the Variables or
+Watch window, you'll be adding a Data Breakpoint. If the context looks like a
+variable, then Vimspector will ask the debug adapter to create a data breakpoint
+on that variable expression. Otherwise, you'll be asked to enter an expression,
+or an address and a size, depending on the capabilities of the debugger.
+
+NOTE: Not all debug adapters support data breakpoints, and the ability to
+actually create them often depends on the hardware of the target.
+
 ### API Summary
 
 ***NOTE:*** Previously, ToggleBreakpoint would cycle between 3 states:
@@ -1082,6 +1104,7 @@ deletes a breakpoint. If you wish to 'disable' breakpoints, use the
 * `call vimspector#ListBreakpoints()` - toggle breakpoints window
 * `call vimspector#BreakpointsAsQuickFix()` - return the current set of
   breakpoints in vim quickfix format
+* `call vimspector#AddDataBreakpoint()` - add a data breakpoint
 
 Examples:
 
@@ -1209,6 +1232,7 @@ autocmd SessionLoadPost * silent! VimspectorLoadSession
 * View the type of the variable via mouse hover.
 * When changing the stack frame the locals window updates.
 * While paused, hover to see values.
+* Create a data breakpoint with `<F9>`.
 
 ![locals window](https://puremourning.github.io/vimspector-web/img/vimspector-locals-window.png)
 
@@ -1259,6 +1283,7 @@ to add a new watch expression.
 * Set the value of the variable with `<C-CR>` (control + `<CR>`) or
   `<leader><CR>` (if `modifyOtherKeys` doesn't work for you)
 * Delete with `<DEL>`.
+* Create a data breakpoint with `<F9>`.
 
 ![watch window](https://puremourning.github.io/vimspector-web/img/vimspector-watch-window.png)
 
@@ -1571,14 +1596,16 @@ Currently tested with the following debug adapters.
 
 ## C, C++, Rust, etc.
 
+* Recommended: [CodeLLDB](#rust)
 * [vscode-cpptools](https://github.com/Microsoft/vscode-cpptools)
-* On macOS, I *strongly* recommend using [CodeLLDB](#rust) instead for C and C++
+* [lldb-dap](https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.lldb-dap)
+* I *strongly* recommend using [CodeLLDB](#rust) over cpptools for almost all
 projects. It's really excellent, has fewer dependencies and doesn't open console
 apps in another Terminal window.
 
 
-Example `.vimspector.json` (works with both `vscode-cpptools` and `lldb-vscode`.
-For `lldb-vscode` replace the name of the adapter with `lldb-vscode`:
+Example `.vimspector.json` (works with both `vscode-cpptools` and `lldb-dap`.
+For `lldb-dap` replace the name of the adapter with `lldb-dap`:
 
 * vscode-cpptools Linux/MacOS:
 
@@ -1634,6 +1661,31 @@ licensing.
 }
 ```
 
+* `lldb-dap`
+
+```json
+
+    "lldb-dap": {
+      "adapter": {
+          "command": [
+            // TODO: Replace this with the path to your installation of lldb
+            "/opt/homebrew/Cellar/llvm/bin/lldb-dap"
+          ],
+          "name": "lldb"
+      },
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/${fileBasenameNoExtension}",
+        "args": [
+            "*${args}"
+        ],
+        "stopOnEntry": true,
+        "runInTerminal": true,
+        "cwd": "${workspaceRoot}"
+      }
+    }
+```
+
 ### Data visualization / pretty printing
 
 Depending on the backend you need to enable pretty printing of complex types
@@ -1681,22 +1733,22 @@ an example of getting Vimspector to remotely launch and attach.
 
 * CodeLLDB (MacOS)
 
-CodeLLDB is superior to vscode-cpptools in a number of ways on macOS at least.
+CodeLLDB is superior to vscode-cpptools in a number of ways.
 
 See [Rust](#rust).
 
-* lldb-vscode (MacOS)
+* lldb-dap (MacOS)
 
-An alternative is to to use `lldb-vscode`, which comes with llvm.  Here's how:
+An alternative is to to use `lldb-dap`, which comes with llvm.  Here's how:
 
 * Install llvm (e.g. with HomeBrew: `brew install llvm`)
 * Create a file named
-  `/path/to/vimspector/gadgets/macos/.gadgets.d/lldb-vscode.json`:
+  `/path/to/vimspector/gadgets/macos/.gadgets.d/lldb-dap.json`:
 
 ```json
 {
   "adapters": {
-    "lldb-vscode": {
+    "lldb-dap": {
       "variables": {
         "LLVM": {
           "shell": "brew --prefix llvm"
@@ -1707,7 +1759,7 @@ An alternative is to to use `lldb-vscode`, which comes with llvm.  Here's how:
         "pidSelect": "ask"
       },
       "command": [
-        "${LLVM}/bin/lldb-vscode"
+        "${LLVM}/bin/lldb-dap"
       ],
       "env": {
         "LLDB_LAUNCH_FLAG_LAUNCH_IN_TTY": "YES"
@@ -1721,7 +1773,7 @@ An alternative is to to use `lldb-vscode`, which comes with llvm.  Here's how:
 ## Rust
 
 Rust is supported with any gdb/lldb-based debugger. So it works fine with
-`vscode-cpptools` and `lldb-vscode` above. However, support for rust is best in
+`vscode-cpptools` and `lldb-dap` above. However, support for rust is best in
 [`CodeLLDB`](https://github.com/vadimcn/vscode-lldb#features).
 
 * `./install_gadget.py --enable-rust` or `:VimspectorInstall CodeLLDB`
@@ -1735,7 +1787,8 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
       "filetypes": [ "rust" ],
       "configuration": {
         "request": "launch",
-        "program": "${workspaceRoot}/target/debug/vimspector_test"
+        "program": "${workspaceRoot}/target/debug/vimspector_test",
+        "sourceLanguages": [ "rust" ]
       }
     },
     "attach": {
@@ -1744,7 +1797,8 @@ Rust is supported with any gdb/lldb-based debugger. So it works fine with
       "configuration": {
         "request": "attach",
         "program": "${workspaceRoot}/${fileBasenameNoExtension}",
-        "PID": "${PID}"
+        "PID": "${PID}",
+        "sourceLanguages": [ "rust" ]
       }
     }
   }

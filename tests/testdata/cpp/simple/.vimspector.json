@@ -76,6 +76,22 @@
         "MIMode": "lldb"
       }
     },
+    "lldb-dap": {
+      "adapter": "lldb-dap",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/${fileBasenameNoExtension}",
+        "args": [
+          "A", "eh",
+          "B", "bee",
+          "C", "Sea",
+          "D", "Ceedy"
+        ],
+        "stopOnEntry": true,
+        "runInTerminal": true,
+        "cwd": "${workspaceRoot}"
+      }
+    },
     "CodeLLDB": {
        "adapter": "CodeLLDB",
       // "adapter": {
@@ -129,12 +145,21 @@
       },
       "name": "lldb"
     },
+    "lldb-dap": {
+      "variables": {
+        "LLVM": {
+          "shell": "brew --prefix llvm"
+        }
+      },
+      "command": [
+        "${LLVM}/bin/lldb-dap"
+      ],
+      "name": "lldb"
+    },
     "CodeLLDB-localbuild": {
       "extends": "CodeLLDB",
       "command": [
-        "$HOME/Development/vimspector/CodeLLDB/build/adapter/codelldb",
-        "--port",
-        "${unusedLocalPort}"
+        "$HOME/Development/vimspector/CodeLLDB/build/adapter/codelldb"
       ]
     }
   }
