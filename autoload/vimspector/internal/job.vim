@@ -196,7 +196,7 @@ function! vimspector#internal#job#StartCommandWithLog(
 
   let l:index = len( s:commands[ a:session_id ][ a:category ] )
 
-  let buf = '_vimspector_log_' . a:session_id . '_' . a:category
+  let buf = '_vimspector_log_' . a:session_id . '_' . a:category . '_' . getpid()
 
   call add( s:commands[ a:session_id ][ a:category ], job_start(
         \ a:cmd,
