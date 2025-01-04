@@ -31,12 +31,10 @@ function! s:StartDebugging( ... )
 endfunction
 
 function! Test_Python_MultiProcessing()
-  " For some reason the 'fork' mp style causes crashes in debugpy at least on
-  " macOS (but only when using neovim!). And for the tests to be stable, we need
-  " to ensure there's only 1 child launched. With the default 'launch' behaviour
-  " of multiprocessing, we get arbitrary ordering for the additional watchdog
-  " chld process
-  call SkipNeovim()
+  " For some reason, fork style multiprocessing debugging no longer works on
+  " macOS properly. Breakpoints are hit, but step/next requests don't work
+  " correctly
+  call SkipOn( v:null, 'Darwin' )
   call s:StartDebugging()
 
   call WaitForAssert( {->

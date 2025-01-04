@@ -157,10 +157,19 @@ function! SkipNeovim() abort
 endfunction
 
 function! SkipOn( arch, system ) abort
-  if trim( system( 'uname -m' ) ) == a:arch &&
-        \ trim( system( 'uname -s' ) ) == a:system
-    throw 'skipped: Not on this architecture'
+  if a:arch != v:null && trim( system( 'uname -m' ) ) != a:arch
+    return
   endif
+
+  if a:system != v:null && trim( system( 'uname -s' ) ) != a:system
+    return
+  endif
+
+  throw 'skipped: Not on this architecture/platform ('
+        \ . a:arch
+        \ . '/'
+        \ . a:system .
+        \ ')'
 endfunction
 
 function! SkipIf( f, msg ) abort
