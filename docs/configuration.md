@@ -533,7 +533,7 @@ will point to the parent folder of the file that is currently open in vim.
 When starting debugging, you can specify which debug configuration to launch
 with `call vimspector#LaunchWithSettings( #{ configuration: 'name here' } )`.
 
-Otherwise, vimspector tries to work out which one to laucnh.
+Otherwise, vimspector tries to work out which one to launch.
 
 First it finds the configurations for the current filetype from the files, or
 ad-hoc dictionary, mentioned above.  Configurations are ignored if they specify
@@ -595,7 +595,7 @@ Setting `autoselect` to `false` overrides setting `default` to `true`.
 
 If you have a number of different types of files, say some Python and some
 javascript/node, you can specify the `filetypes` list in the `configuration`
-section.  As noted above, vimsepector will filter the list of configurations
+section.  As noted above, vimspector will filter the list of configurations
 based on the filetypes of the current buffer. If the `filetypes` entry is not
 provided, it's assume to apply to all buffer filetypes.
 
@@ -794,7 +794,7 @@ For example:
 }
 ```
 
-The resulting "derived" configuraition ends up like this:
+The resulting "derived" configuration ends up like this:
 
 ```jsonc
 {
@@ -836,7 +836,7 @@ Vimspector has in-built support for executing remote debuggers (such as
 where the development is done on one host and the runtime is
 some other host, account, container, etc.
 
-In order for it to work, it is preferred to have set up paswordless SSH between
+In order for it to work, it is preferred to have set up passwordless SSH between
 the local and remote machines/accounts. Then just tell Vimspector how to remotely
 launch and/or attach to the app. By default, 'ssh' command is being used.
 Optionally, the custom ssh command can be specified with cmd property which gives
@@ -918,7 +918,7 @@ Vimspector then orchestrates the various tools to set you up.
             //
             // Remember that you can use ${var} to ask for input. I use this to
             // call a custom command to return the PID for a named service, so
-            // here's an examle:
+            // here's an example:
             //
             "/path/to/secret/script/GetPIDForService", "${ServiceName}"
           ],
@@ -1112,7 +1112,7 @@ port.
       "port": "${port}",
       "launch": {
         "remote": {
-          "container": "${container}", // Docker container id or name to exec into to.
+          "container": "${container}", // Docker container id or name to exec into.
 
           // Command to launch the debuggee and attach the debugger;
           // %CMD% replaced with the remote-cmdLine configured in the launch
@@ -1146,7 +1146,7 @@ port.
             //
             // Remember that you can use ${var} to ask for input. I use this to
             // call a custom command to return the PID for a named service, so
-            // here's an examle:
+            // here's an example:
             //
             "sh", "-c", "pgrep", "-f", "${filename}"
           ],
@@ -1234,7 +1234,7 @@ Comments are "c-style", i.e.:
 
 There is much debate about whether JSON files should contain comments. I have
 added them because they are useful in the context of configuration files.
-Unforutnately this may mean your editor doesn't like them (they are strictly
+Unfortunately this may mean your editor doesn't like them (they are strictly
 invalid JSON) so it's up to you if you use them.
 
 Technically, Vimspector uses [JSON
