@@ -833,7 +833,7 @@ function! vimspector#ShowEvalBalloon( is_visual ) abort
     let expr = py3eval( '__import__( "vimspector", fromlist = [ "utils" ] )'
                       \ . '.utils.GetVisualSelection('
                       \ . '    int( vim.eval( "winbufnr( winnr() )" ) ) )' )
-    let expr = join( expr, '\n' )
+    let expr = join( expr, '' )
   else
     let expr = expand( '<cexpr>' )
   endif
@@ -844,7 +844,7 @@ function! vimspector#ShowEvalBalloon( is_visual ) abort
                 \ . ' int( vim.eval( "winnr()" ) ), '
                 \ . ' int( vim.eval( "bufnr()" ) ), '
                 \ . ' int( vim.eval( "line" ) ), '
-                \ . '"' . expr . '", '
+                \ . '"' . substitute(substitute(expr, '\', '\\\', 'g'), '"', '\\"', 'g' ) . '", '
                 \ . '0 )' )
 endfunction
 
