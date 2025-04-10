@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV LC_ALL C.UTF-8
+ENV LC_ALL=C.UTF-8
 ARG GOARCH=amd64
 ARG GOVERSION=1.23.2
 ARG NODE_MAJOR=18
@@ -58,7 +58,8 @@ RUN apt-get update && \
                      curl && \
   apt-get -y autoremove && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
-  pip3 install neovim && \
+  pip3 install --upgrade pip setuptools wheel && \
+  pip3 install --upgrade neovim && \
   pip install "git+https://github.com/puremourning/asciinema@exit_code#egg=asciinema"
 
 RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
@@ -82,7 +83,7 @@ RUN curl -LO https://github.com/love2d/love/releases/download/11.3/love-11.3-lin
     rm -rf love-11.3 && \
     rm -f love-11.3-linux-src.tar.gz
 
-ENV CONF_ARGS "--with-features=huge \
+ENV CONF_ARGS="--with-features=huge \
                --enable-python3interp \
                --enable-terminal \
                --enable-multibyte \

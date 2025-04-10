@@ -13,13 +13,13 @@ RUN useradd -ms /bin/bash -d /home/dev -G sudo dev && \
 USER dev
 WORKDIR /home/dev
 
-ENV HOME /home/dev
-ENV PYTHON_CONFIGURE_OPTS --enable-shared
-ENV VIMSPECTOR_MIMODE gdb
-ENV GOPATH /home/dev/go
+ENV HOME=/home/dev
+ENV PYTHON_CONFIGURE_OPTS=--enable-shared
+ENV VIMSPECTOR_MIMODE=gdb
+ENV GOPATH=/home/dev/go
 
-ENV VIMSPECTOR_TEST_BASE test-base-linux
-ENV TEST_NO_RETRY 1
+ENV VIMSPECTOR_TEST_BASE=test-base-linux
+ENV TEST_NO_RETRY=1
 
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
