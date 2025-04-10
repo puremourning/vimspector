@@ -53,7 +53,7 @@ jobs:
         go install github.com/go-delve/delve/cmd/dlv@latest
       name: 'Install Delve for Go'
 
-    - uses: actions/cache@v2
+    - uses: actions/cache@v4
       with:
         key: v1-gadgets-${{ runner.os }}-${{ hashFiles( 'python3/vimspector/gadgets.py' ) }}
         path: gadgets/linux/download
@@ -136,7 +136,7 @@ jobs:
         go build
       name: 'Build the process lister'
 
-    - uses: actions/cache@v2
+    - uses: actions/cache@v4
       with:
         key: v1-gadgets-${{ runner.os }}-${{ hashFiles( 'python3/vimspector/gadgets.py' ) }}
         path: gadgets/macos/download
