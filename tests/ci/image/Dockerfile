@@ -59,7 +59,7 @@ RUN apt-get update && \
   apt-get -y autoremove && \
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
   pip3 install --upgrade pip setuptools wheel && \
-  pip3 install --upgrade neovim && \
+  pip3 install --upgrade typing_extensions neovim && \
   pip install "git+https://github.com/puremourning/asciinema@exit_code#egg=asciinema"
 
 RUN ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime && \
