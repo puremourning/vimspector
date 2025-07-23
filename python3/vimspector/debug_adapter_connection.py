@@ -51,7 +51,7 @@ class DebugAdapterConnection( object ):
     self._buffer = bytes()
     self._handlers = handlers
     self._session_id = session_id
-    self._next_message_id = 0
+    self._next_message_id = 1
     self._outstanding_requests = {}
     self.async_timeout = async_timeout
     self.sync_timeout = sync_timeout
