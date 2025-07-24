@@ -578,6 +578,11 @@ class StackTraceView( object ):
 
   def OnContinued( self, debug_session, event = None ):
     threadId = None
+    # It's assumed that all threads are continued for continued event, continue
+    # response and _all other_ step events (step in, step out, step over) etc.
+    # *unless* the event explicitly says otherwise.
+    # This _seems to be_ the only reasonable interpretation of the
+    # specification, although it's extremely unclear.
     allThreadsContinued = True
     session = self.FindSession( debug_session )
 
@@ -586,7 +591,7 @@ class StackTraceView( object ):
 
     if event is not None:
       threadId = event[ 'threadId' ]
-      allThreadsContinued = event.get( 'allThreadsContinued', False )
+      allThreadsContinued = event.get( 'allThreadsContinued', True )
 
     for thread in session.threads:
       if allThreadsContinued:
