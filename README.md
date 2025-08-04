@@ -227,8 +227,16 @@ There are 2 installation methods:
    Plugin 'puremourning/vimspector'
    ```
 
-2. Install some 'gadgets' (debug adapters) - see [here for installation commands](#install-some-gadgets) and [select gadgets to install](#supported-languages)
-3. Configure your project's debug profiles (create `.vimspector.json`, or set
+   For Lazy.nvim, use:
+
+   ```vim
+   return { "puremourning/vimspector" }
+   ```
+
+   and launch `:Lazy load vimspector` for the first start.
+
+3. Install some 'gadgets' (debug adapters) - see [here for installation commands](#install-some-gadgets) and [select gadgets to install](#supported-languages)
+4. Configure your project's debug profiles (create `.vimspector.json`, or set
    `g:vimspector_configurations`) - see the [reference guide][vimspector-ref]
 
 The following sections expand on the above brief overview.
