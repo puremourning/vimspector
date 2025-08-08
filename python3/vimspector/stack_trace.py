@@ -675,13 +675,12 @@ class StackTraceView( object ):
         # doesn't set 'line'
         line = utils.AppendToBuffer(
           self._buf,
-          '  {0}: {1}'.format( frame[ 'id' ], frame[ 'name' ] ),
+          '  {0}'.format( frame[ 'name' ] ),
           hl = hl )
       else:
         line = utils.AppendToBuffer(
           self._buf,
-          '  {0}: {1}@{2}:{3}'.format( frame[ 'id' ],
-                                       frame[ 'name' ],
+          '  {0}@{1}:{2}'.format( frame[ 'name' ],
                                        source[ 'name' ],
                                        frame[ 'line' ] ),
           hl = hl )
