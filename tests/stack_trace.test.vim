@@ -33,7 +33,7 @@ function! Test_Multiple_Threads_Continue()
         \   AssertMatchList(
         \     [
         \         '- Thread [0-9]\+: .* (paused)',
-        \         '  .*: .*@threads.cpp:' . string( thread_l )
+        \         '    .*@threads.cpp:' . string( thread_l )
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
         \                 1,
@@ -48,32 +48,7 @@ function! Test_Multiple_Threads_Continue()
         \   AssertMatchList(
         \     [
         \         '- Thread [0-9]\+: .* (paused)',
-        \         '  .*: .*@threads.cpp:' . string( thread_l )
-        \     ],
-        \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
-        \                 1,
-        \                 2 )
-        \   )
-        \ } )
-  call WaitForAssert( {->
-        \   AssertMatchList(
-        \     [
-        \         '+ Thread [0-9]\+: .* (paused)',
-        \     ],
-        \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
-        \                 '$',
-        \                 '$' )
-        \   )
-        \ } )
-  call vimspector#Continue()
-
-  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, thread_l, 1 )
-  call cursor( 1, 1 )
-  call WaitForAssert( {->
-        \   AssertMatchList(
-        \     [
-        \         '- Thread [0-9]\+: .* (paused)',
-        \         '  .*: .*@threads.cpp:' . string( thread_l )
+        \         '    .*@threads.cpp:' . string( thread_l )
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
         \                 1,
@@ -98,7 +73,32 @@ function! Test_Multiple_Threads_Continue()
         \   AssertMatchList(
         \     [
         \         '- Thread [0-9]\+: .* (paused)',
-        \         '  .*: .*@threads.cpp:' . string( thread_l )
+        \         '    .*@threads.cpp:' . string( thread_l )
+        \     ],
+        \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
+        \                 1,
+        \                 2 )
+        \   )
+        \ } )
+  call WaitForAssert( {->
+        \   AssertMatchList(
+        \     [
+        \         '+ Thread [0-9]\+: .* (paused)',
+        \     ],
+        \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
+        \                 '$',
+        \                 '$' )
+        \   )
+        \ } )
+  call vimspector#Continue()
+
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( s:fn, thread_l, 1 )
+  call cursor( 1, 1 )
+  call WaitForAssert( {->
+        \   AssertMatchList(
+        \     [
+        \         '- Thread [0-9]\+: .* (paused)',
+        \         '    .*@threads.cpp:' . string( thread_l )
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
         \                 1,
@@ -124,7 +124,7 @@ function! Test_Multiple_Threads_Continue()
         \   AssertMatchList(
         \     [
         \         '- Thread [0-9]\+: .* (paused)',
-        \         '  .*: .*@threads.cpp:' . string( thread_l )
+        \         '    .*@threads.cpp:' . string( thread_l )
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
         \                 1,
@@ -149,7 +149,7 @@ function! Test_Multiple_Threads_Continue()
         \   AssertMatchList(
         \     [
         \         '- Thread [0-9]\+: .* (paused)',
-        \         '  .*: .*@threads.cpp:' . string( notify_l )
+        \         '    .*@threads.cpp:' . string( notify_l )
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
         \                 1,
@@ -195,7 +195,7 @@ function! Test_Multiple_Threads_Step()
         \   AssertMatchList(
         \     [
         \         '- Thread [0-9]\+: .* (paused)',
-        \         '  .*: .*@threads.cpp:' . string( thread_l )
+        \         '    .*@threads.cpp:' . string( thread_l )
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
         \                 1,
@@ -370,10 +370,10 @@ function! Test_UpDownStack()
         \   AssertMatchList(
         \     [
         \         '- Thread 1: MainThread (paused)',
-        \         '  2: DoSomething@main.py:15',
-        \         '  3: __init__@main.py:8',
-        \         '  4: Main@main.py:23',
-        \         '  5: <module>@main.py:29',
+        \         '    DoSomething@main.py:15',
+        \         '    __init__@main.py:8',
+        \         '    Main@main.py:23',
+        \         '    <module>@main.py:29',
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
         \                 1,
@@ -401,10 +401,10 @@ function! Test_UpDownStack()
         \   AssertMatchList(
         \     [
         \         '- Thread 1: MainThread (paused)',
-        \         '  2: DoSomething@main.py:15',
-        \         '  3: __init__@main.py:8',
-        \         '  4: Main@main.py:23',
-        \         '  5: <module>@main.py:29',
+        \         '    DoSomething@main.py:15',
+        \         '    __init__@main.py:8',
+        \         '    Main@main.py:23',
+        \         '    <module>@main.py:29',
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
         \                 1,
@@ -433,10 +433,10 @@ function! Test_UpDownStack()
         \   AssertMatchList(
         \     [
         \         '- Thread 1: MainThread (paused)',
-        \         '  2: DoSomething@main.py:15',
-        \         '  3: __init__@main.py:8',
-        \         '  4: Main@main.py:23',
-        \         '  5: <module>@main.py:29',
+        \         '    DoSomething@main.py:15',
+        \         '    __init__@main.py:8',
+        \         '    Main@main.py:23',
+        \         '    <module>@main.py:29',
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
         \                 1,
@@ -465,10 +465,10 @@ function! Test_UpDownStack()
         \   AssertMatchList(
         \     [
         \         '- Thread 1: MainThread (paused)',
-        \         '  2: DoSomething@main.py:15',
-        \         '  3: __init__@main.py:8',
-        \         '  4: Main@main.py:23',
-        \         '  5: <module>@main.py:29',
+        \         '    DoSomething@main.py:15',
+        \         '    __init__@main.py:8',
+        \         '    Main@main.py:23',
+        \         '    <module>@main.py:29',
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
         \                 1,
@@ -497,10 +497,10 @@ function! Test_UpDownStack()
         \   AssertMatchList(
         \     [
         \         '- Thread 1: MainThread (paused)',
-        \         '  2: DoSomething@main.py:15',
-        \         '  3: __init__@main.py:8',
-        \         '  4: Main@main.py:23',
-        \         '  5: <module>@main.py:29',
+        \         '    DoSomething@main.py:15',
+        \         '    __init__@main.py:8',
+        \         '    Main@main.py:23',
+        \         '    <module>@main.py:29',
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
         \                 1,
@@ -529,10 +529,10 @@ function! Test_UpDownStack()
         \   AssertMatchList(
         \     [
         \         '- Thread 1: MainThread (paused)',
-        \         '  2: DoSomething@main.py:15',
-        \         '  3: __init__@main.py:8',
-        \         '  4: Main@main.py:23',
-        \         '  5: <module>@main.py:29',
+        \         '    DoSomething@main.py:15',
+        \         '    __init__@main.py:8',
+        \         '    Main@main.py:23',
+        \         '    <module>@main.py:29',
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
         \                 1,
