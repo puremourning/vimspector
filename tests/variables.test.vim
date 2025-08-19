@@ -1278,7 +1278,7 @@ function! Test_WatchAfterExit()
   call WaitForAssert( {->
         \   AssertMatchList(
         \     [
-        \         '+ Thread [0-9]\+: .* (terminated)',
+        \         '- Thread [0-9]\+: .* (terminated)',
         \     ],
         \     GetBufLine( winbufnr( g:vimspector_session_windows.stack_trace ),
         \                 1,
