@@ -18,6 +18,7 @@ from vimspector import utils, install
 import vim
 import json
 import typing
+import os
 
 
 class TabBuffer( object ):
@@ -193,10 +194,17 @@ class OutputView( object ):
     if file_name is not None:
       assert cmd is None
       if install.GetOS() == "windows":
-        # FIXME: Can't display files in windows (yet?)
-        return
-
-      cmd = [ 'tail', '-F', '-n', '+1', '--', file_name ]
+        dir = os.path.expandvars( '%WINDIR%' )
+        dir = os.path.join( dir, 'system32\\wsl.exe' )
+        if os.access( dir, os.X_OK ):
+          file = os.path.basename( file_name )
+          dir = os.path.dirname( file_name )
+          cmd = [ 'wsl', '--cd', dir, '-e',
+                  'tail', '-F', '-n', '+1', '---disable-inotify', '--', file ]
+        else:
+          return
+      else:
+        cmd = [ 'tail', '-F', '-n', '+1', '--', file_name ]
 
     if cmd is not None:
       out = utils.SetUpCommandBuffer(
