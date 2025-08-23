@@ -403,8 +403,11 @@ def InstallDebugpy( name, root, gadget ):
   wd = os.getcwd()
   root = os.path.join( root, 'debugpy-{}'.format( gadget[ 'version' ] ) )
   os.chdir( root )
+  python = sys.executable
+  if "-python2" in name:
+    python = "python2"
   try:
-    CheckCall( [ sys.executable,
+    CheckCall( [ python,
                  'setup.py',
                  'build',
                  '--build-platlib', os.path.join( 'build', 'lib' ) ] )
