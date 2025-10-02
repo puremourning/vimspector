@@ -51,6 +51,11 @@
     },
     "CodeLLDB": {
       "adapter": "CodeLLDB",
+      "variables": {
+        "BUILDME": {
+          "shell": "g++ -o ${workspaceRoot}/test -g -std=c++17 ${workspaceRoot}/test_c.cpp"
+        }
+      },
       "configuration": {
         "request": "launch",
         "expressions": "native",
