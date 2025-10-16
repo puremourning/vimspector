@@ -15,7 +15,7 @@ clean:
 	rm -rf $(TARGETS:%=%.dSYM)
 
 .PHONY: sign
-sign:
+sign: $(TARGETS)
 	@uname | grep -q Darwin && for bin in $(TARGETS); do \
 		codesign --entitlements $(ENTITLEMENTS) --force --sign - $$bin; \
 	done || true
