@@ -7,8 +7,7 @@ LDLIBS = -lpthread
 ENTITLEMENTS = entitlements.plist
 
 .PHONY: all
-all: $(TARGETS)
-	@$(MAKE) sign
+all: $(TARGETS) sign
 
 .PHONY: clean
 clean:
@@ -16,9 +15,7 @@ clean:
 	rm -rf $(TARGETS:%=%.dSYM)
 
 .PHONY: sign
-sign:
+sign: $(TARGETS)
 	@uname | grep -q Darwin && for bin in $(TARGETS); do \
-		if [ -f $$bin ]; then \
-			codesign --entitlements $(ENTITLEMENTS) --force --sign - $$bin; \
-		fi; \
+		codesign --entitlements $(ENTITLEMENTS) --force --sign - $$bin; \
 	done || true
