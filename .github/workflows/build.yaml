@@ -160,11 +160,6 @@ jobs:
         sudo DevToolsSecurity -enable
         sudo security authorizationdb write system.privilege.taskport allow
 
-    - name: 'Sign test binaries for debugging'
-      run: |
-        cd tests/testdata/cpp/simple
-        make clean all sign
-
     - run: |
         ./run_tests --exe ${{ matrix.runtime }} --basedir $(pwd) --install --update --report messages --quiet
       name: 'Run the tests'

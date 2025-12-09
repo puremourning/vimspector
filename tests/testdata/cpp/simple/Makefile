@@ -8,6 +8,7 @@ ENTITLEMENTS = entitlements.plist
 
 .PHONY: all
 all: $(TARGETS)
+	@$(MAKE) sign
 
 .PHONY: clean
 clean:
@@ -15,7 +16,9 @@ clean:
 	rm -rf $(TARGETS:%=%.dSYM)
 
 .PHONY: sign
-sign: $(TARGETS)
+sign:
 	@uname | grep -q Darwin && for bin in $(TARGETS); do \
-		codesign --entitlements $(ENTITLEMENTS) --force --sign - $$bin; \
+		if [ -f $$bin ]; then \
+			codesign --entitlements $(ENTITLEMENTS) --force --sign - $$bin; \
+		fi; \
 	done || true
