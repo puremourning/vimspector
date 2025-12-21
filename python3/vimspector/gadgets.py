@@ -112,8 +112,8 @@ GADGETS = {
       'url': 'https://github.com/microsoft/debugpy/archive/${file_name}'
     },
     'all': {
-      'version': '1.8.11',
-      'file_name': 'v1.8.11.zip',
+      'version': '1.8.19',
+      'file_name': 'v1.8.19.zip',
       'checksum':
         ''
     },
