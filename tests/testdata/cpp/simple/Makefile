@@ -7,7 +7,7 @@ LDLIBS = -lpthread
 ENTITLEMENTS = entitlements.plist
 
 .PHONY: all
-all: $(TARGETS)
+all: $(TARGETS) sign
 
 .PHONY: clean
 clean:
