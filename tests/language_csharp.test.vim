@@ -11,7 +11,8 @@ function! SetUp_Test_Go_Simple()
 endfunction
 
 function! SkipUnsupported() abort
-  "call SkipOn( 'arm64', 'Darwin' )
+  " Seems like netcoredbg just doesn't work properly on MacOS right now
+  call SkipOn( v:null, 'Darwin' )
 endfunction
 
 function! Test_CSharp_Simple_Adhoc_Config()
