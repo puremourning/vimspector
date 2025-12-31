@@ -25,7 +25,7 @@ sys.path.insert(
                                  'python3' ) )
 )
 
-from vimspector import install, installer, gadgets
+from vimspector import installer, gadgets
 
 gadgets_to_sum = sys.argv[ 1: ]
 results = []

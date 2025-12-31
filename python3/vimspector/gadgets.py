@@ -19,6 +19,27 @@ import sys
 import os
 
 
+VSCODE_EXTENSION_URL = (
+  'https://marketplace.visualstudio.com/_apis/public/gallery'
+  '/publishers/${publisher}/vsextensions'
+  '/${extension}/${version}/vspackage'
+)
+
+
+class VSCodeTarget:
+  LINUX_X64 = 'linux-x64'
+  LINUX_ARM64 = 'linux-arm64'
+  LINUX_ARMV7 = 'linux-armhf'
+  MACOS_X64 = 'darwin-x64'
+  MACOS_ARM64 = 'darwin-arm64'
+  WINDOWS_X64 = 'win32-x64'
+  WINDOWS_ARM64 = 'win32-arm64'
+
+
+def VSCodeExtensionURL( target ):
+  return VSCODE_EXTENSION_URL + f'?targetPlatform={target}'
+
+
 GADGETS = {
   'vscode-cpptools': {
     'language': [ 'c', 'cpp', 'rust' ],
@@ -30,7 +51,7 @@ GADGETS = {
                                                                 root,
                                                                 gadget ),
     'all': {
-      'version': '1.17.5',
+      'version': '1.29.3',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",
@@ -51,34 +72,34 @@ GADGETS = {
       },
     },
     'linux': {
-      'file_name': 'cpptools-linux.vsix',
+      'file_name': 'cpptools-linux-x64.vsix',
       'checksum':
-        '09716d076215eaebcef4ccae10bd0566fb5c68bfdfc6e1b4bbc529eded11b21f',
+        '86f205fa618982aadee1638e87cbc923db478cb9bb06ba20984755cad7674184',
     },
     'linux_arm64': {
-      'file_name': 'cpptools-linux-aarch64.vsix',
+      'file_name': 'cpptools-linux-arm64.vsix',
       'checksum':
-        'c9a0b23ae4898e3c291fd2bffb41a14bc06fd3af2e07b8a17ffe9aef4c80574e',
+        '7453a551e8428b0f256733b1ede37afdee77214707866af3c33567b1078306ad',
     },
     'linux_armv7': {
-      'file_name': 'cpptools-linux-armhf.vsix',
+      'file_name': 'cpptools-linux-arm32.vsix',
       'checksum':
-        'c644bbdd56abb37ecf455ca64cb70f07d17399bda2f2a4e20c9b57e40a11ef0f',
+        '7db91fdde794d6e13d608ca58922fa91837301b8536edca540e2e32c90df68ae',
     },
     'macos': {
-      'file_name': 'cpptools-osx.vsix',
+      'file_name': 'cpptools-macOS-x64.vsix',
       'checksum':
-        'bda9204b6d75996a84a2cd9829736f99c8b4747b41544a4bd569b888fa635249',
+        '02be992d129a391357bdcef134baffb172ef3f51c8dc3b94b5ad0df212f8f0d6',
     },
     'macos_arm64': {
-      'file_name': 'cpptools-osx-arm64.vsix',
+      'file_name': 'cpptools-macOS-arm64.vsix',
       'checksum':
-        'fa836b1ff3311e8303af612b6597c5c81e3a8573dfbf28d0576e811de97e5427',
+        '768b4ea2c6c9bbf6e87ee5931f2f007106d6ce28c3152b551484bb6b73cdedce',
     },
     'windows': {
-      'file_name': 'cpptools-win32.vsix',
+      'file_name': 'cpptools-windows-x64.vsix',
       'checksum':
-        '2c0004c3c828030df1d4c53f4e421d2e03d86b47f96fa1efe0691e88f4d56dd6',
+        '2da32536c180b946b59d94c7269211fd2f7a9e243e854239c7f69d2299c1858a',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",
@@ -101,9 +122,9 @@ GADGETS = {
       },
     },
     'windows_arm64': {
-      'file_name': 'cpptools-win-arm64.vsix',
+      'file_name': 'cpptools-windows-arm64.vsix',
       'checksum':
-        '2ba1f66bdb53935db10898477150ffdfab1c5d73bc0f0649e52377b95fafacc1',
+        '4d6fe48036a0841af61429f7a6e85fb4c1d47856ca4d95f08f609136de74a874',
     },
   },
   'debugpy': {
@@ -112,9 +133,10 @@ GADGETS = {
       'url': 'https://github.com/microsoft/debugpy/archive/${file_name}'
     },
     'all': {
-      'version': '1.8.11',
-      'file_name': 'v1.8.11.zip',
+      'version': '1.8.19',
+      'file_name': 'v1.8.19.zip',
       'checksum':
+        # Note: Don't checksum this because GitHub archves are not stable.
         ''
     },
     'do': lambda name, root, gadget: installer.InstallDebugpy( name,
@@ -168,14 +190,17 @@ GADGETS = {
     'language': 'java',
     'enabled': False,
     'download': {
-      'url': 'https://github.com/microsoft/vscode-java-debug/releases/download/'
-             '${version}/${file_name}',
+      'url': VSCODE_EXTENSION_URL,
+      'file_name': 'vscjava.vscode-java-debug-${version}.vsix',
+      'format': 'zip.gz',
     },
     'all': {
-      'version': '0.52.0',
-      'file_name': 'vscjava.vscode-java-debug-0.52.0.vsix',
+      'publisher': 'vscjava',
+      'extension': 'vscode-java-debug',
+      'version': '0.58.2025121609', # '0.58.4',
+      'file_name': 'vscjava.vscode-java-debug-0.58.4.vsix',
       'checksum':
-        '5a3273dfafb96712822e3ebc4b7d018b30c816cb8888a5c291d12bc6aedd19c5',
+        '6e28945b136ed28435015cd6144e3dd202ae4c338bbcafebd83a0f112f0bead2',
     },
     'adapters': {
       "vscode-java": {
@@ -185,36 +210,6 @@ GADGETS = {
           "cwd": "${workspaceRoot}"
         },
         'custom_handler': 'vimspector.custom.java.JavaDebugAdapter'
-      }
-    },
-  },
-  'java-language-server': {
-    'language': 'javac',
-    'enabled': False,
-    'download': {
-      'url': 'https://marketplace.visualstudio.com/_apis/public/gallery/'
-             'publishers/georgewfraser/vsextensions/vscode-javac/${version}/'
-             'vspackage',
-      'target': 'georgewfraser.vscode-javac-0.2.31.vsix.gz',
-      'format': 'zip.gz',
-    },
-    'all': {
-      # Don't update - deprecated
-      'version': '0.2.31',
-      'file_name': 'georgewfraser.vscode-javac-0.2.31.vsix.gz',
-      'checksum':
-        '5b0248ec1198d3ece9a9c6b9433b30c22e308f0ae6e4c7bd09cd943c454e3e1d',
-    },
-    'adapters': {
-      "vscode-javac": {
-        "name": "vscode-javac",
-        "type": "vscode-javac",
-        "command": [
-          "${gadgetDir}/java-language-server/dist/debug_adapter_mac.sh"
-        ],
-        "attach": {
-          "pidSelect": "none"
-        }
       }
     },
   },
@@ -259,27 +254,27 @@ GADGETS = {
       'format': 'tar',
     },
     'all': {
-      'version': '2.2.3-992'
-    },
-    'macos': {
-      'file_name': 'netcoredbg-osx-amd64.tar.gz',
-      'checksum':
-        '1e32d77e77978b6886b6c56251ca9fc730af4fda72d819e676e6591bd978b37f',
+      'version': '3.1.3-1062'
     },
     'linux': {
       'file_name': 'netcoredbg-linux-amd64.tar.gz',
       'checksum':
-        '1d168670a0ce299622c89f94908d8f79fbe0f2c81294785eec16fe64c448e466',
+        '3814341c028c81ff7eea03ac316ad92e9ad7d705d2a00e3e3df269cdc241c763',
     },
     'linux_arm64': {
       'file_name': 'netcoredbg-linux-arm64.tar.gz',
       'checksum':
-        'f9909bff95311e95fa4dae145683663d9b76fe8b0140ad700fdd7e149043810b',
+        'fc9efb691a53932a7fac4b9f67af68ad0c2a4cbe59cb2c1a3c44c64959df2ba4',
+    },
+    'macos': {
+      'file_name': 'netcoredbg-osx-amd64.tar.gz',
+      'checksum':
+        '49459b066836b6a452f418501d7ecab57bcd7e60d8464faac21ff70b496b8634',
     },
     'windows': {
       'file_name': 'netcoredbg-win64.zip',
       'checksum':
-        '6eeaff24a72e96ceb694e8897ff4f0f2327e7ed76ca33eff5360807d93adb8ce',
+        'c67ae052e0bcb9ce37000f261e2d397a0d5b6615cafe30c868239a78598dfb37',
     },
     'do': lambda name, root, gadget: installer.MakeSymlink(
       name,
@@ -353,7 +348,7 @@ GADGETS = {
                                                              gadget ),
     'all': {
       'path': 'github.com/go-delve/delve/cmd/dlv',
-      'version': '1.25.1',
+      'version': '1.26.0',
     },
     'adapters': {
       "delve": {
@@ -375,34 +370,6 @@ GADGETS = {
       }
     }
   },
-  'vscode-go': {
-    'language': 'go',
-    'download': {
-      'url': 'https://github.com/golang/vscode-go/releases/download/'
-             'v${version}/${file_name}'
-    },
-    'all': {
-      # Don't update - deprecated
-      'version': '0.30.0',
-      'file_name': 'go-0.30.0.vsix',
-      'checksum':
-        '',
-    },
-    'adapters': {
-      'vscode-go': {
-        'name': 'delve',
-        'command': [
-          'node',
-          '${gadgetDir}/vscode-go/dist/debugAdapter.js'
-        ],
-        "configuration": {
-          "cwd": "${workspaceRoot}",
-          # If the delva adapter is also installed, use that by default.
-          "dlvToolPath": "${gadgetDir}/delve/bin/dlv"
-        }
-      },
-    },
-  },
   'vscode-php-debug': {
     'language': 'php',
     'enabled': False,
@@ -412,10 +379,10 @@ GADGETS = {
         '${version}/${file_name}',
     },
     'all': {
-      'version': 'v1.33.0',
-      'file_name': 'php-debug-1.33.0.vsix',
+      'version': 'v1.39.1',
+      'file_name': 'php-debug-1.39.1.vsix',
       'checksum':
-        'e31252c1bf5d648cea7c6a28a3c7b51a0b886a66f044b5e17118402f14095b76',
+        'f618e6539fe3911bba7dda026f71fbb4cf26ea2b59d180816c1ac9f079cd3afd',
     },
     'adapters': {
       'vscode-php-debug': {
@@ -436,10 +403,10 @@ GADGETS = {
       'format': 'tar',
     },
     'all': {
-      'file_name': 'js-debug-dap-v1.82.0.tar.gz',
-      'version': 'v1.82.0',
+      'file_name': 'js-debug-dap-v1.105.0.tar.gz',
+      'version': 'v1.105.0',
       'checksum':
-        '7295e743c718e3b24b7a6cd838d1bdd448c159d8baaf821693b9f265fc477118',
+        '5c3ccc47ee77d82ba796787de452e670478d331719d9332abd49bbde8e5d479c',
     },
     'model': 'simple',
     'adapters': {
@@ -464,17 +431,19 @@ GADGETS = {
     },
   },
   'vscode-firefox-debug': {
+    # Currently not updating as seems rarely used and does not provide a GitHub
+    # release; having to unpack vsix is a pain.
     'language': 'firefox',
     'enabled': False,
     'download': {
-      'url': 'https://marketplace.visualstudio.com/_apis/public/gallery'
-              '/publishers/firefox-devtools/vsextensions/'
-              'vscode-firefox-debug/${version}/vspackage',
+      'url': VSCODE_EXTENSION_URL,
       'target': 'firefox-devtools.vscode-firefox-debug-${version}.vsix.gz',
       'format': 'zip.gz',
     },
     'all': {
       'version': '2.9.8',
+      'publisher': 'firefox-devtools',
+      'extension': 'vscode-firefox-debug',
       'file_name': 'firefox-devtools.vscode-firefox-debug-2.9.8.vsix',
       'checksum':
         'f36038b14e87e1a4dae29a1c31b462b630d793d95c0cf40ed350d0511e9e1606'
@@ -491,16 +460,17 @@ GADGETS = {
     },
   },
   'debugger-for-chrome': {
+    # Not updating as marked deprecated by Microsoft
     'language': 'chrome',
     'enabled': False,
     'download': {
-      'url': 'https://marketplace.visualstudio.com/_apis/public/gallery/'
-             'publishers/msjsdiag/vsextensions/'
-             'debugger-for-chrome/${version}/vspackage',
+      'url': VSCODE_EXTENSION_URL,
       'target': 'msjsdiag.debugger-for-chrome-${version}.vsix.gz',
       'format': 'zip.gz',
     },
     'all': {
+      'publisher': 'msjsdiag',
+      'extension': 'debugger-for-chrome',
       'version': '4.13.0',
       'file_name': 'msjsdiag.debugger-for-chrome-4.13.0.vsix',
       'checksum':
@@ -525,30 +495,15 @@ GADGETS = {
              '${version}/${file_name}',
     },
     'all': {
-      'version': 'v1.11.0',
-    },
-    'macos': {
-      'file_name': 'codelldb-darwin-x64.vsix',
-      'checksum':
-        '5be44ccc6d1e44a0cad5c67458a6968c0c6baf091093005221d467f10dd68dc6',
-      'make_executable': [
-        'adapter/codelldb',
-        'lldb/bin/debugserver',
-        'lldb/bin/lldb',
-        'lldb/bin/lldb-argdumper',
-      ],
-    },
-    'macos_arm64': {
-      'file_name': 'codelldb-darwin-arm64.vsix',
-      'checksum':
-        '6634c094def2463d38b7b220bcebb49bac81391ef2e9988c4d41e88a996d726c',
+      'version': 'v1.12.1',
     },
     'linux': {
       'file_name': 'codelldb-linux-x64.vsix',
       'checksum':
-        'b857287f70a18a4fc2d7563aa9fdbcfa9cb2b37d5666fc78394fc8131ee335e2',
+        '5d3cdacc4c6f338468ddfc129d740fafb9d856358831810df717d05fd309600a',
       'make_executable': [
         'adapter/codelldb',
+        'bin/codelldb-launch',
         'lldb/bin/lldb',
         'lldb/bin/lldb-server',
         'lldb/bin/lldb-argdumper',
@@ -557,17 +512,34 @@ GADGETS = {
     'linux_arm64': {
       'file_name': 'codelldb-linux-arm64.vsix',
       'checksum':
-        'ebbd358dddc1538384cdfb94823da85d13a7a3a4c3eac466de8bb5394f81386a',
+        'eddb73528c8fe843b24e71a15a60a21367c2b001c1b55af91cec2dcf5dc8cf73',
     },
     'linux_armv7': {
       'file_name': 'codelldb-linux-armhf.vsix',
       'checksum':
-        'a22f1b38a94a94cb2cb814399de9da153cd2ddb2539b97353f05b60668fe0e9f',
+        '168ee77e5a602d2449b773967b61272a3de48f44814ac1488e5c05fc974dd6e3',
+    },
+    'macos': {
+      'file_name': 'codelldb-darwin-x64.vsix',
+      'checksum':
+        '667739305c94dc9a453d30d60e2933b9565bb57a5e2f9de6d524086d2592b039',
+      'make_executable': [
+        'adapter/codelldb',
+        'bin/codelldb-launch',
+        'lldb/bin/lldb',
+        'lldb/bin/lldb-server',
+        'lldb/bin/lldb-argdumper',
+      ],
+    },
+    'macos_arm64': {
+      'file_name': 'codelldb-darwin-arm64.vsix',
+      'checksum':
+        '13297074f9eb4d96387a631a3d844e488d24f68b0354b8b91805118456e89695',
     },
     'windows': {
       'file_name': 'codelldb-win32-x64.vsix',
       'checksum':
-        '375807832e2e9e41dd66f000200d4a55978977f3f10ad9799286f1f9fbe017e6',
+        'b87bcc9851a2e502e2c696d0d3b1c4ca5ce2b421f07fceb350f155f77df050b6',
       'make_executable': []
     },
     'adapters': {
