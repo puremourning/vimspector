@@ -173,24 +173,23 @@ runtime dependencies). They are categorised by their level of support:
 * `Legacy`: No longer supported, please migrate your config
 * `Retired`: No longer included or supported.
 
-| Language(s)             | Status       | Switch (for `install_gadget.py`)    | Adapter (for `:VimspectorInstall`)   | Dependencies                                 |
-| --------------------    | -----------  | ----------------------------------  | ------------------------------------ | -------------------------------------------- |
-| C, C++, Rust, Jai, etc. | Tested       | `--all` or `--enable-c` (or cpp)    | vscode-cpptools                      | mono-core                                    |
-| C, C++, Rust, Jai, etc. | Tested       | `--enable-rust`, `--enable-c`, etc. | CodeLLDB                             | none                                         |
-| Python                  | Tested       | `--all` or `--enable-python`        | debugpy                              | Python 3                                     |
-| Go                      | Tested       | `--enable-go`                       | delve                                | Go 1.16+                                     |
-| TCL                     | Supported    | `--all` or `--enable-tcl`           | tclpro                               | TCL >= 8.5 < 9.0                                     |
-| Bourne Shell            | Supported    | `--all` or `--enable-bash`          | vscode-bash-debug                    | Bash v??                                     |
-| Lua                     | Tested       | `--all` or `--enable-lua`           | local-lua-debugger-vscode            | Node >=12.13.0, Npm, Lua interpreter         |
-| Node.js                 | Supported    | `--force-enable-node`               | vscode-js-debug                      | Node >= 18                                   |
-| Javascript              | Supported    | `--force-enable-chrome`             | debugger-for-chrome                  | Chrome                                       |
-| Javascript              | Supported    | `--force-enable-firefox`            | vscode-firefox-debug                 | Firefox                                      |
-| Java                    | Supported    | `--force-enable-java  `             | vscode-java-debug                    | Compatible LSP plugin (see [later](#java))   |
-| PHP                     | Experimental | `--force-enable-php`                | vscode-php-debug                     | Node, PHP, XDEBUG                            |
-| C# (dotnet core)        | Tested       | `--force-enable-csharp`             | netcoredbg                           | DotNet core                                  |
-| F#, VB, etc.            | Supported    | `--force-enable-[fsharp,vbnet]`     | netcoredbg                           | DotNet core                                  |
-| Go (legacy)             | Legacy       | `--enable-go`                       | vscode-go                            | Node, Go, [Delve][]                          |
-| Python 2                | Legacy       | `--force-enable-python2`            | debugpy-python2                      | Python 2.7                                   |
+| Language(s)             | Status                | Switch (for `install_gadget.py`)    | Adapter (for `:VimspectorInstall`)   | Dependencies                                 |
+| --------------------    | -----------           | ----------------------------------  | ------------------------------------ | -------------------------------------------- |
+| C, C++, Rust, Jai, etc. | Tested                | `--all` or `--enable-c` (or cpp)    | vscode-cpptools                      | mono-core                                    |
+| C, C++, Rust, Jai, etc. | Tested                | `--enable-rust`, `--enable-c`, etc. | CodeLLDB                             | none                                         |
+| Python                  | Tested                | `--all` or `--enable-python`        | debugpy                              | Python 3                                     |
+| Go                      | Tested                | `--enable-go`                       | delve                                | Go 1.16+                                     |
+| TCL                     | Supported             | `--all` or `--enable-tcl`           | tclpro                               | TCL >= 8.5 < 9.0                             |
+| Bourne Shell            | Supported             | `--all` or `--enable-bash`          | vscode-bash-debug                    | Bash v??                                     |
+| Lua                     | Tested                | `--all` or `--enable-lua`           | local-lua-debugger-vscode            | Node >=12.13.0, Npm, Lua interpreter         |
+| Node.js                 | Supported             | `--force-enable-node`               | vscode-js-debug                      | Node >= 18                                   |
+| Javascript              | Legacy [Deprecated]   | `--force-enable-chrome`             | debugger-for-chrome                  | Chrome                                       |
+| Javascript              | Legacy [Unsupported]  | `--force-enable-firefox`            | vscode-firefox-debug                 | Firefox                                      |
+| Java                    | Supported             | `--force-enable-java  `             | vscode-java-debug                    | Compatible LSP plugin (see [later](#java))   |
+| PHP                     | Experimental          | `--force-enable-php`                | vscode-php-debug                     | Node, PHP, XDEBUG                            |
+| C# (dotnet core)        | Tested                | `--force-enable-csharp`             | netcoredbg                           | DotNet core                                  |
+| F#, VB, etc.            | Supported             | `--force-enable-[fsharp,vbnet]`     | netcoredbg                           | DotNet core                                  |
+| Python 2                | Legacy [Unmaintained] | `--force-enable-python2`            | debugpy-python2                      | Python 2.7                                   |
 
 ## Other languages
 
@@ -249,7 +248,7 @@ Which Linux versions? I only test on Ubuntu 20.04 and later and RHEL 7.
 
 ### Neovim limitations
 
-neovim doesn't implement mouse hover balloons. Instead there is the
+Neovim doesn't implement mouse hover balloons. Instead there is the
 `<Plug>VimspectorBalloonEval` mapping. There is no default mapping for this, so
 I recommend something like this to get variable display in a popup:
 
@@ -354,7 +353,7 @@ though the default behaviours are slightly different. For supported languages,
 they will:
 
 * Download the relevant debug adapter at a version that's been tested from the
-  internet, either as a 'vsix' (Visusal Studio plugin), or clone from GitHub. If
+  internet, either as a 'vsix' (Visual Studio plugin), or clone from GitHub. If
   you're in a corporate environment and this is a problem, you may need to
   install the gadgets manually.
 * Perform any necessary post-installation actions, such as:
@@ -557,7 +556,7 @@ Vimspector is not:
 * comprehensive. It's limited by DAP, and limited by my time. I implement the
   features I think most users will need, not every feature possible.
 * for everyone. Vimspector intentionally provides a "one size fits all" UI and
-  aproach. This means that it can only provide essential/basic debugging
+  approach. This means that it can only provide essential/basic debugging
   features for a given language. This makes it convenient for everyday usage,
   but not ideal for power users or those with very precise or specific
   requirements. See [motivation](#motivation) for more info.
@@ -653,7 +652,7 @@ features to set your own mappings. To that end, Vimspector defines the following
 | ---                                           | ---                                                                 | ---                                                               |
 | `<Plug>VimspectorContinue`                    | When debugging, continue. Otherwise start debugging.                | `vimspector#Continue()`                                           |
 | `<Plug>VimspectorStop`                        | Stop debugging.                                                     | `vimspector#Stop()`                                               |
-| `<Plug>VimpectorRestart`                      | Restart debugging with the same configuration.                      | `vimspector#Restart()`                                            |
+| `<Plug>VimspectorRestart`                      | Restart debugging with the same configuration.                      | `vimspector#Restart()`                                            |
 | `<Plug>VimspectorPause`                       | Pause debuggee.                                                     | `vimspector#Pause()`                                              |
 | `<Plug>VimspectorBreakpoints`                 | Show/hide the breakpoints window                                    | `vimspector#ListBreakpoints()`                                    |
 | `<Plug>VimspectorToggleBreakpoint`            | Toggle line breakpoint on the current line.                         | `vimspector#ToggleBreakpoint()`                                   |
@@ -684,7 +683,7 @@ nmap <F5> <Plug>VimspectorContinue
 
 In addition, many users probably want to only enable certain Vimspector mappings
 while debugging is active. This is also possible, though it requires writing
-[some vimscipt](#custom-mappings-while-debugging).
+[some vimscript](#custom-mappings-while-debugging).
 
 That said, many people are familiar with particular debuggers, so the following
 mappings can be enabled by setting `g:vimspector_enable_mappings` to the
@@ -776,7 +775,7 @@ users, the [mappings](#mappings) section contains the most common commands and
 default usage. This section can be used as a reference to create your own
 mappings or custom behaviours.
 
-All the below instructions assume a single debugging session. For deatils on how
+All the below instructions assume a single debugging session. For details on how
 to debug multiple independent apps at the same time, see
 [multiple debugging sessions][#multiple-debugging-sessions].
 
@@ -981,7 +980,7 @@ breakpoints. This section describes the full API in vimscript functions.
 
 Breakpoints are associated with the current
 [debugging session][#multiple-debugging-sessions]. When switching between
-sessions, the breakpont signs for the previous session are removed and the
+sessions, the breakpoint signs for the previous session are removed and the
 breakpoints for the newly activated session are displayed. While it might be
 useful to see breakpoints for all sessions, this can be very confusing.
 
@@ -1102,7 +1101,7 @@ deletes a breakpoint. If you wish to 'disable' breakpoints, use the
   remove a breakpoint at a specific file/line
 * Use `vimspector#ClearBreakpoints()` to clear all breakpoints
 * Use `vimspector#ResetExceptionBreakpoints()` to clear the exception breakpoints
-  configuration and re-anser the various questions like "Break on C++ Throw"
+  configuration and re-answer the various questions like "Break on C++ Throw"
 * Use `:VimspectorMkSession` and `:VimspectorLoadSession` to save and restore
   breakpoints
 * `call vimspector#ListBreakpoints()` - toggle breakpoints window
@@ -1192,8 +1191,8 @@ In both cases, the file/dir name argument is optional. By default, the file is
 named `.vimspector.session`, but this can be changed globally by setting
 `g:vimspector_session_file_name` to something else, or by manually specifying a
 path when calling the command. If you supply a directory, the default or
-configured session file name is read fron or written to that directory.
-Othewise, the file is read based on the currently open buffer or written to the
+configured session file name is read from or written to that directory.
+Otherwise, the file is read based on the currently open buffer or written to the
 current working directory.
 
 Advanced users may wish to automate the process of loading and saving, for
@@ -1321,7 +1320,7 @@ let g:ycm_semantic_triggers =  {
 
 ## Disassembly
 
-* Dispplay disassembly around current PC
+* Display disassembly around current PC
 * Step over/into/out by instruction (contextually, or using the WinBar)
 * `:VimspectorDisassemble`, `vimspector#ShowDisassembly()` or
   `<Plug>VimspectorDisassemble`
@@ -1329,17 +1328,17 @@ let g:ycm_semantic_triggers =  {
 [![Demo](https://asciinema.org/a/esEncAxP45CJmo8Em1sQtxRYe.svg)](https://asciinema.org/a/esEncAxP45CJmo8Em1sQtxRYe)
 
 Some debug adapters (few!) support disassembly. The way this works in DAP is a
-little wierd, but in practice vimspector will ask to disassemble a number of
+little weird, but in practice vimspector will ask to disassemble a number of
 instructions around the current stack frame's PC. This is then shown in a window
 with a WinBar similar to the Code window, but with instruction stepping
 granularity. There's a sign for the current instruction and the syntax
-highighting defaults to "asm" which mostly works ok for x86 and ARM.
+highlighting defaults to "asm" which mostly works ok for x86 and ARM.
 
 ![disassembly-view](https://user-images.githubusercontent.com/10584846/194766584-d798c96b-6e4e-4914-9d4a-991c219f78d0.png)
 
 As mentioned above, when your current window is the disassembly windows and you
 use the default "step" commands (e.g. `<F10>`), the stepping is automatically
-chnged to per-instruction rather than per statement.
+changed to per-instruction rather than per statement.
 
 Each time the process stops, vimspector requests about 2 windows full of
 instructions around the current PC. To see more, you can scroll the window.
@@ -1348,8 +1347,8 @@ scrolls to the top or near the bottom. This isn't perfect. Sometimes you have to
 scroll a bit more to make it page in (e.g. ctrl-e ctrl-y at the top).
 This is not ideal, and may be improved in future.
 
-You can control the intial height of the disassembly window with
-`let g:vimspector_disassembly_height = 10` (or whatver number of lines).
+You can control the initial height of the disassembly window with
+`let g:vimspector_disassembly_height = 10` (or whatever number of lines).
 
 The filetype (and syntax) of the buffers in the disassembly window is
 `vimspector-disassembly`. You can use `FileType` autocommands to customise
@@ -1520,7 +1519,7 @@ At any time there is a single "active" root session. Breakpoints are associated
 with the current session, and all UI and API commands are applied to the
 currently active session.
 
-When switching between root sessions, the breakpont signs for the previous
+When switching between root sessions, the breakpoint signs for the previous
 session are removed and the breakpoints for the newly activated session are
 displayed.  While it might be useful to see breakpoints for all sessions, this
 can be very confusing.
@@ -1535,7 +1534,7 @@ A typical workflow might be:
    `:VimspectorNewSession client` (`client` is now the active session).
 4. Add a breakpoint in the `client` session and start debugging with `<F5>`.
 
-You now have 2 vimspector tabs. Intuitively, wwitching to a particular tab will
+You now have 2 vimspector tabs. Intuitively, switching to a particular tab will
 make its session active. You can also manually switch the active session with
 `:VimspectorSwitchToSession <name>`.
 
@@ -1985,7 +1984,7 @@ use:
 
 ```
 
-for examk
+for example
 
 ## TCL
 
@@ -2066,38 +2065,6 @@ not documented by delve itself).
 
 The vscode-go docs also have useful
 [troubleshooting information](https://github.com/golang/vscode-go/blob/master/docs/debugging.md#troubleshooting)
-
-* Go (legacy vscode-go)
-
-Requires:
-
-* `install_gadget.py --enable-go` or `:VimspectorInstall vscode-go`
-* [Delve][delve-install] installed, e.g. `go get -u github.com/go-delve/delve/cmd/dlv`
-* Delve to be in your PATH, or specify the `dlvToolPath` launch option
-
-NOTE: Vimspector uses the ["legacy" vscode-go debug adapter](https://github.com/golang/vscode-go/blob/master/docs/debugging-legacy.md) rather than the "built-in" DAP support in Delve. You can track https://github.com/puremourning/vimspector/issues/186 for that.
-
-```json
-{
-  "configurations": {
-    "run": {
-      "adapter": "vscode-go",
-      "filetypes": [ "go" ], // optional
-      "configuration": {
-        "request": "launch",
-        "program": "${fileDirname}",
-        "mode": "debug",
-        "dlvToolPath": "$HOME/go/bin/dlv"
-        // example, to disable delve's go version check
-        // "dlvFlags": [ "--check-go-version=false" ]
-      }
-    }
-  }
-}
-```
-
-See the vscode-go docs for
-[troubleshooting information](https://github.com/golang/vscode-go/blob/master/docs/debugging-legacy.md#troubleshooting)
 
 ## PHP
 
@@ -2443,10 +2410,6 @@ This debugger uses stdio to communicate with the running process, so calls to
 
 ## Other servers
 
-* Java - vscode-javac. This works, but is not as functional as Java Debug
-  Server. Take a look at [this
-  comment](https://github.com/puremourning/vimspector/issues/3#issuecomment-576916076)
-  for instructions.
 - See also [the wiki](https://github.com/puremourning/vimspector/wiki/Additional-Language-Support)
   which has community-contributed plugin files for some languages.
 
@@ -2457,8 +2420,8 @@ There is very limited support for customisation of the UI.
 
 ## Changing the default signs
 
-Vimsector uses the following signs internally. If they are defined before
-Vimsector uses them, they will not be replaced. So to customise the signs,
+Vimspector uses the following signs internally. If they are defined before
+Vimspector uses them, they will not be replaced. So to customise the signs,
 define them in your `vimrc`.
 
 
@@ -2552,14 +2515,14 @@ if changing the default priorities, it's recommended that:
 
 ## Presentation Hints
 
-***NOTE:*** This customisation point is currently ***unsable*** and may change
+***NOTE:*** This customisation point is currently ***unusable*** and may change
 at any time.
 
 Sometimes the Debug Adapter provides hints as to how the UI should display
 certain things. This includes stack frames, variables etc.
 
 Vimspector provides a simple way to customise how these are displayed, by
-setting values in the dictionary `g:vimsepctor_presentation_hint_hl`.
+setting values in the dictionary `g:vimspector_presentation_hint_hl`.
 
 The following keys are supported with the mentioned default highlight group.
 
@@ -2582,7 +2545,7 @@ The following keys are supported with the mentioned default highlight group.
 In addition, any value supplied in the DAP `VariablePresentationHint` can be set
 which will be used if supplied by the debug adapter.
 
-A silly example; the defaults should probably be OK for most colour scehemes:
+A silly example; the defaults should probably be OK for most colour schemes:
 
 ```viml
 let g:vimspector_presentation_hint_hl = {
@@ -2812,7 +2775,7 @@ function s:SetUpTerminal()
   set norelativenumber nonumber
 endfunction
 
-augroup MyVimspectorUICustomistaion
+augroup MyVimspectorUICustomisation
   autocmd!
   autocmd User VimspectorUICreated call s:CustomiseUI()
   autocmd User VimspectorTerminalOpened call s:SetUpTerminal()

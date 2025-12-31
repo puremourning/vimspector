@@ -157,10 +157,19 @@ function! SkipNeovim() abort
 endfunction
 
 function! SkipOn( arch, system ) abort
-  if trim( system( 'uname -m' ) ) == a:arch &&
-        \ trim( system( 'uname -s' ) ) == a:system
-    throw 'skipped: Not on this architecture'
+  if a:arch != v:null && trim( system( 'uname -m' ) ) != a:arch
+    return
   endif
+
+  if a:system != v:null && trim( system( 'uname -s' ) ) != a:system
+    return
+  endif
+
+  throw 'skipped: Not on this architecture/platform ('
+        \ . a:arch
+        \ . '/'
+        \ . a:system .
+        \ ')'
 endfunction
 
 function! SkipIf( f, msg ) abort
@@ -172,8 +181,10 @@ endfunction
 function! FunctionBreakOnBrace() abort
   " Annoyingly, the behaviour of gcc 8 differs from clang _and_ it differs
   " between x86 and arm
-  return trim( system( 'uname -m' ) ) ==# 'x86_64'
-        \ && trim( system( 'uname -s' ) ) ==# 'Linux'
+  " return trim( system( 'uname -m' ) ) ==# 'x86_64'
+        " \ && trim( system( 'uname -s' ) ) ==# 'Linux'
+  " However, the good news is that gcc-14 works consistently!
+  return v:false
 endfunction
 
 function MoveMouseToPositionInWindow( win_id, line, colum ) abort

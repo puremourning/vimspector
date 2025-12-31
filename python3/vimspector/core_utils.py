@@ -22,8 +22,6 @@ MEMO = {}
 
 
 def memoize( func ):
-  global MEMO
-
   @functools.wraps( func )
   def wrapper( *args, **kwargs ):
     dct = MEMO.setdefault( func, {} )

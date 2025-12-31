@@ -757,8 +757,10 @@ class VariablesView( object ):
           value = ''
 
         text = f'{indent}{marker}{icon} {name}: {value}'
-      else:
+      elif len( kind ) > 0:
         text = f'{indent}{marker}{icon} {name} ({kind}): {value}'
+      else:
+        text = f'{indent}{marker}{icon} {name}: {value}'
 
       line = utils.AppendToBuffer(
         view.buf,

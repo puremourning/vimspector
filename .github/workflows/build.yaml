@@ -13,26 +13,26 @@ defaults:
 
 jobs:
   PythonLint:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     container: 'puremourning/vimspector:test-x86_64'
     steps:
     - uses: actions/checkout@v3
     - name: 'Insatll requirements'
-      run: pip3 install  --user -r dev_requirements.txt
+      run: pip3 install --break-system-packages --user -r dev_requirements.txt
     - name: 'Run flake8'
       run: '$HOME/.local/bin/flake8 python3/ *.py'
   VimscriptLint:
-    runs-on: 'ubuntu-20.04'
+    runs-on: 'ubuntu-22.04'
     container: 'puremourning/vimspector:test-x86_64'
     steps:
     - uses: actions/checkout@v3
     - name: 'Install requirements'
-      run: pip3 install  --user -r dev_requirements.txt
+      run: pip3 install --break-system-packages --user -r dev_requirements.txt
     - name: 'Run vint'
       run: $HOME/.local/bin/vint autoload/ compiler/ plugin/ tests/ syntax/
 
   Linux:
-    runs-on: 'ubuntu-20.04'
+    runs-on: 'ubuntu-22.04'
     container:
       image: 'puremourning/vimspector:test-x86_64'
       options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined
@@ -47,13 +47,13 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: 'Install requirements'
-      run: pip3 install --user -r dev_requirements.txt
+      run: pip3 install --break-system-packages --user -r dev_requirements.txt
 
     - run: |
         go install github.com/go-delve/delve/cmd/dlv@latest
       name: 'Install Delve for Go'
 
-    - uses: actions/cache@v2
+    - uses: actions/cache@v4
       with:
         key: v1-gadgets-${{ runner.os }}-${{ hashFiles( 'python3/vimspector/gadgets.py' ) }}
         path: gadgets/linux/download
@@ -87,8 +87,6 @@ jobs:
         name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
         path: 'tests/logs/**/*'
 
-    # TODO: test the tarball
-
     # - name: Start SSH session if failed
     #   uses: luchihoratiu/debug-via-ssh@main
     #   if: failure()
@@ -97,7 +95,7 @@ jobs:
     #     SSH_PASS: ${{ secrets.SSH_PASS }}
 
   MacOS:
-    runs-on: 'macos-13'
+    runs-on: 'macos-15'
     strategy:
       fail-fast: false
       matrix:
@@ -136,7 +134,7 @@ jobs:
         go build
       name: 'Build the process lister'
 
-    - uses: actions/cache@v2
+    - uses: actions/cache@v4
       with:
         key: v1-gadgets-${{ runner.os }}-${{ hashFiles( 'python3/vimspector/gadgets.py' ) }}
         path: gadgets/macos/download
@@ -169,11 +167,10 @@ jobs:
         name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
         path: 'tests/logs/**/*'
 
-    # TODO: test the tarball
+    # - name: Start SSH session for working out why debugging don't work
+    #   uses: luchihoratiu/debug-via-ssh@main
+    #   if: failure() || cancelled()
+    #   with:
+    #     NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+    #     SSH_PASS: ${{ secrets.SSH_PASS }}
 
-    # - name: Start SSH session if failed
-    #  uses: luchihoratiu/debug-via-ssh@main
-    #  if: failure() || cancelled()
-    #  with:
-    #    NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-    #    SSH_PASS: ${{ secrets.SSH_PASS }}
