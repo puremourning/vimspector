@@ -153,12 +153,12 @@ jobs:
     - run: ${{ matrix.runtime }} --version
       name: 'Print vim version information'
 
-    - name: Start SSH session for working out why debugging don't work
-      uses: luchihoratiu/debug-via-ssh@main
-      if: always()
-      with:
-        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-        SSH_PASS: ${{ secrets.SSH_PASS }}
+    # - name: Start SSH session for working out why debugging don't work
+    #   uses: luchihoratiu/debug-via-ssh@main
+    #   if: always()
+    #   with:
+    #     NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+    #     SSH_PASS: ${{ secrets.SSH_PASS }}
 
     - run: |
         ./run_tests --exe ${{ matrix.runtime }} --basedir $(pwd) --install --update --report messages --quiet
