@@ -161,15 +161,16 @@ def CleanUpCommand( session_id, name, api_prefix ):
       name ) )
 
 
-def CleanUpHiddenBuffer( buf ):
+def CleanUpHiddenBuffer( buf, wipeout=True ):
   if not buf.valid:
     return
 
+  cmd = 'bwipeout' if wipeout else 'bdelete'
+
   try:
-    vim.command( 'bdelete! {}'.format( buf.number ) )
+    vim.command( '{}! {}'.format( cmd, buf.number ) )
   except vim.error as e:
-    # FIXME: For now just ignore the "no buffers were deleted" error
-    if 'E516' not in str( e ):
+    if 'E517' not in str( e ) and 'E516' not in str( e ):
       raise
 
 
