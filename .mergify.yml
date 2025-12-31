@@ -10,14 +10,14 @@ queue_rules:
       - status-success=VimscriptLint
       - status-success=Linux (vim)
       - status-success=Linux (nvim)
-      - status-success=MacOS (vim)
+      # - status-success=MacOS (vim)
     merge_conditions:
       # CI https://doc.mergify.io/conditions.html#github-actions
       - status-success=PythonLint
       - status-success=VimscriptLint
       - status-success=Linux (vim)
       - status-success=Linux (nvim)
-      - status-success=MacOS (vim)
+      # - status-success=MacOS (vim)
       #- status-success=MacOS (nvim)
 
     merge_method: merge
@@ -35,7 +35,7 @@ queue_rules:
       - status-success=VimscriptLint
       - status-success=Linux (vim)
       - status-success=Linux (nvim)
-      - status-success=MacOS (vim)
+      # - status-success=MacOS (vim)
       #- status-success=MacOS (nvim)
 
     merge_method: merge
@@ -51,14 +51,14 @@ queue_rules:
       - status-success=VimscriptLint
       - status-success=Linux (vim)
       - status-success=Linux (nvim)
-      - status-success=MacOS (vim)
+      # - status-success=MacOS (vim)
     merge_conditions:
       # CI https://doc.mergify.io/conditions.html#github-actions
       - status-success=PythonLint
       - status-success=VimscriptLint
       - status-success=Linux (vim)
       - status-success=Linux (nvim)
-      - status-success=MacOS (vim)
+      # - status-success=MacOS (vim)
       #- status-success=MacOS (nvim)
 
     merge_method: merge
@@ -70,7 +70,7 @@ queue_rules:
       - status-success=VimscriptLint
       - status-success=Linux (vim)
       - status-success=Linux (nvim)
-      - status-success=MacOS (vim)
+      # - status-success=MacOS (vim)
       #- status-success=MacOS (nvim)
 
 
@@ -88,7 +88,7 @@ pull_request_rules:
       - status-success=VimscriptLint
       - status-success=Linux (vim)
       - status-success=Linux (nvim)
-      - status-success=MacOS (vim)
+      # - status-success=MacOS (vim)
       #- status-success=MacOS (nvim)
     actions: &merge-actions
       delete_head_branch: {}
@@ -118,7 +118,7 @@ pull_request_rules:
       - status-success=VimscriptLint
       - status-success=Linux (vim)
       - status-success=Linux (nvim)
-      - status-success=MacOS (vim)
+      # - status-success=MacOS (vim)
       #- status-success=MacOS (nvim)
     actions:
       <<: *merge-actions
@@ -137,7 +137,7 @@ priority_rules:
       - status-success=VimscriptLint
       - status-success=Linux (vim)
       - status-success=Linux (nvim)
-      - status-success=MacOS (vim)
+      # - status-success=MacOS (vim)
     priority: 2750
   - name: priority for queue `duplicated default from Merge auto pr when approved`
     conditions:
@@ -156,5 +156,5 @@ priority_rules:
       - status-success=VimscriptLint
       - status-success=Linux (vim)
       - status-success=Linux (nvim)
-      - status-success=MacOS (vim)
+      # - status-success=MacOS (vim)
     priority: 2250

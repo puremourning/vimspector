@@ -9,6 +9,8 @@ endfunction
 
 function! SkipUnsupported() abort
   call SkipOn( 'arm64', 'Darwin' )
+  " Neovim seems broken when editing lua due to treeshitting or something
+  call SkipNeovim()
 endfunction
 
 
