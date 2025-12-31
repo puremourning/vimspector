@@ -87,8 +87,6 @@ jobs:
         name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
         path: 'tests/logs/**/*'
 
-    # TODO: test the tarball
-
     # - name: Start SSH session if failed
     #   uses: luchihoratiu/debug-via-ssh@main
     #   if: failure()
@@ -96,84 +94,82 @@ jobs:
     #     NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
     #     SSH_PASS: ${{ secrets.SSH_PASS }}
 
-  # MacOS:
-  #   runs-on: 'macos-14'
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       runtime:
-  #         - vim
-  #         # - nvim ; MacOS in GHA is so slow, this seems to cause lots of
-  #         # flakiness for neovim and I have like 0 patience with trying to
-  #         # understand why.
-  #   steps:
-  #   - uses: actions/checkout@v3
+  MacOS:
+    runs-on: 'macos-14'
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime:
+          - vim
+          # - nvim ; MacOS in GHA is so slow, this seems to cause lots of
+          # flakiness for neovim and I have like 0 patience with trying to
+          # understand why.
+    steps:
+    - uses: actions/checkout@v3
 
-  #   - run: |
-  #       brew update-reset
-  #       brew doctor || true
-  #       brew cleanup || true
-  #       for p in vim go tcl-tk@8 llvm lua luajit love neovim coreutils; do
-  #         brew install $p || brew outdated $p || brew upgrade $p
-  #       done
-  #       brew reinstall icu4c
-  #       brew link --overwrite python
-  #       brew link --overwrite vim
-  #       brew link --overwrite go
-  #       # latest neovim doesn't work on python 3.12
-  #       # https://github.com/neovim/pynvim/issues/538
-  #       pip3 install --break-system-packages --user 'pynvim @ git+https://github.com/neovim/pynvim'
-  #     name: 'Install vim and deps'
+    - run: |
+        brew update-reset
+        brew doctor || true
+        brew cleanup || true
+        for p in vim go tcl-tk@8 llvm lua luajit love neovim coreutils; do
+          brew install $p || brew outdated $p || brew upgrade $p
+        done
+        brew reinstall icu4c
+        brew link --overwrite python
+        brew link --overwrite vim
+        brew link --overwrite go
+        # latest neovim doesn't work on python 3.12
+        # https://github.com/neovim/pynvim/issues/538
+        pip3 install --break-system-packages --user 'pynvim @ git+https://github.com/neovim/pynvim'
+      name: 'Install vim and deps'
 
-  #   - name: 'Install requirements'
-  #     run: pip3 install --break-system-packages --user -r dev_requirements.txt
+    - name: 'Install requirements'
+      run: pip3 install --break-system-packages --user -r dev_requirements.txt
 
-  #   - run: go install github.com/go-delve/delve/cmd/dlv@latest
-  #     name: 'Install Delve for Go'
+    - run: go install github.com/go-delve/delve/cmd/dlv@latest
+      name: 'Install Delve for Go'
 
-  #   - run: |
-  #       cd support/vimspector_process_list
-  #       go build
-  #     name: 'Build the process lister'
+    - run: |
+        cd support/vimspector_process_list
+        go build
+      name: 'Build the process lister'
 
-  #   - uses: actions/cache@v4
-  #     with:
-  #       key: v1-gadgets-${{ runner.os }}-${{ hashFiles( 'python3/vimspector/gadgets.py' ) }}
-  #       path: gadgets/macos/download
-  #     name: Cache gadgets
+    - uses: actions/cache@v4
+      with:
+        key: v1-gadgets-${{ runner.os }}-${{ hashFiles( 'python3/vimspector/gadgets.py' ) }}
+        path: gadgets/macos/download
+      name: Cache gadgets
 
-  #   - name: 'Set up node 18'
-  #     uses: actions/setup-node@v3
-  #     with:
-  #       node-version: 18
+    - name: 'Set up node 18'
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
 
-  #   - name: 'Install .NET Core SDK 6.0'
-  #     uses: actions/setup-dotnet@v3
-  #     with:
-  #       dotnet-version: 6.0.x
+    - name: 'Install .NET Core SDK 6.0'
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
 
-  #   - run: ${{ matrix.runtime }} --version
-  #     name: 'Print vim version information'
+    - run: ${{ matrix.runtime }} --version
+      name: 'Print vim version information'
 
-  #   - run: |
-  #       ./run_tests --exe ${{ matrix.runtime }} --basedir $(pwd) --install --update --report messages --quiet
-  #     name: 'Run the tests'
-  #     id: run_tests
-  #     env:
-  #       VIMSPECTOR_MIMODE: lldb
+    - name: Start SSH session for working out why debugging don't work
+      uses: luchihoratiu/debug-via-ssh@main
+      if: always()
+      with:
+        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+        SSH_PASS: ${{ secrets.SSH_PASS }}
 
-  #   - name: "Upload test logs"
-  #     uses: actions/upload-artifact@v4
-  #     if: always()
-  #     with:
-  #       name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
-  #       path: 'tests/logs/**/*'
+    - run: |
+        ./run_tests --exe ${{ matrix.runtime }} --basedir $(pwd) --install --update --report messages --quiet
+      name: 'Run the tests'
+      id: run_tests
+      env:
+        VIMSPECTOR_MIMODE: lldb
 
-  #   # TODO: test the tarball
-
-  #   # - name: Start SSH session if failed
-  #   #  uses: luchihoratiu/debug-via-ssh@main
-  #   #  if: failure() || cancelled()
-  #   #  with:
-  #   #    NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-  #   #    SSH_PASS: ${{ secrets.SSH_PASS }}
+    - name: "Upload test logs"
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: 'test-logs-${{ runner.os }}-${{ matrix.runtime }}'
+        path: 'tests/logs/**/*'
