@@ -8,6 +8,11 @@
         "mode": "debug",
         "trace": true,
         "env": { "GO111MODULE": "off" }
+      },
+      "breakpoints": {
+        "exception": {
+          "unrecovered-panic": ""
+        }
       }
     },
     "run-delve": {
@@ -23,6 +28,12 @@
         // "buildFlags": ...
         // "stackTraceDepth": ...,
         // "showGlobalVariables": true,
+      },
+      "breakpoints": {
+        "exception": {
+          "unrecovered-panic": "",
+          "runtime-fatal-throw": ""
+        }
       }
     }
   }

@@ -10,6 +10,26 @@ forms, such as:
 
 At all times the [code of conduct](#code-of-conduct) applies.
 
+## No AI Generated Contributions
+
+Please do not submit contributions wholly or mostly generated using AI tools,
+such as ChatGPT, GitHub Copilot, Claude or similar. This includes, but is
+not limited to:
+
+- code
+- issues
+- comments
+- documentation
+- tests
+- etc.
+
+To be clear, this prohibition applies only to *wholly or mostly* generated
+content that you (the contributor) cannot reasonably claim to have independently
+created, reviewed, verified and are willing to take full responsibility for.
+
+There is no restriction on leveraging these tools as a developer aid, nor on
+their use in the usual practice of software engineering.
+
 ## Troubleshooting
 
 It's not completely trivial to configure Vimspector and there is a fairly large

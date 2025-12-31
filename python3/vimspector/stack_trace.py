@@ -707,7 +707,8 @@ class StackTraceView( object ):
                            self._buf.name,
                            line )
 
-          if utils.BufferExists( frame[ 'source' ][ 'path' ] ):
+          if ( utils.BufferExists( frame[ 'source' ][ 'path' ] )
+               and frame[ 'line' ] ):
             sign_id = len( self._top_of_stack_signs ) + 100
             self._top_of_stack_signs.append( sign_id )
             signs.PlaceSign( sign_id,
