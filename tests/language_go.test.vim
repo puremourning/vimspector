@@ -74,8 +74,14 @@ function! Test_Go_Simple_Adhoc_Config_Delve()
   \      'program': '${workspaceRoot}/hello-world.go',
   \      'mode': 'debug',
   \      'trace': v:true,
-  \      'env': { 'GO111MODULE': 'off' }
-  \    }
+  \      'env': { 'GO111MODULE': 'off' },
+  \    },
+  \    'breakpoints': {
+  \      'exception': {
+  \        'unrecovered-panic': '',
+  \        'runtime-fatal-throw': '',
+  \      },
+  \    },
   \  },
   \ })
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 4, 1 )

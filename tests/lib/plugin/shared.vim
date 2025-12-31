@@ -181,8 +181,10 @@ endfunction
 function! FunctionBreakOnBrace() abort
   " Annoyingly, the behaviour of gcc 8 differs from clang _and_ it differs
   " between x86 and arm
-  return trim( system( 'uname -m' ) ) ==# 'x86_64'
-        \ && trim( system( 'uname -s' ) ) ==# 'Linux'
+  " return trim( system( 'uname -m' ) ) ==# 'x86_64'
+        " \ && trim( system( 'uname -s' ) ) ==# 'Linux'
+  " However, the good news is that gcc-14 works consistently!
+  return v:false
 endfunction
 
 function MoveMouseToPositionInWindow( win_id, line, colum ) abort
