@@ -95,7 +95,7 @@ jobs:
     #     SSH_PASS: ${{ secrets.SSH_PASS }}
 
   MacOS:
-    runs-on: 'macos-14'
+    runs-on: 'macos-15'
     strategy:
       fail-fast: false
       matrix:
