@@ -342,6 +342,9 @@ class StackTraceView( object ):
     }, failure_handler )
 
   def _DrawThreads( self ):
+    if not self._buf:
+        return
+
     self._line_to_frame.clear()
     self._line_to_thread.clear()
 
