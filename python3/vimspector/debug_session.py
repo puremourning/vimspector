@@ -186,6 +186,11 @@ class DebugSession( object ):
     self._on_init_complete_handlers = []
     self._server_capabilities = {}
     self._breakpoints.ClearTemporaryBreakpoints()
+    # have we seen the reply to the initialize request?
+    self._initialize_response_received = False
+    self._pending_initialized_event = None
+    # have we seen the initialized event
+    self._initialized_event_received = False
 
 
   def GetConfigurations( self, adapters ):
@@ -1875,12 +1880,17 @@ class DebugSession( object ):
     #    the current frame.
     #
     def handle_initialize_response( msg ):
+      self._initialize_response_received = True
       self._server_capabilities = msg.get( 'body' ) or {}
       # TODO/FIXME: We assume that the capabilities are the same for all
       # connections. We should fix this when we split the server bp
       # representation out?
       if not self.parent_session:
         self._breakpoints.SetServerCapabilities( self._server_capabilities )
+
+      if self._pending_initialized_event:
+        self.OnEvent_initialized(self._pending_initialized_event)
+
       self._Launch()
 
     self._connection.DoRequest( handle_initialize_response, {
@@ -2050,14 +2060,28 @@ class DebugSession( object ):
 
 
   def OnEvent_initialized( self, message ):
+    if not self._initialize_response_received:
+      self._pending_initialized_event = message
+      return
+
+    if self._initialized_event_received:
+      return
+    self._initialized_event_received = True
+
     def OnBreakpointsDone():
       self._breakpoints.Refresh()
       if self._server_capabilities.get( 'supportsConfigurationDoneRequest' ):
+        def failure_handler( reason, *args ):
+          utils.UserMessage( f"Configuration confirmation failed: {reason} ",
+                             error=True )
+          self._OnInitializeComplete()
+
         self._connection.DoRequest(
           lambda msg: self._OnInitializeComplete(),
           {
             'command': 'configurationDone',
-          }
+          },
+          failure_handler = failure_handler,
         )
       else:
         self._OnInitializeComplete()
