@@ -189,7 +189,6 @@ runtime dependencies). They are categorised by their level of support:
 | PHP                     | Experimental          | `--force-enable-php`                | vscode-php-debug                     | Node, PHP, XDEBUG                            |
 | C# (dotnet core)        | Tested                | `--force-enable-csharp`             | netcoredbg                           | DotNet core                                  |
 | F#, VB, etc.            | Supported             | `--force-enable-[fsharp,vbnet]`     | netcoredbg                           | DotNet core                                  |
-| Python 2                | Legacy [Unmaintained] | `--force-enable-python2`            | debugpy-python2                      | Python 2.7                                   |
 
 ## Other languages
 
@@ -1891,9 +1890,6 @@ Example:
 * Install with `install_gadget.py --enable-python` or `:VimspectorInstall
   debugpy`, ideally requires a working compiler and the python development
   headers/libs to build a C python extension for performance.
-* ***NOTE***: Debugpy no longer supports python 2. In order to continue to debug
-  python 2 applications, use the `debugpy-python2` adapter after installing the
-  `debugpy-python2` gadget.
 
 * Full options: https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
 
@@ -1967,24 +1963,8 @@ an example of getting Vimspector to remotely launch and attach.
 
 ### Python 2
 
-In order to continue to debug python 2 applications, ensure that you install the
-`debugpy-python2` gadget (e.g. `--force-enable-python2` or
-`:VimspectorInstall debugpy-python2`), and then change your configuration to
-use:
-
-```json
-{
-  "configurations": {
-    "Python Attach": {
-      "adapter": "debugpy-python2",
-      // ...
-    }
-  }
-}
-
-```
-
-for example
+Python 2 is no longer supported, having been out of support by both Python and
+debugpy for years.
 
 ## TCL
 
