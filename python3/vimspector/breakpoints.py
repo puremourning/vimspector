@@ -366,22 +366,48 @@ class ProjectBreakpoints( object ):
     if not vbp:
       return
 
-    if vbp.get( 'type' ) != 'L':
-      return
+    if vbp.get( 'type' ) == 'L':
+      # Try to find the actual breakpoint
+      bp, index = self._FindLineBreakpoint( vbp.get( 'filename' ),
+                                            vbp.get( 'lnum' ) )
 
-    # Try to find the actual breakpoint
-    bp, index = self._FindLineBreakpoint( vbp.get( 'filename' ),
-                                          vbp.get( 'lnum' ) )
+      if not bp:
+        return
 
-    if not bp:
-      return
+      options = GetAdvancedBreakpointOptions( bp[ 'options' ] )
+      if options is None:
+        return
 
-    options = GetAdvancedBreakpointOptions( bp[ 'options' ] )
-    if options is None:
-      return
+      self.SetLineBreakpoint( vbp[ 'filename' ], vbp[ 'lnum' ], options )
+      utils.UserMessage( "Breakpoint updated." )
 
-    self.SetLineBreakpoint( vbp[ 'filename' ], vbp[ 'lnum' ], options )
-    utils.UserMessage( "Breakpoint updated." )
+    # TODO: Multiple data and function breakpoints on a single ID
+    # with different conditions is valid,
+    # but only one is accessible here
+    elif vbp.get( 'type' ) == 'D':
+      bp = self._FindDataBreakpoint( vbp.get( 'data_id' ) )
+      if not bp:
+        return
+
+      options = GetBreakpointConditionOptions( bp[ 'options' ] )
+      if options is None:
+        return
+
+      bp[ 'options' ] = options
+      self.UpdateUI()
+      utils.UserMessage( "Breakpoint updated." )
+    elif vbp.get( 'type' ) == 'F':
+      bp = self._FindFunctionBreakpoint( vbp.get( 'filename' ) )
+      if not bp:
+        return
+
+      options = GetBreakpointConditionOptions( bp[ 'options' ] )
+      if options is None:
+        return
+
+      bp[ 'options' ] = options
+      self.UpdateUI()
+      utils.UserMessage( "Breakpoint updated." )
 
 
   def JumpToNextBreakpoint( self, reverse=False ):
@@ -539,6 +565,22 @@ class ProjectBreakpoints( object ):
     # TODO: Should exceptoni breakpoints be per-session!?
     self._exception_breakpoints = None
     self.UpdateUI()
+
+
+  def _FindDataBreakpoint( self, data_id ):
+    for bp in self._data_breakponts:
+      if bp[ 'info' ][ 'dataId' ] == data_id:
+        return bp
+
+    return None
+
+
+  def _FindFunctionBreakpoint( self, func ):
+    for bp in self._func_breakpoints:
+      if bp[ 'function' ] == func:
+        return bp
+
+    return None
 
 
   def _FindLineBreakpoint( self, file_name, line ):
@@ -1371,12 +1413,33 @@ class ProjectBreakpoints( object ):
     return
 
 
+_breakpoint_condition_properties = [
+  { 'prop': 'condition', 'msg': 'Enter condition expression' },
+  { 'prop': 'hitCondition', 'msg': 'Enter hit count expression' },
+]
+
 _extended_breakpoint_properties = [
   { 'prop': 'condition', 'msg': 'Enter condition expression' },
   { 'prop': 'hitCondition', 'msg': 'Enter hit count expression' },
   { 'prop': 'logMessage',
     'msg': 'Enter log expression (to make log point)' },
 ]
+
+
+def GetBreakpointConditionOptions( existing_options = None ):
+  options = {}
+  if existing_options:
+    options.update( existing_options )
+
+  for spec in _breakpoint_condition_properties:
+    response = utils.AskForInput( spec[ 'msg' ] + ': ',
+                                  options.get( spec[ 'prop' ] ) )
+    if response is None:
+      return None
+    elif response:
+      options[ spec[ 'prop' ] ] = response
+
+  return options
 
 
 def GetAdvancedBreakpointOptions( existing_options = None ):
