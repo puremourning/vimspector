@@ -564,7 +564,7 @@ class DebugSession( object ):
 
   def OnChannelData( self, data ):
     if self._connection is None:
-      # Should _not_ happen, but maybe possible due to races or vim bufs?
+      # Should _not_ happen, but maybe possible due to races or vim bugs?
       return
 
     self._connection.OnData( data )
