@@ -803,9 +803,13 @@ class DebugSession( object ):
     return None
 
 
-  @CurrentSession()
-  @IfConnected()
-  def StepOver( self, **kwargs ):
+  def _CurrentSteppingGranularity( self ):
+    if self._disassemblyView and self._disassemblyView.IsCurrent():
+      return 'instruction'
+    return 'statement'
+
+
+  def _DoStep( self, kind, **kwargs ):
     threadId = self._stackTraceView.GetCurrentThreadId()
     if threadId is None:
       return
@@ -818,59 +822,28 @@ class DebugSession( object ):
       'threadId': threadId,
       'granularity': self._CurrentSteppingGranularity(),
     }
+
     arguments.update( kwargs )
     self._connection.DoRequest( handler, {
-      'command': 'next',
+      'command': kind,
       'arguments': arguments,
     } )
+
+
+  @CurrentSession()
+  @IfConnected()
+  def StepOver( self, **kwargs ):
+    self._DoStep( 'next', **kwargs )
 
   @CurrentSession()
   @IfConnected()
   def StepInto( self, **kwargs ):
-    threadId = self._stackTraceView.GetCurrentThreadId()
-    if threadId is None:
-      return
-
-    def handler( *_ ):
-      self._stackTraceView.OnContinued( self, { 'threadId': threadId } )
-      self.ClearCurrentPC()
-
-    arguments = {
-      'threadId': threadId,
-      'granularity': self._CurrentSteppingGranularity(),
-    }
-    arguments.update( kwargs )
-    self._connection.DoRequest( handler, {
-      'command': 'stepIn',
-      'arguments': arguments,
-    } )
+    self._DoStep( 'stepIn', **kwargs )
 
   @CurrentSession()
   @IfConnected()
   def StepOut( self, **kwargs ):
-    threadId = self._stackTraceView.GetCurrentThreadId()
-    if threadId is None:
-      return
-
-    def handler( *_ ):
-      self._stackTraceView.OnContinued( self, { 'threadId': threadId } )
-      self.ClearCurrentPC()
-
-    arguments = {
-      'threadId': threadId,
-      'granularity': self._CurrentSteppingGranularity(),
-    }
-    arguments.update( kwargs )
-    self._connection.DoRequest( handler, {
-      'command': 'stepOut',
-      'arguments': arguments,
-    } )
-
-  def _CurrentSteppingGranularity( self ):
-    if self._disassemblyView and self._disassemblyView.IsCurrent():
-      return 'instruction'
-
-    return 'statement'
+    self._DoStep( 'stepOut', **kwargs )
 
   @CurrentSession()
   def Continue( self ):
@@ -884,6 +857,8 @@ class DebugSession( object ):
       return
 
     def handler( msg ):
+      # By deafult, Continue is assumed to continue all threads, unless it
+      # specifically says otherwise
       self._stackTraceView.OnContinued( self, {
           'threadId': threadId,
           'allThreadsContinued': ( msg.get( 'body' ) or {} ).get(
