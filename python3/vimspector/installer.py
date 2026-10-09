@@ -404,10 +404,30 @@ def InstallDebugpy( name, root, gadget ):
   root = os.path.join( root, 'debugpy-{}'.format( gadget[ 'version' ] ) )
   os.chdir( root )
   try:
+    PYDEVD_ATTACH_TO_PROCESS = os.path.join( root,
+                                             'src',
+                                             'debugpy',
+                                             '_vendored',
+                                             'pydevd',
+                                             'pydevd_attach_to_process' )
+    if install.GetOS() == 'windows':
+      CheckCall( [ os.path.join( PYDEVD_ATTACH_TO_PROCESS,
+                                 'windows',
+                                 'compile_windows.bat' ) ] )
+    elif install.GetOS() == 'macos':
+      CheckCall( [ '/bin/sh', os.path.join( PYDEVD_ATTACH_TO_PROCESS,
+                                            'linux_and_mac',
+                                            'compile_mac.sh' ) ] )
+    else:
+      CheckCall( [ '/bin/sh', os.path.join( PYDEVD_ATTACH_TO_PROCESS,
+                                            'linux_and_mac',
+                                            'compile_linux.sh' ) ] )
+
     CheckCall( [ sys.executable,
                  'setup.py',
                  'build',
                  '--build-platlib', os.path.join( 'build', 'lib' ) ] )
+
   finally:
     os.chdir( wd )
 
