@@ -363,7 +363,8 @@ class StackTraceView( object ):
               hl = 'CursorLineNr' )
 
           for thread in s.threads:
-            icon = '+' if not thread.IsExpanded() else '-'
+            icon = '+' if ( thread.CanExpand()
+                            and not thread.IsExpanded() ) else '-'
             line = utils.AppendToBuffer(
               self._buf,
               f'{icon} Thread {thread.id}: {thread.thread["name"]} '
