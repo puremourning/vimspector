@@ -1,28 +1,12 @@
 {
   "configurations": {
-    "run-legacy": {
-      "adapter": "vscode-go",
-      "configuration": {
-        "request": "launch",
-        "program": "${workspaceRoot}/hello-world.go",
-        "mode": "debug",
-        "trace": true,
-        "env": { "GO111MODULE": "off" }
-      },
-      "breakpoints": {
-        "exception": {
-          "unrecovered-panic": ""
-        }
-      }
-    },
     "run-delve": {
       "adapter": "delve",
       "configuration": {
         "request": "launch",
-        "env": { "GO111MODULE": "off" },
-
         "mode": "debug", // debug|test
-        "program": "${workspaceRoot}/hello-world.go"
+        "program": "${workspaceRoot}",
+        "dlvCwd": "${workspaceRoot}"
 
         // "args": [],
         // "buildFlags": ...
@@ -33,6 +17,20 @@
         "exception": {
           "unrecovered-panic": "",
           "runtime-fatal-throw": ""
+        }
+      }
+    },
+    "run-legacy": {
+      "adapter": "vscode-go",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/hello-world.go",
+        "mode": "debug",
+        "trace": true
+      },
+      "breakpoints": {
+        "exception": {
+          "unrecovered-panic": ""
         }
       }
     }

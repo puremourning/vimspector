@@ -1,5 +1,19 @@
 {
   "configurations": {
+    "run-delve": {
+      "adapter": "delve",
+      "configuration": {
+        "request": "launch",
+        "mode": "debug", // debug|test
+        "program": "${workspaceRoot}",
+        "dlvCwd": "${workspaceRoot}"
+
+        // "args": [],
+        // "buildFlags": ...
+        // "stackTraceDepth": ...,
+        // "showGlobalVariables": true,
+      }
+    },
     "run-legacy": {
       "adapter": "vscode-go",
       "configuration": {
@@ -8,21 +22,6 @@
         "mode": "debug",
         "trace": true,
         "env": { "GO111MODULE": "off" }
-      }
-    },
-    "run-delve": {
-      "adapter": "delve",
-      "configuration": {
-        "request": "launch",
-        "env": { "GO111MODULE": "off" },
-
-        "mode": "debug", // debug|test
-        "program": "${workspaceRoot}/hello-world.go"
-
-        // "args": [],
-        // "buildFlags": ...
-        // "stackTraceDepth": ...,
-        // "showGlobalVariables": true,
       }
     }
   }

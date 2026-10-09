@@ -1,29 +1,47 @@
 {
-    "configurations": {
-        "run-cmd": {
-            "adapter": "vscode-go",
-            "configuration": {
-                "request": "launch",
-                "program": "${workspaceRoot}/cmd/namestartswithvowel/main.go",
-                "mode": "debug",
-                "dlvToolPath": "$HOME/go/bin/dlv",
-                "dlvLoadConfig": {
-                    "maxArrayValues": 1000,
-                    "maxStringLen": 1000
-                }
-            }
-        },
-        "test-current-file": {
-            "adapter": "vscode-go",
-            "configuration": {
-                "request": "launch",
-                "mode": "test",
-                "program": "${fileDirname}",
-                "cwd": "${fileDirname}",
-                "dlvToolPath": "$GOPATH/bin/dlv",
-                "env": {},
-                "args": []
-            }
+  "configurations": {
+    "Run Main": {
+      "adapter": "delve",
+      "configuration": {
+        "request": "launch",
+        "mode": "debug",
+        "program": "${workspaceRoot}/cmd/namestartswithvowel",
+        "dlvCwd": "${workspaceRoot}"
+      }
+    },
+    "Test Current Package": {
+      "adapter": "delve",
+      "configuration": {
+        "request": "launch",
+        "mode": "test",
+        "program": "${fileDirname}",
+        "dlvCwd": "${fileDirname}"
+      }
+    },
+    "vscode-go-run-cmd": {
+      "adapter": "vscode-go",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/cmd/namestartswithvowel/main.go",
+        "mode": "debug",
+        "dlvToolPath": "$HOME/go/bin/dlv",
+        "dlvLoadConfig": {
+          "maxArrayValues": 1000,
+          "maxStringLen": 1000
         }
+      }
+    },
+    "vscode-go-test-current-file": {
+      "adapter": "vscode-go",
+      "configuration": {
+        "request": "launch",
+        "mode": "test",
+        "program": "${fileDirname}",
+        "cwd": "${fileDirname}",
+        "dlvToolPath": "$GOPATH/bin/dlv",
+        "env": {},
+        "args": []
+      }
     }
+  }
 }

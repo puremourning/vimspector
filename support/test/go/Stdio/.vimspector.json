@@ -1,12 +1,13 @@
 {
   "$schema": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json",
   "configurations": {
-    "Run": {
+    "Run Main": {
       "adapter": "delve",
       "configuration": {
         "request": "launch",
         "mode": "debug",
-        "program": "${workspaceRoot}/cmd/main.go"
+        "program": "${workspaceRoot}/cmd",
+        "dlvCwd": "${workspaceRoot}"
       }
     }
   }
