@@ -51,7 +51,7 @@ GADGETS = {
                                                                 root,
                                                                 gadget ),
     'all': {
-      'version': '1.34.4',
+      'version': '1.29.3',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",
@@ -74,32 +74,32 @@ GADGETS = {
     'linux': {
       'file_name': 'cpptools-linux-x64.vsix',
       'checksum':
-        'a20e25a83228d7854a5623c49f00c33737782bfdde874feff417fe2d9b52c002',
+        '86f205fa618982aadee1638e87cbc923db478cb9bb06ba20984755cad7674184',
     },
     'linux_arm64': {
       'file_name': 'cpptools-linux-arm64.vsix',
       'checksum':
-        '9b69e2e8f9e9b4fbcda4faf342f7562a4b9471ef6106f00f9716d808a8117558',
+        '7453a551e8428b0f256733b1ede37afdee77214707866af3c33567b1078306ad',
     },
     'linux_armv7': {
       'file_name': 'cpptools-linux-arm32.vsix',
       'checksum':
-        '239fea8d96e8fe9bd7ab1179e0a094d3aead792c9fcc3d78ed70fac14412d87e',
+        '7db91fdde794d6e13d608ca58922fa91837301b8536edca540e2e32c90df68ae',
     },
     'macos': {
       'file_name': 'cpptools-macOS-x64.vsix',
       'checksum':
-        '292d4b547f2d75449d8c93f345b682e4d9eb226f7fc272b0a6799f4d98c67c1c',
+        '02be992d129a391357bdcef134baffb172ef3f51c8dc3b94b5ad0df212f8f0d6',
     },
     'macos_arm64': {
       'file_name': 'cpptools-macOS-arm64.vsix',
       'checksum':
-        'ca2360ae4ebeaa74aa013c7de03d78385952b488079c5dcd5e2c0bfc063d62ea',
+        '768b4ea2c6c9bbf6e87ee5931f2f007106d6ce28c3152b551484bb6b73cdedce',
     },
     'windows': {
       'file_name': 'cpptools-windows-x64.vsix',
       'checksum':
-        '6e199cda39c0ad14cce93eb02fb3d95ec5b7661cef7744b1c04f73320c77f96e',
+        '2da32536c180b946b59d94c7269211fd2f7a9e243e854239c7f69d2299c1858a',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",
@@ -124,7 +124,7 @@ GADGETS = {
     'windows_arm64': {
       'file_name': 'cpptools-windows-arm64.vsix',
       'checksum':
-        '5bfc839eaa89f94831869e31cdd546fb61e4f4b807e0f052acbbd7755bad96d6',
+        '4d6fe48036a0841af61429f7a6e85fb4c1d47856ca4d95f08f609136de74a874',
     },
   },
   'debugpy': {
