@@ -133,8 +133,8 @@ GADGETS = {
       'url': 'https://github.com/microsoft/debugpy/archive/${file_name}'
     },
     'all': {
-      'version': '1.8.19',
-      'file_name': 'v1.8.19.zip',
+      'version': '1.8.22',
+      'file_name': 'v1.8.22.zip',
       'checksum':
         # Note: Don't checksum this because GitHub archves are not stable.
         ''
@@ -318,7 +318,7 @@ GADGETS = {
                                                              gadget ),
     'all': {
       'path': 'github.com/go-delve/delve/cmd/dlv',
-      'version': '1.26.0',
+      'version': '1.27.2',
     },
     'adapters': {
       "delve": {
@@ -465,12 +465,12 @@ GADGETS = {
              '${version}/${file_name}',
     },
     'all': {
-      'version': 'v1.12.1',
+      'version': 'v1.12.3',
     },
     'linux': {
       'file_name': 'codelldb-linux-x64.vsix',
       'checksum':
-        '5d3cdacc4c6f338468ddfc129d740fafb9d856358831810df717d05fd309600a',
+        '1cd7f386598022b51a5b93b9ffa23e812b23f519cfe1833384ec4bef4bfd1be1',
       'make_executable': [
         'adapter/codelldb',
         'bin/codelldb-launch',
@@ -482,17 +482,17 @@ GADGETS = {
     'linux_arm64': {
       'file_name': 'codelldb-linux-arm64.vsix',
       'checksum':
-        'eddb73528c8fe843b24e71a15a60a21367c2b001c1b55af91cec2dcf5dc8cf73',
+        '0887f67d440554617894266f80706b700907c36b95e6e49d23b95a0e05318101',
     },
     'linux_armv7': {
       'file_name': 'codelldb-linux-armhf.vsix',
       'checksum':
-        '168ee77e5a602d2449b773967b61272a3de48f44814ac1488e5c05fc974dd6e3',
+        '20294f0ea876a73c662bb09b1814551a859dc77156564b62c75acf1088ecaf30',
     },
     'macos': {
       'file_name': 'codelldb-darwin-x64.vsix',
       'checksum':
-        '667739305c94dc9a453d30d60e2933b9565bb57a5e2f9de6d524086d2592b039',
+        'e25cc716b94c62c07fec268ff2785d2b797245b160502baef8b9c970a0c4d8e8',
       'make_executable': [
         'adapter/codelldb',
         'bin/codelldb-launch',
@@ -504,12 +504,12 @@ GADGETS = {
     'macos_arm64': {
       'file_name': 'codelldb-darwin-arm64.vsix',
       'checksum':
-        '13297074f9eb4d96387a631a3d844e488d24f68b0354b8b91805118456e89695',
+        '2f114a990e1b368dd1dbd33c80c0e719767af2d228391ec0df0571c957f9ac91',
     },
     'windows': {
       'file_name': 'codelldb-win32-x64.vsix',
       'checksum':
-        'b87bcc9851a2e502e2c696d0d3b1c4ca5ce2b421f07fceb350f155f77df050b6',
+        'a916e509308dac817732f63ca604a8b93ed29cd16f38a2fa9f0b64ed58e8f51a',
       'make_executable': []
     },
     'adapters': {
