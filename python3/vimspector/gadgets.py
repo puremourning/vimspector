@@ -51,7 +51,7 @@ GADGETS = {
                                                                 root,
                                                                 gadget ),
     'all': {
-      'version': '1.29.3',
+      'version': '1.34.4',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",
@@ -74,32 +74,32 @@ GADGETS = {
     'linux': {
       'file_name': 'cpptools-linux-x64.vsix',
       'checksum':
-        '86f205fa618982aadee1638e87cbc923db478cb9bb06ba20984755cad7674184',
+        'a20e25a83228d7854a5623c49f00c33737782bfdde874feff417fe2d9b52c002',
     },
     'linux_arm64': {
       'file_name': 'cpptools-linux-arm64.vsix',
       'checksum':
-        '7453a551e8428b0f256733b1ede37afdee77214707866af3c33567b1078306ad',
+        '9b69e2e8f9e9b4fbcda4faf342f7562a4b9471ef6106f00f9716d808a8117558',
     },
     'linux_armv7': {
       'file_name': 'cpptools-linux-arm32.vsix',
       'checksum':
-        '7db91fdde794d6e13d608ca58922fa91837301b8536edca540e2e32c90df68ae',
+        '239fea8d96e8fe9bd7ab1179e0a094d3aead792c9fcc3d78ed70fac14412d87e',
     },
     'macos': {
       'file_name': 'cpptools-macOS-x64.vsix',
       'checksum':
-        '02be992d129a391357bdcef134baffb172ef3f51c8dc3b94b5ad0df212f8f0d6',
+        '292d4b547f2d75449d8c93f345b682e4d9eb226f7fc272b0a6799f4d98c67c1c',
     },
     'macos_arm64': {
       'file_name': 'cpptools-macOS-arm64.vsix',
       'checksum':
-        '768b4ea2c6c9bbf6e87ee5931f2f007106d6ce28c3152b551484bb6b73cdedce',
+        'ca2360ae4ebeaa74aa013c7de03d78385952b488079c5dcd5e2c0bfc063d62ea',
     },
     'windows': {
       'file_name': 'cpptools-windows-x64.vsix',
       'checksum':
-        '2da32536c180b946b59d94c7269211fd2f7a9e243e854239c7f69d2299c1858a',
+        '6e199cda39c0ad14cce93eb02fb3d95ec5b7661cef7744b1c04f73320c77f96e',
       "adapters": {
         "vscode-cpptools": {
           "name": "cppdbg",
@@ -124,7 +124,7 @@ GADGETS = {
     'windows_arm64': {
       'file_name': 'cpptools-windows-arm64.vsix',
       'checksum':
-        '4d6fe48036a0841af61429f7a6e85fb4c1d47856ca4d95f08f609136de74a874',
+        '5bfc839eaa89f94831869e31cdd546fb61e4f4b807e0f052acbbd7755bad96d6',
     },
   },
   'debugpy': {
@@ -133,8 +133,8 @@ GADGETS = {
       'url': 'https://github.com/microsoft/debugpy/archive/${file_name}'
     },
     'all': {
-      'version': '1.8.19',
-      'file_name': 'v1.8.19.zip',
+      'version': '1.8.22',
+      'file_name': 'v1.8.22.zip',
       'checksum':
         # Note: Don't checksum this because GitHub archves are not stable.
         ''
@@ -465,12 +465,12 @@ GADGETS = {
              '${version}/${file_name}',
     },
     'all': {
-      'version': 'v1.12.1',
+      'version': 'v1.12.3',
     },
     'linux': {
       'file_name': 'codelldb-linux-x64.vsix',
       'checksum':
-        '5d3cdacc4c6f338468ddfc129d740fafb9d856358831810df717d05fd309600a',
+        '1cd7f386598022b51a5b93b9ffa23e812b23f519cfe1833384ec4bef4bfd1be1',
       'make_executable': [
         'adapter/codelldb',
         'bin/codelldb-launch',
@@ -482,17 +482,17 @@ GADGETS = {
     'linux_arm64': {
       'file_name': 'codelldb-linux-arm64.vsix',
       'checksum':
-        'eddb73528c8fe843b24e71a15a60a21367c2b001c1b55af91cec2dcf5dc8cf73',
+        '0887f67d440554617894266f80706b700907c36b95e6e49d23b95a0e05318101',
     },
     'linux_armv7': {
       'file_name': 'codelldb-linux-armhf.vsix',
       'checksum':
-        '168ee77e5a602d2449b773967b61272a3de48f44814ac1488e5c05fc974dd6e3',
+        '20294f0ea876a73c662bb09b1814551a859dc77156564b62c75acf1088ecaf30',
     },
     'macos': {
       'file_name': 'codelldb-darwin-x64.vsix',
       'checksum':
-        '667739305c94dc9a453d30d60e2933b9565bb57a5e2f9de6d524086d2592b039',
+        'e25cc716b94c62c07fec268ff2785d2b797245b160502baef8b9c970a0c4d8e8',
       'make_executable': [
         'adapter/codelldb',
         'bin/codelldb-launch',
@@ -504,12 +504,12 @@ GADGETS = {
     'macos_arm64': {
       'file_name': 'codelldb-darwin-arm64.vsix',
       'checksum':
-        '13297074f9eb4d96387a631a3d844e488d24f68b0354b8b91805118456e89695',
+        '2f114a990e1b368dd1dbd33c80c0e719767af2d228391ec0df0571c957f9ac91',
     },
     'windows': {
       'file_name': 'codelldb-win32-x64.vsix',
       'checksum':
-        'b87bcc9851a2e502e2c696d0d3b1c4ca5ce2b421f07fceb350f155f77df050b6',
+        'a916e509308dac817732f63ca604a8b93ed29cd16f38a2fa9f0b64ed58e8f51a',
       'make_executable': []
     },
     'adapters': {
