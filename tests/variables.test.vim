@@ -189,6 +189,131 @@ function! Test_SimpleWatches()
   %bwipe!
 endfunction
 
+function! Test_AddWatchViaPrompt()
+  let fn =  'testdata/cpp/simple/struct.cpp'
+  call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
+        \   configuration: 'run-to-breakpoint'
+        \ } } )
+
+  " Make sure the Test t is initialised
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 26, 1 )
+
+  " Add a watch first
+  call vimspector#AddWatch( 't.i' )
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       'Watches: ----',
+        \       'Expression: t.i',
+        \       ' *- Result: 0',
+        \     ],
+        \     GetBufLine( winbufnr( g:vimspector_session_windows.watches ),
+        \                 1,
+        \                 3 )
+        \   )
+        \ } )
+
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 27, 1 )
+
+  call win_gotoid( g:vimspector_session_windows.watches )
+  call feedkeys( "it.i+1\<CR>", 'xt' )
+
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       'Watches: ----',
+        \       'Expression: t.i',
+        \       '  - Result: 1',
+        \       'Expression: t.i+1',
+        \       ' *- Result: 2',
+        \     ],
+        \     GetBufLine( winbufnr( g:vimspector_session_windows.watches ),
+        \                 1,
+        \                 5 )
+        \   )
+        \ } )
+  
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 28, 1 )
+  
+  " Test the case that the cursor is in other places
+  call win_gotoid( g:vimspector_session_windows.watches )
+  call setpos( '.', [ 0, 2, 3 ] )
+  call feedkeys( "it.c,x\<CR>", 'xt' )
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       'Watches: ----',
+        \       'Expression: t.i',
+        \       '  - Result: 1',
+        \       'Expression: t.i+1',
+        \       '  - Result: 2',
+        \       'Expression: t.c,x',
+        \       ' *- Result: 0x63',
+        \     ],
+        \     GetBufLine( winbufnr( g:vimspector_session_windows.watches ),
+        \                 1,
+        \                 7 )
+        \   )
+        \ } )
+  
+  " Delete a watch expression
+  call win_gotoid( g:vimspector_session_windows.watches )
+  call setpos( '.', [ 0, 5, 1 ] )
+  call feedkeys( "\<Del>", 'xt' )
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       'Watches: ----',
+        \       'Expression: t.i',
+        \       '  - Result: 1',
+        \       'Expression: t.c,x',
+        \       ' *- Result: 0x63',
+        \     ],
+        \     GetBufLine( winbufnr( g:vimspector_session_windows.watches ),
+        \                 1,
+        \                 5 )
+        \   )
+        \ } )
+
+  " Delete all and test again
+  call win_gotoid( g:vimspector_session_windows.watches )
+  call setpos( '.', [ 0, 3, 1 ] )
+  call feedkeys( "\<Del>", 'xt' )
+  call setpos( '.', [ 0, 3, 1 ] )
+  call feedkeys( "\<Del>", 'xt' )
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       'Watches: ----',
+        \     ],
+        \     GetBufLine( winbufnr( g:vimspector_session_windows.watches ),
+        \                 1,
+        \                 1 )
+        \   )
+        \ } )
+  call win_gotoid( g:vimspector_session_windows.watches )
+  call feedkeys( "it.i\<CR>", 'xt' )
+
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       'Watches: ----',
+        \       'Expression: t.i',
+        \       ' *- Result: 1',
+        \     ],
+        \     GetBufLine( winbufnr( g:vimspector_session_windows.watches ),
+        \                 1,
+        \                 3 )
+        \   )
+        \ } )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
 function! Test_ExpandVariables()
   call SkipNeovim()
   let fn =  'testdata/cpp/simple/struct.cpp'
@@ -528,6 +653,49 @@ function Test_EvaluateConsole()
         \ } )
   call vimspector#test#signs#AssertCursorIsAtLineInBuffer(
         \ ConsoleBufferName(), len, v:null )
+
+  call vimspector#test#setup#Reset()
+  %bwipe!
+endfunction
+
+
+function Test_EvaluateConsoleViaPrompt()
+  let fn =  'testdata/cpp/simple/struct.cpp'
+  call s:StartDebugging( #{ fn: fn, line: 24, col: 1, launch: #{
+        \   configuration: 'run-to-breakpoint'
+        \ } } )
+
+  " Make sure the Test t is initialised
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 26, 1 )
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 27, 1 )
+
+  let winid = win_findbuf( bufnr( ConsoleBufferName() ) )[0]
+  call win_gotoid( winid )
+  call feedkeys( "it.i\<CR>", 'xt' )
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       '1'
+        \     ],
+        \     getbufline( bufnr( ConsoleBufferName() ), '$', '$' )
+        \   )
+        \ } )
+  
+  call vimspector#StepOver()
+  call vimspector#test#signs#AssertCursorIsAtLineInBuffer( fn, 28, 1 )
+
+  call win_gotoid( winid )
+  call feedkeys( "it.c,x\<CR>", 'xt' )
+  call WaitForAssert( {->
+        \   assert_equal(
+        \     [
+        \       '0x63'
+        \     ],
+        \     getbufline( bufnr( ConsoleBufferName() ), '$', '$' )
+        \   )
+        \ } )
 
   call vimspector#test#setup#Reset()
   %bwipe!

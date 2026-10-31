@@ -479,15 +479,40 @@ def Confirm( api_prefix,
         keys )
 
 
+def IsPromptBufferWithEditableLastLine( buf ):
+  # Neovim 0.12 changed prompt buffers: the prompt (input) line is now part of
+  # the buffer's line list (it is the last line). Output must therefore be
+  # inserted above that line, and the line itself must be preserved when the
+  # output is cleared. prompt_appendbuf() is available in these versions.
+  try:
+    return ( buf.options[ 'buftype' ] == 'prompt'
+             and bool( Exists( '*prompt_appendbuf' ) ) )
+  except Exception:
+    return False
+
+
 def AppendToBuffer( buf,
                     line_or_lines,
                     modified=False,
                     hl = None ):
   line = 1
+  end_line = None
+  end_col = None
   try:
+    if IsPromptBufferWithEditableLastLine( buf ):
+      # The last line is the prompt. Insert output above it, not replacing it.
+      if isinstance( line_or_lines, str ):
+        lines = line_or_lines.split( '\n' )
+      else:
+        lines = list( line_or_lines )
+
+      line = max( len( buf ), 1 )
+      end_line = line + max( len( lines ) - 1, 0 )
+      end_col = len( lines[ -1 ] ) if lines else 0
+      Call( 'append', len( buf ) - 1, lines )
     # After clearing the buffer (using buf[:] = None) there is always a single
     # empty line in the buffer object and no "is empty" method.
-    if len( buf ) > 1 or buf[ 0 ]:
+    elif len( buf ) > 1 or buf[ 0 ]:
       line = len( buf ) + 1
       buf.append( line_or_lines )
 
@@ -507,12 +532,16 @@ def AppendToBuffer( buf,
       buf.options[ 'modified' ] = False
 
   if len( buf ) > 0:
+    if end_line is None:
+      end_line = len( buf )
+      end_col = len( buf[ -1 ] )
+
     HighlightTextSection( buf,
                           hl = hl,
                           start_line = line,
                           start_col = 1,
-                          end_line = len( buf ),
-                          end_col = len( buf[ -1 ] ) )
+                          end_line = end_line,
+                          end_col = end_col )
 
   # Return the first Vim line number (1-based) that we just set.
   return line
@@ -520,7 +549,11 @@ def AppendToBuffer( buf,
 
 def ClearBuffer( buf, modified = False ):
   ClearTextPropertiesForBuffer( buf )
-  buf[ : ] = None
+  if IsPromptBufferWithEditableLastLine( buf ) and len( buf ) > 1:
+    # Keep the prompt line, otherwise the prompt state gets corrupted
+    Call( 'deletebufline', buf.number, 1, len( buf ) - 1 )
+  else:
+    buf[ : ] = None
   if not modified:
     buf.options[ 'modified' ] = False
 
